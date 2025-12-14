@@ -24,15 +24,15 @@ export default function CoursesPage() {
               <button className="px-6 py-2 bg-blue-700 rounded-full hover:bg-blue-600 transition-colors">
                 All Courses
               </button>
-              <button className="px-6 py-2 bg-blue-800/50 rounded-full hover:bg-blue-700 transition-colors">
+              <Link href="/courses/beginner" className="px-6 py-2 bg-blue-800/50 rounded-full hover:bg-blue-700 transition-colors">
                 Beginner
-              </button>
-              <button className="px-6 py-2 bg-blue-800/50 rounded-full hover:bg-blue-700 transition-colors">
+              </Link>
+              <Link href="/courses/intermediate" className="px-6 py-2 bg-blue-800/50 rounded-full hover:bg-blue-700 transition-colors">
                 Intermediate
-              </button>
-              <button className="px-6 py-2 bg-blue-800/50 rounded-full hover:bg-blue-700 transition-colors">
+              </Link>
+              <Link href="/courses/advanced" className="px-6 py-2 bg-blue-800/50 rounded-full hover:bg-blue-700 transition-colors">
                 Advanced
-              </button>
+              </Link>
             </div>
           </div>
         </div>
