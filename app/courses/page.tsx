@@ -1,5 +1,13 @@
 import Link from 'next/link';
 import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
+import { GumroadProductKey } from '@/lib/gumroad-products';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Professional Training Courses | MC2 Estimating Academy',
+  description: 'Learn construction estimating with professional courses. Master Bluebeam, AutoCAD, roofing takeoffs, and more. Video training with lifetime access.',
+  keywords: 'estimating courses, Bluebeam training, construction estimating course, roofing estimator training, takeoff training',
+};
 
 export default function CoursesPage() {
   return (
@@ -621,7 +629,7 @@ interface CourseCardProps {
   whatYoullLearn: string[];
   includes: string[];
   href: string;
-  productKey?: string;
+  productKey?: GumroadProductKey;
   featured?: boolean;
 }
 
@@ -675,7 +683,7 @@ function CourseCard({ title, price, level, duration, icon, whatYoullLearn, inclu
         {/* CTA Button */}
         {productKey ? (
           <GumroadCheckoutButton
-            productKey={productKey as any}
+            productKey={productKey}
             text="Enroll Now"
             variant="primary"
             className="w-full"

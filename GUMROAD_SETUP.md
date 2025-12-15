@@ -10,7 +10,6 @@ The site uses Gumroad for payment processing and digital product delivery. The i
 
 1. **`components/GumroadCheckoutButton.tsx`** - Main checkout button component
 2. **`lib/gumroad-products.ts`** - Product ID configuration
-3. **`components/GumroadButton.tsx`** - Basic Gumroad button (alternative)
 
 ## Setup Steps
 
