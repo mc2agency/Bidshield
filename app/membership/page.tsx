@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 
 export default function MembershipPage() {
   const [showStickyButton, setShowStickyButton] = useState(false);
@@ -48,12 +49,18 @@ export default function MembershipPage() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <button className="flex-1 px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg shadow-lg">
-                  Start 7-Day Free Trial
-                </button>
-                <button className="flex-1 px-8 py-4 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition-colors text-lg">
-                  Pay Annually - Save $394
-                </button>
+                <GumroadCheckoutButton
+                  productKey="mc2ProMonthly"
+                  text="Start 7-Day Free Trial"
+                  variant="primary"
+                  className="flex-1 text-lg shadow-lg"
+                />
+                <GumroadCheckoutButton
+                  productKey="mc2ProYearly"
+                  text="Pay Annually - Save $394"
+                  variant="secondary"
+                  className="flex-1 text-lg"
+                />
               </div>
               <p className="text-sm text-gray-500 text-center">
                 Then $197/month • Cancel anytime • 30-day money-back guarantee
@@ -308,9 +315,12 @@ export default function MembershipPage() {
                 <ComparisonItem included={true} text="Priority support" light={true} />
                 <ComparisonItem included={true} text="Certificate programs" light={true} />
               </ul>
-              <button className="w-full px-6 py-4 bg-white text-blue-600 rounded-lg font-bold hover:bg-blue-50 transition-colors text-lg shadow-lg">
-                Start Free Trial
-              </button>
+              <GumroadCheckoutButton
+                productKey="mc2ProMonthly"
+                text="Start Free Trial"
+                variant="secondary"
+                className="w-full text-lg shadow-lg"
+              />
               <p className="mt-4 text-xs text-center text-blue-100">
                 Cancel anytime • 30-day guarantee
               </p>
@@ -480,12 +490,18 @@ export default function MembershipPage() {
             Join hundreds of contractors who are estimating faster, winning more bids, and growing their businesses with MC2 Pro.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <button className="px-8 py-4 bg-white text-blue-900 rounded-lg font-bold hover:bg-blue-50 transition-colors text-lg shadow-lg">
-              Start 7-Day Free Trial
-            </button>
-            <button className="px-8 py-4 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-lg border-2 border-blue-600">
-              Pay Annually - Save $394
-            </button>
+            <GumroadCheckoutButton
+              productKey="mc2ProMonthly"
+              text="Start 7-Day Free Trial"
+              variant="large"
+              className="shadow-lg"
+            />
+            <GumroadCheckoutButton
+              productKey="mc2ProYearly"
+              text="Pay Annually - Save $394"
+              variant="outline"
+              className="text-lg"
+            />
           </div>
           <p className="text-sm text-blue-200">
             First month $97 (then $197/mo) • Cancel anytime • 30-day money-back guarantee
@@ -503,9 +519,12 @@ export default function MembershipPage() {
                 First month $97, then $197/month • Cancel anytime
               </div>
             </div>
-            <button className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg">
-              Start Free Trial
-            </button>
+            <GumroadCheckoutButton
+              productKey="mc2ProMonthly"
+              text="Start Free Trial"
+              variant="primary"
+              className="w-full sm:w-auto shadow-lg"
+            />
           </div>
         </div>
       )}
