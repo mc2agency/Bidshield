@@ -18,6 +18,7 @@ export const GUMROAD_PRODUCTS = {
   metalRoofing: 'mc2-metal-roofing',
   tileRoofing: 'mc2-tile-roofing',
   sprayFoam: 'mc2-spray-foam',
+  restorationCoating: 'mc2-restoration-coating',
   greenRoof: 'mc2-green-roof',
   sbsTemplate: 'mc2-sbs-modified',
 

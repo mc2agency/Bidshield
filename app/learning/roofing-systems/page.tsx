@@ -7,15 +7,15 @@ const roofingSystems = [
     id: 'asphalt-shingle',
     title: 'Asphalt Shingle',
     description: 'Most common residential roofing. 3-tab and architectural shingles.',
-    href: '/learning/roofing-systems/asphalt-shingle',
+    href: '/learning/roofing-systems/shingle',
     icon: '🏠',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'single-ply',
     title: 'TPO/PVC/EPDM',
     description: 'Single-ply membrane systems for commercial flat roofs.',
-    href: '/learning/roofing-systems/single-ply',
+    href: '/learning/roofing-systems/tpo-pvc-epdm',
     icon: '🏢',
     comingSoon: false
   },
@@ -23,9 +23,9 @@ const roofingSystems = [
     id: 'modified-bitumen',
     title: 'SBS Modified Bitumen',
     description: 'Torch-applied and self-adhered modified bitumen systems.',
-    href: '/learning/roofing-systems/modified-bitumen',
+    href: '/learning/roofing-systems/sbs',
     icon: '🔥',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'metal',
@@ -41,7 +41,7 @@ const roofingSystems = [
     description: 'Clay and concrete tile roofing for residential and commercial.',
     href: '/learning/roofing-systems/tile',
     icon: '🏛️',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'green-roof',
@@ -49,15 +49,23 @@ const roofingSystems = [
     description: 'Vegetated roof systems with multiple layers and drainage.',
     href: '/learning/roofing-systems/green-roof',
     icon: '🌱',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'restoration',
     title: 'Restoration/Coating',
     description: 'Roof coatings, restoration, and maintenance systems.',
-    href: '/learning/roofing-systems/restoration',
+    href: '/learning/roofing-systems/restoration-coating',
     icon: '🔧',
-    comingSoon: true
+    comingSoon: false
+  },
+  {
+    id: 'spray-foam',
+    title: 'Spray Foam Insulation',
+    description: 'Spray polyurethane foam roofing and insulation systems.',
+    href: '/learning/roofing-systems/spray-foam',
+    icon: '🧪',
+    comingSoon: false
   }
 ];
 
