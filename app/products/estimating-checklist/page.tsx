@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Complete Estimating Checklist | MC2 Estimating',
+  description: 'Never miss a cost item again. Comprehensive step-by-step checklist for roofing estimators covering materials, labor, equipment, and general conditions.',
+  keywords: 'estimating checklist, roofing estimate checklist, construction estimating checklist, contractor checklist',
+};
 
 export default function EstimatingChecklistPage() {
   return (

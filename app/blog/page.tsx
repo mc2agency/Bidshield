@@ -80,10 +80,10 @@ export default function BlogPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">MC2 Estimating Blog</h1>
-          <p className="text-xl text-blue-100 max-w-3xl">
+          <p className="text-xl text-slate-300 max-w-3xl">
             Expert guides, tutorials, and industry insights for construction estimators and roofing contractors.
           </p>
         </div>

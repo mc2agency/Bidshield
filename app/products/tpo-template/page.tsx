@@ -1,5 +1,12 @@
 import Link from 'next/link';
 import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'TPO/PVC/EPDM Estimating Template | MC2 Estimating',
+  description: 'Professional Excel template for single-ply membrane roofing estimates. Calculate materials, labor, and costs for TPO, PVC, and EPDM commercial roof projects. Instant download.',
+  keywords: 'TPO template, EPDM estimating, PVC roofing template, single-ply membrane template, commercial roofing estimate',
+};
 
 export default function TPOTemplatePage() {
   return (
