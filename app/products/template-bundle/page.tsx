@@ -1,5 +1,12 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Complete Template Bundle | MC2 Estimating Academy',
+  description: 'Get all 5 roofing system templates, estimating checklist, and proposal library for $129. Save $200 with the complete bundle. Instant download.',
+  keywords: 'roofing template bundle, estimating templates, roofing estimate excel, contractor templates',
+};
 
 export default function TemplateBundlePage() {
   return (
@@ -29,12 +36,12 @@ export default function TemplateBundlePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <a
-                  href="#"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-900 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg shadow-lg"
-                >
-                  Buy Template Bundle - $129 →
-                </a>
+                <GumroadCheckoutButton
+                  productKey="templateBundle"
+                  text="Buy Template Bundle - $129"
+                  variant="large"
+                  className="shadow-lg"
+                />
                 <a
                   href="#whats-included"
                   className="inline-flex items-center justify-center px-8 py-4 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-lg border-2 border-blue-600"
@@ -734,12 +741,12 @@ export default function TemplateBundlePage() {
             </div>
             <p className="text-blue-100 mb-6">One-time payment • Lifetime access • All future updates included</p>
 
-            <a
-              href="#"
-              className="inline-block px-12 py-5 bg-white text-blue-900 rounded-lg font-bold hover:bg-blue-50 transition-colors text-xl shadow-2xl"
-            >
-              Buy Complete Template Bundle - $129 →
-            </a>
+            <GumroadCheckoutButton
+              productKey="templateBundle"
+              text="Buy Complete Template Bundle - $129"
+              variant="large"
+              className="shadow-2xl text-xl"
+            />
 
             <p className="mt-6 text-sm text-blue-200">
               30-Day Money-Back Guarantee • Instant Download

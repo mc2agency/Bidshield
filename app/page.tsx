@@ -158,7 +158,7 @@ export default function Home() {
             <LearningBlock
               title="Bluebeam Mastery"
               description="Digital takeoff using industry-standard Bluebeam Revu. Measure faster and more accurately."
-              href="/courses/bluebeam"
+              href="/courses/bluebeam-mastery"
               icon="⚡"
             />
             <LearningBlock
@@ -176,7 +176,7 @@ export default function Home() {
             <LearningBlock
               title="Submittals & Shop Drawings"
               description="Create submittals, shop drawings, and project documentation using AutoCAD and SketchUp."
-              href="/courses/submittals"
+              href="/courses/construction-submittals"
               icon="📊"
             />
             <LearningBlock

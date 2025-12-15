@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Us | MC2 Estimating Academy',
+  description: 'Learn about MC2 Estimating Academy - the premier training platform for roofing and construction estimators. Our mission, story, and expertise.',
+  keywords: 'about MC2, estimating training, roofing education, construction estimator training',
+};
 
 export default function AboutPage() {
   return (

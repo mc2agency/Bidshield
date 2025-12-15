@@ -1,5 +1,13 @@
 import Link from 'next/link';
 import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
+import { GumroadProductKey } from '@/lib/gumroad-products';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Products & Templates | MC2 Estimating Academy',
+  description: 'Professional roofing estimating templates, checklists, and business guides. Excel templates for asphalt shingle, TPO, metal, tile, and spray foam roofing systems.',
+  keywords: 'roofing templates, estimating checklist, proposal templates, roofing estimate template, construction templates',
+};
 
 export default function ProductsPage() {
   return (
@@ -532,7 +540,7 @@ function ProductCard({
   price: string;
   description: string;
   features: string[];
-  productKey?: string;
+  productKey?: GumroadProductKey;
 }) {
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-blue-500 flex flex-col">
@@ -554,7 +562,7 @@ function ProductCard({
       </div>
 
       <GumroadCheckoutButton
-        productKey={productKey as any}
+        productKey={productKey}
         text="Buy Now"
         variant="primary"
         className="w-full"
@@ -581,7 +589,7 @@ function BundleCard({
   description: string;
   features: string[];
   highlighted: boolean;
-  productKey?: string;
+  productKey?: GumroadProductKey;
 }) {
   return (
     <div className={`bg-white rounded-xl shadow-lg p-8 border-2 ${
@@ -614,9 +622,9 @@ function BundleCard({
       </ul>
 
       <GumroadCheckoutButton
-        productKey={productKey as any}
+        productKey={productKey}
         text={`Get ${title}`}
-        variant={highlighted ? 'primary' : 'primary'}
+        variant="primary"
         className="w-full"
       />
     </div>

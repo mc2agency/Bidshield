@@ -29,7 +29,7 @@ export default function Footer() {
             <h3 className="font-semibold text-white mb-4">Learning</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/courses/estimating-fundamentals" className="hover:text-white">Estimating Fundamentals</Link></li>
-              <li><Link href="/courses/bluebeam" className="hover:text-white">Bluebeam Mastery</Link></li>
+              <li><Link href="/courses/bluebeam-mastery" className="hover:text-white">Bluebeam Mastery</Link></li>
               <li><Link href="/learning/roofing-systems" className="hover:text-white">Roofing Systems</Link></li>
               <li><Link href="/blog" className="hover:text-white">Blog</Link></li>
             </ul>
