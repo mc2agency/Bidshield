@@ -4,48 +4,74 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
+      <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+        {/* Animated gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse-glow" />
+          <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: '4s' }} />
+        </div>
+
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
           <div className="text-center">
-            <div className="inline-block mb-4 px-4 py-2 bg-blue-700/50 rounded-full text-sm font-semibold">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium text-slate-300 border border-white/10 mb-8">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
               Professional Construction Estimating Training
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
+
+            {/* Heading with gradient */}
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
               Master Roofing Estimation
               <br />
-              <span className="text-blue-300">From Takeoff to Profit</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
+                From Takeoff to Profit
+              </span>
             </h1>
-            <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+
+            <p className="text-xl sm:text-2xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
               Learn professional estimating skills that take 5 years on the job in just 30 days.
               Templates, courses, and tools used by top contractors.
             </p>
+
+            {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/courses"
-                className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-900 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg"
+                className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
               >
-                Browse Courses →
+                Browse Courses
+                <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
               </Link>
               <Link
                 href="/products"
-                className="inline-flex items-center justify-center px-8 py-4 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-lg border-2 border-blue-600"
+                className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300"
               >
                 View Templates
               </Link>
             </div>
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 text-sm max-w-2xl mx-auto">
-              <div>
-                <div className="text-2xl font-bold">2,500+</div>
-                <div className="text-blue-200">Students</div>
+
+            {/* Stats */}
+            <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+              <div className="group">
+                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">2,500+</div>
+                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Students Trained</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold">4.9/5</div>
-                <div className="text-blue-200">Rating</div>
+              <div className="group">
+                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">4.9/5</div>
+                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Average Rating</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold">100%</div>
-                <div className="text-blue-200">Verified</div>
+              <div className="group">
+                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">100%</div>
+                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Satisfaction</div>
               </div>
             </div>
           </div>
@@ -53,84 +79,96 @@ export default function Home() {
       </section>
 
       {/* Problem/Solution */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Tired of Spending 3 Hours on Every Estimate?
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6 leading-tight">
+                Tired of Spending 3 Hours on{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600">
+                  Every Estimate?
+                </span>
               </h2>
-              <p className="text-lg text-gray-600 mb-6">
+              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
                 Most contractors waste hours calculating materials, forgetting cost items, and losing money on inaccurate estimates.
-                There's a better way.
+                There&apos;s a better way.
               </p>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 text-white text-sm">✓</span>
-                  <span className="text-gray-700">Reduce estimate time from 3 hours to 10 minutes</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 text-white text-sm">✓</span>
-                  <span className="text-gray-700">Never forget labor burden or general conditions again</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 text-white text-sm">✓</span>
-                  <span className="text-gray-700">Professional proposals that win more bids</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 text-white text-sm">✓</span>
-                  <span className="text-gray-700">Learn to read plans like a seasoned estimator</span>
-                </li>
+              <ul className="space-y-5">
+                {[
+                  'Reduce estimate time from 3 hours to 10 minutes',
+                  'Never forget labor burden or general conditions again',
+                  'Professional proposals that win more bids',
+                  'Learn to read plans like a seasoned estimator',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-4 group">
+                    <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mt-0.5 text-white text-sm shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                      ✓
+                    </span>
+                    <span className="text-slate-700 group-hover:text-slate-900 transition-colors">{item}</span>
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-blue-500">
-              <div className="text-center mb-6">
-                <div className="text-sm text-gray-500 mb-2">Starting at</div>
-                <div className="text-5xl font-bold text-blue-600 mb-2">$129</div>
-                <div className="text-gray-600">One-time payment</div>
+
+            {/* Pricing Card */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl blur-xl opacity-20" />
+              <div className="relative bg-white p-8 sm:p-10 rounded-2xl shadow-2xl border border-slate-200">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-full shadow-lg">
+                    Most Popular
+                  </span>
+                </div>
+                <div className="text-center mb-8 pt-4">
+                  <div className="text-sm text-slate-500 mb-2">Starting at</div>
+                  <div className="text-5xl font-bold text-slate-900 mb-2">
+                    $129
+                  </div>
+                  <div className="text-slate-600">One-time payment</div>
+                </div>
+                <h3 className="text-xl font-bold mb-6 text-center text-slate-900">Complete Template Bundle</h3>
+                <ul className="space-y-4 mb-8">
+                  {[
+                    'All 5 Roofing System Templates',
+                    'Complete Estimating Checklist',
+                    'Professional Proposal Templates',
+                    'Lifetime Updates',
+                    '30-Day Money-Back Guarantee',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-slate-700">
+                      <span className="text-emerald-500 font-bold">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/products/template-bundle"
+                  className="block w-full text-center px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300"
+                >
+                  Get Started Now
+                </Link>
               </div>
-              <h3 className="text-xl font-bold mb-4 text-center">Complete Template Bundle</h3>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-center gap-2 text-gray-700">
-                  <span className="text-green-500">✓</span> All 5 Roofing System Templates
-                </li>
-                <li className="flex items-center gap-2 text-gray-700">
-                  <span className="text-green-500">✓</span> Complete Estimating Checklist
-                </li>
-                <li className="flex items-center gap-2 text-gray-700">
-                  <span className="text-green-500">✓</span> Professional Proposal Templates
-                </li>
-                <li className="flex items-center gap-2 text-gray-700">
-                  <span className="text-green-500">✓</span> Lifetime Updates
-                </li>
-                <li className="flex items-center gap-2 text-gray-700">
-                  <span className="text-green-500">✓</span> 30-Day Money-Back Guarantee
-                </li>
-              </ul>
-              <Link
-                href="/products/template-bundle"
-                className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Get Started Now
-              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* Learning Blocks */}
-      <section className="py-20">
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Complete Business System for Contractors
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+              Complete Business System for{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600">
+                Contractors
+              </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               From finding leads to executing projects, we cover everything you need to build a professional contracting business.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <LearningBlock
               title="Finding Work"
               description="Learn where to find high-quality leads: BuildingConnected, Dodge Reports, and more."
@@ -190,29 +228,41 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ready to Transform Your Estimating?
+      <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
+            Ready to Transform Your{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+              Estimating?
+            </span>
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
             Get instant access to professional templates, courses, and tools. Start saving time and making accurate estimates today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/products"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-900 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg"
+              className="group inline-flex items-center justify-center px-8 py-4 bg-white text-slate-900 rounded-xl font-semibold text-lg hover:bg-slate-100 hover:scale-105 transition-all duration-300 shadow-lg"
             >
-              View All Products →
+              View All Products
+              <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </Link>
             <Link
               href="/membership"
-              className="inline-flex items-center justify-center px-8 py-4 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-lg border-2 border-blue-600"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
             >
               Join MC2 Pro - $197/mo
             </Link>
           </div>
-          <p className="mt-6 text-sm text-blue-200">
+          <p className="mt-8 text-sm text-slate-400">
             30-day money-back guarantee • Instant access • Lifetime updates
           </p>
         </div>
@@ -225,13 +275,21 @@ function LearningBlock({ title, description, href, icon }: { title: string; desc
   return (
     <Link
       href={href}
-      className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-blue-500"
+      className="group relative bg-white rounded-2xl p-6 border border-slate-200 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-1"
     >
-      <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{description}</p>
-      <div className="text-blue-600 font-semibold group-hover:translate-x-1 transition-transform inline-block">
-        Learn More →
+      {/* Hover glow effect */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/5 to-teal-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="relative">
+        <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{icon}</div>
+        <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">{title}</h3>
+        <p className="text-slate-600 mb-4 text-sm leading-relaxed">{description}</p>
+        <div className="inline-flex items-center gap-2 text-emerald-600 font-semibold">
+          Learn More
+          <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </div>
       </div>
     </Link>
   );
