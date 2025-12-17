@@ -7,7 +7,13 @@ import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const ticking = useRef(false);
+
+  // Track when we're on the client (after hydration)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const updateScrollState = useCallback(() => {
     setScrolled(window.scrollY > 10);
@@ -66,32 +72,45 @@ export default function Navigation() {
               </Link>
             ))}
 
-            <SignedOut>
+            {/* Only render Clerk components after hydration when ClerkProvider is available */}
+            {isClient ? (
+              <>
+                <SignedOut>
+                  <Link
+                    href="/sign-in"
+                    className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/membership"
+                    className="ml-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
+                  >
+                    Join MC2 Pro
+                  </Link>
+                </SignedOut>
+
+                <SignedIn>
+                  <Link
+                    href="/dashboard"
+                    className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <div className="ml-4">
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                </SignedIn>
+              </>
+            ) : (
+              /* SSR fallback - show sign in link */
               <Link
                 href="/sign-in"
                 className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
               >
                 Sign In
               </Link>
-              <Link
-                href="/membership"
-                className="ml-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
-              >
-                Join MC2 Pro
-              </Link>
-            </SignedOut>
-
-            <SignedIn>
-              <Link
-                href="/dashboard"
-                className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
-              >
-                Dashboard
-              </Link>
-              <div className="ml-4">
-                <UserButton afterSignOutUrl="/" />
-              </div>
-            </SignedIn>
+            )}
           </div>
 
           {/* Mobile menu button */}
