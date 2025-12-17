@@ -1,16 +1,29 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const getOrCreateUser = useMutation(api.users.getOrCreateUser);
   const userData = useQuery(
     api.users.getCurrentUser,
     user ? { clerkId: user.id } : "skip"
   );
+
+  // Create user in Convex when they first sign in
+  useEffect(() => {
+    if (user && !userData) {
+      getOrCreateUser({
+        email: user.emailAddresses[0].emailAddress,
+        name: user.fullName || user.emailAddresses[0].emailAddress,
+        clerkId: user.id,
+      });
+    }
+  }, [user, userData, getOrCreateUser]);
 
   if (!user) {
     return (
