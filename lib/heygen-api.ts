@@ -1,8 +1,15 @@
 // HeyGen API Integration for MC2 Estimating
 // Documentation: https://docs.heygen.com/reference/api-overview
 
-const HEYGEN_API_KEY = process.env.HEYGEN_API_KEY;
 const HEYGEN_API_URL = 'https://api.heygen.com/v2';
+
+function getApiKey(): string {
+  const key = process.env.HEYGEN_API_KEY;
+  if (!key) {
+    throw new Error('HEYGEN_API_KEY environment variable is not set');
+  }
+  return key;
+}
 
 export interface HeyGenVideoRequest {
   script: string;
@@ -31,7 +38,7 @@ export async function generateVideo(
     const response = await fetch(`${HEYGEN_API_URL}/video/generate`, {
       method: 'POST',
       headers: {
-        'X-Api-Key': HEYGEN_API_KEY!,
+        'X-Api-Key': getApiKey(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -85,7 +92,7 @@ export async function getVideoStatus(
     const response = await fetch(`${HEYGEN_API_URL}/video/${videoId}`, {
       method: 'GET',
       headers: {
-        'X-Api-Key': HEYGEN_API_KEY!,
+        'X-Api-Key': getApiKey(),
       },
     });
 
@@ -116,7 +123,7 @@ export async function listAvatars() {
     const response = await fetch(`${HEYGEN_API_URL}/avatars`, {
       method: 'GET',
       headers: {
-        'X-Api-Key': HEYGEN_API_KEY!,
+        'X-Api-Key': getApiKey(),
       },
     });
 
@@ -141,7 +148,7 @@ export async function listVoices() {
     const response = await fetch(`${HEYGEN_API_URL}/voices`, {
       method: 'GET',
       headers: {
-        'X-Api-Key': HEYGEN_API_KEY!,
+        'X-Api-Key': getApiKey(),
       },
     });
 
