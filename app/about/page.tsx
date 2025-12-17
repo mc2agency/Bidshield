@@ -9,15 +9,21 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <main className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-20">
-        <div className="container mx-auto px-6">
+      <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              About MC2 Estimating Academy
+            <div className="inline-block mb-4 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full text-sm font-semibold">
+              About Us
+            </div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
+              About MC2 Estimating
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Academy</span>
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100">
+            <p className="text-xl sm:text-2xl text-slate-300 max-w-3xl mx-auto">
               The premier online training platform for roofing and restoration estimators.
               From finding leads to winning bids to executing projects - we teach the complete system.
             </p>
@@ -26,17 +32,17 @@ export default function AboutPage() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-6">
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Our Mission</h2>
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-8 mb-8">
-              <p className="text-xl text-gray-800 leading-relaxed mb-6">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-12 text-center text-slate-900">Our Mission</h2>
+            <div className="bg-white border-2 border-slate-200 rounded-2xl p-8 md:p-12 shadow-xl">
+              <p className="text-xl text-slate-800 leading-relaxed mb-6">
                 To empower construction professionals with the skills, tools, and knowledge needed to excel
                 in roofing and restoration estimating - building profitable businesses through accurate
                 estimates, winning proposals, and professional project execution.
               </p>
-              <p className="text-lg text-gray-700">
+              <p className="text-lg text-slate-600">
                 We believe that estimating is both an art and a science. It requires technical knowledge,
                 business acumen, and the right technology. MC2 Estimating Academy provides all three.
               </p>
