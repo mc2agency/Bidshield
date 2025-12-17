@@ -35,6 +35,38 @@ export const getOrCreateUser = mutation({
       lastLoginAt: Date.now(),
     });
 
+    // Check for existing purchases with this email and link them
+    const orphanedPurchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .collect();
+
+    if (orphanedPurchases.length > 0) {
+      let courses: string[] = [];
+      let products: string[] = [];
+      let hasMembership = false;
+
+      // Link all purchases to this user
+      for (const purchase of orphanedPurchases) {
+        await ctx.db.patch(purchase._id, { userId });
+
+        if (purchase.productType === "course") {
+          courses.push(purchase.productId);
+        } else if (purchase.productType === "product") {
+          products.push(purchase.productId);
+        } else if (purchase.productType === "membership") {
+          hasMembership = true;
+        }
+      }
+
+      // Update user with purchased items
+      await ctx.db.patch(userId, {
+        purchasedCourses: [...new Set(courses)],
+        purchasedProducts: [...new Set(products)],
+        membershipLevel: hasMembership ? "pro" : "free",
+      });
+    }
+
     return userId;
   },
 });

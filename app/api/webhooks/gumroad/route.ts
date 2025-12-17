@@ -1,0 +1,134 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { api } from '@/convex/_generated/api';
+import { ConvexHttpClient } from 'convex/browser';
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+// Product mapping: Gumroad product IDs to your internal course/product IDs
+const PRODUCT_MAPPING: Record<string, { type: 'course' | 'product' | 'membership'; id: string }> = {
+  // Courses
+  'bluebeam-mastery': { type: 'course', id: 'bluebeam-mastery' },
+  'estimating-fundamentals': { type: 'course', id: 'estimating-fundamentals' },
+  'measurement-technology': { type: 'course', id: 'measurement-technology' },
+  'construction-submittals': { type: 'course', id: 'construction-submittals' },
+  'autocad-submittals': { type: 'course', id: 'autocad-submittals' },
+  'estimating-software': { type: 'course', id: 'estimating-software' },
+  'sketchup-visualization': { type: 'course', id: 'sketchup-visualization' },
+
+  // Products
+  'tpo-template': { type: 'product', id: 'tpo-template' },
+  'asphalt-shingle-template': { type: 'product', id: 'asphalt-shingle-template' },
+  'metal-roofing-template': { type: 'product', id: 'metal-roofing-template' },
+  'tile-roofing-template': { type: 'product', id: 'tile-roofing-template' },
+  'spray-foam-template': { type: 'product', id: 'spray-foam-template' },
+  'estimating-checklist': { type: 'product', id: 'estimating-checklist' },
+  'proposal-templates': { type: 'product', id: 'proposal-templates' },
+  'template-bundle': { type: 'product', id: 'template-bundle' },
+
+  // Membership
+  'mc2-pro-membership': { type: 'membership', id: 'mc2-pro-membership' },
+};
+
+export async function POST(request: NextRequest) {
+  try {
+    // Parse the webhook payload
+    const body = await request.json();
+
+    console.log('Gumroad webhook received:', {
+      seller_id: body.seller_id,
+      product_id: body.product_id,
+      product_name: body.product_name,
+      email: body.email,
+      sale_id: body.sale_id,
+    });
+
+    // Verify this is a valid Gumroad webhook
+    // TODO: Add signature verification for production
+    // See: https://help.gumroad.com/article/76-webhooks
+
+    // Extract purchase data
+    const {
+      email,
+      product_id,
+      product_name,
+      product_permalink,
+      price,
+      sale_id,
+      order_id,
+      subscription_id,
+      recurrence,
+      refunded,
+      disputed,
+    } = body;
+
+    // Skip if refunded or disputed
+    if (refunded === 'true' || disputed === 'true') {
+      console.log('Purchase was refunded or disputed, skipping');
+      return NextResponse.json({
+        success: true,
+        message: 'Refunded/disputed purchase ignored'
+      });
+    }
+
+    // Determine product type from mapping or permalink
+    const productKey = product_permalink || product_id;
+    const mappedProduct = PRODUCT_MAPPING[productKey];
+
+    if (!mappedProduct) {
+      console.error('Unknown product:', productKey);
+      return NextResponse.json({
+        success: false,
+        error: 'Unknown product'
+      }, { status: 400 });
+    }
+
+    // Convert price to cents (Gumroad sends in dollars)
+    const amountInCents = Math.round(parseFloat(price) * 100);
+
+    // Call Convex mutation to handle the purchase
+    await convex.mutation(api.gumroad.handleGumroadPurchase, {
+      email,
+      productId: mappedProduct.id,
+      productName: product_name,
+      amount: amountInCents,
+      currency: 'USD',
+      gumroadOrderId: order_id,
+      gumroadSaleId: sale_id,
+    });
+
+    console.log('Purchase processed successfully:', {
+      email,
+      productId: mappedProduct.id,
+      productType: mappedProduct.type,
+    });
+
+    // If this is a subscription, log it
+    if (subscription_id) {
+      console.log('Subscription created:', {
+        subscription_id,
+        recurrence,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Purchase processed successfully',
+      productType: mappedProduct.type,
+    });
+
+  } catch (error) {
+    console.error('Error processing Gumroad webhook:', error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}
+
+// Handle Gumroad ping requests
+export async function GET() {
+  return NextResponse.json({
+    message: 'Gumroad webhook endpoint is active',
+    timestamp: new Date().toISOString(),
+  });
+}

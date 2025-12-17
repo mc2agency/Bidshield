@@ -22,10 +22,26 @@ export const handleGumroadPurchase = mutation({
     // Determine product type based on product ID
     let productType: "course" | "product" | "membership" = "product";
 
-    if (args.productId.includes("course-") || args.productName.includes("Course")) {
+    // Course IDs
+    const courseIds = [
+      'bluebeam-mastery',
+      'estimating-fundamentals',
+      'measurement-technology',
+      'construction-submittals',
+      'autocad-submittals',
+      'estimating-software',
+      'sketchup-visualization',
+    ];
+
+    // Membership IDs
+    const membershipIds = ['mc2-pro-membership'];
+
+    if (courseIds.includes(args.productId)) {
       productType = "course";
-    } else if (args.productId.includes("membership") || args.productName.includes("Membership")) {
+    } else if (membershipIds.includes(args.productId)) {
       productType = "membership";
+    } else {
+      productType = "product";
     }
 
     // Record the purchase
@@ -88,5 +104,65 @@ export const getUserPurchases = mutation({
       .collect();
 
     return purchases;
+  },
+});
+
+// Sync purchases when user creates account
+// Called after user signs up to link existing purchases to their account
+export const syncPurchasesToUser = mutation({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find all purchases with this email that don't have a userId yet
+    const orphanedPurchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .collect();
+
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    let coursesGranted: string[] = [];
+    let productsGranted: string[] = [];
+    let membershipGranted = false;
+
+    // Update each purchase and grant access
+    for (const purchase of orphanedPurchases) {
+      // Update purchase with userId
+      await ctx.db.patch(purchase._id, {
+        userId: args.userId,
+      });
+
+      // Grant access based on product type
+      if (purchase.productType === "course") {
+        if (!user.purchasedCourses.includes(purchase.productId)) {
+          coursesGranted.push(purchase.productId);
+        }
+      } else if (purchase.productType === "product") {
+        if (!user.purchasedProducts.includes(purchase.productId)) {
+          productsGranted.push(purchase.productId);
+        }
+      } else if (purchase.productType === "membership") {
+        membershipGranted = true;
+      }
+    }
+
+    // Update user with all granted access
+    await ctx.db.patch(args.userId, {
+      purchasedCourses: [...new Set([...user.purchasedCourses, ...coursesGranted])],
+      purchasedProducts: [...new Set([...user.purchasedProducts, ...productsGranted])],
+      membershipLevel: membershipGranted ? "pro" : user.membershipLevel,
+    });
+
+    return {
+      purchasesLinked: orphanedPurchases.length,
+      coursesGranted: coursesGranted.length,
+      productsGranted: productsGranted.length,
+      membershipGranted,
+    };
   },
 });
