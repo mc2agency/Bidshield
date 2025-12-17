@@ -16,15 +16,18 @@ function getConvexClient(): ConvexReactClient {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
+  const [isClient, setIsClient] = useState(false);
   const [convex, setConvex] = useState<ConvexReactClient | null>(null);
 
   useEffect(() => {
+    setIsClient(true);
     setConvex(getConvexClient());
   }, []);
 
-  // During SSR or before hydration, render children without Convex
-  if (!convex) {
-    return <ClerkProvider>{children}</ClerkProvider>;
+  // During SSR or before hydration, render children without any providers
+  // This prevents Clerk and Convex from failing due to missing env vars during build
+  if (!isClient || !convex) {
+    return <>{children}</>;
   }
 
   return (
