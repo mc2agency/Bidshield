@@ -1,20 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 
 export default function MembershipPage() {
   const [showStickyButton, setShowStickyButton] = useState(false);
+  const ticking = useRef(false);
+
+  const updateScrollState = useCallback(() => {
+    setShowStickyButton(window.scrollY > 600);
+    ticking.current = false;
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowStickyButton(window.scrollY > 600);
+      if (!ticking.current) {
+        requestAnimationFrame(updateScrollState);
+        ticking.current = true;
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [updateScrollState]);
 
   return (
     <main className="min-h-screen">
