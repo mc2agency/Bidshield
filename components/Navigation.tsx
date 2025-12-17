@@ -1,20 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const ticking = useRef(false);
+
+  const updateScrollState = useCallback(() => {
+    setScrolled(window.scrollY > 10);
+    ticking.current = false;
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      if (!ticking.current) {
+        requestAnimationFrame(updateScrollState);
+        ticking.current = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [updateScrollState]);
 
   const navLinks = [
     { href: '/products', label: 'Products' },

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 const blogPosts = [
   {
@@ -67,15 +67,21 @@ export default function BlogPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const filteredPosts = blogPosts.filter((post) => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const { filteredPosts, featuredPost, regularPosts } = useMemo(() => {
+    const searchLower = searchQuery.toLowerCase();
+    const filtered = blogPosts.filter((post) => {
+      const matchesSearch = searchQuery === '' ||
+                           post.title.toLowerCase().includes(searchLower) ||
+                           post.excerpt.toLowerCase().includes(searchLower);
+      const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
 
-  const featuredPost = blogPosts.find(post => post.featured);
-  const regularPosts = filteredPosts.filter(post => !post.featured || selectedCategory !== 'All' || searchQuery !== '');
+    const featured = blogPosts.find(post => post.featured);
+    const regular = filtered.filter(post => !post.featured || selectedCategory !== 'All' || searchQuery !== '');
+
+    return { filteredPosts: filtered, featuredPost: featured, regularPosts: regular };
+  }, [searchQuery, selectedCategory]);
 
   return (
     <main className="min-h-screen bg-gray-50">
