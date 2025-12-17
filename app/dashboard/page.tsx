@@ -4,9 +4,23 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function DashboardPage() {
+// Loading component shown during SSR and initial load
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">
+          Loading...
+        </h2>
+      </div>
+    </div>
+  );
+}
+
+// Main dashboard content - only rendered on client when providers are available
+function DashboardContent() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const getOrCreateUser = useMutation(api.users.getOrCreateUser);
   const userData = useQuery(
@@ -36,15 +50,7 @@ export default function DashboardPage() {
   }, [user, isUserLoaded, userData, getOrCreateUser]);
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">
-            Loading...
-          </h2>
-        </div>
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (
@@ -171,4 +177,21 @@ export default function DashboardPage() {
       </div>
     </main>
   );
+}
+
+// Page component with client-side hydration check
+export default function DashboardPage() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // During SSR, render loading state
+  if (!isClient) {
+    return <DashboardLoading />;
+  }
+
+  // On client, render the full dashboard with hooks
+  return <DashboardContent />;
 }
