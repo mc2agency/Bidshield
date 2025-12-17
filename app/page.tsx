@@ -37,7 +37,7 @@ export default function Home() {
 
             <p className="text-xl sm:text-2xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
               Learn professional estimating skills that take 5 years on the job in just 30 days.
-              Templates, courses, and tools used by top contractors.
+              Products, courses, and learning resources used by top contractors.
             </p>
 
             {/* CTAs */}
@@ -55,7 +55,7 @@ export default function Home() {
                 href="/products"
                 className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300"
               >
-                View Templates
+                View Products
               </Link>
             </div>
 

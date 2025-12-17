@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 // Handle Gumroad webhook purchase
 export const handleGumroadPurchase = mutation({
@@ -93,7 +93,7 @@ export const handleGumroadPurchase = mutation({
 });
 
 // Get user's purchase history
-export const getUserPurchases = mutation({
+export const getUserPurchases = query({
   args: {
     userId: v.id("users"),
   },
