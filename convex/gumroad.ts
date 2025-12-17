@@ -126,11 +126,14 @@ export const syncPurchasesToUser = mutation({
       throw new Error("User not found");
     }
 
-    let coursesGranted: string[] = [];
-    let productsGranted: string[] = [];
+    // Use Sets for O(1) lookup instead of O(n) array.includes()
+    const existingCourses = new Set(user.purchasedCourses);
+    const existingProducts = new Set(user.purchasedProducts);
+    const newCourses = new Set<string>();
+    const newProducts = new Set<string>();
     let membershipGranted = false;
 
-    // Update each purchase and grant access
+    // Update each purchase and collect access grants
     for (const purchase of orphanedPurchases) {
       // Update purchase with userId
       await ctx.db.patch(purchase._id, {
@@ -139,29 +142,31 @@ export const syncPurchasesToUser = mutation({
 
       // Grant access based on product type
       if (purchase.productType === "course") {
-        if (!user.purchasedCourses.includes(purchase.productId)) {
-          coursesGranted.push(purchase.productId);
+        if (!existingCourses.has(purchase.productId)) {
+          newCourses.add(purchase.productId);
         }
       } else if (purchase.productType === "product") {
-        if (!user.purchasedProducts.includes(purchase.productId)) {
-          productsGranted.push(purchase.productId);
+        if (!existingProducts.has(purchase.productId)) {
+          newProducts.add(purchase.productId);
         }
       } else if (purchase.productType === "membership") {
         membershipGranted = true;
       }
     }
 
-    // Update user with all granted access
-    await ctx.db.patch(args.userId, {
-      purchasedCourses: [...new Set([...user.purchasedCourses, ...coursesGranted])],
-      purchasedProducts: [...new Set([...user.purchasedProducts, ...productsGranted])],
-      membershipLevel: membershipGranted ? "pro" : user.membershipLevel,
-    });
+    // Only update if there are changes
+    if (newCourses.size > 0 || newProducts.size > 0 || membershipGranted) {
+      await ctx.db.patch(args.userId, {
+        purchasedCourses: [...existingCourses, ...newCourses],
+        purchasedProducts: [...existingProducts, ...newProducts],
+        membershipLevel: membershipGranted ? "pro" : user.membershipLevel,
+      });
+    }
 
     return {
       purchasesLinked: orphanedPurchases.length,
-      coursesGranted: coursesGranted.length,
-      productsGranted: productsGranted.length,
+      coursesGranted: newCourses.size,
+      productsGranted: newProducts.size,
       membershipGranted,
     };
   },

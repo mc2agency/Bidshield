@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { GumroadProductKey, getGumroadProductId } from '@/lib/gumroad-products';
+
+// Track script loading state globally to prevent multiple loads
+let gumroadScriptLoaded = false;
+let gumroadScriptLoading = false;
 
 interface GumroadCheckoutButtonProps {
   productKey: GumroadProductKey;
@@ -31,15 +35,28 @@ export default function GumroadCheckoutButton({
   variant = 'primary',
   showIcon = true
 }: GumroadCheckoutButtonProps) {
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
-    // Load Gumroad overlay script if not already loaded
-    if (!document.querySelector('script[src="https://gumroad.com/js/gumroad.js"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://gumroad.com/js/gumroad.js';
-      script.async = true;
-      document.body.appendChild(script);
+    // Only load script once globally across all instances
+    if (gumroadScriptLoaded || gumroadScriptLoading || hasLoadedRef.current) {
+      return;
     }
+
+    hasLoadedRef.current = true;
+    gumroadScriptLoading = true;
+
+    const script = document.createElement('script');
+    script.src = 'https://gumroad.com/js/gumroad.js';
+    script.async = true;
+    script.onload = () => {
+      gumroadScriptLoaded = true;
+      gumroadScriptLoading = false;
+    };
+    script.onerror = () => {
+      gumroadScriptLoading = false;
+    };
+    document.body.appendChild(script);
   }, []);
 
   const productId = getGumroadProductId(productKey);

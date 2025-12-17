@@ -42,8 +42,9 @@ export const getOrCreateUser = mutation({
       .collect();
 
     if (orphanedPurchases.length > 0) {
-      let courses: string[] = [];
-      let products: string[] = [];
+      // Use Sets to avoid duplicates and enable O(1) lookups
+      const courses = new Set<string>();
+      const products = new Set<string>();
       let hasMembership = false;
 
       // Link all purchases to this user
@@ -51,9 +52,9 @@ export const getOrCreateUser = mutation({
         await ctx.db.patch(purchase._id, { userId });
 
         if (purchase.productType === "course") {
-          courses.push(purchase.productId);
+          courses.add(purchase.productId);
         } else if (purchase.productType === "product") {
-          products.push(purchase.productId);
+          products.add(purchase.productId);
         } else if (purchase.productType === "membership") {
           hasMembership = true;
         }
@@ -61,8 +62,8 @@ export const getOrCreateUser = mutation({
 
       // Update user with purchased items
       await ctx.db.patch(userId, {
-        purchasedCourses: [...new Set(courses)],
-        purchasedProducts: [...new Set(products)],
+        purchasedCourses: [...courses],
+        purchasedProducts: [...products],
         membershipLevel: hasMembership ? "pro" : "free",
       });
     }

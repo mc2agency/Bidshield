@@ -4,26 +4,36 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const getOrCreateUser = useMutation(api.users.getOrCreateUser);
   const userData = useQuery(
     api.users.getCurrentUser,
     user ? { clerkId: user.id } : "skip"
   );
+  const userCreationAttempted = useRef(false);
 
   // Create user in Convex when they first sign in
   useEffect(() => {
-    if (user && !userData) {
+    // Wait until Clerk has loaded and we have a user
+    if (!isUserLoaded || !user) return;
+    // userData being undefined means the query is still loading
+    // userData being null means the user doesn't exist in Convex
+    if (userData === undefined) return;
+    // Only attempt creation once per session to prevent duplicate calls
+    if (userCreationAttempted.current) return;
+
+    if (userData === null) {
+      userCreationAttempted.current = true;
       getOrCreateUser({
         email: user.emailAddresses[0].emailAddress,
         name: user.fullName || user.emailAddresses[0].emailAddress,
         clerkId: user.id,
       });
     }
-  }, [user, userData, getOrCreateUser]);
+  }, [user, isUserLoaded, userData, getOrCreateUser]);
 
   if (!user) {
     return (
