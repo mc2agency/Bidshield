@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { api } from '@/convex/_generated/api';
 import { ConvexHttpClient } from 'convex/browser';
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+// Lazily create the Convex client to avoid build-time errors when env vars aren't set
+function getConvexClient() {
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url) {
+    throw new Error('NEXT_PUBLIC_CONVEX_URL environment variable is not set');
+  }
+  return new ConvexHttpClient(url);
+}
 
 // Product mapping: Gumroad product IDs to your internal course/product IDs
 const PRODUCT_MAPPING: Record<string, { type: 'course' | 'product' | 'membership'; id: string }> = {
@@ -86,6 +93,7 @@ export async function POST(request: NextRequest) {
     const amountInCents = Math.round(parseFloat(price) * 100);
 
     // Call Convex mutation to handle the purchase
+    const convex = getConvexClient();
     await convex.mutation(api.gumroad.handleGumroadPurchase, {
       email,
       productId: mappedProduct.id,
