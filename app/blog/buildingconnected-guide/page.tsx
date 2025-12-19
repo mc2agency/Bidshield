@@ -32,8 +32,8 @@ export default function BuildingConnectedArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>

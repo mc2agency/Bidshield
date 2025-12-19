@@ -32,8 +32,8 @@ export default function RoofingEstimatingSoftwareArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -482,15 +482,15 @@ export default function RoofingEstimatingSoftwareArticle() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
-          <h3 className="text-2xl font-bold mb-3">Master Estimating Software</h3>
+          <h3 className="text-2xl font-bold mb-3">Technology Setup Guide</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Our Technology for Estimators course includes tutorials on the major estimating platforms, comparison guides, and templates to get started faster with any software.
+            Get our technology setup guide with software comparison charts, configuration checklists, and recommended tools for estimators.
           </p>
           <Link
-            href="/courses/technology-for-estimators"
+            href="/products/technology-setup-guide"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Technology Course - $97 →
+            Get Technology Guide - $29 →
           </Link>
           <p className="text-sm text-blue-200 mt-3">Includes software comparison spreadsheet and setup checklists</p>
         </div>

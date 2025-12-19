@@ -10,8 +10,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/contact',
     '/membership',
     '/products',
-    '/courses',
-    '/learning',
+    '/pricing',
+    '/updates',
+    '/support',
     '/blog',
     '/quiz',
     '/privacy',
@@ -31,48 +32,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/products/restoration-coating-template',
     '/products/estimating-checklist',
     '/products/proposal-templates',
-    '/products/starter-bundle',
-    '/products/professional-bundle',
-    '/products/complete-academy',
+    '/products/complete-bundle',
     '/products/lead-generation-guide',
     '/products/insurance-compliance-guide',
     '/products/osha-safety-guide',
     '/products/technology-setup-guide',
-  ];
-
-  // Course pages
-  const coursePages = [
-    '/courses/estimating-fundamentals',
-    '/courses/bluebeam-mastery',
-    '/courses/autocad-submittals',
-    '/courses/sketchup-visualization',
-    '/courses/measurement-technology',
-    '/courses/construction-submittals',
-    '/courses/estimating-software',
-    '/courses/beginner',
-    '/courses/intermediate',
-    '/courses/advanced',
-  ];
-
-  // Learning pages
-  const learningPages = [
-    '/learning/roofing-systems',
-    '/learning/roofing-systems/shingle',
-    '/learning/roofing-systems/tpo-pvc-epdm',
-    '/learning/roofing-systems/metal',
-    '/learning/roofing-systems/tile',
-    '/learning/roofing-systems/spray-foam',
-    '/learning/roofing-systems/green-roof',
-    '/learning/roofing-systems/sbs',
-    '/learning/roofing-systems/restoration-coating',
-    '/learning/measurement',
-    '/learning/plans-and-specs',
-    '/learning/finding-work',
-    '/learning/business-operations',
-    '/learning/proposal-writing',
-    '/learning/submittals',
-    '/learning/technology',
-    '/learning/estimating-best-practices',
   ];
 
   // Blog pages
@@ -93,8 +57,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const allPages = [
     ...staticPages,
     ...productPages,
-    ...coursePages,
-    ...learningPages,
     ...blogPages,
   ];
 
@@ -102,6 +64,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: route === '' ? 'daily' : 'weekly',
-    priority: route === '' ? 1 : route.startsWith('/products') || route.startsWith('/courses') ? 0.9 : 0.8,
+    priority: route === '' ? 1 : route.startsWith('/products') ? 0.9 : 0.8,
   }));
 }

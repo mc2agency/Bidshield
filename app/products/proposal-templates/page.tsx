@@ -736,14 +736,14 @@ export default function ProposalTemplatesPage() {
               <div className="text-blue-600 font-semibold">Learn More →</div>
             </Link>
 
-            <Link href="/courses" className="bg-gray-50 rounded-xl p-6 hover:shadow-xl transition-shadow">
-              <div className="text-4xl mb-3">🎓</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Fundamentals</h3>
+            <Link href="/products/complete-bundle" className="bg-gray-50 rounded-xl p-6 hover:shadow-xl transition-shadow">
+              <div className="text-4xl mb-3">📦</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Complete Tool Bundle</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Learn how to create estimates and write winning proposals
+                Every template, calculator, and guide in one comprehensive package
               </p>
-              <div className="text-2xl font-bold text-blue-600 mb-4">$497</div>
-              <div className="text-blue-600 font-semibold">View Courses →</div>
+              <div className="text-2xl font-bold text-blue-600 mb-4">$997</div>
+              <div className="text-blue-600 font-semibold">View Bundle →</div>
             </Link>
           </div>
         </div>

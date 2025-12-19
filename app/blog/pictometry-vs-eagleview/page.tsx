@@ -32,8 +32,8 @@ export default function PictometryVsEagleViewArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -435,17 +435,17 @@ export default function PictometryVsEagleViewArticle() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
-          <h3 className="text-2xl font-bold mb-3">Master Digital Roof Measurement</h3>
+          <h3 className="text-2xl font-bold mb-3">Professional Estimating Templates</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Learn how to use Pictometry, EagleView, Google Earth, and other tools to measure roofs accurately without climbing. Our Digital Roof Measurement course includes step-by-step tutorials, accuracy tips, and measurement templates.
+            Get professional estimating templates with built-in measurement calculations, material quantities, and labor estimates. Works with any measurement method.
           </p>
           <Link
-            href="/courses/measurement-technology"
+            href="/products/template-bundle"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Measurement Course - $97 →
+            Get Template Bundle - $129 →
           </Link>
-          <p className="text-sm text-blue-200 mt-3">Includes Pictometry tutorial, EagleView guide, and measurement worksheets</p>
+          <p className="text-sm text-blue-200 mt-3">Includes 5 roofing templates, estimating checklist, and proposal library</p>
         </div>
 
         {/* Related Posts */}

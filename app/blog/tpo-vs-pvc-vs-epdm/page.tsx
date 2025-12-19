@@ -32,8 +32,8 @@ export default function TPOvsPVCvsEPDMArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -438,17 +438,17 @@ export default function TPOvsPVCvsEPDMArticle() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
-          <h3 className="text-2xl font-bold mb-3">Master Commercial Roofing Systems</h3>
+          <h3 className="text-2xl font-bold mb-3">Single-Ply Roofing Estimating Template</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Learn how to estimate, specify, and install all single-ply roofing systems. Our Commercial Roofing course covers TPO, PVC, EPDM, and more with detailed specifications and cost breakdowns.
+            Get our professional TPO/PVC/EPDM template with membrane calculations, insulation takeoffs, and attachment specifications built in.
           </p>
           <Link
-            href="/courses/commercial-roofing"
+            href="/products/tpo-template"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Commercial Roofing Course - $197 →
+            Get Single-Ply Template - $39 →
           </Link>
-          <p className="text-sm text-blue-200 mt-3">Includes specification templates, cost calculators, and installation guides</p>
+          <p className="text-sm text-blue-200 mt-3">Includes membrane calculators, insulation layers, and attachment patterns</p>
         </div>
 
         {/* Related Posts */}

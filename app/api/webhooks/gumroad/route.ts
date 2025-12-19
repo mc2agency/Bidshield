@@ -4,26 +4,29 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Product mapping: Gumroad product IDs to your internal course/product IDs
-const PRODUCT_MAPPING: Record<string, { type: 'course' | 'product' | 'membership'; id: string }> = {
-  // Courses
-  'bluebeam-mastery': { type: 'course', id: 'bluebeam-mastery' },
-  'estimating-fundamentals': { type: 'course', id: 'estimating-fundamentals' },
-  'measurement-technology': { type: 'course', id: 'measurement-technology' },
-  'construction-submittals': { type: 'course', id: 'construction-submittals' },
-  'autocad-submittals': { type: 'course', id: 'autocad-submittals' },
-  'estimating-software': { type: 'course', id: 'estimating-software' },
-  'sketchup-visualization': { type: 'course', id: 'sketchup-visualization' },
-
-  // Products
+// Product mapping: Gumroad product IDs to your internal product IDs
+const PRODUCT_MAPPING: Record<string, { type: 'product' | 'bundle' | 'membership'; id: string }> = {
+  // Individual Templates
   'tpo-template': { type: 'product', id: 'tpo-template' },
   'asphalt-shingle-template': { type: 'product', id: 'asphalt-shingle-template' },
   'metal-roofing-template': { type: 'product', id: 'metal-roofing-template' },
   'tile-roofing-template': { type: 'product', id: 'tile-roofing-template' },
   'spray-foam-template': { type: 'product', id: 'spray-foam-template' },
+  'green-roof-template': { type: 'product', id: 'green-roof-template' },
+  'sbs-template': { type: 'product', id: 'sbs-template' },
+  'restoration-coating-template': { type: 'product', id: 'restoration-coating-template' },
+
+  // Tools & Guides
   'estimating-checklist': { type: 'product', id: 'estimating-checklist' },
   'proposal-templates': { type: 'product', id: 'proposal-templates' },
-  'template-bundle': { type: 'product', id: 'template-bundle' },
+  'lead-generation-guide': { type: 'product', id: 'lead-generation-guide' },
+  'insurance-compliance-guide': { type: 'product', id: 'insurance-compliance-guide' },
+  'osha-safety-guide': { type: 'product', id: 'osha-safety-guide' },
+  'technology-setup-guide': { type: 'product', id: 'technology-setup-guide' },
+
+  // Bundles
+  'template-bundle': { type: 'bundle', id: 'template-bundle' },
+  'complete-bundle': { type: 'bundle', id: 'complete-bundle' },
 
   // Membership
   'mc2-pro-membership': { type: 'membership', id: 'mc2-pro-membership' },

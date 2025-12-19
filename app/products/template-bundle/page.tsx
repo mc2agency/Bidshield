@@ -3,7 +3,7 @@ import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Complete Template Bundle | MC2 Estimating Academy',
+  title: 'Complete Template Bundle | MC2 Estimating',
   description: 'Get all 5 roofing system templates, estimating checklist, and proposal library for $129. Save $200 with the complete bundle. Instant download.',
   keywords: 'roofing template bundle, estimating templates, roofing estimate excel, contractor templates',
 };
@@ -708,14 +708,14 @@ export default function TemplateBundlePage() {
               <div className="text-blue-600 font-semibold">Learn More →</div>
             </Link>
 
-            <Link href="/courses" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border-2 border-blue-600">
-              <div className="text-4xl mb-3">🎓</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Fundamentals Course</h3>
+            <Link href="/products/complete-bundle" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border-2 border-blue-600">
+              <div className="text-4xl mb-3">📦</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Complete Tool Bundle</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Complete video training on estimating, reading plans, and using Bluebeam
+                Every template, calculator, checklist, and guide in one comprehensive package
               </p>
-              <div className="text-2xl font-bold text-blue-600 mb-4">$497</div>
-              <div className="text-blue-600 font-semibold">View Courses →</div>
+              <div className="text-2xl font-bold text-blue-600 mb-4">$997</div>
+              <div className="text-blue-600 font-semibold">View Bundle →</div>
             </Link>
           </div>
         </div>

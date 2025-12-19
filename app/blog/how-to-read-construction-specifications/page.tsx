@@ -32,8 +32,8 @@ export default function ReadConstructionSpecsArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -507,17 +507,17 @@ export default function ReadConstructionSpecsArticle() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
-          <h3 className="text-2xl font-bold mb-3">Master Construction Documents</h3>
+          <h3 className="text-2xl font-bold mb-3">Professional Estimating Templates</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Our Professional Estimating Course includes complete specification review training, CSI MasterFormat reference guide, and specification checklists for every roofing system type.
+            Get our complete template bundle with specification checklists, estimating templates for every roofing system, and professional proposal documents.
           </p>
           <Link
-            href="/courses/professional-estimating"
+            href="/products/template-bundle"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Estimating Course - $297 →
+            Get Template Bundle - $129 →
           </Link>
-          <p className="text-sm text-blue-200 mt-3">Includes 40+ video lessons, specification templates, and estimating worksheets</p>
+          <p className="text-sm text-blue-200 mt-3">Includes specification checklists, roofing templates, and proposal library</p>
         </div>
 
         {/* Related Posts */}

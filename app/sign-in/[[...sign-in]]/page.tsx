@@ -18,7 +18,7 @@ export default function SignInPage() {
             Welcome Back
           </h2>
           <p className="mt-2 text-slate-600">
-            Sign in to access your courses and continue learning
+            Sign in to access your tools and templates
           </p>
         </div>
         {isClient ? (

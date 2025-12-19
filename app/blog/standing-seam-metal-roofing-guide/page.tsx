@@ -32,8 +32,8 @@ export default function StandingSeamMetalRoofingArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -376,17 +376,17 @@ export default function StandingSeamMetalRoofingArticle() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
-          <h3 className="text-2xl font-bold mb-3">Master Metal Roofing Estimating</h3>
+          <h3 className="text-2xl font-bold mb-3">Metal Roofing Estimating Template</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Learn how to estimate, specify, and install standing seam metal roofing. Our Metal Roofing course includes panel calculations, trim takeoff, and installation details.
+            Get our professional metal roofing template with panel calculations, trim takeoffs, and material quantities built in.
           </p>
           <Link
-            href="/courses/metal-roofing"
+            href="/products/metal-roofing"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Metal Roofing Course - $147 →
+            Get Metal Roofing Template - $39 →
           </Link>
-          <p className="text-sm text-blue-200 mt-3">Includes material calculators, trim details, and installation guides</p>
+          <p className="text-sm text-blue-200 mt-3">Includes panel calculators, trim takeoff, and labor estimates</p>
         </div>
 
         {/* Related Posts */}

@@ -383,7 +383,7 @@ export default function ProductsPage() {
               originalPrice="$1,985"
               savings="Save $988"
               description="Ultimate package - every tool and template we offer."
-              productKey="completeAcademy"
+              productKey="completeBundle"
               features={[
                 "Everything in Professional Bundle",
                 "AutoCAD Submittal Templates ($247)",

@@ -32,8 +32,8 @@ export default function WhatIsRoofSquareArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -323,15 +323,15 @@ export default function WhatIsRoofSquareArticle() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
-          <h3 className="text-2xl font-bold mb-3">Master Roof Measurements</h3>
+          <h3 className="text-2xl font-bold mb-3">Professional Estimating Templates</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Learn how to accurately measure roofs, calculate squares, apply pitch multipliers, and order materials with zero waste. Our Roof Measurement course includes calculation worksheets and material ordering templates.
+            Get our professional templates with built-in pitch multipliers, conversion calculators, and material quantity formulas. Calculate squares and order materials accurately.
           </p>
           <Link
-            href="/courses/measurement-technology"
+            href="/products/template-bundle"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Measurement Course - $97 →
+            Get Template Bundle - $129 →
           </Link>
           <p className="text-sm text-blue-200 mt-3">Includes pitch multiplier charts, conversion calculators, and material ordering guides</p>
         </div>

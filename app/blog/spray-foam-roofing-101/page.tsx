@@ -32,8 +32,8 @@ export default function SprayFoamRoofingArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -357,17 +357,17 @@ export default function SprayFoamRoofingArticle() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
-          <h3 className="text-2xl font-bold mb-3">Master SPF Roofing Systems</h3>
+          <h3 className="text-2xl font-bold mb-3">Spray Foam Roofing Template</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Learn how to estimate, specify, and install spray foam roofing systems. Our SPF Roofing course covers application techniques, material calculations, and coating specifications.
+            Get our professional SPF roofing template with material calculations, coating specifications, and R-value planning built in.
           </p>
           <Link
-            href="/courses/spray-foam-roofing"
+            href="/products/spray-foam"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get SPF Roofing Course - $147 →
+            Get Spray Foam Template - $39 →
           </Link>
-          <p className="text-sm text-blue-200 mt-3">Includes material calculators, specification templates, and maintenance guides</p>
+          <p className="text-sm text-blue-200 mt-3">Includes material calculators, coverage rates, and coating specifications</p>
         </div>
 
         {/* Related Posts */}
