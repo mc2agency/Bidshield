@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://mc2estimating-1.vercel.app';
+  const baseUrl = 'https://mc2estimating.com';
 
   // Static pages
   const staticPages = [

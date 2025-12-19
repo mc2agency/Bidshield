@@ -22,11 +22,11 @@ export const metadata: Metadata = {
   authors: [{ name: "MC2 Estimating Academy" }],
   creator: "MC2 Estimating Academy",
   publisher: "MC2 Estimating Academy",
-  metadataBase: new URL("https://mc2estimating-1.vercel.app"),
+  metadataBase: new URL("https://mc2estimating.com"),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://mc2estimating-1.vercel.app",
+    url: "https://mc2estimating.com",
     siteName: "MC2 Estimating Academy",
     title: "MC2 Estimating Academy - Professional Roofing Estimation Training",
     description: "Learn professional estimating skills for roofing and construction. Templates, courses, and tools used by top contractors.",

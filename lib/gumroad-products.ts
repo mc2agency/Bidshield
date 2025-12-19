@@ -12,7 +12,7 @@
 
 export const GUMROAD_PRODUCTS = {
   // Template Bundle & Individual Templates
-  templateBundle: 'mc2-template-bundle',
+  templateBundle: 'mc2-contractor-bundle',  // MC2 Complete Contractor Estimating Bundle - $129
   asphaltShingle: 'mc2-asphalt-shingle',
   tpoTemplate: 'mc2-tpo-pvc-epdm',
   metalRoofing: 'mc2-metal-roofing',
