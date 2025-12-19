@@ -1,3 +1,36 @@
+/**
+ * MC2 ESTIMATING - PRODUCT POSITIONING DEFINITION
+ * ================================================
+ * MC2 Estimating is a PRODUCT company, NOT an education platform.
+ *
+ * We sell professional roofing estimating tools contractors use to build accurate bids faster:
+ * - Templates (Excel spreadsheets with built-in formulas)
+ * - Calculators (material and labor calculation tools)
+ * - Checklists (comprehensive cost item lists)
+ * - Workflow tools (proposals, submittals, documentation)
+ *
+ * FORBIDDEN TERMINOLOGY (do not use anywhere in the codebase):
+ * - Course / Courses
+ * - Learn / Learning
+ * - Training / Trained
+ * - Academy / School
+ * - Lesson / Module
+ * - Student
+ * - Enroll / Enrollment
+ * - Certification / Certificate
+ * - Fundamentals / Advanced (as levels)
+ * - Coach / Coaching / Mentorship
+ *
+ * ALLOWED TERMINOLOGY:
+ * - Tools, Templates, Downloads, Assets, Calculators, Checklists, Workflows
+ * - Setup, Configuration, Usage notes, Walkthrough, Documentation
+ * - Vault, Updates, Access
+ * - Customers, Users (not students or members)
+ *
+ * VALIDATION CHECK: Would this feature still be valuable if all videos were removed?
+ * If no, revise until the answer is yes.
+ */
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";

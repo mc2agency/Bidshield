@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check-terms": "bash scripts/check-forbidden-terms.sh",
+    "prebuild": "bash scripts/check-forbidden-terms.sh || true"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.3",
