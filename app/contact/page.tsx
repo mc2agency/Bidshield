@@ -17,7 +17,7 @@ export default function ContactPage() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Us</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300">
-              Questions about our courses, products, or membership? We're here to help.
+              Questions about our tools, templates, or MC2 Pro access? We&apos;re here to help.
             </p>
           </div>
         </div>
@@ -32,7 +32,7 @@ export default function ContactPage() {
                 <div className="text-5xl mb-4">📧</div>
                 <h3 className="text-xl font-bold mb-3 text-slate-900">Email Support</h3>
                 <p className="text-slate-600 mb-4">
-                  General inquiries and course support
+                  General inquiries and product support
                 </p>
                 <a
                   href="mailto:support@mc2estimating.com"
@@ -92,7 +92,7 @@ export default function ContactPage() {
                       id="firstName"
                       name="firstName"
                       required
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none"
                       placeholder="John"
                     />
                   </div>
@@ -105,7 +105,7 @@ export default function ContactPage() {
                       id="lastName"
                       name="lastName"
                       required
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none"
                       placeholder="Smith"
                     />
                   </div>
@@ -120,7 +120,7 @@ export default function ContactPage() {
                     id="email"
                     name="email"
                     required
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none"
                     placeholder="john@company.com"
                   />
                 </div>
@@ -133,7 +133,7 @@ export default function ContactPage() {
                     type="text"
                     id="company"
                     name="company"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none"
                     placeholder="ABC Roofing Company"
                   />
                 </div>
@@ -146,13 +146,13 @@ export default function ContactPage() {
                     id="subject"
                     name="subject"
                     required
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none"
                   >
                     <option value="">Select a subject...</option>
-                    <option value="course">Course Question</option>
+                    <option value="template">Template Question</option>
                     <option value="product">Product Question</option>
-                    <option value="membership">Membership Question</option>
-                    <option value="corporate">Corporate Training</option>
+                    <option value="mc2pro">MC2 Pro Access</option>
+                    <option value="enterprise">Enterprise Licensing</option>
                     <option value="technical">Technical Support</option>
                     <option value="billing">Billing Question</option>
                     <option value="other">Other</option>
@@ -168,7 +168,7 @@ export default function ContactPage() {
                     name="message"
                     required
                     rows={6}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none"
                     placeholder="Tell us how we can help..."
                   ></textarea>
                 </div>
@@ -181,13 +181,13 @@ export default function ContactPage() {
                     className="mt-1 mr-3"
                   />
                   <label htmlFor="newsletter" className="text-sm text-gray-700">
-                    Subscribe to our newsletter for free estimating tips, industry news, and special offers.
+                    Subscribe to our newsletter for free estimating tips, industry news, and product updates.
                   </label>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all"
                 >
                   Send Message
                 </button>
@@ -210,24 +210,24 @@ export default function ContactPage() {
             </h2>
             <div className="space-y-6">
               <FAQItem
-                question="What's the difference between buying individual courses and MC2 Pro membership?"
-                answer="Individual courses give you lifetime access to specific training. MC2 Pro membership ($197/month) gives you unlimited access to ALL courses, products, and templates, plus ongoing updates and member-only content. If you plan to take 2+ courses, membership is more cost-effective."
+                question="What's the difference between buying individual tools and MC2 Pro access?"
+                answer="Individual tools give you lifetime access to specific templates. MC2 Pro access ($197/month) gives you unlimited access to ALL tools, templates, and resources, plus ongoing updates and new products as released. If you plan to use 3+ tools, Pro access is more cost-effective."
               />
               <FAQItem
-                question="Do you offer corporate training for my team?"
-                answer="Yes! We offer customized corporate training packages for roofing contractors, estimating departments, and construction companies. Contact us for a custom quote based on team size and training needs."
+                question="Do you offer enterprise licensing for teams?"
+                answer="Yes! We offer customized enterprise packages for roofing contractors and construction companies. Contact us for a custom quote based on team size and needs."
               />
               <FAQItem
                 question="Can I get a refund if I'm not satisfied?"
-                answer="Digital products and individual courses have a 30-day money-back guarantee. MC2 Pro membership can be canceled anytime - we'll refund the current month if you cancel within the first 14 days of joining."
+                answer="All products have a 30-day money-back guarantee. MC2 Pro access can be canceled anytime - we'll refund the current month if you cancel within the first 14 days of joining."
               />
               <FAQItem
-                question="How do I access courses after purchase?"
-                answer="After purchase through Gumroad, you'll receive immediate access to download digital products or access course content. You'll also receive a confirmation email with your login credentials and access instructions."
+                question="How do I access my purchases?"
+                answer="After purchase through Gumroad, you'll receive immediate access to download your files. You'll also receive a confirmation email with your download links."
               />
               <FAQItem
-                question="Do you offer student or volume discounts?"
-                answer="We offer discounts for students with valid .edu email addresses (20% off) and volume discounts for corporate training (3+ seats). Contact us for details."
+                question="Do you offer volume discounts?"
+                answer="Yes, we offer volume discounts for enterprise licensing (3+ seats). Contact us for details."
               />
             </div>
           </div>
@@ -235,26 +235,26 @@ export default function ContactPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-900 to-blue-700 text-white">
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Still have questions? We're here to help you find the right training solution for your needs.
+          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+            Still have questions? We&apos;re here to help you find the right tools for your needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/membership"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-900 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg"
+              className="inline-flex items-center justify-center px-8 py-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-slate-100 transition-colors text-lg"
             >
-              Explore MC2 Pro Membership →
+              Explore MC2 Pro Access
             </Link>
             <Link
-              href="/courses"
-              className="inline-flex items-center justify-center px-8 py-4 bg-blue-800 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg border-2 border-blue-600"
+              href="/products"
+              className="inline-flex items-center justify-center px-8 py-4 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-500 transition-colors text-lg"
             >
-              Browse Courses
+              Browse Tools
             </Link>
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function ContactPage() {
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-6 border-2 border-gray-200 hover:border-blue-400 transition-all">
+    <div className="bg-gray-50 rounded-lg p-6 border-2 border-gray-200 hover:border-emerald-400 transition-all">
       <h3 className="text-lg font-bold text-gray-900 mb-3">{question}</h3>
       <p className="text-gray-700">{answer}</p>
     </div>

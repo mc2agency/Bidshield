@@ -2,13 +2,13 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16">
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Privacy Policy
             </h1>
-            <p className="text-xl text-blue-100">
+            <p className="text-xl text-slate-300">
               Last updated: December 2024
             </p>
           </div>
@@ -21,7 +21,7 @@ export default function PrivacyPage() {
           <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12 border border-gray-200">
             <div className="prose prose-lg max-w-none">
               <p className="text-lg text-gray-700 mb-8">
-                MC2 Estimating Academy ("we," "us," or "our") is committed to protecting your privacy.
+                MC2 Estimating (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy.
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information
                 when you use our website and services.
               </p>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
                 <li><strong>Create an account:</strong> Name, email address, password, company name</li>
                 <li><strong>Make a purchase:</strong> Billing information (processed securely through Gumroad)</li>
                 <li><strong>Contact us:</strong> Contact form submissions, support requests, feedback</li>
-                <li><strong>Enroll in courses:</strong> Progress tracking, quiz responses, certificates</li>
+                <li><strong>Use our products:</strong> Usage tracking, preferences, access history</li>
                 <li><strong>Subscribe to our newsletter:</strong> Email address, preferences</li>
               </ul>
 
@@ -66,11 +66,11 @@ export default function PrivacyPage() {
                 We use collected information for:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li><strong>Providing services:</strong> Account management, course access, content delivery</li>
+                <li><strong>Providing services:</strong> Account management, product access, content delivery</li>
                 <li><strong>Processing transactions:</strong> Order fulfillment, billing, receipts</li>
                 <li><strong>Customer support:</strong> Responding to inquiries, troubleshooting issues</li>
                 <li><strong>Improving our services:</strong> Analyzing usage, fixing bugs, adding features</li>
-                <li><strong>Marketing communications:</strong> Newsletters, course updates, promotions (with consent)</li>
+                <li><strong>Marketing communications:</strong> Newsletters, product updates, promotions (with consent)</li>
                 <li><strong>Legal compliance:</strong> Meeting legal obligations, enforcing our terms</li>
                 <li><strong>Security:</strong> Preventing fraud, protecting against malicious activity</li>
               </ul>
@@ -172,7 +172,7 @@ export default function PrivacyPage() {
               <p className="text-gray-700 mb-4">
                 To exercise your privacy rights, contact us at:
               </p>
-              <div className="bg-blue-50 rounded-lg p-6 border-2 border-blue-200 mb-4">
+              <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200 mb-4">
                 <p className="text-gray-800 mb-2"><strong>Privacy Requests:</strong></p>
                 <p className="text-gray-700">Email: privacy@mc2estimating.com</p>
                 <p className="text-gray-700">Subject line: "Privacy Request - [Your Request Type]"</p>
@@ -186,7 +186,7 @@ export default function PrivacyPage() {
                 We may send you:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li>Course updates and educational content</li>
+                <li>Product updates and usage tips</li>
                 <li>New product announcements</li>
                 <li>Special offers and promotions</li>
                 <li>Industry news and tips</li>
@@ -227,8 +227,8 @@ export default function PrivacyPage() {
               <p className="text-gray-700 mb-4">
                 For questions about this Privacy Policy or our data practices, contact us:
               </p>
-              <div className="bg-blue-50 rounded-lg p-6 border-2 border-blue-200">
-                <p className="text-gray-800 mb-2"><strong>MC2 Estimating Academy</strong></p>
+              <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
+                <p className="text-gray-800 mb-2"><strong>MC2 Estimating</strong></p>
                 <p className="text-gray-700">Email: privacy@mc2estimating.com</p>
                 <p className="text-gray-700">Support: support@mc2estimating.com</p>
                 <p className="text-gray-700">Phone: (800) 555-1234</p>

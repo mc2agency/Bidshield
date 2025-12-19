@@ -23,39 +23,39 @@ export default function Home() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              Professional Construction Estimating Training
+              Professional Roofing Estimating Tools
             </div>
 
             {/* Heading with gradient */}
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-              Master Roofing Estimation
+              Build Accurate Bids
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-                From Takeoff to Profit
+                Faster Than Ever
               </span>
             </h1>
 
             <p className="text-xl sm:text-2xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Learn professional estimating skills that take 5 years on the job in just 30 days.
-              Products, courses, and learning resources used by top contractors.
+              Professional estimating templates, calculators, and checklists used by top roofing contractors.
+              Download and start using immediately.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/courses"
+                href="/products"
                 className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
               >
-                Browse Courses
+                View Templates
                 <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
               <Link
-                href="/products"
+                href="/products/template-bundle"
                 className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300"
               >
-                View Products
+                Get the Bundle
               </Link>
             </div>
 
@@ -63,7 +63,7 @@ export default function Home() {
             <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="group">
                 <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">2,500+</div>
-                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Students Trained</div>
+                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Active Users</div>
               </div>
               <div className="group">
                 <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">4.9/5</div>
@@ -98,7 +98,7 @@ export default function Home() {
                   'Reduce estimate time from 3 hours to 10 minutes',
                   'Never forget labor burden or general conditions again',
                   'Professional proposals that win more bids',
-                  'Learn to read plans like a seasoned estimator',
+                  'Pre-built formulas handle all calculations automatically',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-4 group">
                     <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mt-0.5 text-white text-sm shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
@@ -145,7 +145,7 @@ export default function Home() {
                   href="/products/template-bundle"
                   className="block w-full text-center px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300"
                 >
-                  Get Started Now
+                  Get Instant Access
                 </Link>
               </div>
             </div>
@@ -153,75 +153,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Learning Blocks */}
+      {/* Product Categories */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Complete Business System for{' '}
+              Everything You Need to{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600">
-                Contractors
+                Estimate Faster
               </span>
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              From finding leads to executing projects, we cover everything you need to build a professional contracting business.
+              Professional tools designed by estimators, for estimators. Download and start using immediately.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <LearningBlock
-              title="Finding Work"
-              description="Learn where to find high-quality leads: BuildingConnected, Dodge Reports, and more."
-              href="/learning/finding-work"
-              icon="📋"
+            <ProductBlock
+              title="Roofing Templates"
+              description="Complete Excel templates with built-in formulas for TPO, EPDM, metal, tile, shingle, and more."
+              href="/products/template-bundle"
+              icon="📊"
             />
-            <LearningBlock
-              title="Roof Measurement"
-              description="Master Pictometry, EagleView, and digital measurement tools to measure roofs without climbing."
-              href="/learning/measurement"
-              icon="📏"
+            <ProductBlock
+              title="Estimating Checklist"
+              description="Never miss a line item again. Comprehensive checklist covers every cost category."
+              href="/products/estimating-checklist"
+              icon="✅"
             />
-            <LearningBlock
-              title="Reading Plans & Specs"
-              description="Understand construction drawings, specifications, and how to coordinate multi-discipline plans."
-              href="/learning/plans-and-specs"
-              icon="📐"
-            />
-            <LearningBlock
-              title="Estimating Fundamentals"
-              description="Complete estimating process from takeoff to recap. Material pricing, labor burden, general conditions."
-              href="/courses/estimating-fundamentals"
-              icon="🧮"
-            />
-            <LearningBlock
-              title="Bluebeam Mastery"
-              description="Digital takeoff using industry-standard Bluebeam Revu. Measure faster and more accurately."
-              href="/courses/bluebeam-mastery"
-              icon="⚡"
-            />
-            <LearningBlock
-              title="Roofing Systems"
-              description="Deep dive into TPO, EPDM, SBS, metal, tile, and green roofs. System-specific calculations."
-              href="/learning/roofing-systems"
-              icon="🏗️"
-            />
-            <LearningBlock
-              title="Proposal Writing"
-              description="Professional proposal templates for every system. Win more bids with compelling proposals."
+            <ProductBlock
+              title="Proposal Templates"
+              description="Professional proposal templates that help you win more bids. Ready to customize."
               href="/products/proposal-templates"
               icon="📄"
             />
-            <LearningBlock
-              title="Submittals & Shop Drawings"
-              description="Create submittals, shop drawings, and project documentation using AutoCAD and SketchUp."
-              href="/courses/construction-submittals"
-              icon="📊"
+            <ProductBlock
+              title="Material Calculators"
+              description="Built-in calculators for waste factors, coverage rates, and material quantities."
+              href="/products"
+              icon="🧮"
             />
-            <LearningBlock
-              title="Business Operations"
-              description="Insurance, OSHA compliance, technology setup, and everything you need to run a professional business."
-              href="/learning/business-operations"
-              icon="💼"
+            <ProductBlock
+              title="Labor Worksheets"
+              description="Pre-configured labor burden and crew productivity worksheets."
+              href="/products"
+              icon="👷"
+            />
+            <ProductBlock
+              title="MC2 Pro Access"
+              description="Get access to the complete tool vault with all templates and ongoing updates."
+              href="/membership"
+              icon="🔐"
             />
           </div>
         </div>
@@ -237,20 +219,20 @@ export default function Home() {
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
-            Ready to Transform Your{' '}
+            Ready to Estimate{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-              Estimating?
+              Like a Pro?
             </span>
           </h2>
           <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            Get instant access to professional templates, courses, and tools. Start saving time and making accurate estimates today.
+            Get instant access to professional templates, calculators, and tools. Start saving time and winning more bids today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/products"
               className="group inline-flex items-center justify-center px-8 py-4 bg-white text-slate-900 rounded-xl font-semibold text-lg hover:bg-slate-100 hover:scale-105 transition-all duration-300 shadow-lg"
             >
-              View All Products
+              Browse All Tools
               <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -259,11 +241,11 @@ export default function Home() {
               href="/membership"
               className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
             >
-              Join MC2 Pro - $197/mo
+              Get MC2 Pro Access - $197/mo
             </Link>
           </div>
           <p className="mt-8 text-sm text-slate-400">
-            30-day money-back guarantee • Instant access • Lifetime updates
+            30-day money-back guarantee • Instant download • Lifetime updates
           </p>
         </div>
       </section>
@@ -271,7 +253,7 @@ export default function Home() {
   );
 }
 
-function LearningBlock({ title, description, href, icon }: { title: string; description: string; href: string; icon: string }) {
+function ProductBlock({ title, description, href, icon }: { title: string; description: string; href: string; icon: string }) {
   return (
     <Link
       href={href}
@@ -285,7 +267,7 @@ function LearningBlock({ title, description, href, icon }: { title: string; desc
         <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">{title}</h3>
         <p className="text-slate-600 mb-4 text-sm leading-relaxed">{description}</p>
         <div className="inline-flex items-center gap-2 text-emerald-600 font-semibold">
-          Learn More
+          View Details
           <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>

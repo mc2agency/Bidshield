@@ -1,14 +1,14 @@
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16">
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Terms of Service
             </h1>
-            <p className="text-xl text-blue-100">
+            <p className="text-xl text-slate-300">
               Last updated: December 2024
             </p>
           </div>
@@ -21,28 +21,28 @@ export default function TermsPage() {
           <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12 border border-gray-200">
             <div className="prose prose-lg max-w-none">
               <p className="text-lg text-gray-700 mb-8">
-                Please read these Terms of Service ("Terms") carefully before using MC2 Estimating Academy services.
-                By accessing or using our website, courses, products, or services, you agree to be bound by these Terms.
+                Please read these Terms of Service (&quot;Terms&quot;) carefully before using MC2 Estimating services.
+                By accessing or using our website, products, or services, you agree to be bound by these Terms.
               </p>
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">1. Acceptance of Terms</h2>
               <p className="text-gray-700 mb-4">
-                By creating an account, making a purchase, or accessing any content on MC2 Estimating Academy,
+                By creating an account, making a purchase, or accessing any content on MC2 Estimating,
                 you agree to comply with and be bound by these Terms of Service and our Privacy Policy.
                 If you do not agree to these Terms, please do not use our services.
               </p>
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">2. Description of Services</h2>
               <p className="text-gray-700 mb-4">
-                MC2 Estimating Academy provides online education and training for construction estimators,
+                MC2 Estimating provides professional estimating tools for construction contractors,
                 including but not limited to:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li>Digital courses and video training</li>
-                <li>Downloadable templates, guides, and checklists</li>
-                <li>MC2 Pro membership with access to all content</li>
-                <li>Free educational content and resources</li>
-                <li>Corporate training programs</li>
+                <li>Downloadable templates, calculators, and checklists</li>
+                <li>Proposal and documentation templates</li>
+                <li>MC2 Pro access with all tools and updates</li>
+                <li>Reference guides and documentation</li>
+                <li>Enterprise licensing packages</li>
               </ul>
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">3. User Accounts</h2>
@@ -69,42 +69,42 @@ export default function TermsPage() {
               <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">4.2 Payment Processing</h3>
               <p className="text-gray-700 mb-4">
                 Payments are processed securely through Gumroad. By making a purchase, you agree to
-                Gumroad's terms of service and authorize us to charge your payment method.
+                Gumroad&apos;s terms of service and authorize us to charge your payment method.
               </p>
 
-              <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">4.3 Subscriptions (MC2 Pro Membership)</h3>
+              <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">4.3 Subscriptions (MC2 Pro Access)</h3>
               <p className="text-gray-700 mb-4">
-                MC2 Pro membership is billed monthly at $197/month. Subscriptions automatically renew
+                MC2 Pro access is billed monthly at $197/month. Subscriptions automatically renew
                 unless canceled. You can cancel anytime - cancellation takes effect at the end of the
                 current billing period.
               </p>
 
               <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">4.4 Refund Policy</h3>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li><strong>Digital Products & Individual Courses:</strong> 30-day money-back guarantee.
+                <li><strong>Digital Products:</strong> 30-day money-back guarantee.
                 Request a refund within 30 days of purchase for any reason.</li>
-                <li><strong>MC2 Pro Membership:</strong> Cancel anytime. If you cancel within 14 days
-                of initial signup, we'll refund the current month.</li>
-                <li><strong>Corporate Training:</strong> Custom refund terms in corporate agreement.</li>
+                <li><strong>MC2 Pro Access:</strong> Cancel anytime. If you cancel within 14 days
+                of initial signup, we&apos;ll refund the current month.</li>
+                <li><strong>Enterprise Licensing:</strong> Custom refund terms in enterprise agreement.</li>
               </ul>
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">5. Intellectual Property Rights</h2>
 
               <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">5.1 Our Content</h3>
               <p className="text-gray-700 mb-4">
-                All content on MC2 Estimating Academy - including courses, videos, templates, guides,
-                text, graphics, logos, and software - is owned by MC2 Estimating Academy and protected
+                All content on MC2 Estimating - including templates, guides, calculators,
+                text, graphics, logos, and software - is owned by MC2 Estimating and protected
                 by copyright, trademark, and other intellectual property laws.
               </p>
 
               <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">5.2 License to Use</h3>
               <p className="text-gray-700 mb-4">
-                When you purchase a product or course, you receive a limited, non-exclusive,
+                When you purchase a product, you receive a limited, non-exclusive,
                 non-transferable license to:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li>Access and view course content for your personal or business use</li>
                 <li>Download and use templates in your own business operations</li>
+                <li>Customize templates with your company information</li>
                 <li>Print materials for your own reference</li>
               </ul>
 
@@ -113,8 +113,8 @@ export default function TermsPage() {
                 You may NOT:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li>Share, distribute, or resell our courses or content</li>
-                <li>Copy or reproduce course videos or materials for others</li>
+                <li>Share, distribute, or resell our products or content</li>
+                <li>Copy or reproduce templates for distribution to others</li>
                 <li>Modify, create derivative works, or reverse engineer our content</li>
                 <li>Remove copyright notices or watermarks</li>
                 <li>Use our content to create competing products or services</li>
@@ -144,19 +144,19 @@ export default function TermsPage() {
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">8. Disclaimer of Warranties</h2>
               <p className="text-gray-700 mb-4">
-                OUR SERVICES AND CONTENT ARE PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EITHER
+                OUR SERVICES AND CONTENT ARE PROVIDED &quot;AS IS&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER
                 EXPRESS OR IMPLIED. WE DO NOT GUARANTEE:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
                 <li>That our services will be uninterrupted or error-free</li>
                 <li>The accuracy, completeness, or reliability of content</li>
                 <li>That defects will be corrected</li>
-                <li>Specific results from using our courses or templates</li>
+                <li>Specific results from using our tools or templates</li>
               </ul>
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">9. Limitation of Liability</h2>
               <p className="text-gray-700 mb-4">
-                TO THE MAXIMUM EXTENT PERMITTED BY LAW, MC2 ESTIMATING ACADEMY SHALL NOT BE LIABLE FOR
+                TO THE MAXIMUM EXTENT PERMITTED BY LAW, MC2 ESTIMATING SHALL NOT BE LIABLE FOR
                 ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF
                 PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE,
                 GOODWILL, OR OTHER INTANGIBLE LOSSES.
@@ -168,7 +168,7 @@ export default function TermsPage() {
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">10. Indemnification</h2>
               <p className="text-gray-700 mb-4">
-                You agree to indemnify and hold harmless MC2 Estimating Academy from any claims,
+                You agree to indemnify and hold harmless MC2 Estimating from any claims,
                 damages, losses, liabilities, and expenses (including legal fees) arising from your
                 use of our services or violation of these Terms.
               </p>
@@ -176,7 +176,7 @@ export default function TermsPage() {
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">11. Modifications to Service</h2>
               <p className="text-gray-700 mb-4">
                 We reserve the right to modify, suspend, or discontinue any part of our services at
-                any time. We may also update course content, add new features, or remove outdated
+                any time. We may also update product content, add new features, or remove outdated
                 content without notice.
               </p>
 
@@ -203,8 +203,8 @@ export default function TermsPage() {
               <p className="text-gray-700 mb-4">
                 For questions about these Terms of Service, please contact us:
               </p>
-              <div className="bg-blue-50 rounded-lg p-6 border-2 border-blue-200">
-                <p className="text-gray-800 mb-2"><strong>MC2 Estimating Academy</strong></p>
+              <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
+                <p className="text-gray-800 mb-2"><strong>MC2 Estimating</strong></p>
                 <p className="text-gray-700">Email: legal@mc2estimating.com</p>
                 <p className="text-gray-700">Phone: (800) 555-1234</p>
               </div>
@@ -212,7 +212,7 @@ export default function TermsPage() {
               <div className="mt-12 p-6 bg-gray-100 rounded-lg border-2 border-gray-300">
                 <p className="text-sm text-gray-600">
                   <strong>Legal Notice:</strong> These Terms of Service constitute a legally binding
-                  agreement between you and MC2 Estimating Academy. Please read them carefully and
+                  agreement between you and MC2 Estimating. Please read them carefully and
                   contact us if you have any questions before using our services.
                 </p>
               </div>
