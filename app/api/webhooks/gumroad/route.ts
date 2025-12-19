@@ -42,9 +42,15 @@ export async function POST(request: NextRequest) {
       sale_id: body.sale_id,
     });
 
-    // Verify this is a valid Gumroad webhook
-    // TODO: Add signature verification for production
-    // See: https://help.gumroad.com/article/76-webhooks
+    // Verify seller_id matches your Gumroad account (basic security)
+    const expectedSellerId = process.env.GUMROAD_SELLER_ID;
+    if (expectedSellerId && body.seller_id !== expectedSellerId) {
+      console.error('Invalid seller_id:', body.seller_id);
+      return NextResponse.json(
+        { error: 'Invalid seller' },
+        { status: 401 }
+      );
+    }
 
     // Extract purchase data
     const {
