@@ -336,45 +336,23 @@ export default function ProductsPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <BundleCard
-              title="Starter Bundle"
-              price="$297"
-              originalPrice="$404"
-              savings="Save $107"
-              description="Perfect for getting started with professional estimating."
-              productKey="starterBundle"
+              title="Template Bundle"
+              price="$129"
+              originalPrice="$329"
+              savings="Save $200"
+              description="5 core roofing templates plus estimating checklist and proposals."
+              productKey="templateBundle"
               features={[
-                "Complete Template Bundle ($129)",
+                "5 Roofing System Templates",
                 "Estimating Checklist ($29)",
-                "Lead Generation Guide ($39)",
-                "Technology Setup Guide ($29)",
-                "OSHA Safety Guide ($39)",
-                "Insurance & Compliance Guide ($49)",
                 "Proposal Template Library ($79)",
-                "Lifetime updates included"
+                "Lifetime updates included",
+                "Excel & Google Sheets compatible",
+                "Instant download"
               ]}
               highlighted={false}
-            />
-
-            <BundleCard
-              title="Professional Bundle"
-              price="$797"
-              originalPrice="$1,491"
-              savings="Save $694"
-              description="Everything in Starter Bundle plus all premium tools."
-              productKey="professionalBundle"
-              features={[
-                "Everything in Starter Bundle",
-                "Estimating Toolkit ($497)",
-                "Bluebeam Template Pack ($147)",
-                "Submittals Package ($197)",
-                "Software Configuration Guide ($197)",
-                "Measurement Tools ($97)",
-                "SketchUp Templates ($97)",
-                "Priority email support"
-              ]}
-              highlighted={true}
             />
 
             <BundleCard
@@ -382,19 +360,19 @@ export default function ProductsPage() {
               price="$997"
               originalPrice="$1,985"
               savings="Save $988"
-              description="Ultimate package - every tool and template we offer."
+              description="Every template, guide, and tool we offer in one package."
               productKey="completeBundle"
               features={[
-                "Everything in Professional Bundle",
-                "AutoCAD Submittal Templates ($247)",
-                "Private community access",
-                "Monthly Q&A sessions",
-                "Priority support",
+                "All 8 Roofing System Templates",
+                "Estimating Checklist & Proposals",
+                "Lead Generation Guide",
+                "Insurance & Compliance Guide",
+                "OSHA Safety Guide",
+                "Technology Setup Guide",
                 "All future products included",
-                "Proof of purchase documentation",
                 "Lifetime access to everything"
               ]}
-              highlighted={false}
+              highlighted={true}
             />
           </div>
 
