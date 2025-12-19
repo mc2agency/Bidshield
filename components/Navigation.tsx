@@ -32,10 +32,10 @@ export default function Navigation() {
   }, [updateScrollState]);
 
   const navLinks = [
-    { href: '/products', label: 'Products' },
-    { href: '/courses', label: 'Courses' },
-    { href: '/learning', label: 'Learning' },
-    { href: '/blog', label: 'Blog' },
+    { href: '/products', label: 'Tools & Templates' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/updates', label: 'Updates' },
+    { href: '/support', label: 'Support' },
     { href: '/about', label: 'About' },
   ];
 

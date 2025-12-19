@@ -3,20 +3,20 @@ import Link from 'next/link';
 export default function Footer() {
   const footerSections = [
     {
-      title: 'Products',
+      title: 'Tools & Templates',
       links: [
         { href: '/products/template-bundle', label: 'Template Bundle' },
         { href: '/products/estimating-checklist', label: 'Estimating Checklist' },
         { href: '/products/proposal-templates', label: 'Proposal Templates' },
-        { href: '/membership', label: 'MC2 Pro Membership' },
+        { href: '/membership', label: 'MC2 Pro Access' },
       ],
     },
     {
-      title: 'Learning',
+      title: 'Resources',
       links: [
-        { href: '/courses/estimating-fundamentals', label: 'Estimating Fundamentals' },
-        { href: '/courses/bluebeam-mastery', label: 'Bluebeam Mastery' },
-        { href: '/learning/roofing-systems', label: 'Roofing Systems' },
+        { href: '/products', label: 'All Products' },
+        { href: '/updates', label: 'Product Updates' },
+        { href: '/support', label: 'Support' },
         { href: '/blog', label: 'Blog' },
       ],
     },
@@ -50,7 +50,7 @@ export default function Footer() {
               <span className="text-xl font-bold text-white">Estimating</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Professional construction estimating training for roofing contractors and estimators.
+              Professional roofing estimating tools contractors use to build accurate bids faster.
             </p>
             <div className="flex gap-4 pt-2">
               <a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors" aria-label="Twitter">
@@ -88,7 +88,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="pt-8 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
-            &copy; {new Date().getFullYear()} MC2 Estimating Academy. All rights reserved.
+            &copy; {new Date().getFullYear()} MC2 Estimating. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-slate-500">
             <Link href="/terms" className="hover:text-emerald-400 transition-colors">Terms</Link>

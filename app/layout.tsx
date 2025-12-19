@@ -14,35 +14,35 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "MC2 Estimating Academy - Professional Roofing Estimation Training",
-    template: "%s | MC2 Estimating Academy",
+    default: "MC2 Estimating - Professional Roofing Estimating Tools & Templates",
+    template: "%s | MC2 Estimating",
   },
-  description: "Learn professional estimating skills for roofing and construction. Templates, courses, and tools used by top contractors. Master estimation from takeoff to profit.",
-  keywords: ["roofing estimation", "construction estimating", "contractor training", "roofing templates", "building estimation", "Bluebeam training", "estimating courses"],
-  authors: [{ name: "MC2 Estimating Academy" }],
-  creator: "MC2 Estimating Academy",
-  publisher: "MC2 Estimating Academy",
+  description: "Professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, checklists, and workflow tools for roofing professionals.",
+  keywords: ["roofing estimation", "construction estimating", "roofing templates", "estimating tools", "roofing calculators", "contractor tools", "bid templates"],
+  authors: [{ name: "MC2 Estimating" }],
+  creator: "MC2 Estimating",
+  publisher: "MC2 Estimating",
   metadataBase: new URL("https://mc2estimating.com"),
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://mc2estimating.com",
-    siteName: "MC2 Estimating Academy",
-    title: "MC2 Estimating Academy - Professional Roofing Estimation Training",
-    description: "Learn professional estimating skills for roofing and construction. Templates, courses, and tools used by top contractors.",
+    siteName: "MC2 Estimating",
+    title: "MC2 Estimating - Professional Roofing Estimating Tools & Templates",
+    description: "Professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, and workflow tools.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "MC2 Estimating Academy",
+        alt: "MC2 Estimating",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MC2 Estimating Academy",
-    description: "Professional roofing estimation training, templates, and courses.",
+    title: "MC2 Estimating",
+    description: "Professional roofing estimating tools, templates, and calculators.",
     images: ["/og-image.png"],
   },
   robots: {

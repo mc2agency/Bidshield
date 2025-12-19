@@ -62,24 +62,24 @@ function DashboardContent() {
             Welcome back, {user.firstName || user.emailAddresses[0].emailAddress}!
           </h1>
           <p className="text-slate-300 text-lg">
-            Continue your estimating journey
+            Your MC2 Estimating dashboard
           </p>
         </div>
       </div>
 
       {/* Dashboard Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Membership Status */}
+        {/* Access Status */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                Membership Status
+                Access Status
               </h2>
               <p className="text-slate-600">
                 Current plan:{" "}
                 <span className="font-semibold capitalize">
-                  {userData?.membershipLevel || "Free"}
+                  {userData?.membershipLevel === "pro" ? "MC2 Pro" : "Free"}
                 </span>
               </p>
             </div>
@@ -94,52 +94,10 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* My Courses */}
+        {/* My Tools & Templates */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">
-            My Courses
-          </h2>
-          {userData?.purchasedCourses && userData.purchasedCourses.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userData.purchasedCourses.map((courseId) => (
-                <div
-                  key={courseId}
-                  className="border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-shadow"
-                >
-                  <h3 className="font-semibold text-lg text-slate-900 mb-2">
-                    {courseId.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </h3>
-                  <p className="text-slate-600 mb-4 text-sm">
-                    Continue where you left off
-                  </p>
-                  <Link
-                    href={`/courses/${courseId}`}
-                    className="inline-block px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
-                  >
-                    Continue Learning →
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-slate-600 mb-6">
-                You haven't purchased any courses yet.
-              </p>
-              <Link
-                href="/courses"
-                className="inline-block px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                Browse Courses
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* My Products */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">
-            My Products
+            My Tools & Templates
           </h2>
           {userData?.purchasedProducts && userData.purchasedProducts.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -155,7 +113,7 @@ function DashboardContent() {
                     href={`/products/${productId}`}
                     className="inline-block px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
                   >
-                    View Product →
+                    View & Download
                   </Link>
                 </div>
               ))}
@@ -163,16 +121,49 @@ function DashboardContent() {
           ) : (
             <div className="text-center py-12">
               <p className="text-slate-600 mb-6">
-                You haven't purchased any products yet.
+                You haven&apos;t purchased any tools yet.
               </p>
               <Link
                 href="/products"
                 className="inline-block px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
               >
-                Browse Products
+                Browse Tools & Templates
               </Link>
             </div>
           )}
+        </div>
+
+        {/* Quick Links */}
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">
+            Quick Links
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Link
+              href="/products"
+              className="border border-slate-200 rounded-xl p-6 hover:shadow-lg hover:border-emerald-300 transition-all text-center"
+            >
+              <div className="text-4xl mb-3">🛠️</div>
+              <h3 className="font-semibold text-slate-900">Browse Tools</h3>
+              <p className="text-sm text-slate-600 mt-2">View all available templates</p>
+            </Link>
+            <Link
+              href="/updates"
+              className="border border-slate-200 rounded-xl p-6 hover:shadow-lg hover:border-emerald-300 transition-all text-center"
+            >
+              <div className="text-4xl mb-3">📊</div>
+              <h3 className="font-semibold text-slate-900">Product Updates</h3>
+              <p className="text-sm text-slate-600 mt-2">See latest improvements</p>
+            </Link>
+            <Link
+              href="/support"
+              className="border border-slate-200 rounded-xl p-6 hover:shadow-lg hover:border-emerald-300 transition-all text-center"
+            >
+              <div className="text-4xl mb-3">💬</div>
+              <h3 className="font-semibold text-slate-900">Get Support</h3>
+              <p className="text-sm text-slate-600 mt-2">Contact our team</p>
+            </Link>
+          </div>
         </div>
       </div>
     </main>

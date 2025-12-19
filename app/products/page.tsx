@@ -4,8 +4,8 @@ import { GumroadProductKey } from '@/lib/gumroad-products';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Products & Templates | MC2 Estimating Academy',
-  description: 'Professional roofing estimating templates, checklists, and business guides. Excel templates for asphalt shingle, TPO, metal, tile, and spray foam roofing systems.',
+  title: 'Tools & Templates | MC2 Estimating',
+  description: 'Professional roofing estimating templates, calculators, and checklists. Excel templates for asphalt shingle, TPO, metal, tile, and spray foam roofing systems.',
   keywords: 'roofing templates, estimating checklist, proposal templates, roofing estimate template, construction templates',
 };
 
@@ -362,36 +362,36 @@ export default function ProductsPage() {
               price="$797"
               originalPrice="$1,491"
               savings="Save $694"
-              description="Everything in Starter Bundle plus all premium courses."
+              description="Everything in Starter Bundle plus all premium tools."
               productKey="professionalBundle"
               features={[
                 "Everything in Starter Bundle",
-                "Estimating Fundamentals Course ($497)",
-                "Bluebeam Mastery Course ($147)",
-                "Submittals Course ($197)",
-                "Estimating Software Course ($197)",
-                "Measurement Technology ($97)",
-                "SketchUp Visualization ($97)",
+                "Estimating Toolkit ($497)",
+                "Bluebeam Template Pack ($147)",
+                "Submittals Package ($197)",
+                "Software Configuration Guide ($197)",
+                "Measurement Tools ($97)",
+                "SketchUp Templates ($97)",
                 "Priority email support"
               ]}
               highlighted={true}
             />
 
             <BundleCard
-              title="Complete Academy"
+              title="Complete Toolkit"
               price="$997"
               originalPrice="$1,985"
               savings="Save $988"
-              description="Ultimate package - every product and course we offer."
+              description="Ultimate package - every tool and template we offer."
               productKey="completeAcademy"
               features={[
                 "Everything in Professional Bundle",
-                "AutoCAD for Submittals ($247)",
+                "AutoCAD Submittal Templates ($247)",
                 "Private community access",
-                "Monthly live Q&A sessions",
+                "Monthly Q&A sessions",
                 "Priority support",
-                "All future courses included",
-                "Certificate of completion",
+                "All future products included",
+                "Proof of purchase documentation",
                 "Lifetime access to everything"
               ]}
               highlighted={false}
@@ -400,15 +400,15 @@ export default function ProductsPage() {
 
           <div className="mt-12 text-center">
             <p className="text-gray-600 mb-4">
-              Need custom training for your team?
+              Need a custom solution for your team?
             </p>
             <Link
               href="/contact"
               className="inline-block px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
             >
-              Contact Us for Corporate Training
+              Contact Us for Enterprise Licensing
             </Link>
-            <p className="text-sm text-gray-500 mt-2">Custom packages starting at $5,000</p>
+            <p className="text-sm text-gray-500 mt-2">Volume licensing starting at $5,000</p>
           </div>
         </div>
       </section>
@@ -454,8 +454,8 @@ export default function ProductsPage() {
             />
 
             <FAQItem
-              question="What's the difference between products and courses?"
-              answer="Products (templates, guides, checklists) are downloadable resources you can use immediately. Courses include video lessons, step-by-step training, and more in-depth education. Both are valuable - products give you tools, courses teach you how to use them effectively."
+              question="What's included with each product?"
+              answer="Each product includes the downloadable files (Excel templates, PDF guides, etc.), documentation on how to use them, and lifetime updates whenever we improve the product. All products are designed to provide immediate value."
             />
           </div>
         </div>
@@ -496,12 +496,12 @@ export default function ProductsPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-900 text-white">
+      <section className="py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ready to Transform Your Estimating Process?
+            Ready to Estimate Faster?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-slate-300 mb-8">
             Join thousands of contractors who save time and increase accuracy with our professional templates and tools.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -511,14 +511,14 @@ export default function ProductsPage() {
               variant="large"
             />
             <Link
-              href="/courses"
-              className="inline-flex items-center justify-center px-8 py-4 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-lg border-2 border-blue-600"
+              href="/membership"
+              className="inline-flex items-center justify-center px-8 py-4 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-500 transition-colors text-lg"
             >
-              View All Courses
+              Get MC2 Pro Access
             </Link>
           </div>
-          <p className="mt-6 text-sm text-blue-200">
-            Questions? <Link href="/contact" className="underline hover:text-white">Contact us</Link> - we're here to help!
+          <p className="mt-6 text-sm text-slate-400">
+            Questions? <Link href="/contact" className="underline hover:text-white">Contact us</Link> - we&apos;re here to help!
           </p>
         </div>
       </section>
