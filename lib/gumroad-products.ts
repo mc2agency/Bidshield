@@ -30,19 +30,8 @@ export const GUMROAD_PRODUCTS = {
   oshaGuide: 'mc2-osha-safety',
   techSetupGuide: 'mc2-tech-setup',
 
-  // Courses
-  estimatingFundamentals: 'mc2-estimating-fundamentals',
-  bluebeamMastery: 'mc2-bluebeam-mastery',
-  autocadSubmittals: 'mc2-autocad-submittals',
-  sketchupVisualization: 'mc2-sketchup-visualization',
-  measurementTechnology: 'mc2-measurement-technology',
-  constructionSubmittals: 'mc2-construction-submittals',
-  estimatingSoftware: 'mc2-estimating-software',
-
   // Bundles
-  starterBundle: 'mc2-starter-bundle',
-  professionalBundle: 'mc2-professional-bundle',
-  completeAcademy: 'mc2-complete-academy',
+  completeBundle: 'mc2-complete-bundle',
 
   // Membership
   mc2ProMonthly: 'mc2-pro-monthly',
@@ -63,25 +52,19 @@ export function getGumroadProductId(key: GumroadProductKey): string {
  */
 export const PRODUCT_META = {
   templateBundle: {
-    name: 'Complete Template Bundle',
+    name: 'Template Bundle',
     price: 129,
-    category: 'template'
+    category: 'bundle'
   },
-  estimatingFundamentals: {
-    name: 'Estimating Fundamentals Course',
-    price: 497,
-    category: 'course'
-  },
-  bluebeamMastery: {
-    name: 'Bluebeam Mastery Course',
-    price: 147,
-    category: 'course'
+  completeBundle: {
+    name: 'Complete Tool Bundle',
+    price: 997,
+    category: 'bundle'
   },
   mc2ProMonthly: {
-    name: 'MC2 Pro Membership',
+    name: 'MC2 Pro Access',
     price: 197,
     category: 'membership',
     interval: 'monthly'
   },
-  // Add more as needed
 };
