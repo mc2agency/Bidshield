@@ -558,7 +558,7 @@ function BundleCard({
   description,
   features,
   highlighted,
-  productKey = 'starterBundle',
+  productKey = 'templateBundle',
 }: {
   title: string;
   price: string;
