@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { api } from '@/convex/_generated/api';
-import { ConvexHttpClient } from 'convex/browser';
 
-// Lazily create the Convex client to avoid build-time errors when env vars aren't set
-function getConvexClient() {
-  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!url) {
-    throw new Error('NEXT_PUBLIC_CONVEX_URL environment variable is not set');
-  }
-  return new ConvexHttpClient(url);
-}
+// Force dynamic rendering - never pre-render this route
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // Product mapping: Gumroad product IDs to your internal course/product IDs
 const PRODUCT_MAPPING: Record<string, { type: 'course' | 'product' | 'membership'; id: string }> = {
@@ -92,8 +85,17 @@ export async function POST(request: NextRequest) {
     // Convert price to cents (Gumroad sends in dollars)
     const amountInCents = Math.round(parseFloat(price) * 100);
 
+    // Dynamically import Convex to avoid build-time errors
+    const { ConvexHttpClient } = await import('convex/browser');
+    const { api } = await import('@/convex/_generated/api');
+
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!convexUrl) {
+      throw new Error('NEXT_PUBLIC_CONVEX_URL environment variable is not set');
+    }
+
     // Call Convex mutation to handle the purchase
-    const convex = getConvexClient();
+    const convex = new ConvexHttpClient(convexUrl);
     await convex.mutation(api.gumroad.handleGumroadPurchase, {
       email,
       productId: mappedProduct.id,
