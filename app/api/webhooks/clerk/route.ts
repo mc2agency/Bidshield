@@ -1,26 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'svix';
 import { WebhookEvent } from '@clerk/nextjs/server';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '@/convex/_generated/api';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-
-// Module-level singleton Convex client for better performance
-let convexClient: ConvexHttpClient | null = null;
-
-function getConvexHttpClient(): ConvexHttpClient {
-  if (!convexClient) {
-    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('NEXT_PUBLIC_CONVEX_URL not configured');
-    }
-    convexClient = new ConvexHttpClient(convexUrl);
-  }
-  return convexClient;
-}
 
 export async function POST(request: NextRequest) {
   // Get the webhook secret from environment variables
@@ -88,7 +72,15 @@ export async function POST(request: NextRequest) {
 
     // Create user in Convex
     try {
-      const convex = getConvexHttpClient();
+      const { ConvexHttpClient } = await import('convex/browser');
+      const { api } = await import('@/convex/_generated/api');
+
+      const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+      if (!convexUrl) {
+        throw new Error('NEXT_PUBLIC_CONVEX_URL not configured');
+      }
+
+      const convex = new ConvexHttpClient(convexUrl);
       await convex.mutation(api.users.getOrCreateUser, {
         email: email || '',
         name,
