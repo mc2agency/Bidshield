@@ -1,38 +1,35 @@
 import Link from 'next/link';
-import { memo } from 'react';
 
-// Static data moved outside component to prevent recreation on each render
-const FOOTER_SECTIONS = [
-  {
-    title: 'Tools & Templates',
-    links: [
-      { href: '/products/template-bundle', label: 'Template Bundle' },
-      { href: '/products/estimating-checklist', label: 'Estimating Checklist' },
-      { href: '/products/proposal-templates', label: 'Proposal Templates' },
-      { href: '/membership', label: 'MC2 Pro Access' },
-    ],
-  },
-  {
-    title: 'Resources',
-    links: [
-      { href: '/products', label: 'All Products' },
-      { href: '/updates', label: 'Product Updates' },
-      { href: '/support', label: 'Support' },
-      { href: '/blog', label: 'Blog' },
-    ],
-  },
-  {
-    title: 'Company',
-    links: [
-      { href: '/about', label: 'About Us' },
-      { href: '/contact', label: 'Contact' },
-      { href: '/terms', label: 'Terms of Service' },
-      { href: '/privacy', label: 'Privacy Policy' },
-    ],
-  },
-] as const;
-
-function Footer() {
+export default function Footer() {
+  const footerSections = [
+    {
+      title: 'Tools & Templates',
+      links: [
+        { href: '/products/template-bundle', label: 'Template Bundle' },
+        { href: '/products/estimating-checklist', label: 'Estimating Checklist' },
+        { href: '/products/proposal-templates', label: 'Proposal Templates' },
+        { href: '/membership', label: 'MC2 Pro Access' },
+      ],
+    },
+    {
+      title: 'Resources',
+      links: [
+        { href: '/products', label: 'All Products' },
+        { href: '/updates', label: 'Product Updates' },
+        { href: '/support', label: 'Support' },
+        { href: '/blog', label: 'Blog' },
+      ],
+    },
+    {
+      title: 'Company',
+      links: [
+        { href: '/about', label: 'About Us' },
+        { href: '/contact', label: 'Contact' },
+        { href: '/terms', label: 'Terms of Service' },
+        { href: '/privacy', label: 'Privacy Policy' },
+      ],
+    },
+  ];
 
   return (
     <footer className="relative bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 overflow-hidden">
@@ -69,7 +66,7 @@ function Footer() {
           </div>
 
           {/* Link sections */}
-          {FOOTER_SECTIONS.map((section) => (
+          {footerSections.map((section) => (
             <div key={section.title}>
               <h3 className="font-semibold text-white mb-4">{section.title}</h3>
               <ul className="space-y-3">
@@ -103,6 +100,3 @@ function Footer() {
     </footer>
   );
 }
-
-// Memoize the component to prevent unnecessary re-renders
-export default memo(Footer);

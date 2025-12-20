@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef } from 'react';
 import { GumroadProductKey, getGumroadProductId } from '@/lib/gumroad-products';
 
 // Track script loading state globally to prevent multiple loads
@@ -28,7 +28,7 @@ interface GumroadCheckoutButtonProps {
  *   variant="primary"
  * />
  */
-function GumroadCheckoutButton({
+export default function GumroadCheckoutButton({
   productKey,
   text = 'Buy Now',
   className = '',
@@ -85,6 +85,3 @@ function GumroadCheckoutButton({
     </a>
   );
 }
-
-// Memoize the component to prevent unnecessary re-renders when parent re-renders
-export default memo(GumroadCheckoutButton);

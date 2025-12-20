@@ -5,7 +5,7 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ReactNode, useState, useEffect } from "react";
 
-// Module-level singleton client - only created once on client side
+// Singleton client - only created once on client side
 let convexClient: ConvexReactClient | null = null;
 
 function getConvexClient(): ConvexReactClient {
@@ -24,8 +24,8 @@ export function Providers({ children }: { children: ReactNode }) {
     setConvex(getConvexClient());
   }, []);
 
-  // During SSR or before hydration, render children without providers
-  // This prevents Clerk and Convex from failing during build
+  // During SSR or before hydration, render children without any providers
+  // This prevents Clerk and Convex from failing due to missing env vars during build
   if (!isClient || !convex) {
     return <>{children}</>;
   }
