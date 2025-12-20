@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
-const blogPosts = [
+// Static data moved outside component to prevent recreation on each render
+const BLOG_POSTS = [
   {
     slug: 'how-to-calculate-roof-pitch',
     title: 'How to Calculate Roof Pitch in 3 Easy Steps [With Calculator]',
@@ -59,17 +60,26 @@ const blogPosts = [
     featured: false,
     image: '/images/blog/excel-template.jpg',
   },
-];
+] as const;
 
-const categories = ['All', 'Estimation', 'Business', 'Plans & Specs', 'Technology', 'Templates'];
+const CATEGORIES = ['All', 'Estimation', 'Business', 'Plans & Specs', 'Technology', 'Templates'] as const;
 
 export default function BlogPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // Memoized event handlers to prevent recreation on each render
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const handleCategoryClick = useCallback((category: string) => {
+    setSelectedCategory(category);
+  }, []);
 
   const { filteredPosts, featuredPost, regularPosts } = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
-    const filtered = blogPosts.filter((post) => {
+    const filtered = BLOG_POSTS.filter((post) => {
       const matchesSearch = searchQuery === '' ||
                            post.title.toLowerCase().includes(searchLower) ||
                            post.excerpt.toLowerCase().includes(searchLower);
@@ -77,7 +87,7 @@ export default function BlogPage() {
       return matchesSearch && matchesCategory;
     });
 
-    const featured = blogPosts.find(post => post.featured);
+    const featured = BLOG_POSTS.find(post => post.featured);
     const regular = filtered.filter(post => !post.featured || selectedCategory !== 'All' || searchQuery !== '');
 
     return { filteredPosts: filtered, featuredPost: featured, regularPosts: regular };
@@ -106,16 +116,16 @@ export default function BlogPage() {
                   type="text"
                   placeholder="Search articles..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
+                {CATEGORIES.map((category) => (
                   <button
                     key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => handleCategoryClick(category)}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       selectedCategory === category
                         ? 'bg-blue-600 text-white'
@@ -238,7 +248,7 @@ export default function BlogPage() {
             <div className="bg-white rounded-xl p-6 shadow-md mb-8">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Popular Posts</h3>
               <div className="space-y-4">
-                {blogPosts.slice(0, 4).map((post, index) => (
+                {BLOG_POSTS.slice(0, 4).map((post, index) => (
                   <Link
                     key={post.slug}
                     href={`/blog/${post.slug}`}
@@ -262,15 +272,15 @@ export default function BlogPage() {
             <div className="bg-white rounded-xl p-6 shadow-md mb-8">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Categories</h3>
               <div className="space-y-2">
-                {categories.filter(cat => cat !== 'All').map((category) => (
+                {CATEGORIES.filter(cat => cat !== 'All').map((category) => (
                   <button
                     key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => handleCategoryClick(category)}
                     className="block w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <span className="text-gray-700 font-medium">{category}</span>
                     <span className="text-gray-400 text-sm float-right">
-                      {blogPosts.filter(post => post.category === category).length}
+                      {BLOG_POSTS.filter(post => post.category === category).length}
                     </span>
                   </button>
                 ))}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 
 export default function MembershipPage() {
@@ -543,14 +543,19 @@ function TestimonialCard({ quote, author, role, roi }: { quote: string; author: 
   );
 }
 
-// Component: FAQ Item
-function FAQItem({ question, answer }: { question: string; answer: string }) {
+// Component: FAQ Item - Memoized for performance
+const FAQItem = memo(function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Memoize toggle handler to prevent recreation on each render
+  const toggleOpen = useCallback(() => {
+    setIsOpen(prev => !prev);
+  }, []);
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
       >
         <span className="font-bold text-gray-900">{question}</span>
@@ -570,7 +575,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
       )}
     </div>
   );
-}
+});
 
 // Component: Alternative Card
 function AlternativeCard({

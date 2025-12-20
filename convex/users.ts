@@ -47,10 +47,8 @@ export const getOrCreateUser = mutation({
       const products = new Set<string>();
       let hasMembership = false;
 
-      // Link all purchases to this user
+      // Categorize purchases first (no DB calls)
       for (const purchase of orphanedPurchases) {
-        await ctx.db.patch(purchase._id, { userId });
-
         if (purchase.productType === "course") {
           courses.add(purchase.productId);
         } else if (purchase.productType === "product") {
@@ -59,6 +57,13 @@ export const getOrCreateUser = mutation({
           hasMembership = true;
         }
       }
+
+      // Batch all purchase patches in parallel (single round-trip)
+      await Promise.all(
+        orphanedPurchases.map((purchase) =>
+          ctx.db.patch(purchase._id, { userId })
+        )
+      );
 
       // Update user with purchased items
       await ctx.db.patch(userId, {

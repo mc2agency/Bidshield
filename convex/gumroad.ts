@@ -96,12 +96,15 @@ export const handleGumroadPurchase = mutation({
 export const getUserPurchases = query({
   args: {
     userId: v.id("users"),
+    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const limit = args.limit ?? 50; // Default pagination limit
     const purchases = await ctx.db
       .query("purchases")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .collect();
+      .order("desc")
+      .take(limit);
 
     return purchases;
   },
@@ -133,14 +136,8 @@ export const syncPurchasesToUser = mutation({
     const newProducts = new Set<string>();
     let membershipGranted = false;
 
-    // Update each purchase and collect access grants
+    // Categorize purchases first (no DB calls)
     for (const purchase of orphanedPurchases) {
-      // Update purchase with userId
-      await ctx.db.patch(purchase._id, {
-        userId: args.userId,
-      });
-
-      // Grant access based on product type
       if (purchase.productType === "course") {
         if (!existingCourses.has(purchase.productId)) {
           newCourses.add(purchase.productId);
@@ -152,6 +149,15 @@ export const syncPurchasesToUser = mutation({
       } else if (purchase.productType === "membership") {
         membershipGranted = true;
       }
+    }
+
+    // Batch all purchase patches in parallel (single round-trip)
+    if (orphanedPurchases.length > 0) {
+      await Promise.all(
+        orphanedPurchases.map((purchase) =>
+          ctx.db.patch(purchase._id, { userId: args.userId })
+        )
+      );
     }
 
     // Only update if there are changes

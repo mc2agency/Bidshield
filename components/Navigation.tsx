@@ -1,10 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
-export default function Navigation() {
+// Static data moved outside component to prevent recreation on each render
+const NAV_LINKS = [
+  { href: '/products', label: 'Tools & Templates' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/updates', label: 'Updates' },
+  { href: '/support', label: 'Support' },
+  { href: '/about', label: 'About' },
+] as const;
+
+function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -31,13 +40,14 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [updateScrollState]);
 
-  const navLinks = [
-    { href: '/products', label: 'Tools & Templates' },
-    { href: '/pricing', label: 'Pricing' },
-    { href: '/updates', label: 'Updates' },
-    { href: '/support', label: 'Support' },
-    { href: '/about', label: 'About' },
-  ];
+  // Memoized callbacks to prevent recreation on each render
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen(prev => !prev);
+  }, []);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
@@ -61,7 +71,7 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navLinks.map(({ href, label }) => (
+            {NAV_LINKS.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
@@ -116,7 +126,7 @@ export default function Navigation() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={toggleMobileMenu}
               className="p-2 text-slate-600 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors"
               aria-label="Toggle menu"
             >
@@ -137,12 +147,12 @@ export default function Navigation() {
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-white/95 backdrop-blur-xl border-t border-slate-200/50 px-4 py-4 space-y-1">
-          {navLinks.map(({ href, label }) => (
+          {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 font-medium transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={closeMobileMenu}
             >
               {label}
             </Link>
@@ -150,7 +160,7 @@ export default function Navigation() {
           <Link
             href="/membership"
             className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-center font-semibold shadow-lg shadow-emerald-500/30"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={closeMobileMenu}
           >
             Join MC2 Pro
           </Link>
@@ -159,3 +169,6 @@ export default function Navigation() {
     </nav>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(Navigation);
