@@ -21,13 +21,20 @@ const isPublicRoute = createRouteMatcher([
   '/privacy',
   '/terms',
   '/quiz',
-  '/api/webhooks(.*)',
+  '/learning(.*)',
+  '/courses(.*)',
+  '/api(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // Protect dashboard routes - require authentication
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+  try {
+    // Protect dashboard routes - require authentication
+    if (isProtectedRoute(req)) {
+      await auth.protect();
+    }
+  } catch (error) {
+    console.error('Middleware error:', error);
+    throw error;
   }
 });
 
