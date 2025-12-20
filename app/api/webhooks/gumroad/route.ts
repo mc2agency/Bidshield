@@ -31,6 +31,17 @@ const PRODUCT_MAPPING: Record<string, { type: 'course' | 'product' | 'membership
 
 export async function POST(request: NextRequest) {
   try {
+    // Check required environment variables first
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!convexUrl) {
+      console.warn('Gumroad webhook received but NEXT_PUBLIC_CONVEX_URL not configured');
+      return NextResponse.json({
+        success: false,
+        error: 'Webhook not configured',
+        hint: 'Set NEXT_PUBLIC_CONVEX_URL in environment variables'
+      }, { status: 200 }); // Return 200 to avoid Vercel error logs
+    }
+
     // Parse the webhook payload
     const body = await request.json();
 
@@ -45,10 +56,10 @@ export async function POST(request: NextRequest) {
     // Verify seller_id matches your Gumroad account (basic security)
     const expectedSellerId = process.env.GUMROAD_SELLER_ID;
     if (expectedSellerId && body.seller_id !== expectedSellerId) {
-      console.error('Invalid seller_id:', body.seller_id);
+      console.warn('Invalid seller_id received:', body.seller_id);
       return NextResponse.json(
-        { error: 'Invalid seller' },
-        { status: 401 }
+        { success: false, error: 'Invalid seller' },
+        { status: 200 } // Return 200 to avoid error logs for invalid requests
       );
     }
 
@@ -95,11 +106,6 @@ export async function POST(request: NextRequest) {
     const { ConvexHttpClient } = await import('convex/browser');
     const { api } = await import('@/convex/_generated/api');
 
-    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error('NEXT_PUBLIC_CONVEX_URL environment variable is not set');
-    }
-
     // Call Convex mutation to handle the purchase
     const convex = new ConvexHttpClient(convexUrl);
     await convex.mutation(api.gumroad.handleGumroadPurchase, {
@@ -141,10 +147,18 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Handle Gumroad ping requests
+// Handle Gumroad ping requests and config check
 export async function GET() {
+  const hasConvexUrl = !!process.env.NEXT_PUBLIC_CONVEX_URL;
+  const hasSellerId = !!process.env.GUMROAD_SELLER_ID;
+
   return NextResponse.json({
     message: 'Gumroad webhook endpoint is active',
     timestamp: new Date().toISOString(),
+    config: {
+      convexUrl: hasConvexUrl ? 'configured' : 'missing',
+      sellerId: hasSellerId ? 'configured' : 'optional (not set)',
+    },
+    ready: hasConvexUrl,
   });
 }

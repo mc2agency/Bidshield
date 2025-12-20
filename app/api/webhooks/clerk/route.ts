@@ -11,10 +11,15 @@ export async function POST(request: NextRequest) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
-    console.error('Missing CLERK_WEBHOOK_SECRET environment variable');
+    // Return 200 to prevent Vercel from logging as error - config issue, not runtime error
+    console.warn('Clerk webhook received but CLERK_WEBHOOK_SECRET not configured');
     return NextResponse.json(
-      { error: 'Webhook secret not configured' },
-      { status: 500 }
+      {
+        success: false,
+        error: 'Webhook not configured',
+        hint: 'Set CLERK_WEBHOOK_SECRET in environment variables'
+      },
+      { status: 200 }
     );
   }
 
@@ -109,10 +114,18 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-// Handle GET requests (for testing endpoint availability)
+// Handle GET requests (for testing endpoint availability and config check)
 export async function GET() {
+  const hasWebhookSecret = !!process.env.CLERK_WEBHOOK_SECRET;
+  const hasConvexUrl = !!process.env.NEXT_PUBLIC_CONVEX_URL;
+
   return NextResponse.json({
     message: 'Clerk webhook endpoint is active',
     timestamp: new Date().toISOString(),
+    config: {
+      webhookSecret: hasWebhookSecret ? 'configured' : 'missing',
+      convexUrl: hasConvexUrl ? 'configured' : 'missing',
+    },
+    ready: hasWebhookSecret && hasConvexUrl,
   });
 }
