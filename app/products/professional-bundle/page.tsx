@@ -17,7 +17,7 @@ export default function ProfessionalBundlePage() {
                 Professional Bundle
               </h1>
               <p className="text-xl sm:text-2xl text-blue-100 mb-8">
-                Complete professional training for construction estimators. Everything in the Starter Bundle plus advanced courses on estimating fundamentals, AutoCAD submittals, and measurement technology.
+                Complete professional tools for construction estimators. Everything in the Starter Bundle plus advanced tools on estimating essentials, AutoCAD submittals, and measurement technology.
               </p>
 
               <div className="flex items-baseline gap-4 mb-6">
@@ -76,7 +76,7 @@ export default function ProfessionalBundlePage() {
                       <div className="border-t border-gray-200 my-2"></div>
                       <div className="flex items-center gap-2">
                         <span className="text-green-500">✓</span>
-                        <span>Estimating Fundamentals ($497)</span>
+                        <span>Estimating Essentials ($497)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-green-500">✓</span>
@@ -103,16 +103,16 @@ export default function ProfessionalBundlePage() {
               Become a Complete Professional Estimator
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              The Professional Bundle provides comprehensive training from beginner to advanced, covering everything you need to excel in commercial construction estimating
+              The Professional Bundle provides comprehensive tools from beginner to advanced, covering everything you need to excel in commercial construction estimating
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-5xl mb-4">📚</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Master the Fundamentals</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Master the Basics</h3>
               <p className="text-gray-600">
-                Complete Estimating Fundamentals course teaches you reading plans, understanding specifications, quantity takeoffs, and pricing strategies.
+                Complete Estimating Essentials tool teaches you reading plans, understanding specifications, quantity takeoffs, and pricing strategies.
               </p>
             </div>
 
@@ -120,7 +120,7 @@ export default function ProfessionalBundlePage() {
               <div className="text-5xl mb-4">📐</div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Technical Skills</h3>
               <p className="text-gray-600">
-                Learn AutoCAD for creating professional shop drawings and submittals, plus modern measurement technology for accurate takeoffs.
+                Master AutoCAD for creating professional shop drawings and submittals, plus modern measurement technology for accurate takeoffs.
               </p>
             </div>
 
@@ -190,17 +190,17 @@ export default function ProfessionalBundlePage() {
           </div>
 
           <div className="space-y-6">
-            {/* Estimating Fundamentals */}
+            {/* Estimating Essentials */}
             <div className="bg-white rounded-xl shadow-md p-8 border-2 border-purple-300">
               <div className="flex items-start gap-6">
                 <div className="text-5xl">🎓</div>
                 <div className="flex-grow">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-2xl font-bold text-gray-900">Estimating Fundamentals Course</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">Estimating Essentials Tool</h3>
                     <span className="text-purple-600 font-semibold text-xl">$497 Value</span>
                   </div>
                   <p className="text-gray-600 mb-4">
-                    Complete comprehensive training covering everything from reading construction drawings to submitting winning bids. The flagship course of MC2 Estimating.
+                    Complete comprehensive tools covering everything from reading construction drawings to submitting winning bids. The flagship tool of MC2 Estimating.
                   </p>
                   <ul className="grid md:grid-cols-2 gap-3">
                     <li className="flex items-start gap-2 text-gray-700">
@@ -250,7 +250,7 @@ export default function ProfessionalBundlePage() {
                     <span className="text-purple-600 font-semibold text-xl">$247 Value</span>
                   </div>
                   <p className="text-gray-600 mb-4">
-                    Learn to create professional shop drawings, coordination drawings, and submittal packages using AutoCAD - an essential skill for commercial estimators.
+                    Master creating professional shop drawings, coordination drawings, and submittal packages using AutoCAD - an essential skill for commercial estimators.
                   </p>
                   <ul className="grid md:grid-cols-2 gap-3">
                     <li className="flex items-start gap-2 text-gray-700">
@@ -296,7 +296,7 @@ export default function ProfessionalBundlePage() {
                 <div className="text-5xl">📱</div>
                 <div className="flex-grow">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-2xl font-bold text-gray-900">Measurement Technology Course</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">Measurement Technology Tool</h3>
                     <span className="text-purple-600 font-semibold text-xl">$97 Value</span>
                   </div>
                   <p className="text-gray-600 mb-4">
@@ -355,15 +355,15 @@ export default function ProfessionalBundlePage() {
               </div>
               <div className="border-t border-gray-300 my-2"></div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-700">Estimating Fundamentals Course</span>
+                <span className="text-gray-700">Estimating Essentials Tool</span>
                 <span className="font-semibold text-gray-900">$497</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-700">AutoCAD Submittals Course</span>
+                <span className="text-gray-700">AutoCAD Submittals Tool</span>
                 <span className="font-semibold text-gray-900">$247</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-700">Measurement Technology Course</span>
+                <span className="text-gray-700">Measurement Technology Tool</span>
                 <span className="font-semibold text-gray-900">$97</span>
               </div>
               <div className="border-t-2 border-gray-400 pt-3 flex justify-between items-center text-lg">
@@ -397,7 +397,7 @@ export default function ProfessionalBundlePage() {
               <div className="text-4xl mb-4">🎯</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">Serious Career Changers</h3>
               <p className="text-gray-600 text-sm">
-                Committed to transitioning into construction estimating as a long-term career and want comprehensive professional training.
+                Committed to transitioning into construction estimating as a long-term career and want comprehensive professional tools.
               </p>
             </div>
 
@@ -405,7 +405,7 @@ export default function ProfessionalBundlePage() {
               <div className="text-4xl mb-4">📈</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">Advancing Estimators</h3>
               <p className="text-gray-600 text-sm">
-                Already doing basic estimates but need formal training to advance to senior estimator or chief estimator roles.
+                Already doing basic estimates but need formal tools to advance to senior estimator or chief estimator roles.
               </p>
             </div>
 
@@ -427,9 +427,9 @@ export default function ProfessionalBundlePage() {
 
             <div className="bg-white rounded-xl p-6 shadow-md">
               <div className="text-4xl mb-4">🎓</div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">Construction Students</h3>
+              <h3 className="font-bold text-lg text-gray-900 mb-2">Construction Professionals</h3>
               <p className="text-gray-600 text-sm">
-                Recent construction management graduates or students who want practical, real-world estimating skills employers value.
+                Recent construction management graduates or users who want practical, real-world estimating skills employers value.
               </p>
             </div>
 
@@ -457,42 +457,42 @@ export default function ProfessionalBundlePage() {
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">How long will it take to complete the Professional Bundle?</h3>
               <p className="text-gray-600">
-                Most students complete the Professional Bundle in 2-3 months studying part-time (5-10 hours per week). However, you have lifetime access so you can learn at your own pace. Some people finish faster if they're highly motivated.
+                Most users complete the Professional Bundle in 2-3 months studying part-time (5-10 hours per week). However, you have lifetime access so you can work at your own pace. Some people finish faster if they're highly motivated.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Do I need AutoCAD already to take the AutoCAD course?</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Do I need AutoCAD already to take the AutoCAD tool?</h3>
               <p className="text-gray-600">
-                No! The AutoCAD course starts from the beginning and assumes no prior experience. You will need to have access to AutoCAD software (or AutoCAD LT), but we cover everything from installation to advanced submittal creation.
+                No! The AutoCAD tool starts from the beginning and assumes no prior experience. You will need to have access to AutoCAD software (or AutoCAD LT), but we cover everything from installation to advanced submittal creation.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">Is this enough to get a job as an estimator?</h3>
               <p className="text-gray-600">
-                The Professional Bundle provides the complete skill set needed for entry to mid-level estimating positions. Combined with some industry experience (field work or internships), most students are qualified for estimator roles at roofing contractors or general contractors.
+                The Professional Bundle provides the complete skill set needed for entry to mid-level estimating positions. Combined with some industry experience (field work or internships), most users are qualified for estimator roles at roofing contractors or general contractors.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Can I upgrade to the Complete Academy later?</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Can I upgrade to the Master Toolkit later?</h3>
               <p className="text-gray-600">
-                Absolutely! If you decide you want the Complete Academy with SketchUp, Construction Submittals, and Estimating Software courses, we'll credit your Professional Bundle purchase. Just contact us for upgrade pricing.
+                Absolutely! If you decide you want the Master Toolkit with SketchUp, Construction Submittals, and Estimating Software tools, we'll credit your Professional Bundle purchase. Just contact us for upgrade pricing.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">What's the difference between this and the Starter Bundle?</h3>
               <p className="text-gray-600">
-                The Starter Bundle includes templates and guides - great for getting started quickly. The Professional Bundle adds three comprehensive courses (Estimating Fundamentals, AutoCAD, and Measurement Technology) that provide deep training on the theory and skills needed to excel as a professional estimator.
+                The Starter Bundle includes templates and guides - great for getting started quickly. The Professional Bundle adds three comprehensive tools (Estimating Essentials, AutoCAD, and Measurement Technology) that provide comprehensive resources on the theory and skills needed to excel as a professional estimator.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">Is there any ongoing support?</h3>
               <p className="text-gray-600">
-                Yes! All bundle purchases include email support. You can ask questions about course content, templates, or specific estimating scenarios you encounter. We typically respond within 24-48 hours.
+                Yes! All bundle purchases include email support. You can ask questions about tool content, templates, or specific estimating scenarios you encounter. We typically respond within 24-48 hours.
               </p>
             </div>
           </div>
@@ -540,16 +540,16 @@ export default function ProfessionalBundlePage() {
               Want the Complete Package?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Get every product and course we offer with the Complete Academy
+              Get every product and tool we offer with the Master Toolkit
             </p>
           </div>
 
           <div className="max-w-3xl mx-auto">
-            <Link href="/products/complete-academy" className="block bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow border-2 border-green-300">
+            <Link href="/products/master-toolkit" className="block bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow border-2 border-green-300">
               <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold mb-4">SAVE $988 - ULTIMATE VALUE</div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-3">Complete Academy</h3>
+              <h3 className="text-3xl font-bold text-gray-900 mb-3">Master Toolkit</h3>
               <p className="text-gray-600 mb-6 text-lg">
-                Everything in Professional Bundle + SketchUp Visualization, Construction Submittals, and Estimating Software courses. Every single product and course we offer in one complete package.
+                Everything in Professional Bundle + SketchUp Visualization, Construction Submittals, and Estimating Software tools. Every single product and tool we offer in one complete package.
               </p>
               <div className="flex items-baseline gap-4 mb-6">
                 <span className="text-5xl font-bold text-green-600">$997</span>
@@ -558,7 +558,7 @@ export default function ProfessionalBundlePage() {
                   <span className="block text-green-600 font-semibold">Save $988</span>
                 </div>
               </div>
-              <div className="text-green-600 font-semibold text-lg">Learn More About Complete Academy →</div>
+              <div className="text-green-600 font-semibold text-lg">View Master Toolkit Details →</div>
             </Link>
           </div>
         </div>
@@ -571,7 +571,7 @@ export default function ProfessionalBundlePage() {
             Ready to Become a Professional Estimator?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Get complete professional training plus all the templates and tools you need to succeed
+            Get complete professional tools plus all the templates and tools you need to succeed
           </p>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">

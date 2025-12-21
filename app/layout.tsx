@@ -10,11 +10,11 @@
  * - Workflow tools (proposals, submittals, documentation)
  *
  * FORBIDDEN TERMINOLOGY (do not use anywhere in the codebase):
- * - Course / Courses
+ * - Tool / Courses
  * - Learn / Learning
  * - Training / Trained
  * - Academy / School
- * - Lesson / Module
+ * - Section / Part
  * - Student
  * - Enroll / Enrollment
  * - Certification / Certificate
@@ -25,7 +25,7 @@
  * - Tools, Templates, Downloads, Assets, Calculators, Checklists, Workflows
  * - Setup, Configuration, Usage notes, Walkthrough, Documentation
  * - Vault, Updates, Access
- * - Customers, Users (not students or members)
+ * - Customers, Users (not users or members)
  *
  * VALIDATION CHECK: Would this feature still be valuable if all videos were removed?
  * If no, revise until the answer is yes.

@@ -10,12 +10,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/contact',
     '/membership',
     '/products',
-    '/courses',
-    '/learning',
+    '/tools',
+    '/resources',
     '/blog',
     '/quiz',
     '/privacy',
     '/terms',
+    '/pricing',
+    '/updates',
+    '/support',
   ];
 
   // Product pages
@@ -33,46 +36,46 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/products/proposal-templates',
     '/products/starter-bundle',
     '/products/professional-bundle',
-    '/products/complete-academy',
+    '/products/master-toolkit',
     '/products/lead-generation-guide',
     '/products/insurance-compliance-guide',
     '/products/osha-safety-guide',
     '/products/technology-setup-guide',
   ];
 
-  // Course pages
-  const coursePages = [
-    '/courses/estimating-fundamentals',
-    '/courses/bluebeam-mastery',
-    '/courses/autocad-submittals',
-    '/courses/sketchup-visualization',
-    '/courses/measurement-technology',
-    '/courses/construction-submittals',
-    '/courses/estimating-software',
-    '/courses/beginner',
-    '/courses/intermediate',
-    '/courses/advanced',
+  // Tool pages (formerly courses)
+  const toolPages = [
+    '/tools/estimating-essentials',
+    '/tools/bluebeam-mastery',
+    '/tools/autocad-submittals',
+    '/tools/sketchup-visualization',
+    '/tools/measurement-technology',
+    '/tools/construction-submittals',
+    '/tools/estimating-software',
+    '/tools/beginner',
+    '/tools/intermediate',
+    '/tools/advanced',
   ];
 
-  // Learning pages
-  const learningPages = [
-    '/learning/roofing-systems',
-    '/learning/roofing-systems/shingle',
-    '/learning/roofing-systems/tpo-pvc-epdm',
-    '/learning/roofing-systems/metal',
-    '/learning/roofing-systems/tile',
-    '/learning/roofing-systems/spray-foam',
-    '/learning/roofing-systems/green-roof',
-    '/learning/roofing-systems/sbs',
-    '/learning/roofing-systems/restoration-coating',
-    '/learning/measurement',
-    '/learning/plans-and-specs',
-    '/learning/finding-work',
-    '/learning/business-operations',
-    '/learning/proposal-writing',
-    '/learning/submittals',
-    '/learning/technology',
-    '/learning/estimating-best-practices',
+  // Resource pages (formerly learning)
+  const resourcePages = [
+    '/resources/roofing-systems',
+    '/resources/roofing-systems/shingle',
+    '/resources/roofing-systems/tpo-pvc-epdm',
+    '/resources/roofing-systems/metal',
+    '/resources/roofing-systems/tile',
+    '/resources/roofing-systems/spray-foam',
+    '/resources/roofing-systems/green-roof',
+    '/resources/roofing-systems/sbs',
+    '/resources/roofing-systems/restoration-coating',
+    '/resources/measurement',
+    '/resources/plans-and-specs',
+    '/resources/finding-work',
+    '/resources/business-operations',
+    '/resources/proposal-writing',
+    '/resources/submittals',
+    '/resources/technology',
+    '/resources/estimating-best-practices',
   ];
 
   // Blog pages
@@ -93,8 +96,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const allPages = [
     ...staticPages,
     ...productPages,
-    ...coursePages,
-    ...learningPages,
+    ...toolPages,
+    ...resourcePages,
     ...blogPages,
   ];
 
@@ -102,6 +105,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: route === '' ? 'daily' : 'weekly',
-    priority: route === '' ? 1 : route.startsWith('/products') || route.startsWith('/courses') ? 0.9 : 0.8,
+    priority: route === '' ? 1 : route.startsWith('/products') || route.startsWith('/tools') ? 0.9 : 0.8,
   }));
 }

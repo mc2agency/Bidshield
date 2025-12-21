@@ -488,7 +488,7 @@ export default function TPOTemplatePage() {
                 All 5 roofing templates, estimating checklist, and proposal library
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/metal-roofing" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -498,7 +498,7 @@ export default function TPOTemplatePage() {
                 Standing seam and corrugated metal roofing estimating template
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/spray-foam" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -508,7 +508,7 @@ export default function TPOTemplatePage() {
                 SPF roofing and insulation system estimating template
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

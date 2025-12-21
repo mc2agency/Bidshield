@@ -373,7 +373,7 @@ export default function SprayFoamPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Complete Bundle</h3>
               <p className="text-gray-600 mb-4 text-sm">All 5 roofing templates</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/tpo-template" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -381,7 +381,7 @@ export default function SprayFoamPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">TPO/PVC Template</h3>
               <p className="text-gray-600 mb-4 text-sm">Single-ply membrane systems</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/estimating-checklist" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -389,7 +389,7 @@ export default function SprayFoamPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Checklist</h3>
               <p className="text-gray-600 mb-4 text-sm">Never miss a cost item</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$29</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

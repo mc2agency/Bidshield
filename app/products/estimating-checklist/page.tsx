@@ -450,7 +450,7 @@ export default function EstimatingChecklistPage() {
               <div className="text-4xl mb-4">🎓</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">New Estimators</h3>
               <p className="text-gray-600 text-sm">
-                Learning the ropes and need a systematic approach to ensure nothing is forgotten
+                Just starting out and need a systematic approach to ensure nothing is forgotten
               </p>
             </div>
 
@@ -640,7 +640,7 @@ export default function EstimatingChecklistPage() {
                 All 5 roofing system templates, this checklist, and proposal library
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/proposal-templates" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -650,17 +650,17 @@ export default function EstimatingChecklistPage() {
                 Professional proposal templates for 8 different roofing systems
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$79</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
-            <Link href="/courses" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
+            <Link href="/tools" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
               <div className="text-4xl mb-3">🎓</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Fundamentals Course</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Essentials Tool</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Complete video training on creating estimates from start to finish
+                Complete video guides on creating estimates from start to finish
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$497</div>
-              <div className="text-blue-600 font-semibold">View Courses →</div>
+              <div className="text-blue-600 font-semibold">View Tools →</div>
             </Link>
           </div>
         </div>

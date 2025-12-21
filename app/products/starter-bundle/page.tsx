@@ -17,7 +17,7 @@ export default function StarterBundlePage() {
                 Starter Bundle
               </h1>
               <p className="text-xl sm:text-2xl text-blue-100 mb-8">
-                Everything you need to launch your construction estimating career. Complete templates, guides, and foundational training to start creating professional estimates immediately.
+                Everything you need to launch your construction estimating career. Complete templates, guides, and foundational resources to start creating professional estimates immediately.
               </p>
 
               <div className="flex items-baseline gap-4 mb-6">
@@ -129,9 +129,9 @@ export default function StarterBundlePage() {
 
             <div className="text-center">
               <div className="text-5xl mb-4">🎓</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Essential Training</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Essential Resources</h3>
               <p className="text-gray-600">
-                Bluebeam Mastery course teaches you the industry-standard PDF markup and takeoff software used on commercial projects.
+                Bluebeam Mastery tool teaches you the industry-standard PDF markup and takeoff software used on commercial projects.
               </p>
             </div>
 
@@ -139,7 +139,7 @@ export default function StarterBundlePage() {
               <div className="text-5xl mb-4">🏗️</div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Business Foundations</h3>
               <p className="text-gray-600">
-                Learn how to find leads, set up your tech stack, stay safe and compliant, and protect your business with proper insurance.
+                Discover how to find leads, set up your tech stack, stay safe and compliant, and protect your business with proper insurance.
               </p>
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function StarterBundlePage() {
                     <span className="text-blue-600 font-semibold">$39 Value</span>
                   </div>
                   <p className="text-gray-600 mb-4">
-                    Learn where to find construction leads, how to build relationships with general contractors, and get invited to bid on projects.
+                    Discover where to find construction leads, how to build relationships with general contractors, and get invited to bid on projects.
                   </p>
                 </div>
               </div>
@@ -299,11 +299,11 @@ export default function StarterBundlePage() {
                 <div className="text-5xl">🎓</div>
                 <div className="flex-grow">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-2xl font-bold text-gray-900">Bluebeam Mastery Course</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">Bluebeam Mastery Tool</h3>
                     <span className="text-blue-600 font-semibold">$147 Value</span>
                   </div>
                   <p className="text-gray-600 mb-4">
-                    Complete video training on Bluebeam Revu - the industry-standard PDF software for takeoffs, markups, and plan management.
+                    Complete video guides on Bluebeam Revu - the industry-standard PDF software for takeoffs, markups, and plan management.
                   </p>
                   <ul className="grid md:grid-cols-2 gap-3">
                     <li className="flex items-start gap-2 text-gray-700">
@@ -365,7 +365,7 @@ export default function StarterBundlePage() {
                 <span className="font-semibold text-gray-900">$49</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-700">Bluebeam Mastery Course</span>
+                <span className="text-gray-700">Bluebeam Mastery Tool</span>
                 <span className="font-semibold text-gray-900">$147</span>
               </div>
               <div className="border-t-2 border-gray-300 pt-3 flex justify-between items-center text-lg">
@@ -407,7 +407,7 @@ export default function StarterBundlePage() {
               <div className="text-4xl mb-4">🔄</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">Career Changers</h3>
               <p className="text-gray-600 text-sm">
-                Transitioning into construction estimating from field work or another industry and want to learn the business side quickly.
+                Transitioning into construction estimating from field work or another industry and want to master the business side quickly.
               </p>
             </div>
 
@@ -429,9 +429,9 @@ export default function StarterBundlePage() {
 
             <div className="bg-white rounded-xl p-6 shadow-md">
               <div className="text-4xl mb-4">📚</div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">Self-Learners</h3>
+              <h3 className="font-bold text-lg text-gray-900 mb-2">Self-Starters</h3>
               <p className="text-gray-600 text-sm">
-                Want to learn construction estimating on your own time without expensive courses or formal training programs.
+                Want to master construction estimating on your own time without expensive tools or formal tools programs.
               </p>
             </div>
 
@@ -439,7 +439,7 @@ export default function StarterBundlePage() {
               <div className="text-4xl mb-4">⚡</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">Need Results Fast</h3>
               <p className="text-gray-600 text-sm">
-                Have an estimate due soon and need professional templates and training to create accurate bids immediately.
+                Have an estimate due soon and need professional templates and resources to create accurate bids immediately.
               </p>
             </div>
           </div>
@@ -459,7 +459,7 @@ export default function StarterBundlePage() {
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">Is this bundle good for complete beginners?</h3>
               <p className="text-gray-600">
-                Absolutely! The Starter Bundle is specifically designed for people new to construction estimating. The templates guide you through the process step-by-step, and the guides explain all the business fundamentals you need to know.
+                Absolutely! The Starter Bundle is specifically designed for people new to construction estimating. The templates guide you through the process step-by-step, and the guides explain all the business basics you need to know.
               </p>
             </div>
 
@@ -473,14 +473,14 @@ export default function StarterBundlePage() {
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">Can I upgrade to a bigger bundle later?</h3>
               <p className="text-gray-600">
-                Yes! If you want to upgrade to the Professional Bundle or Complete Academy later, we'll credit your Starter Bundle purchase toward the upgrade. Just contact us when you're ready.
+                Yes! If you want to upgrade to the Professional Bundle or Master Toolkit later, we'll credit your Starter Bundle purchase toward the upgrade. Just contact us when you're ready.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-3">What file formats do I get?</h3>
               <p className="text-gray-600">
-                Templates are provided in Excel (.xlsx) format and work with both Microsoft Excel and Google Sheets. Guides are PDF format. Courses are video-based with downloadable resources.
+                Templates are provided in Excel (.xlsx) format and work with both Microsoft Excel and Google Sheets. Guides are PDF format. Tools are video-based with downloadable resources.
               </p>
             </div>
 
@@ -539,7 +539,7 @@ export default function StarterBundlePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Want More Training?
+              Want More Resources?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Consider these larger bundles for comprehensive estimating education
@@ -551,26 +551,26 @@ export default function StarterBundlePage() {
               <div className="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold mb-4">SAVE $694</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional Bundle</h3>
               <p className="text-gray-600 mb-4">
-                Everything in Starter + Estimating Fundamentals, AutoCAD Submittals, and Measurement Technology courses.
+                Everything in Starter + Estimating Essentials, AutoCAD Submittals, and Measurement Technology tools.
               </p>
               <div className="flex items-baseline gap-3 mb-4">
                 <span className="text-4xl font-bold text-blue-600">$797</span>
                 <span className="text-xl text-gray-500 line-through">$1,491</span>
               </div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
-            <Link href="/products/complete-academy" className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow border-2 border-green-300">
+            <Link href="/products/master-toolkit" className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow border-2 border-green-300">
               <div className="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold mb-4">SAVE $988 - BEST VALUE</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Complete Academy</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Master Toolkit</h3>
               <p className="text-gray-600 mb-4">
-                Everything in Professional + SketchUp, Construction Submittals, and Estimating Software. Every product and course we offer.
+                Everything in Professional + SketchUp, Construction Submittals, and Estimating Software. Every product and tool we offer.
               </p>
               <div className="flex items-baseline gap-3 mb-4">
                 <span className="text-4xl font-bold text-green-600">$997</span>
                 <span className="text-xl text-gray-500 line-through">$1,985</span>
               </div>
-              <div className="text-green-600 font-semibold">Learn More →</div>
+              <div className="text-green-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

@@ -298,11 +298,11 @@ export default function ProductsPage() {
               description="OSHA compliance and safety requirements for roofing contractors."
               productKey="oshaGuide"
               features={[
-                "OSHA 10/30 hour training guide",
+                "OSHA 10/30 hour requirements guide",
                 "Fall protection requirements",
                 "Site safety checklist",
                 "PPE requirements by task",
-                "Competent person training outline"
+                "Competent person requirements outline"
               ]}
             />
 
@@ -383,7 +383,7 @@ export default function ProductsPage() {
               originalPrice="$1,985"
               savings="Save $988"
               description="Ultimate package - every tool and template we offer."
-              productKey="completeAcademy"
+              productKey="masterToolkit"
               features={[
                 "Everything in Professional Bundle",
                 "AutoCAD Submittal Templates ($247)",

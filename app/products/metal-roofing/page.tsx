@@ -375,7 +375,7 @@ export default function MetalRoofingPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Complete Template Bundle</h3>
               <p className="text-gray-600 mb-4 text-sm">All 5 roofing templates plus checklist and proposals</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/tile-roofing" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -383,7 +383,7 @@ export default function MetalRoofingPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Tile Roofing Template</h3>
               <p className="text-gray-600 mb-4 text-sm">Clay and concrete tile roofing estimating</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/asphalt-shingle" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -391,7 +391,7 @@ export default function MetalRoofingPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Asphalt Shingle Template</h3>
               <p className="text-gray-600 mb-4 text-sm">Residential asphalt shingle estimating</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

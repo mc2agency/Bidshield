@@ -32,8 +32,8 @@ export default function PictometryVsEagleViewArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function PictometryVsEagleViewArticle() {
 
           <h3 className="text-2xl font-bold text-gray-900 mb-3 mt-8">Pros of EagleView Premium</h3>
           <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-2">
-            <li>No learning curve - anyone can order</li>
+            <li>No setup time - anyone can order</li>
             <li>Professional accuracy (backed by 95% accuracy guarantee)</li>
             <li>Fast turnaround (4 hours typical)</li>
             <li>Detailed reports clients trust</li>
@@ -217,7 +217,7 @@ export default function PictometryVsEagleViewArticle() {
 
           <h3 className="text-2xl font-bold text-gray-900 mb-3 mt-8">Cons of Reveal (Pictometry)</h3>
           <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-2">
-            <li>Learning curve - takes practice to master</li>
+            <li>Difficulty - takes practice to master</li>
             <li>User accuracy varies (depends on your skill)</li>
             <li>Monthly cost even if you don't use it</li>
             <li>Imagery may be outdated (6-24 months old)</li>
@@ -318,7 +318,7 @@ export default function PictometryVsEagleViewArticle() {
                 <li>You only estimate 1-3 jobs per month</li>
                 <li>Roof is extremely complex</li>
                 <li>You need insurance documentation</li>
-                <li>No time to learn measurement software</li>
+                <li>No time to master measurement software</li>
                 <li>You need measurements within hours</li>
               </ul>
             </div>
@@ -437,13 +437,13 @@ export default function PictometryVsEagleViewArticle() {
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
           <h3 className="text-2xl font-bold mb-3">Master Digital Roof Measurement</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Learn how to use Pictometry, EagleView, Google Earth, and other tools to measure roofs accurately without climbing. Our Digital Roof Measurement course includes step-by-step tutorials, accuracy tips, and measurement templates.
+            Learn how to use Pictometry, EagleView, Google Earth, and other tools to measure roofs accurately without climbing. Our Digital Roof Measurement tool includes step-by-step tutorials, accuracy tips, and measurement templates.
           </p>
           <Link
-            href="/courses/measurement-technology"
+            href="/tools/measurement-technology"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Measurement Course - $97 →
+            Get Measurement Tool - $97 →
           </Link>
           <p className="text-sm text-blue-200 mt-3">Includes Pictometry tutorial, EagleView guide, and measurement worksheets</p>
         </div>

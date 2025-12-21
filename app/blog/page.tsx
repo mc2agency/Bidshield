@@ -281,7 +281,7 @@ export default function BlogPage() {
             <div className="bg-white rounded-xl p-6 shadow-md border-2 border-blue-500">
               <h3 className="text-lg font-bold text-gray-900 mb-2">Ready to Level Up?</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Get instant access to professional templates and courses.
+                Get instant access to professional templates and tools.
               </p>
               <Link
                 href="/products"

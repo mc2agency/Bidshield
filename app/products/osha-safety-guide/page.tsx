@@ -59,7 +59,7 @@ export default function OSHAGuidePage() {
                 <div className="bg-white rounded-lg p-6">
                   <div className="text-gray-900">
                     <div className="text-6xl mb-4 text-center">⚠️</div>
-                    <h3 className="font-bold text-xl mb-4 text-center">You'll Learn:</h3>
+                    <h3 className="font-bold text-xl mb-4 text-center">You'll Get:</h3>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">✓</span>
@@ -67,7 +67,7 @@ export default function OSHAGuidePage() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">✓</span>
-                        <span>Required safety equipment and training</span>
+                        <span>Required safety equipment and requirements</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">✓</span>
@@ -206,7 +206,7 @@ export default function OSHAGuidePage() {
                   <span className="text-green-500 text-xl mt-0.5">✓</span>
                   <div>
                     <h4 className="font-semibold text-gray-900">Competent Person Training</h4>
-                    <p className="text-gray-600 text-sm">Requirements for competent person designation, training, and responsibilities on site</p>
+                    <p className="text-gray-600 text-sm">Requirements for competent person designation, tools, and responsibilities on site</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -392,7 +392,7 @@ export default function OSHAGuidePage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Insurance & Compliance Guide</h3>
               <p className="text-gray-600 mb-4 text-sm">Everything about contractor insurance and bonding</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$49</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/lead-generation-guide" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -400,7 +400,7 @@ export default function OSHAGuidePage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Lead Generation Guide</h3>
               <p className="text-gray-600 mb-4 text-sm">Find construction leads and build GC relationships</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/template-bundle" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border-2 border-blue-600">
@@ -409,7 +409,7 @@ export default function OSHAGuidePage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Template Bundle</h3>
               <p className="text-gray-600 mb-4 text-sm">All estimating templates and tools</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

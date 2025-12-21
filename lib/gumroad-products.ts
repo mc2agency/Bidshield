@@ -30,8 +30,8 @@ export const GUMROAD_PRODUCTS = {
   oshaGuide: 'mc2-osha-safety',
   techSetupGuide: 'mc2-tech-setup',
 
-  // Courses
-  estimatingFundamentals: 'mc2-estimating-fundamentals',
+  // Tools (formerly Courses)
+  estimatingEssentials: 'mc2-estimating-essentials',
   bluebeamMastery: 'mc2-bluebeam-mastery',
   autocadSubmittals: 'mc2-autocad-submittals',
   sketchupVisualization: 'mc2-sketchup-visualization',
@@ -42,7 +42,7 @@ export const GUMROAD_PRODUCTS = {
   // Bundles
   starterBundle: 'mc2-starter-bundle',
   professionalBundle: 'mc2-professional-bundle',
-  completeAcademy: 'mc2-complete-academy',
+  masterToolkit: 'mc2-master-toolkit',
 
   // Membership
   mc2ProMonthly: 'mc2-pro-monthly',
@@ -67,15 +67,15 @@ export const PRODUCT_META = {
     price: 129,
     category: 'template'
   },
-  estimatingFundamentals: {
-    name: 'Estimating Fundamentals Course',
+  estimatingEssentials: {
+    name: 'Estimating Essentials Tool',
     price: 497,
-    category: 'course'
+    category: 'tool'
   },
   bluebeamMastery: {
-    name: 'Bluebeam Mastery Course',
+    name: 'Bluebeam Mastery Tool',
     price: 147,
-    category: 'course'
+    category: 'tool'
   },
   mc2ProMonthly: {
     name: 'MC2 Pro Membership',

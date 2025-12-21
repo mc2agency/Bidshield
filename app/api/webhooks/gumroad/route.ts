@@ -4,16 +4,16 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Product mapping: Gumroad product IDs to your internal course/product IDs
-const PRODUCT_MAPPING: Record<string, { type: 'course' | 'product' | 'membership'; id: string }> = {
-  // Courses
-  'bluebeam-mastery': { type: 'course', id: 'bluebeam-mastery' },
-  'estimating-fundamentals': { type: 'course', id: 'estimating-fundamentals' },
-  'measurement-technology': { type: 'course', id: 'measurement-technology' },
-  'construction-submittals': { type: 'course', id: 'construction-submittals' },
-  'autocad-submittals': { type: 'course', id: 'autocad-submittals' },
-  'estimating-software': { type: 'course', id: 'estimating-software' },
-  'sketchup-visualization': { type: 'course', id: 'sketchup-visualization' },
+// Product mapping: Gumroad product IDs to your internal tool/product IDs
+const PRODUCT_MAPPING: Record<string, { type: 'tool' | 'product' | 'membership'; id: string }> = {
+  // Tools (formerly courses)
+  'bluebeam-mastery': { type: 'tool', id: 'bluebeam-mastery' },
+  'estimating-essentials': { type: 'tool', id: 'estimating-essentials' },
+  'measurement-technology': { type: 'tool', id: 'measurement-technology' },
+  'construction-submittals': { type: 'tool', id: 'construction-submittals' },
+  'autocad-submittals': { type: 'tool', id: 'autocad-submittals' },
+  'estimating-software': { type: 'tool', id: 'estimating-software' },
+  'sketchup-visualization': { type: 'tool', id: 'sketchup-visualization' },
 
   // Products
   'tpo-template': { type: 'product', id: 'tpo-template' },

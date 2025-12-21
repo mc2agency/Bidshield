@@ -489,12 +489,12 @@ export default function SBSTemplatePage() {
         </div>
       </section>
 
-      {/* What You'll Learn */}
+      {/* What You'll Get */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              What You'll Learn Using This Template
+              What You'll Get Using This Template
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Beyond just calculations - understand SBS estimating best practices
@@ -708,7 +708,7 @@ export default function SBSTemplatePage() {
                 All 5 roofing templates including SBS, TPO, metal, shingles, and BUR systems
               </p>
               <div className="text-2xl font-bold text-yellow-600 mb-4">$129</div>
-              <div className="text-yellow-600 font-semibold">Learn More →</div>
+              <div className="text-yellow-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/tpo-template" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border border-gray-200">
@@ -718,7 +718,7 @@ export default function SBSTemplatePage() {
                 Single-ply membrane estimating for commercial flat roofs
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$39</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/bur-template" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border border-gray-200">
@@ -728,7 +728,7 @@ export default function SBSTemplatePage() {
                 Built-up roofing system estimating for tar and gravel installations
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$39</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

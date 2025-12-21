@@ -741,7 +741,7 @@ export default function GreenRoofTemplatePage() {
                 Do I need green roof experience to use this template?
               </h3>
               <p className="text-gray-600">
-                The template helps you organize and calculate green roof projects, but basic knowledge of the systems is recommended. Consider using this alongside manufacturer training and industry resources. It's an excellent tool for contractors new to green roofs who want to ensure accurate estimates.
+                The template helps you organize and calculate green roof projects, but basic knowledge of the systems is recommended. Consider using this alongside manufacturer resources and industry resources. It's an excellent tool for contractors new to green roofs who want to ensure accurate estimates.
               </p>
             </div>
 
@@ -795,7 +795,7 @@ export default function GreenRoofTemplatePage() {
                 All roofing templates including premium systems, estimating checklist, and proposal library
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$129</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/tpo-template" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -805,7 +805,7 @@ export default function GreenRoofTemplatePage() {
                 Commercial single-ply membrane roofing estimating template
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$39</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/spray-foam" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -815,7 +815,7 @@ export default function GreenRoofTemplatePage() {
                 SPF roofing and insulation system estimating template
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$39</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

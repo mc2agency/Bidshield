@@ -753,7 +753,7 @@ export default function RestorationCoatingPage() {
                 All roofing templates including restoration, TPO, metal, and more
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$129</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/tpo-template" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -763,7 +763,7 @@ export default function RestorationCoatingPage() {
                 Single-ply membrane roofing estimating for commercial flat roofs
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$39</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/spray-foam" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -773,7 +773,7 @@ export default function RestorationCoatingPage() {
                 SPF roofing and insulation system estimating template
               </p>
               <div className="text-2xl font-bold text-emerald-600 mb-4">$39</div>
-              <div className="text-emerald-600 font-semibold">Learn More →</div>
+              <div className="text-emerald-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

@@ -59,7 +59,7 @@ export default function InsuranceGuidePage() {
                 <div className="bg-white rounded-lg p-6">
                   <div className="text-gray-900">
                     <div className="text-6xl mb-4 text-center">🛡️</div>
-                    <h3 className="font-bold text-xl mb-4 text-center">You'll Learn:</h3>
+                    <h3 className="font-bold text-xl mb-4 text-center">You'll Get:</h3>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">✓</span>
@@ -343,7 +343,7 @@ export default function InsuranceGuidePage() {
               <div className="flex-shrink-0 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-xl">2</div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Understand Requirements</h3>
-                <p className="text-gray-600">Read the sections relevant to your work (residential, commercial, government). Learn what coverage levels you need to qualify for your target projects.</p>
+                <p className="text-gray-600">Read the sections relevant to your work (residential, commercial, government). See what coverage levels you need to qualify for your target projects.</p>
               </div>
             </div>
 
@@ -392,7 +392,7 @@ export default function InsuranceGuidePage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">OSHA Safety Guide</h3>
               <p className="text-gray-600 mb-4 text-sm">Roofing safety requirements and compliance</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/lead-generation-guide" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -400,7 +400,7 @@ export default function InsuranceGuidePage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Lead Generation Guide</h3>
               <p className="text-gray-600 mb-4 text-sm">Find construction leads and build GC relationships</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/template-bundle" className="bg-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border-2 border-blue-600">
@@ -409,7 +409,7 @@ export default function InsuranceGuidePage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">Template Bundle</h3>
               <p className="text-gray-600 mb-4 text-sm">All estimating templates and tools</p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

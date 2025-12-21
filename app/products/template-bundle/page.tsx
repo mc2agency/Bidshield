@@ -3,7 +3,7 @@ import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Complete Template Bundle | MC2 Estimating Academy',
+  title: 'Complete Template Bundle | MC2 Estimating',
   description: 'Get all 5 roofing system templates, estimating checklist, and proposal library for $129. Save $200 with the complete bundle. Instant download.',
   keywords: 'roofing template bundle, estimating templates, roofing estimate excel, contractor templates',
 };
@@ -501,7 +501,7 @@ export default function TemplateBundlePage() {
               <div className="text-4xl mb-4">🎓</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">Entry-Level Estimators</h3>
               <p className="text-gray-600 text-sm">
-                Learning the trade and need proven templates to build estimates correctly from day one
+                Starting in the trade and need proven templates to build estimates correctly from day one
               </p>
             </div>
 
@@ -692,10 +692,10 @@ export default function TemplateBundlePage() {
               <div className="text-4xl mb-3">📋</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Lead Generation Guide</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Learn where to find construction leads and how to build relationships with GCs
+                Discover where to find construction leads and how to build relationships with GCs
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/insurance-compliance-guide" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -705,17 +705,17 @@ export default function TemplateBundlePage() {
                 Everything you need to know about contractor insurance and compliance
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$49</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
-            <Link href="/courses" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border-2 border-blue-600">
+            <Link href="/tools" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow border-2 border-blue-600">
               <div className="text-4xl mb-3">🎓</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Fundamentals Course</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Essentials Tool</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Complete video training on estimating, reading plans, and using Bluebeam
+                Complete video guides on estimating, reading plans, and using Bluebeam
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$497</div>
-              <div className="text-blue-600 font-semibold">View Courses →</div>
+              <div className="text-blue-600 font-semibold">View Tools →</div>
             </Link>
           </div>
         </div>

@@ -32,8 +32,8 @@ export default function LaborBurdenArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -340,7 +340,7 @@ export default function LaborBurdenArticle() {
 
           <h3 className="text-xl font-bold text-gray-900 mb-3 mt-6">5. Ignoring Unproductive Time</h3>
           <p className="text-gray-700 mb-6">
-            Burden costs don't stop when workers aren't on a job. Travel time, weather delays, training,
+            Burden costs don't stop when workers aren't on a job. Travel time, weather delays, tools,
             and equipment maintenance are all paid hours with full burden. This is why you also need
             overhead markup beyond just burden.
           </p>

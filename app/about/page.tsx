@@ -96,7 +96,7 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-2 gap-8">
               <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-8 border-2 border-emerald-300">
                 <div className="text-4xl mb-4">🛠️</div>
-                <h3 className="text-2xl font-bold mb-4 text-emerald-900">Tools, Not Lessons</h3>
+                <h3 className="text-2xl font-bold mb-4 text-emerald-900">Tools, Not Sections</h3>
                 <p className="text-gray-800">
                   We sell ready-to-use tools, not explanations. Every product provides immediate
                   value - download and start using the same day.

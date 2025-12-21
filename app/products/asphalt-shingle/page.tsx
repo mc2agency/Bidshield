@@ -310,7 +310,7 @@ export default function AsphaltShinglePage() {
               <div className="text-4xl mb-4">👨‍💼</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">New Estimators</h3>
               <p className="text-gray-600 text-sm">
-                Learning to estimate and need a proven template with all the formulas and factors already built in
+                Starting to estimate and need a proven template with all the formulas and factors already built in
               </p>
             </div>
 
@@ -326,7 +326,7 @@ export default function AsphaltShinglePage() {
               <div className="text-4xl mb-4">📈</div>
               <h3 className="font-bold text-lg text-gray-900 mb-2">Growing Businesses</h3>
               <p className="text-gray-600 text-sm">
-                Expanding into new markets or training new estimators and need standardized processes
+                Expanding into new markets or onboarding new estimators and need standardized processes
               </p>
             </div>
           </div>
@@ -481,7 +481,7 @@ export default function AsphaltShinglePage() {
                 All 5 roofing templates, estimating checklist, and proposal library
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/tpo-template" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -491,7 +491,7 @@ export default function AsphaltShinglePage() {
                 Single-ply membrane roofing template for commercial flat roofs
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/metal-roofing" className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow">
@@ -501,7 +501,7 @@ export default function AsphaltShinglePage() {
                 Standing seam and corrugated metal roofing estimating template
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$39</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
           </div>
         </div>

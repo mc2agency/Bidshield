@@ -32,8 +32,8 @@ export default function BuildingConnectedArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function BuildingConnectedArticle() {
           <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 my-6">
             <p className="text-gray-800 font-semibold mb-2">Recommendation:</p>
             <p className="text-gray-700">
-              Start with the free plan to learn the system. Upgrade to Pro once you're consistently bidding projects and need advanced search capabilities.
+              Start with the free plan to master the system. Upgrade to Pro once you're consistently bidding projects and need advanced search capabilities.
             </p>
           </div>
 

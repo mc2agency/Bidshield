@@ -32,8 +32,8 @@ export default function RoofingEstimatingSoftwareArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating Academy</div>
-              <div className="text-sm text-blue-200">Professional Estimating Training</div>
+              <div className="font-semibold">MC2 Estimating</div>
+              <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function RoofingEstimatingSoftwareArticle() {
           <h3 className="text-2xl font-bold text-gray-900 mb-3 mt-8">Cons</h3>
           <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-2">
             <li>Expensive ($5,000-10,000/year)</li>
-            <li>Steep learning curve (30-60 days to proficiency)</li>
+            <li>Steep setup time (30-60 days to proficiency)</li>
             <li>Can be overkill for small contractors</li>
             <li>Requires annual contract</li>
             <li>Setup can be time-consuming</li>
@@ -260,7 +260,7 @@ export default function RoofingEstimatingSoftwareArticle() {
 
           <h3 className="text-2xl font-bold text-gray-900 mb-3 mt-8">Pros</h3>
           <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-2">
-            <li>Very easy to learn (1-2 weeks to proficiency)</li>
+            <li>Very easy to master (1-2 weeks to proficiency)</li>
             <li>Affordable pricing</li>
             <li>No long-term contracts required</li>
             <li>Great mobile apps</li>
@@ -484,13 +484,13 @@ export default function RoofingEstimatingSoftwareArticle() {
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-8 mt-12 mb-12">
           <h3 className="text-2xl font-bold mb-3">Master Estimating Software</h3>
           <p className="text-blue-100 mb-6 text-lg">
-            Our Technology for Estimators course includes tutorials on the major estimating platforms, comparison guides, and templates to get started faster with any software.
+            Our Technology for Estimators tool includes tutorials on the major estimating platforms, comparison guides, and templates to get started faster with any software.
           </p>
           <Link
-            href="/courses/technology-for-estimators"
+            href="/tools/technology-for-estimators"
             className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Get Technology Course - $97 →
+            Get Technology Tool - $97 →
           </Link>
           <p className="text-sm text-blue-200 mt-3">Includes software comparison spreadsheet and setup checklists</p>
         </div>

@@ -723,7 +723,7 @@ export default function ProposalTemplatesPage() {
                 All roofing templates, checklist, AND these proposal templates
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$129</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
             <Link href="/products/estimating-checklist" className="bg-gray-50 rounded-xl p-6 hover:shadow-xl transition-shadow">
@@ -733,17 +733,17 @@ export default function ProposalTemplatesPage() {
                 Ensure you capture every cost item before creating your proposal
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$29</div>
-              <div className="text-blue-600 font-semibold">Learn More →</div>
+              <div className="text-blue-600 font-semibold">View Details →</div>
             </Link>
 
-            <Link href="/courses" className="bg-gray-50 rounded-xl p-6 hover:shadow-xl transition-shadow">
+            <Link href="/tools" className="bg-gray-50 rounded-xl p-6 hover:shadow-xl transition-shadow">
               <div className="text-4xl mb-3">🎓</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Fundamentals</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Estimating Essentials</h3>
               <p className="text-gray-600 mb-4 text-sm">
-                Learn how to create estimates and write winning proposals
+                Master creating estimates and write winning proposals
               </p>
               <div className="text-2xl font-bold text-blue-600 mb-4">$497</div>
-              <div className="text-blue-600 font-semibold">View Courses →</div>
+              <div className="text-blue-600 font-semibold">View Tools →</div>
             </Link>
           </div>
         </div>

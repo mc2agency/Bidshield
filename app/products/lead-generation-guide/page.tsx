@@ -16,7 +16,7 @@ export default function LeadGenGuidePage() {
               Lead Generation Playbook
             </h1>
             <p className="text-xl sm:text-2xl text-blue-100 mb-8">
-              Stop waiting for leads. Learn the complete system for finding construction projects, tracking opportunities, and building relationships with general contractors.
+              Stop waiting for leads. Master the complete system for finding construction projects, tracking opportunities, and building relationships with general contractors.
             </p>
 
             <div className="flex items-baseline justify-center gap-4 mb-8">
