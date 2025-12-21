@@ -4,29 +4,47 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Product mapping: Gumroad product IDs to your internal tool/product IDs
+// Product mapping: Gumroad product IDs (permalinks) to your internal tool/product IDs
+// Add your Gumroad product permalinks here as you create them
 const PRODUCT_MAPPING: Record<string, { type: 'tool' | 'product' | 'membership'; id: string }> = {
-  // Tools (formerly courses)
-  'bluebeam-mastery': { type: 'tool', id: 'bluebeam-mastery' },
-  'estimating-essentials': { type: 'tool', id: 'estimating-essentials' },
-  'measurement-technology': { type: 'tool', id: 'measurement-technology' },
-  'construction-submittals': { type: 'tool', id: 'construction-submittals' },
-  'autocad-submittals': { type: 'tool', id: 'autocad-submittals' },
-  'estimating-software': { type: 'tool', id: 'estimating-software' },
-  'sketchup-visualization': { type: 'tool', id: 'sketchup-visualization' },
+  // Template Bundles - ACTIVE
+  'mc2-contractor-bundle': { type: 'product', id: 'template-bundle' },  // $129 - All 4 Templates
 
-  // Products
-  'tpo-template': { type: 'product', id: 'tpo-template' },
-  'asphalt-shingle-template': { type: 'product', id: 'asphalt-shingle-template' },
-  'metal-roofing-template': { type: 'product', id: 'metal-roofing-template' },
-  'tile-roofing-template': { type: 'product', id: 'tile-roofing-template' },
-  'spray-foam-template': { type: 'product', id: 'spray-foam-template' },
-  'estimating-checklist': { type: 'product', id: 'estimating-checklist' },
-  'proposal-templates': { type: 'product', id: 'proposal-templates' },
-  'template-bundle': { type: 'product', id: 'template-bundle' },
+  // Individual Templates (add as you create them in Gumroad)
+  'mc2-asphalt-shingle': { type: 'product', id: 'asphalt-shingle' },
+  'mc2-tpo-pvc-epdm': { type: 'product', id: 'tpo-template' },
+  'mc2-metal-roofing': { type: 'product', id: 'metal-roofing' },
+  'mc2-tile-roofing': { type: 'product', id: 'tile-roofing' },
+  'mc2-spray-foam': { type: 'product', id: 'spray-foam' },
+  'mc2-restoration-coating': { type: 'product', id: 'restoration-coating' },
+  'mc2-green-roof': { type: 'product', id: 'green-roof' },
+  'mc2-sbs-modified': { type: 'product', id: 'sbs-template' },
+
+  // Business Tools & Guides
+  'mc2-estimating-checklist': { type: 'product', id: 'estimating-checklist' },
+  'mc2-proposal-templates': { type: 'product', id: 'proposal-templates' },
+  'mc2-lead-generation': { type: 'product', id: 'lead-gen-guide' },
+  'mc2-insurance-compliance': { type: 'product', id: 'insurance-guide' },
+  'mc2-osha-safety': { type: 'product', id: 'osha-guide' },
+  'mc2-tech-setup': { type: 'product', id: 'tech-setup-guide' },
+
+  // Tools (add as you create them in Gumroad)
+  'mc2-estimating-essentials': { type: 'tool', id: 'estimating-essentials' },
+  'mc2-bluebeam-mastery': { type: 'tool', id: 'bluebeam-mastery' },
+  'mc2-autocad-submittals': { type: 'tool', id: 'autocad-submittals' },
+  'mc2-sketchup-visualization': { type: 'tool', id: 'sketchup-visualization' },
+  'mc2-measurement-technology': { type: 'tool', id: 'measurement-technology' },
+  'mc2-construction-submittals': { type: 'tool', id: 'construction-submittals' },
+  'mc2-estimating-software': { type: 'tool', id: 'estimating-software' },
+
+  // Bundles
+  'mc2-starter-bundle': { type: 'product', id: 'starter-bundle' },
+  'mc2-professional-bundle': { type: 'product', id: 'professional-bundle' },
+  'mc2-master-toolkit': { type: 'product', id: 'master-toolkit' },
 
   // Membership
-  'mc2-pro-membership': { type: 'membership', id: 'mc2-pro-membership' },
+  'mc2-pro-monthly': { type: 'membership', id: 'mc2-pro-monthly' },
+  'mc2-pro-yearly': { type: 'membership', id: 'mc2-pro-yearly' },
 };
 
 export async function POST(request: NextRequest) {
