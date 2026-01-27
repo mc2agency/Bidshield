@@ -101,6 +101,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "MC2 Estimating",
+              "url": "https://mc2estimating.com",
+              "logo": "https://mc2estimating.com/og-image.png",
+              "description": "Professional roofing estimating tools, templates, and calculators for construction contractors.",
+              "sameAs": [],
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "customer service",
+                "url": "https://mc2estimating.com/contact"
+              }
+            })
+          }}
+        />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
           <Navigation />

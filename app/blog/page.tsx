@@ -59,6 +59,83 @@ const blogPosts = [
     featured: false,
     image: '/images/blog/excel-template.jpg',
   },
+  {
+    slug: 'what-is-a-roof-square',
+    title: 'What is a Roof Square? Complete Guide for Estimators',
+    excerpt: 'Understanding roof squares is fundamental to accurate roofing estimates. Learn how to measure, calculate, and use roof squares in your bids.',
+    category: 'Estimation',
+    author: 'MC2 Estimating',
+    date: 'November 28, 2025',
+    readTime: '7 min read',
+    featured: false,
+    image: '/images/blog/roof-square.jpg',
+  },
+  {
+    slug: 'general-conditions-checklist',
+    title: 'General Conditions Checklist for Construction Estimators',
+    excerpt: 'Never miss general conditions costs again. Our comprehensive checklist covers every overhead item that should be in your estimate.',
+    category: 'Estimation',
+    author: 'MC2 Estimating',
+    date: 'November 25, 2025',
+    readTime: '10 min read',
+    featured: false,
+    image: '/images/blog/general-conditions.jpg',
+  },
+  {
+    slug: 'standing-seam-metal-roofing-guide',
+    title: 'Standing Seam Metal Roofing: Complete Estimating Guide',
+    excerpt: 'Everything you need to know about estimating standing seam metal roofing projects — materials, labor, and pricing breakdowns.',
+    category: 'Estimation',
+    author: 'MC2 Estimating',
+    date: 'November 22, 2025',
+    readTime: '11 min read',
+    featured: false,
+    image: '/images/blog/standing-seam.jpg',
+  },
+  {
+    slug: 'tpo-vs-pvc-vs-epdm',
+    title: 'TPO vs PVC vs EPDM: Which Single-Ply Membrane is Best?',
+    excerpt: 'Compare the three major single-ply roofing membranes. Cost breakdowns, pros and cons, and which to recommend to your clients.',
+    category: 'Estimation',
+    author: 'MC2 Estimating',
+    date: 'November 19, 2025',
+    readTime: '9 min read',
+    featured: false,
+    image: '/images/blog/single-ply.jpg',
+  },
+  {
+    slug: 'spray-foam-roofing-101',
+    title: 'Spray Foam Roofing 101: Estimating Guide for Contractors',
+    excerpt: 'A complete introduction to spray polyurethane foam roofing — application methods, costs, and how to estimate SPF projects accurately.',
+    category: 'Estimation',
+    author: 'MC2 Estimating',
+    date: 'November 16, 2025',
+    readTime: '8 min read',
+    featured: false,
+    image: '/images/blog/spray-foam.jpg',
+  },
+  {
+    slug: 'pictometry-vs-eagleview',
+    title: 'Pictometry vs EagleView: Aerial Measurement Tools Compared',
+    excerpt: 'Detailed comparison of the two leading aerial measurement platforms for roofing contractors and estimators.',
+    category: 'Technology',
+    author: 'MC2 Estimating',
+    date: 'November 13, 2025',
+    readTime: '8 min read',
+    featured: false,
+    image: '/images/blog/aerial-measurement.jpg',
+  },
+  {
+    slug: 'buildingconnected-guide',
+    title: 'BuildingConnected Guide: Win More Bids Online',
+    excerpt: 'How to use BuildingConnected to find projects, submit bids, and grow your roofing business through the largest preconstruction platform.',
+    category: 'Business',
+    author: 'MC2 Estimating',
+    date: 'November 10, 2025',
+    readTime: '7 min read',
+    featured: false,
+    image: '/images/blog/buildingconnected.jpg',
+  },
 ];
 
 const categories = ['All', 'Estimation', 'Business', 'Plans & Specs', 'Technology', 'Templates'];
@@ -221,7 +298,7 @@ export default function BlogPage() {
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-6 mb-8">
               <h3 className="text-xl font-bold mb-3">Get Weekly Tips</h3>
               <p className="text-blue-100 mb-4">
-                Join 2,500+ estimators getting practical tips delivered to their inbox every Tuesday.
+                Get practical estimating tips delivered to your inbox every Tuesday.
               </p>
               <input
                 type="email"

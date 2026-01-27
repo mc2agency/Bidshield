@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import EmailCapture from '@/components/EmailCapture';
 
 export default function Home() {
   return (
@@ -59,19 +60,19 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Stats */}
+            {/* Credibility */}
             <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="group">
-                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">2,500+</div>
-                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Active Users</div>
+                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">17+</div>
+                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Professional Tools</div>
               </div>
               <div className="group">
-                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">4.9/5</div>
-                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Average Rating</div>
+                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">8</div>
+                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Roofing Systems Covered</div>
               </div>
               <div className="group">
-                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">100%</div>
-                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Satisfaction</div>
+                <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">3h→10m</div>
+                <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">Estimate Time Saved</div>
               </div>
             </div>
           </div>
@@ -208,6 +209,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Email Capture */}
+      <EmailCapture />
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">

@@ -36,6 +36,7 @@ export default function Navigation() {
     { href: '/pricing', label: 'Pricing' },
     { href: '/updates', label: 'Updates' },
     { href: '/support', label: 'Support' },
+    { href: '/blog', label: 'Blog' },
     { href: '/about', label: 'About' },
   ];
 

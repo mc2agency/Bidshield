@@ -143,7 +143,7 @@ export default function AboutPage() {
               <ul className="space-y-3 text-gray-800">
                 <li className="flex items-start">
                   <span className="text-emerald-600 font-bold mr-3">✓</span>
-                  <span>Senior estimators with experience on $500M+ in commercial roofing projects</span>
+                  <span>Built by professional estimators with years of commercial roofing experience</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-emerald-600 font-bold mr-3">✓</span>
@@ -174,8 +174,8 @@ export default function AboutPage() {
             <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">By the Numbers</h2>
             <div className="grid md:grid-cols-4 gap-8 text-center">
               <div className="bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
-                <div className="text-4xl font-bold text-emerald-600 mb-2">2,500+</div>
-                <p className="text-gray-700 font-semibold">Active Users</p>
+                <div className="text-4xl font-bold text-emerald-600 mb-2">3h→10m</div>
+                <p className="text-gray-700 font-semibold">Estimate Time Saved</p>
               </div>
               <div className="bg-teal-50 rounded-xl p-6 border-2 border-teal-200">
                 <div className="text-4xl font-bold text-teal-600 mb-2">17+</div>
@@ -186,8 +186,8 @@ export default function AboutPage() {
                 <p className="text-gray-700 font-semibold">Roofing Systems</p>
               </div>
               <div className="bg-slate-50 rounded-xl p-6 border-2 border-slate-200">
-                <div className="text-4xl font-bold text-slate-600 mb-2">4.9/5</div>
-                <p className="text-gray-700 font-semibold">Customer Rating</p>
+                <div className="text-4xl font-bold text-slate-600 mb-2">30-Day</div>
+                <p className="text-gray-700 font-semibold">Money-Back Guarantee</p>
               </div>
             </div>
           </div>
