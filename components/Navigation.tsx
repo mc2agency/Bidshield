@@ -33,6 +33,7 @@ export default function Navigation() {
 
   const navLinks = [
     { href: '/products', label: 'Tools & Templates' },
+    { href: '/bidshield', label: 'BidShield', badge: 'PRO' },
     { href: '/pricing', label: 'Pricing' },
     { href: '/updates', label: 'Updates' },
     { href: '/support', label: 'Support' },
@@ -62,13 +63,20 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navLinks.map(({ href, label }) => (
+            {navLinks.map(({ href, label, badge }: { href: string; label: string; badge?: string }) => (
               <Link
                 key={href}
                 href={href}
                 className="relative px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors group"
               >
-                {label}
+                <span className="flex items-center gap-1.5">
+                  {label}
+                  {badge && (
+                    <span className="text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-1.5 py-0.5 rounded-full leading-none">
+                      {badge}
+                    </span>
+                  )}
+                </span>
                 <span className="absolute bottom-1 left-4 right-4 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
               </Link>
             ))}
@@ -138,14 +146,19 @@ export default function Navigation() {
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-white/95 backdrop-blur-xl border-t border-slate-200/50 px-4 py-4 space-y-1">
-          {navLinks.map(({ href, label }) => (
+          {navLinks.map(({ href, label, badge }: { href: string; label: string; badge?: string }) => (
             <Link
               key={href}
               href={href}
-              className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 font-medium transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               {label}
+              {badge && (
+                <span className="text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-1.5 py-0.5 rounded-full leading-none">
+                  {badge}
+                </span>
+              )}
             </Link>
           ))}
           <Link

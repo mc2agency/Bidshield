@@ -210,6 +210,69 @@ export default function Home() {
         </div>
       </section>
 
+      {/* BidShield Promotion */}
+      <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/3 right-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
+        </div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-full text-sm text-emerald-400 border border-emerald-500/20 mb-6">
+                <span className="text-lg">🛡️</span>
+                <span className="font-semibold">NEW — BidShield PRO</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 leading-tight">
+                Templates for Quick Estimates.
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                  BidShield for Complete Bid Management.
+                </span>
+              </h2>
+              <p className="text-lg text-slate-300 mb-8 leading-relaxed">
+                Go beyond templates. BidShield is the complete bid management system — 16-phase checklist, 
+                estimate validation, vendor tracking, and labor benchmarks. Never miss a line item again.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/bidshield"
+                  className="group inline-flex items-center justify-center px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
+                >
+                  Explore BidShield
+                  <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+                <Link
+                  href="/bidshield/dashboard"
+                  className="inline-flex items-center justify-center px-6 py-3.5 bg-white/10 text-white rounded-xl font-semibold border border-white/20 hover:bg-white/20 transition-all duration-300"
+                >
+                  Try Demo
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { icon: "📋", title: "16-Phase Checklist", desc: "Every bid phase tracked" },
+                { icon: "🛡️", title: "Estimate Validator", desc: "Catch errors before submission" },
+                { icon: "💰", title: "Quote Tracker", desc: "Never miss an expiration" },
+                { icon: "👷", title: "Labor Benchmarks", desc: "Validate your hours" },
+              ].map((item) => (
+                <div key={item.title} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-emerald-500/30 transition-colors">
+                  <div className="text-2xl mb-2">{item.icon}</div>
+                  <div className="text-sm font-semibold text-white mb-1">{item.title}</div>
+                  <div className="text-xs text-slate-400">{item.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Email Capture */}
       <EmailCapture />
 
