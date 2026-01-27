@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignedIn, SignedOut, UserButton, RedirectToSignIn } from "@clerk/nextjs";
+import { useAuth, UserButton } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/bidshield/dashboard", icon: "📊", label: "Dashboard" },
@@ -13,12 +15,31 @@ const navItems = [
   { href: "/bidshield/dashboard/datasheets", icon: "📑", label: "Data Sheets" },
 ];
 
-function DashboardContent({ children }: { children: React.ReactNode }) {
+export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push("/sign-in");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="text-white text-lg">Loading BidShield...</div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900 text-white">
-      {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 bg-slate-800 border-b border-slate-700">
         <div className="flex items-center gap-3">
           <Link href="/bidshield" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
@@ -52,18 +73,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-          >
+          <Link href="/" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
             ← MC2 Home
           </Link>
           <UserButton afterSignOutUrl="/" />
         </div>
       </header>
 
-      {/* Mobile nav */}
-      <div className="md:hidden flex overflow-x-auto gap-1 px-4 py-2 bg-slate-850 border-b border-slate-700">
+      <div className="md:hidden flex overflow-x-auto gap-1 px-4 py-2 bg-slate-800/50 border-b border-slate-700">
         {navItems.map((item) => {
           const isActive =
             item.href === "/bidshield/dashboard"
@@ -86,27 +103,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         })}
       </div>
 
-      {/* Main */}
       <main className="flex-1 p-6 max-w-[1400px] mx-auto w-full">{children}</main>
 
-      {/* Footer */}
       <footer className="flex justify-between px-6 py-4 border-t border-slate-700 text-xs text-slate-500">
         <span>BidShield PRO — Roofing Estimating Intelligence System</span>
         <span>Protecting contractors from costly bidding errors</span>
       </footer>
     </div>
-  );
-}
-
-export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <SignedIn>
-        <DashboardContent>{children}</DashboardContent>
-      </SignedIn>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
-    </>
   );
 }
