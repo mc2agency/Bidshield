@@ -3,9 +3,14 @@ import Stripe from 'stripe';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-12-15.clover',
+  });
+}
 
 // Map of allowed template files
 const ALLOWED_FILES: Record<string, string> = {
@@ -29,6 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify the Stripe session is valid and paid
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== 'paid') {

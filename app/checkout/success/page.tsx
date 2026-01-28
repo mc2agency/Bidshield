@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -17,7 +17,18 @@ interface PurchaseData {
   downloads: Download[];
 }
 
-export default function CheckoutSuccessPage() {
+function LoadingState() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-slate-600">Verifying your purchase...</p>
+      </div>
+    </main>
+  );
+}
+
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [loading, setLoading] = useState(true);
@@ -41,21 +52,14 @@ export default function CheckoutSuccessPage() {
         }
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         setError('Failed to verify purchase');
         setLoading(false);
       });
   }, [sessionId]);
 
   if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-600">Verifying your purchase...</p>
-        </div>
-      </main>
-    );
+    return <LoadingState />;
   }
 
   if (error) {
@@ -155,9 +159,17 @@ export default function CheckoutSuccessPage() {
 
         {/* Save Links Notice */}
         <p className="text-center text-sm text-slate-500 mt-6">
-          💡 Tip: Bookmark this page or save the download links. They're valid for 7 days.
+          💡 Tip: Bookmark this page or save the download links. They&apos;re valid for 7 days.
         </p>
       </div>
     </main>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }

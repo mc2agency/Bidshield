@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-12-15.clover',
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.warn('STRIPE_WEBHOOK_SECRET not configured');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+    }
+
+    const stripe = getStripe();
     const body = await request.text();
     const signature = request.headers.get('stripe-signature')!;
 
@@ -62,22 +72,8 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
   // In production, integrate with Resend, SendGrid, or similar
 
   // You could also:
-  // 1. Store purchase in database (Convex)
+  // 1. Store purchase in database
   // 2. Generate signed download URLs
   // 3. Send email with links
   // 4. Grant access in user dashboard
-
-  // Example: Store in Convex (if you want to track purchases)
-  /*
-  const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-  await convex.mutation(api.purchases.create, {
-    email: customerEmail,
-    productId,
-    productName,
-    files,
-    stripeSessionId: session.id,
-    amount: session.amount_total,
-    createdAt: Date.now(),
-  });
-  */
 }
