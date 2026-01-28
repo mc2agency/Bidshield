@@ -4,6 +4,7 @@ import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ReactNode, useState, useEffect } from "react";
+import { LanguageProvider } from "@/lib/i18n";
 
 // Singleton client - only created once on client side
 let convexClient: ConvexReactClient | null = null;
@@ -27,14 +28,16 @@ export function Providers({ children }: { children: ReactNode }) {
   // During SSR or before hydration, render children without any providers
   // This prevents Clerk and Convex from failing due to missing env vars during build
   if (!isClient || !convex) {
-    return <>{children}</>;
+    return <LanguageProvider>{children}</LanguageProvider>;
   }
 
   return (
-    <ClerkProvider>
-      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        {children}
-      </ConvexProviderWithClerk>
-    </ClerkProvider>
+    <LanguageProvider>
+      <ClerkProvider>
+        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+          {children}
+        </ConvexProviderWithClerk>
+      </ClerkProvider>
+    </LanguageProvider>
   );
 }

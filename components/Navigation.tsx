@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { LanguageToggle } from '@/lib/i18n';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -81,6 +82,9 @@ export default function Navigation() {
               </Link>
             ))}
 
+            {/* Language Toggle */}
+            {isClient && <LanguageToggle />}
+
             {/* Only render Clerk components after hydration when ClerkProvider is available */}
             {isClient ? (
               <>
@@ -146,6 +150,10 @@ export default function Navigation() {
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-white/95 backdrop-blur-xl border-t border-slate-200/50 px-4 py-4 space-y-1">
+          {/* Mobile Language Toggle */}
+          <div className="px-4 py-2 mb-2">
+            <LanguageToggle />
+          </div>
           {navLinks.map(({ href, label, badge }: { href: string; label: string; badge?: string }) => (
             <Link
               key={href}
