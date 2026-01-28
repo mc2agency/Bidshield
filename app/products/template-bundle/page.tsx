@@ -1,4 +1,5 @@
 import StripeCheckoutButton from '@/components/StripeCheckoutButton';
+import { BundleSchema, FAQSchema } from '@/components/ProductSchema';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -20,7 +21,10 @@ const TEMPLATES = [
 
 export default function TemplateBundlePage() {
   return (
-    <main className="min-h-screen bg-slate-50">
+    <>
+      <BundleSchema />
+      <FAQSchema />
+      <main className="min-h-screen bg-slate-50">
       {/* Hero */}
       <section className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -171,5 +175,6 @@ export default function TemplateBundlePage() {
         </div>
       </section>
     </main>
+    </>
   );
 }

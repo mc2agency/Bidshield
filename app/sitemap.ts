@@ -8,73 +8,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '',
     '/about',
     '/contact',
-    '/membership',
     '/products',
-    '/tools',
-    '/resources',
-    '/blog',
-    '/privacy',
-    '/terms',
     '/pricing',
     '/updates',
     '/support',
+    '/blog',
+    '/privacy',
+    '/terms',
   ];
 
-  // Product pages
+  // Product pages - actual templates we sell
   const productPages = [
     '/products/template-bundle',
     '/products/asphalt-shingle',
-    '/products/tpo-template',
-    '/products/metal-roofing',
-    '/products/tile-roofing',
+    '/products/tpo',
+    '/products/epdm',
+    '/products/metal',
+    '/products/tile',
+    '/products/bur',
+    '/products/sbs',
     '/products/spray-foam',
-    '/products/green-roof-template',
-    '/products/sbs-template',
-    '/products/restoration-coating-template',
-    '/products/estimating-checklist',
-    '/products/proposal-templates',
-    '/products/starter-bundle',
-    '/products/professional-bundle',
-    '/products/master-toolkit',
-    '/products/lead-generation-guide',
-    '/products/insurance-compliance-guide',
-    '/products/osha-safety-guide',
-    '/products/technology-setup-guide',
   ];
 
-  // Tool pages (formerly courses)
-  const toolPages = [
-    '/tools/estimating-essentials',
-    '/tools/bluebeam-mastery',
-    '/tools/autocad-submittals',
-    '/tools/sketchup-visualization',
-    '/tools/measurement-technology',
-    '/tools/construction-submittals',
-    '/tools/estimating-software',
-    '/tools/beginner',
-    '/tools/intermediate',
-    '/tools/advanced',
-  ];
-
-  // Resource pages (formerly learning)
-  const resourcePages = [
-    '/resources/roofing-systems',
-    '/resources/roofing-systems/shingle',
-    '/resources/roofing-systems/tpo-pvc-epdm',
-    '/resources/roofing-systems/metal',
-    '/resources/roofing-systems/tile',
-    '/resources/roofing-systems/spray-foam',
-    '/resources/roofing-systems/green-roof',
-    '/resources/roofing-systems/sbs',
-    '/resources/roofing-systems/restoration-coating',
-    '/resources/measurement',
-    '/resources/plans-and-specs',
-    '/resources/finding-work',
-    '/resources/business-operations',
-    '/resources/proposal-writing',
-    '/resources/submittals',
-    '/resources/technology',
-    '/resources/estimating-best-practices',
+  // BidShield
+  const bidshieldPages = [
+    '/bidshield',
   ];
 
   // Blog pages
@@ -95,8 +53,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const allPages = [
     ...staticPages,
     ...productPages,
-    ...toolPages,
-    ...resourcePages,
+    ...bidshieldPages,
     ...blogPages,
   ];
 
@@ -104,6 +61,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: route === '' ? 'daily' : 'weekly',
-    priority: route === '' ? 1 : route.startsWith('/products') || route.startsWith('/tools') ? 0.9 : 0.8,
+    priority: route === '' ? 1 : route.startsWith('/products') ? 0.9 : 0.8,
   }));
 }

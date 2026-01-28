@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import StripeCheckoutButton from '@/components/StripeCheckoutButton';
+import { BundleSchema, FAQSchema } from '@/components/ProductSchema';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -61,7 +62,10 @@ const TEMPLATES = [
 
 export default function ProductsPage() {
   return (
-    <main className="min-h-screen">
+    <>
+      <BundleSchema />
+      <FAQSchema />
+      <main className="min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
@@ -307,5 +311,6 @@ export default function ProductsPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }
