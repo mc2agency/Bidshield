@@ -121,18 +121,19 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="text-center mb-8 pt-4">
-                  <div className="text-sm text-slate-500 mb-2">Starting at</div>
+                  <div className="text-sm text-slate-500 mb-2">Best Value</div>
                   <div className="text-5xl font-bold text-slate-900 mb-2">
-                    $129
+                    $99
                   </div>
-                  <div className="text-slate-600">One-time payment</div>
+                  <div className="text-slate-600">One-time payment • Save $133</div>
                 </div>
                 <h3 className="text-xl font-bold mb-6 text-center text-slate-900">Complete Template Bundle</h3>
                 <ul className="space-y-4 mb-8">
                   {[
-                    'All 5 Roofing System Templates',
-                    'Complete Estimating Checklist',
-                    'Professional Proposal Templates',
+                    'All 8 Roofing System Templates',
+                    'Material Takeoff Calculators',
+                    'Labor Calculators with Overburden',
+                    'Professional Proposals',
                     'Lifetime Updates',
                     '30-Day Money-Back Guarantee',
                   ].map((item, i) => (

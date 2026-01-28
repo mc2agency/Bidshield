@@ -1,13 +1,63 @@
 import Link from 'next/link';
-import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
-import { GumroadProductKey } from '@/lib/gumroad-products';
+import StripeCheckoutButton from '@/components/StripeCheckoutButton';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Tools & Templates | MC2 Estimating',
-  description: 'Professional roofing estimating templates, calculators, and checklists. Excel templates for asphalt shingle, TPO, metal, tile, and spray foam roofing systems.',
-  keywords: 'roofing templates, estimating checklist, proposal templates, roofing estimate template, construction templates',
+  description: 'Professional roofing estimating templates for 8 systems. Excel templates for asphalt shingle, TPO, EPDM, metal, tile, BUR, SBS, and spray foam roofing.',
+  keywords: 'roofing templates, estimating template, roofing estimate template, construction templates, Excel estimating',
 };
+
+const TEMPLATES = [
+  {
+    id: 'asphalt-shingle',
+    icon: '🏠',
+    title: 'Asphalt Shingle',
+    description: '3-tab, architectural, and designer shingles with pitch multipliers',
+  },
+  {
+    id: 'tpo',
+    icon: '🔷',
+    title: 'TPO Single-Ply',
+    description: 'Mechanically attached & fully adhered TPO membrane systems',
+  },
+  {
+    id: 'epdm',
+    icon: '⬛',
+    title: 'EPDM Rubber',
+    description: 'Mechanically attached, fully adhered, and ballasted rubber',
+  },
+  {
+    id: 'metal',
+    icon: '🔩',
+    title: 'Metal Standing Seam',
+    description: 'Standing seam, corrugated, and metal shingle systems',
+  },
+  {
+    id: 'tile',
+    icon: '🧱',
+    title: 'Tile Roofing',
+    description: 'Concrete, clay, and interlocking tile with breakage factors',
+  },
+  {
+    id: 'bur',
+    icon: '🔥',
+    title: 'BUR (Built-Up)',
+    description: 'Hot-applied & cold-applied multi-ply roofing systems',
+  },
+  {
+    id: 'sbs',
+    icon: '📜',
+    title: 'Siplast SBS Modified',
+    description: 'Torch-applied & self-adhered modified bitumen',
+  },
+  {
+    id: 'spray-foam',
+    icon: '💨',
+    title: 'Spray Foam Insulation',
+    description: 'Open-cell, closed-cell, and roof coating systems',
+  },
+];
 
 export default function ProductsPage() {
   return (
@@ -20,22 +70,23 @@ export default function ProductsPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
               Professional Estimating
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Tools & Templates</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Templates</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 mb-8 max-w-3xl mx-auto">
-              Everything you need to create accurate estimates, win more bids, and run a professional contracting business.
+              8 roofing system templates. Material takeoffs, labor calculators, and professional proposals.
+              Download and start estimating in 10 minutes.
             </p>
-            <div className="flex items-center justify-center gap-4 text-sm">
+            <div className="flex items-center justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-emerald-400">✓</span>
                 <span>Instant Download</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
-                <span>Lifetime Updates</span>
+                <span className="text-emerald-400">✓</span>
+                <span>Excel & Google Sheets</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-emerald-400">✓</span>
                 <span>30-Day Guarantee</span>
               </div>
             </div>
@@ -43,82 +94,66 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* Featured Product - Template Bundle */}
-      <section className="py-12 bg-gray-50">
+      {/* Featured Bundle */}
+      <section className="py-12 bg-slate-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl shadow-2xl overflow-hidden">
             <div className="relative">
-              <div className="absolute top-4 right-4 bg-yellow-400 text-gray-900 px-4 py-2 rounded-full text-sm font-bold">
-                BEST VALUE
+              <div className="absolute top-4 right-4 bg-yellow-400 text-slate-900 px-4 py-2 rounded-full text-sm font-bold">
+                BEST VALUE — SAVE $133
               </div>
               <div className="p-8 sm:p-12 text-white">
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-4 mb-6">
                   <span className="text-5xl">📦</span>
                   <div>
                     <h2 className="text-3xl sm:text-4xl font-bold">Complete Template Bundle</h2>
-                    <p className="text-blue-100">Save $200+ when you buy the bundle</p>
+                    <p className="text-emerald-100">All 8 templates for the price of 3</p>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 mt-8">
+                <div className="grid md:grid-cols-2 gap-8">
                   <div>
-                    <p className="text-lg text-blue-100 mb-6">
-                      Get all 5 roofing system templates, estimating checklist, and proposal library in one complete package.
-                      Everything you need to estimate any roofing project professionally.
+                    <p className="text-lg text-emerald-100 mb-6">
+                      Every roofing system covered. Material takeoffs, labor calculators with overburden,
+                      cost recaps, and professional proposals. Works with Excel and Google Sheets.
                     </p>
 
                     <div className="mb-6">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-5xl font-bold">$129</span>
-                        <span className="text-2xl text-blue-200 line-through">$329</span>
+                      <div className="flex items-baseline gap-3 mb-2">
+                        <span className="text-5xl font-bold">$99</span>
+                        <span className="text-2xl text-emerald-200 line-through">$232</span>
                       </div>
-                      <p className="text-sm text-blue-200">One-time payment • Save $200</p>
+                      <p className="text-sm text-emerald-200">One-time payment • Lifetime access</p>
                     </div>
 
-                    <GumroadCheckoutButton
-                      productKey="templateBundle"
-                      text="Buy Template Bundle - $129"
+                    <StripeCheckoutButton
+                      productId="bundle-full"
+                      text="Get All 8 Templates — $99"
                       variant="large"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto bg-white text-emerald-700 hover:bg-emerald-50"
                     />
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-xl mb-4">What's Included:</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>All 5 Roofing System Templates (Asphalt, TPO/PVC/EPDM, Metal, Tile, Spray Foam)</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>Complete Estimating Checklist - Never miss a cost item</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>Professional Proposal Template Library (8 system templates)</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>Material takeoff calculators with waste factors</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>Labor estimators with burden calculations</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>General conditions breakdown templates</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>Lifetime updates and improvements</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-green-400 mt-1">✓</span>
-                        <span>30-day money-back guarantee</span>
-                      </li>
+                    <h3 className="font-bold text-xl mb-4">All 8 Systems Included:</h3>
+                    <ul className="grid grid-cols-2 gap-2">
+                      {TEMPLATES.map(t => (
+                        <li key={t.id} className="flex items-center gap-2 text-sm">
+                          <span>{t.icon}</span>
+                          <span>{t.title}</span>
+                        </li>
+                      ))}
                     </ul>
+                    <div className="mt-6 pt-4 border-t border-emerald-500/30">
+                      <h4 className="font-semibold mb-2">Every template includes:</h4>
+                      <ul className="space-y-1 text-sm text-emerald-100">
+                        <li>✓ Material Takeoff Calculator</li>
+                        <li>✓ Labor Calculator with Overburden</li>
+                        <li>✓ Cost Recap (Estimating Edge format)</li>
+                        <li>✓ Professional Customer Proposal</li>
+                        <li>✓ Dashboard Summary</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -131,512 +166,146 @@ export default function ProductsPage() {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Individual Roofing System Templates
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+              Individual Templates — $29 Each
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Need just one system? Purchase individual templates for the roofing systems you specialize in.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <ProductCard
-              icon="🏠"
-              title="Asphalt Shingle Template"
-              price="$39"
-              description="Complete estimating template for residential and commercial asphalt shingle roofing projects."
-              productKey="asphaltShingle"
-              features={[
-                "Shingle material calculator with waste",
-                "Underlayment and ice/water shield",
-                "Starter strip and ridge cap calculations",
-                "Labor rates by pitch and complexity",
-                "Pitch multiplier charts included"
-              ]}
-            />
-
-            <ProductCard
-              icon="🏢"
-              title="TPO/PVC/EPDM Template"
-              price="$39"
-              description="Single-ply roofing systems template for flat and low-slope commercial roofs."
-              productKey="tpoTemplate"
-              features={[
-                "Membrane calculations by attachment type",
-                "Insulation layer takeoffs",
-                "Fastener pattern calculators",
-                "Flashing and edge detail quantities",
-                "Seam and penetration calculations"
-              ]}
-            />
-
-            <ProductCard
-              icon="🔩"
-              title="Metal Roofing Template"
-              price="$39"
-              description="Standing seam and corrugated metal roofing estimation system."
-              productKey="metalRoofing"
-              features={[
-                "Panel coverage calculations",
-                "Standing seam vs corrugated options",
-                "Trim and flashing takeoff",
-                "Fastener quantities by system",
-                "Underlayment and accessories"
-              ]}
-            />
-
-            <ProductCard
-              icon="🏛️"
-              title="Tile Roofing Template"
-              price="$39"
-              description="Clay and concrete tile roofing estimation for residential and commercial projects."
-              productKey="tileRoofing"
-              features={[
-                "Tile coverage per square calculations",
-                "Batten and lath material takeoff",
-                "Mortar and adhesive quantities",
-                "Hip and ridge tile calculations",
-                "Labor rates by tile type"
-              ]}
-            />
-
-            <ProductCard
-              icon="💨"
-              title="Spray Foam Insulation Template"
-              price="$39"
-              description="SPF roofing and insulation system estimation template."
-              productKey="sprayFoam"
-              features={[
-                "Spray foam coverage calculators",
-                "Coating application rates",
-                "Multi-layer system breakdown",
-                "R-value and thickness planning",
-                "Material yield calculations"
-              ]}
-            />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {TEMPLATES.map(template => (
+              <div
+                key={template.id}
+                className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg hover:border-emerald-200 transition-all group"
+              >
+                <div className="text-4xl mb-4">{template.icon}</div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                  {template.title}
+                </h3>
+                <p className="text-sm text-slate-600 mb-4">{template.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-slate-900">$29</span>
+                  <StripeCheckoutButton
+                    productId={template.id}
+                    text="Buy"
+                    variant="primary"
+                    className="px-4 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Additional Products */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* What's Inside */}
+      <section className="py-16 bg-slate-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Business Tools & Guides
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Professional resources to help you run a successful contracting business.
-            </p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">What's Inside Each Template</h2>
+            <p className="text-lg text-slate-600">Professional tools built by estimators, for estimators</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <ProductCard
-              icon="✅"
-              title="Estimating Checklist"
-              price="$29"
-              description="Never miss a cost item again with this comprehensive estimating checklist."
-              productKey="estimatingChecklist"
-              features={[
-                "Complete line-item checklist",
-                "Material, labor, and equipment sections",
-                "General conditions breakdown",
-                "Common missed items highlighted",
-                "Customizable for your business"
-              ]}
-            />
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <span className="text-2xl">📊</span> Material Takeoff
+              </h3>
+              <ul className="space-y-2 text-slate-600">
+                <li>• System-specific material lists</li>
+                <li>• Auto-calculated quantities</li>
+                <li>• Built-in waste factors</li>
+                <li>• Customizable unit prices</li>
+              </ul>
+            </div>
 
-            <ProductCard
-              icon="📄"
-              title="Proposal Template Library"
-              price="$79"
-              description="Professional proposal templates for 8 different roofing systems."
-              productKey="proposalTemplates"
-              features={[
-                "8 system-specific proposal templates",
-                "Cover letter templates (3 versions)",
-                "Scope of work language library",
-                "Payment terms and warranty templates",
-                "Exclusions and assumptions checklist"
-              ]}
-            />
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <span className="text-2xl">👷</span> Labor Calculator
+              </h3>
+              <ul className="space-y-2 text-slate-600">
+                <li>• Crew-based calculations</li>
+                <li>• Full overburden tracking</li>
+                <li>• Workers comp, unemployment, payroll</li>
+                <li>• Adjustable production rates</li>
+              </ul>
+            </div>
 
-            <ProductCard
-              icon="📋"
-              title="Lead Generation Guide"
-              price="$39"
-              description="Complete playbook for finding and tracking construction leads."
-              productKey="leadGenGuide"
-              features={[
-                "BuildingConnected tutorial",
-                "Dodge and PlanHub strategies",
-                "Government bidding (SAM.gov guide)",
-                "GC relationship building system",
-                "Lead tracking spreadsheet template"
-              ]}
-            />
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <span className="text-2xl">💰</span> Cost Recap
+              </h3>
+              <ul className="space-y-2 text-slate-600">
+                <li>• Estimating Edge format</li>
+                <li>• Material vs labor breakdown</li>
+                <li>• Subcontractor & equipment lines</li>
+                <li>• Adjustable profit margins</li>
+              </ul>
+            </div>
 
-            <ProductCard
-              icon="🛡️"
-              title="Insurance & Compliance Guide"
-              price="$49"
-              description="Everything you need to know about contractor insurance and compliance."
-              productKey="insuranceGuide"
-              features={[
-                "Complete insurance requirements guide",
-                "Certificate of Insurance templates",
-                "Additional Insured requirements",
-                "Workers Comp and EMR explained",
-                "Compliance checklist by state"
-              ]}
-            />
-
-            <ProductCard
-              icon="⚠️"
-              title="OSHA Safety Guide"
-              price="$39"
-              description="OSHA compliance and safety requirements for roofing contractors."
-              productKey="oshaGuide"
-              features={[
-                "OSHA 10/30 hour requirements guide",
-                "Fall protection requirements",
-                "Site safety checklist",
-                "PPE requirements by task",
-                "Competent person requirements outline"
-              ]}
-            />
-
-            <ProductCard
-              icon="💻"
-              title="Technology Setup Guide"
-              price="$29"
-              description="Complete technology stack setup for professional estimators."
-              productKey="techSetupGuide"
-              features={[
-                "Computer specifications guide",
-                "Software recommendations and budget",
-                "Large format printer (plotter) guide",
-                "Backup and data security setup",
-                "Internet and cloud storage needs"
-              ]}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Bundles Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Complete Bundles
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Save big with our bundled packages. Get everything you need at a fraction of the individual cost.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <BundleCard
-              title="Starter Bundle"
-              price="$297"
-              originalPrice="$404"
-              savings="Save $107"
-              description="Perfect for getting started with professional estimating."
-              productKey="starterBundle"
-              features={[
-                "Complete Template Bundle ($129)",
-                "Estimating Checklist ($29)",
-                "Lead Generation Guide ($39)",
-                "Technology Setup Guide ($29)",
-                "OSHA Safety Guide ($39)",
-                "Insurance & Compliance Guide ($49)",
-                "Proposal Template Library ($79)",
-                "Lifetime updates included"
-              ]}
-              highlighted={false}
-            />
-
-            <BundleCard
-              title="Professional Bundle"
-              price="$797"
-              originalPrice="$1,491"
-              savings="Save $694"
-              description="Everything in Starter Bundle plus all premium tools."
-              productKey="professionalBundle"
-              features={[
-                "Everything in Starter Bundle",
-                "Estimating Toolkit ($497)",
-                "Bluebeam Template Pack ($147)",
-                "Submittals Package ($197)",
-                "Software Configuration Guide ($197)",
-                "Measurement Tools ($97)",
-                "SketchUp Templates ($97)",
-                "Priority email support"
-              ]}
-              highlighted={true}
-            />
-
-            <BundleCard
-              title="Complete Toolkit"
-              price="$997"
-              originalPrice="$1,985"
-              savings="Save $988"
-              description="Ultimate package - every tool and template we offer."
-              productKey="masterToolkit"
-              features={[
-                "Everything in Professional Bundle",
-                "AutoCAD Submittal Templates ($247)",
-                "Private community access",
-                "Monthly Q&A sessions",
-                "Priority support",
-                "All future products included",
-                "Proof of purchase documentation",
-                "Lifetime access to everything"
-              ]}
-              highlighted={false}
-            />
-          </div>
-
-          <div className="mt-12 text-center">
-            <p className="text-gray-600 mb-4">
-              Need a custom solution for your team?
-            </p>
-            <Link
-              href="/contact"
-              className="inline-block px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
-            >
-              Contact Us for Enterprise Licensing
-            </Link>
-            <p className="text-sm text-gray-500 mt-2">Volume licensing starting at $5,000</p>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            <FAQItem
-              question="What format are the templates in?"
-              answer="All templates are provided in Microsoft Excel format (.xlsx) for maximum compatibility and ease of use. They work on both Windows and Mac, and are also compatible with Google Sheets if you prefer cloud-based solutions."
-            />
-
-            <FAQItem
-              question="Can I customize the templates for my business?"
-              answer="Absolutely! All templates are fully editable and designed to be customized with your company information, pricing, and local market rates. We encourage you to adapt them to your specific business needs."
-            />
-
-            <FAQItem
-              question="Do you offer refunds?"
-              answer="Yes, we offer a 30-day money-back guarantee on all products. If you're not satisfied for any reason, simply contact us within 30 days of purchase for a full refund, no questions asked."
-            />
-
-            <FAQItem
-              question="How quickly will I receive my purchase?"
-              answer="Instantly! After completing your purchase, you'll immediately receive a download link via email. You can start using your templates and guides right away."
-            />
-
-            <FAQItem
-              question="Are the templates updated regularly?"
-              answer="Yes! When you purchase any product, you get lifetime access to all future updates and improvements at no additional cost. We regularly update templates based on industry changes and customer feedback."
-            />
-
-            <FAQItem
-              question="Can I use these templates for unlimited projects?"
-              answer="Yes, once you purchase a template or bundle, you can use it for as many projects as you need within your own business. The only restriction is that you cannot resell or redistribute the templates to others."
-            />
-
-            <FAQItem
-              question="What's included with each product?"
-              answer="Each product includes the downloadable files (Excel templates, PDF guides, etc.), documentation on how to use them, and lifetime updates whenever we improve the product. All products are designed to provide immediate value."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Money-Back Guarantee Badge */}
-      <section className="py-12 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-green-50 border-2 border-green-500 rounded-xl p-8 text-center">
-            <div className="text-5xl mb-4">🛡️</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              30-Day Money-Back Guarantee
-            </h3>
-            <p className="text-lg text-gray-700 mb-4">
-              We're confident you'll love our products. If you're not completely satisfied within 30 days,
-              we'll refund your purchase - no questions asked.
-            </p>
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>Instant Download</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>Lifetime Updates</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>Email Support</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>No Subscription</span>
-              </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <span className="text-2xl">📄</span> Customer Proposal
+              </h3>
+              <ul className="space-y-2 text-slate-600">
+                <li>• Print-ready format</li>
+                <li>• Professional layout</li>
+                <li>• Scope of work section</li>
+                <li>• Terms and signature lines</li>
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ready to Estimate Faster?
-          </h2>
-          <p className="text-xl text-slate-300 mb-8">
-            Join thousands of contractors who save time and increase accuracy with our professional templates and tools.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <GumroadCheckoutButton
-              productKey="templateBundle"
-              text="Get Template Bundle - $129"
-              variant="large"
-            />
-            <Link
-              href="/membership"
-              className="inline-flex items-center justify-center px-8 py-4 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-500 transition-colors text-lg"
-            >
-              Get MC2 Pro Access
-            </Link>
+      {/* FAQ */}
+      <section className="py-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Frequently Asked Questions</h2>
+
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-2">What software do I need?</h3>
+              <p className="text-slate-600">Microsoft Excel 2016 or newer, or Google Sheets (free). Works on PC and Mac.</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-2">Can I customize the templates?</h3>
+              <p className="text-slate-600">Yes! Add your logo, adjust prices, change rates — they're fully editable Excel files.</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-2">Do I get updates?</h3>
+              <p className="text-slate-600">Yes — lifetime updates at no extra cost. We'll email you when improvements are made.</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-2">What's your refund policy?</h3>
+              <p className="text-slate-600">30-day money-back guarantee. If the templates don't save you time, we'll refund you.</p>
+            </div>
           </div>
-          <p className="mt-6 text-sm text-slate-400">
-            Questions? <Link href="/contact" className="underline hover:text-white">Contact us</Link> - we&apos;re here to help!
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-16 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Estimate Like a Pro?</h2>
+          <p className="text-xl text-slate-300 mb-8">
+            Get the complete bundle and start creating accurate estimates in minutes.
+          </p>
+          <StripeCheckoutButton
+            productId="bundle-full"
+            text="Get All 8 Templates — $99"
+            variant="large"
+          />
+          <p className="text-sm text-slate-400 mt-4">
+            30-day money-back guarantee • Instant download • Lifetime updates
           </p>
         </div>
       </section>
     </main>
-  );
-}
-
-// Product Card Component
-function ProductCard({
-  icon,
-  title,
-  price,
-  description,
-  features,
-  productKey = 'templateBundle',
-}: {
-  icon: string;
-  title: string;
-  price: string;
-  description: string;
-  features: string[];
-  productKey?: GumroadProductKey;
-}) {
-  return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-blue-500 flex flex-col">
-      <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-      <div className="text-3xl font-bold text-blue-600 mb-4">{price}</div>
-      <p className="text-gray-600 mb-6 flex-grow">{description}</p>
-
-      <div className="mb-6">
-        <h4 className="font-semibold text-gray-900 mb-3">What's Included:</h4>
-        <ul className="space-y-2">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
-              <span className="text-green-500 mt-0.5">✓</span>
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <GumroadCheckoutButton
-        productKey={productKey}
-        text="Buy Now"
-        variant="primary"
-        className="w-full"
-      />
-    </div>
-  );
-}
-
-// Bundle Card Component
-function BundleCard({
-  title,
-  price,
-  originalPrice,
-  savings,
-  description,
-  features,
-  highlighted,
-  productKey = 'starterBundle',
-}: {
-  title: string;
-  price: string;
-  originalPrice: string;
-  savings: string;
-  description: string;
-  features: string[];
-  highlighted: boolean;
-  productKey?: GumroadProductKey;
-}) {
-  return (
-    <div className={`bg-white rounded-xl shadow-lg p-8 border-2 ${
-      highlighted ? 'border-blue-600 ring-4 ring-blue-100' : 'border-gray-200'
-    } relative flex flex-col`}>
-      {highlighted && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold">
-          MOST POPULAR
-        </div>
-      )}
-
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 text-sm mb-4">{description}</p>
-
-        <div className="mb-2">
-          <span className="text-4xl font-bold text-blue-600">{price}</span>
-        </div>
-        <div className="text-sm text-gray-500 line-through mb-1">{originalPrice}</div>
-        <div className="text-green-600 font-semibold">{savings}</div>
-      </div>
-
-      <ul className="space-y-3 mb-8 flex-grow">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
-            <span className="text-green-500 mt-0.5">✓</span>
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      <GumroadCheckoutButton
-        productKey={productKey}
-        text={`Get ${title}`}
-        variant="primary"
-        className="w-full"
-      />
-    </div>
-  );
-}
-
-// FAQ Item Component
-function FAQItem({ question, answer }: { question: string; answer: string }) {
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-2">{question}</h3>
-      <p className="text-gray-600">{answer}</p>
-    </div>
   );
 }
