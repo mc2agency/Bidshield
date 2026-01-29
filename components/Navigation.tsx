@@ -11,7 +11,6 @@ export default function Navigation() {
   const [isClient, setIsClient] = useState(false);
   const ticking = useRef(false);
 
-  // Track when we're on the client (after hydration)
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -32,14 +31,11 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [updateScrollState]);
 
+  // SIMPLIFIED: Only what matters for sales
   const navLinks = [
-    { href: '/products', label: 'Tools & Templates' },
-    { href: '/bidshield', label: 'BidShield', badge: 'PRO' },
-    { href: '/pricing', label: 'Pricing' },
-    { href: '/updates', label: 'Updates' },
-    { href: '/support', label: 'Support' },
+    { href: '/products', label: 'Templates' },
+    { href: '/bidshield', label: 'BidShield', badge: 'FREE' },
     { href: '/blog', label: 'Blog' },
-    { href: '/about', label: 'About' },
   ];
 
   return (
@@ -64,7 +60,7 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navLinks.map(({ href, label, badge }: { href: string; label: string; badge?: string }) => (
+            {navLinks.map(({ href, label, badge }) => (
               <Link
                 key={href}
                 href={href}
@@ -85,7 +81,6 @@ export default function Navigation() {
             {/* Language Toggle */}
             {isClient && <LanguageToggle />}
 
-            {/* Only render Clerk components after hydration when ClerkProvider is available */}
             {isClient ? (
               <>
                 <SignedOut>
@@ -96,16 +91,16 @@ export default function Navigation() {
                     Sign In
                   </Link>
                   <Link
-                    href="/membership"
+                    href="/products"
                     className="ml-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
                   >
-                    Join MC2 Pro
+                    Get Templates
                   </Link>
                 </SignedOut>
 
                 <SignedIn>
                   <Link
-                    href="/dashboard"
+                    href="/bidshield/dashboard"
                     className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
                   >
                     Dashboard
@@ -116,7 +111,6 @@ export default function Navigation() {
                 </SignedIn>
               </>
             ) : (
-              /* SSR fallback - show sign in link */
               <Link
                 href="/sign-in"
                 className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
@@ -154,7 +148,7 @@ export default function Navigation() {
           <div className="px-4 py-2 mb-2">
             <LanguageToggle />
           </div>
-          {navLinks.map(({ href, label, badge }: { href: string; label: string; badge?: string }) => (
+          {navLinks.map(({ href, label, badge }) => (
             <Link
               key={href}
               href={href}
@@ -170,11 +164,11 @@ export default function Navigation() {
             </Link>
           ))}
           <Link
-            href="/membership"
+            href="/products"
             className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-center font-semibold shadow-lg shadow-emerald-500/30"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Join MC2 Pro
+            Get Templates
           </Link>
         </div>
       </div>
