@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth, UserButton } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 
 const navItems = [
@@ -13,15 +13,16 @@ const navItems = [
   { href: "/bidshield/dashboard/labor", icon: "👷", label: "Labor" },
 ];
 
-export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isDemo, setIsDemo] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Check for demo mode
+    setMounted(true);
     const demoParam = searchParams.get("demo");
     if (demoParam === "true") {
       setIsDemo(true);
@@ -29,13 +30,19 @@ export default function BidShieldDashboardLayout({ children }: { children: React
   }, [searchParams]);
 
   useEffect(() => {
-    // Only redirect if not in demo mode and not signed in
-    if (isLoaded && !isSignedIn && !isDemo) {
+    if (mounted && isLoaded && !isSignedIn && !isDemo) {
       router.push("/sign-in");
     }
-  }, [isLoaded, isSignedIn, isDemo, router]);
+  }, [mounted, isLoaded, isSignedIn, isDemo, router]);
 
-  // Show loading only if auth is loading and not in demo mode
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="text-white text-lg">Loading BidShield...</div>
+      </div>
+    );
+  }
+
   if (!isLoaded && !isDemo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
@@ -44,17 +51,14 @@ export default function BidShieldDashboardLayout({ children }: { children: React
     );
   }
 
-  // If not signed in and not demo, don't render (will redirect)
   if (!isSignedIn && !isDemo) {
     return null;
   }
 
-  // Add demo param to nav links
   const getHref = (href: string) => isDemo ? `${href}?demo=true` : href;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900 text-white">
-      {/* Demo Banner */}
       {isDemo && (
         <div className="bg-amber-500 text-black text-center py-2 text-sm font-medium">
           🎯 Demo Mode — <Link href="/sign-up" className="underline">Sign up free</Link> to save your projects
@@ -110,7 +114,6 @@ export default function BidShieldDashboardLayout({ children }: { children: React
         </div>
       </header>
 
-      {/* Mobile nav */}
       <div className="md:hidden flex overflow-x-auto gap-1 px-4 py-2 bg-slate-800/50 border-b border-slate-700">
         {navItems.map((item) => {
           const isActive =
@@ -141,5 +144,17 @@ export default function BidShieldDashboardLayout({ children }: { children: React
         <span>Protecting contractors from costly bidding errors</span>
       </footer>
     </div>
+  );
+}
+
+export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="text-white text-lg">Loading BidShield...</div>
+      </div>
+    }>
+      <DashboardContent>{children}</DashboardContent>
+    </Suspense>
   );
 }
