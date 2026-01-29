@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   getProjects,
   createProject,
@@ -10,8 +10,11 @@ import {
   type Project,
 } from "@/lib/bidshield/storage";
 
-export default function BidShieldDashboardPage() {
+function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
+  
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState({ activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0 });
   const [showNewProject, setShowNewProject] = useState(false);
@@ -25,14 +28,77 @@ export default function BidShieldDashboardPage() {
     estimatedValue: "",
   });
 
+  // Demo data
+  const demoProjects: Project[] = [
+    {
+      id: "demo_1",
+      name: "Harbor Point Tower",
+      location: "Jersey City, NJ",
+      bidDate: "2026-02-15",
+      status: "in_progress",
+      gc: "Turner Construction",
+      sqft: 45000,
+      estimatedValue: 850000,
+      assemblies: ["TPO 60mil", "Tapered ISO"],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+    {
+      id: "demo_2",
+      name: "Riverside Medical Center",
+      location: "Newark, NJ",
+      bidDate: "2026-02-20",
+      status: "setup",
+      gc: "Skanska",
+      sqft: 28000,
+      estimatedValue: 420000,
+      assemblies: ["EPDM", "Green Roof"],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ];
+
+  const demoStats = {
+    activeProjects: 2,
+    expiringQuotes: 1,
+    openRFIs: 3,
+    pipelineValue: 1270000,
+  };
+
   // Load data
   useEffect(() => {
-    setProjects(getProjects());
-    setStats(getStats());
-  }, []);
+    if (isDemo) {
+      setProjects(demoProjects);
+      setStats(demoStats);
+    } else {
+      setProjects(getProjects());
+      setStats(getStats());
+    }
+  }, [isDemo]);
 
   const handleCreateProject = () => {
     if (!newProject.name || !newProject.location || !newProject.bidDate) return;
+
+    if (isDemo) {
+      // In demo mode, create a fake project and navigate
+      const fakeProject = {
+        id: `demo_${Date.now()}`,
+        name: newProject.name,
+        location: newProject.location,
+        bidDate: newProject.bidDate,
+        status: "setup" as const,
+        gc: newProject.gc || undefined,
+        sqft: newProject.sqft ? parseInt(newProject.sqft) : undefined,
+        estimatedValue: newProject.estimatedValue ? parseInt(newProject.estimatedValue) : undefined,
+        assemblies: newProject.assemblies.split(",").map((a) => a.trim()).filter(Boolean),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      setProjects([...projects, fakeProject]);
+      setShowNewProject(false);
+      router.push(`/bidshield/dashboard/checklist?demo=true&project=${fakeProject.id}`);
+      return;
+    }
 
     const project = createProject({
       name: newProject.name,
@@ -48,14 +114,19 @@ export default function BidShieldDashboardPage() {
     setStats(getStats());
     setNewProject({ name: "", location: "", bidDate: "", gc: "", sqft: "", assemblies: "", estimatedValue: "" });
     setShowNewProject(false);
-
-    // Navigate to the new project's checklist
     router.push(`/bidshield/dashboard/checklist?project=${project.id}`);
   };
 
   const activeProjects = projects.filter(
     (p) => p.status === "setup" || p.status === "in_progress"
   );
+
+  const getHref = (base: string, projectId?: string) => {
+    const params = new URLSearchParams();
+    if (isDemo) params.set("demo", "true");
+    if (projectId) params.set("project", projectId);
+    return `${base}?${params.toString()}`;
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -91,11 +162,11 @@ export default function BidShieldDashboardPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeProjects.map((project) => {
-            const progress = getChecklistProgress(project.id);
+            const progress = isDemo ? (project.status === "in_progress" ? 45 : 10) : getChecklistProgress(project.id);
             return (
               <div
                 key={project.id}
-                onClick={() => router.push(`/bidshield/dashboard/checklist?project=${project.id}`)}
+                onClick={() => router.push(getHref("/bidshield/dashboard/checklist", project.id))}
                 className="bg-slate-800 rounded-xl p-5 border border-slate-700 cursor-pointer hover:border-slate-600 transition-all"
               >
                 <div className="flex justify-between items-start mb-2">
@@ -127,7 +198,7 @@ export default function BidShieldDashboardPage() {
                     {progress}%
                   </span>
                 </div>
-                {project.assemblies.length > 0 && (
+                {project.assemblies && project.assemblies.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {project.assemblies.map((assembly, idx) => (
                       <span
@@ -289,5 +360,13 @@ export default function BidShieldDashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function BidShieldDashboardPage() {
+  return (
+    <Suspense fallback={<div className="text-slate-400">Loading dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
