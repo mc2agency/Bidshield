@@ -9,37 +9,109 @@ import {
   getChecklistProgress,
   getPhaseProgress,
   type ChecklistItem,
+  type Project,
 } from "@/lib/bidshield/storage";
 import { masterChecklist } from "@/lib/bidshield/checklist-data";
 
 type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
 
 const statusConfig: Record<ChecklistStatus, { icon: string; color: string; bg: string }> = {
-  done: { icon: "✓", color: "text-emerald-500", bg: "bg-emerald-100" },
-  pending: { icon: "○", color: "text-slate-500", bg: "" },
-  rfi: { icon: "?", color: "text-amber-500", bg: "bg-amber-100" },
-  warning: { icon: "⚠", color: "text-red-500", bg: "" },
-  na: { icon: "—", color: "text-slate-400", bg: "" },
+  done: { icon: "✓", color: "text-emerald-500", bg: "bg-emerald-500/20" },
+  pending: { icon: "○", color: "text-slate-500", bg: "bg-slate-700" },
+  rfi: { icon: "?", color: "text-amber-500", bg: "bg-amber-500/20" },
+  warning: { icon: "⚠", color: "text-red-500", bg: "bg-red-500/20" },
+  na: { icon: "—", color: "text-slate-400", bg: "bg-slate-700" },
 };
+
+// Generate demo checklist items with some pre-filled
+function generateDemoChecklist(): ChecklistItem[] {
+  const items: ChecklistItem[] = [];
+  const doneItems = ["p1-1", "p1-2", "p1-3", "p2-1", "p2-2", "p2-3", "p3-1", "p3-2"];
+  const rfiItems = ["p3-4", "p5-1"];
+  
+  for (const [phaseKey, phase] of Object.entries(masterChecklist)) {
+    for (const item of phase.items) {
+      let status: ChecklistStatus = "pending";
+      if (doneItems.includes(item.id)) status = "done";
+      if (rfiItems.includes(item.id)) status = "rfi";
+      
+      items.push({
+        phaseKey,
+        itemId: item.id,
+        status,
+      });
+    }
+  }
+  return items;
+}
 
 function ChecklistContent() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("project");
+  const isDemo = searchParams.get("demo") === "true";
 
-  const [project, setProject] = useState<ReturnType<typeof getProject>>(undefined);
+  const [project, setProject] = useState<Project | undefined>(undefined);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [overall, setOverall] = useState(0);
 
+  // Demo project data
+  const demoProjects: Record<string, Project> = {
+    demo_1: {
+      id: "demo_1",
+      name: "Harbor Point Tower",
+      location: "Jersey City, NJ",
+      bidDate: "2026-02-15",
+      status: "in_progress",
+      gc: "Turner Construction",
+      sqft: 45000,
+      estimatedValue: 850000,
+      assemblies: ["TPO 60mil", "Tapered ISO"],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+    demo_2: {
+      id: "demo_2",
+      name: "Riverside Medical Center",
+      location: "Newark, NJ",
+      bidDate: "2026-02-20",
+      status: "setup",
+      gc: "Skanska",
+      sqft: 28000,
+      estimatedValue: 420000,
+      assemblies: ["EPDM", "Green Roof"],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  };
+
   // Load data
   useEffect(() => {
     if (!projectId) return;
-    setProject(getProject(projectId));
-    setChecklistItems(getChecklist(projectId));
-    setOverall(getChecklistProgress(projectId));
-    // Expand first phase by default
-    setExpanded({ phase1: true });
-  }, [projectId]);
+
+    if (isDemo) {
+      // Demo mode - use fake data
+      const demoProject = demoProjects[projectId] || {
+        id: projectId,
+        name: "Demo Project",
+        location: "Demo Location",
+        bidDate: "2026-02-15",
+        status: "setup" as const,
+        assemblies: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      setProject(demoProject);
+      setChecklistItems(generateDemoChecklist());
+      setOverall(12); // ~12% done in demo
+      setExpanded({ phase1: true });
+    } else {
+      setProject(getProject(projectId));
+      setChecklistItems(getChecklist(projectId));
+      setOverall(getChecklistProgress(projectId));
+      setExpanded({ phase1: true });
+    }
+  }, [projectId, isDemo]);
 
   const toggleExpand = (key: string) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -47,6 +119,7 @@ function ChecklistContent() {
 
   const cycleStatus = (phaseKey: string, itemId: string) => {
     if (!projectId) return;
+    
     const order: ChecklistStatus[] = ["pending", "done", "rfi", "na"];
     const currentItem = checklistItems.find(
       (i) => i.phaseKey === phaseKey && i.itemId === itemId
@@ -56,9 +129,28 @@ function ChecklistContent() {
     const idx = order.indexOf(currentItem.status);
     const nextStatus = order[(idx + 1) % order.length];
 
-    updateChecklistItem(projectId, phaseKey, itemId, nextStatus);
-    setChecklistItems(getChecklist(projectId));
-    setOverall(getChecklistProgress(projectId));
+    if (isDemo) {
+      // In demo mode, just update local state
+      setChecklistItems((prev) =>
+        prev.map((item) =>
+          item.phaseKey === phaseKey && item.itemId === itemId
+            ? { ...item, status: nextStatus }
+            : item
+        )
+      );
+      // Recalculate progress
+      const updated = checklistItems.map((item) =>
+        item.phaseKey === phaseKey && item.itemId === itemId
+          ? { ...item, status: nextStatus }
+          : item
+      );
+      const doneCount = updated.filter((i) => i.status === "done" || i.status === "na").length;
+      setOverall(Math.round((doneCount / updated.length) * 100));
+    } else {
+      updateChecklistItem(projectId, phaseKey, itemId, nextStatus);
+      setChecklistItems(getChecklist(projectId));
+      setOverall(getChecklistProgress(projectId));
+    }
   };
 
   const getItemStatus = (phaseKey: string, itemId: string): ChecklistStatus => {
@@ -66,6 +158,16 @@ function ChecklistContent() {
       (i) => i.phaseKey === phaseKey && i.itemId === itemId
     );
     return item?.status || "pending";
+  };
+
+  const getPhaseProgressCalc = (phaseKey: string): number => {
+    if (isDemo) {
+      const phaseItems = checklistItems.filter((i) => i.phaseKey === phaseKey);
+      if (phaseItems.length === 0) return 0;
+      const doneCount = phaseItems.filter((i) => i.status === "done" || i.status === "na").length;
+      return Math.round((doneCount / phaseItems.length) * 100);
+    }
+    return projectId ? getPhaseProgress(projectId, phaseKey) : 0;
   };
 
   if (!projectId) {
@@ -106,7 +208,7 @@ function ChecklistContent() {
 
       <div className="flex flex-col gap-2">
         {Object.entries(masterChecklist).map(([phaseKey, phase]) => {
-          const progress = projectId ? getPhaseProgress(projectId, phaseKey) : 0;
+          const progress = getPhaseProgressCalc(phaseKey);
           const isOpen = expanded[phaseKey];
 
           return (
@@ -163,9 +265,7 @@ function ChecklistContent() {
                         className="flex items-center gap-3 px-4 py-3 hover:bg-slate-750 cursor-pointer border-b border-slate-700/50 last:border-0 transition-colors"
                       >
                         <span
-                          className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${config.color} ${
-                            config.bg || "bg-slate-700"
-                          }`}
+                          className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${config.color} ${config.bg}`}
                         >
                           {config.icon}
                         </span>
