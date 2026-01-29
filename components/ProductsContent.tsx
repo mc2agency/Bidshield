@@ -2,22 +2,23 @@
 
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n';
-import StripeCheckoutButton from '@/components/StripeCheckoutButton';
 import { BundleSchema, FAQSchema } from '@/components/ProductSchema';
 
 const TEMPLATES = [
-  { id: 'asphalt-shingle', icon: '🏠', title: 'Asphalt Shingle', titleEs: 'Teja Asfáltica', description: '3-tab, architectural, and designer shingles with pitch multipliers', descEs: 'Tejas de 3 lengüetas, arquitectónicas y de diseño con multiplicadores de pendiente' },
-  { id: 'tpo', icon: '🔷', title: 'TPO Single-Ply', titleEs: 'TPO Monocapa', description: 'Mechanically attached & fully adhered TPO membrane systems', descEs: 'Sistemas de membrana TPO adheridos mecánicamente y totalmente' },
-  { id: 'epdm', icon: '⬛', title: 'EPDM Rubber', titleEs: 'Caucho EPDM', description: 'Mechanically attached, fully adhered, and ballasted rubber', descEs: 'Caucho adherido mecánicamente, totalmente adherido y lastrado' },
-  { id: 'metal', icon: '🔩', title: 'Metal Standing Seam', titleEs: 'Metal Junta Alzada', description: 'Standing seam, corrugated, and metal shingle systems', descEs: 'Sistemas de junta alzada, corrugado y teja metálica' },
-  { id: 'tile', icon: '🧱', title: 'Tile Roofing', titleEs: 'Techo de Teja', description: 'Concrete, clay, and interlocking tile with breakage factors', descEs: 'Teja de concreto, arcilla y entrelazada con factores de rotura' },
-  { id: 'bur', icon: '🔥', title: 'BUR (Built-Up)', titleEs: 'BUR (Multicapa)', description: 'Hot-applied & cold-applied multi-ply roofing systems', descEs: 'Sistemas multicapa aplicados en caliente y en frío' },
-  { id: 'sbs', icon: '📜', title: 'Siplast SBS Modified', titleEs: 'SBS Modificado', description: 'Torch-applied & self-adhered modified bitumen', descEs: 'Betún modificado aplicado con soplete y autoadhesivo' },
-  { id: 'spray-foam', icon: '💨', title: 'Spray Foam Insulation', titleEs: 'Espuma en Spray', description: 'Open-cell, closed-cell, and roof coating systems', descEs: 'Sistemas de celda abierta, celda cerrada y recubrimiento' },
+  { id: 'asphalt-shingle', icon: '🏠', title: 'Asphalt Shingle', titleEs: 'Teja Asfáltica', description: '3-tab, architectural, and designer shingles with pitch multipliers', descEs: 'Tejas de 3 lengüetas, arquitectónicas y de diseño con multiplicadores de pendiente', gumroad: 'https://mc2agency.gumroad.com/l/asphalt-shingle' },
+  { id: 'tpo', icon: '🔷', title: 'TPO Single-Ply', titleEs: 'TPO Monocapa', description: 'Mechanically attached & fully adhered TPO membrane systems', descEs: 'Sistemas de membrana TPO adheridos mecánicamente y totalmente', gumroad: 'https://mc2agency.gumroad.com/l/tpo' },
+  { id: 'epdm', icon: '⬛', title: 'EPDM Rubber', titleEs: 'Caucho EPDM', description: 'Mechanically attached, fully adhered, and ballasted rubber', descEs: 'Caucho adherido mecánicamente, totalmente adherido y lastrado', gumroad: 'https://mc2agency.gumroad.com/l/epdm' },
+  { id: 'metal', icon: '🔩', title: 'Metal Standing Seam', titleEs: 'Metal Junta Alzada', description: 'Standing seam, corrugated, and metal shingle systems', descEs: 'Sistemas de junta alzada, corrugado y teja metálica', gumroad: 'https://mc2agency.gumroad.com/l/metal' },
+  { id: 'tile', icon: '🧱', title: 'Tile Roofing', titleEs: 'Techo de Teja', description: 'Concrete, clay, and interlocking tile with breakage factors', descEs: 'Teja de concreto, arcilla y entrelazada con factores de rotura', gumroad: 'https://mc2agency.gumroad.com/l/tile' },
+  { id: 'bur', icon: '🔥', title: 'BUR (Built-Up)', titleEs: 'BUR (Multicapa)', description: 'Hot-applied & cold-applied multi-ply roofing systems', descEs: 'Sistemas multicapa aplicados en caliente y en frío', gumroad: 'https://mc2agency.gumroad.com/l/bur' },
+  { id: 'sbs', icon: '📜', title: 'Siplast SBS Modified', titleEs: 'SBS Modificado', description: 'Torch-applied & self-adhered modified bitumen', descEs: 'Betún modificado aplicado con soplete y autoadhesivo', gumroad: 'https://mc2agency.gumroad.com/l/sbs' },
+  { id: 'spray-foam', icon: '💨', title: 'Spray Foam Insulation', titleEs: 'Espuma en Spray', description: 'Open-cell, closed-cell, and roof coating systems', descEs: 'Sistemas de celda abierta, celda cerrada y recubrimiento', gumroad: 'https://mc2agency.gumroad.com/l/spray-foam' },
 ];
 
+const BUNDLE_GUMROAD = 'https://mc2agency.gumroad.com/l/bundle';
+
 export default function ProductsContent() {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const isEs = language === 'es';
 
   return (
@@ -99,12 +100,14 @@ export default function ProductsContent() {
                         </p>
                       </div>
 
-                      <StripeCheckoutButton
-                        productId="bundle-full"
-                        text={isEs ? 'Obtener las 8 Plantillas — $99' : 'Get All 8 Templates — $99'}
-                        variant="large"
-                        className="w-full sm:w-auto bg-white text-emerald-700 hover:bg-emerald-50"
-                      />
+                      <a
+                        href={BUNDLE_GUMROAD}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all"
+                      >
+                        {isEs ? 'Obtener las 8 Plantillas — $99' : 'Get All 8 Templates — $99'}
+                      </a>
                     </div>
 
                     <div>
@@ -166,12 +169,14 @@ export default function ProductsContent() {
                   <p className="text-sm text-slate-600 mb-4">{isEs ? template.descEs : template.description}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold text-slate-900">$29</span>
-                    <StripeCheckoutButton
-                      productId={template.id}
-                      text={isEs ? 'Comprar' : 'Buy'}
-                      variant="primary"
-                      className="px-4 py-2 text-sm"
-                    />
+                    <a
+                      href={template.gumroad}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors"
+                    >
+                      {isEs ? 'Comprar' : 'Buy'}
+                    </a>
                   </div>
                 </div>
               ))}
@@ -179,82 +184,59 @@ export default function ProductsContent() {
           </div>
         </section>
 
-        {/* FAQ */}
+        {/* FAQ Section */}
         <section className="py-16 bg-slate-50">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-center text-slate-900 mb-12">
               {isEs ? 'Preguntas Frecuentes' : 'Frequently Asked Questions'}
             </h2>
-
             <div className="space-y-6">
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h3 className="font-bold text-slate-900 mb-2">
-                  {isEs ? '¿Qué software necesito?' : 'What software do I need?'}
-                </h3>
-                <p className="text-slate-600">
-                  {isEs 
-                    ? 'Microsoft Excel 2016 o más reciente, o Google Sheets (gratis). Funciona en PC y Mac.'
-                    : 'Microsoft Excel 2016 or newer, or Google Sheets (free). Works on PC and Mac.'}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h3 className="font-bold text-slate-900 mb-2">
-                  {isEs ? '¿Puedo personalizar las plantillas?' : 'Can I customize the templates?'}
-                </h3>
-                <p className="text-slate-600">
-                  {isEs 
-                    ? '¡Sí! Puedes agregar tu logo, ajustar precios, cambiar tarifas — son archivos Excel completamente editables.'
-                    : "Yes! Add your logo, adjust prices, change rates — they're fully editable Excel files."}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h3 className="font-bold text-slate-900 mb-2">
-                  {isEs ? '¿Recibo actualizaciones?' : 'Do I get updates?'}
-                </h3>
-                <p className="text-slate-600">
-                  {isEs 
-                    ? 'Sí — actualizaciones de por vida sin costo adicional. Te avisamos por email cuando hay mejoras.'
-                    : "Yes — lifetime updates at no extra cost. We'll email you when improvements are made."}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h3 className="font-bold text-slate-900 mb-2">
-                  {isEs ? '¿Cuál es la política de reembolso?' : "What's your refund policy?"}
-                </h3>
-                <p className="text-slate-600">
-                  {isEs 
-                    ? 'Garantía de 30 días. Si las plantillas no te ahorran tiempo, te devolvemos tu dinero.'
-                    : "30-day money-back guarantee. If the templates don't save you time, we'll refund you."}
-                </p>
-              </div>
+              {[
+                {
+                  q: isEs ? '¿Cómo recibo las plantillas?' : 'How do I receive the templates?',
+                  a: isEs ? 'Después del pago, recibirás un enlace de descarga instantáneo por email. También tendrás acceso a actualizaciones futuras.' : 'After payment, you\'ll receive an instant download link via email. You\'ll also have access to future updates.',
+                },
+                {
+                  q: isEs ? '¿Funcionan con Google Sheets?' : 'Do they work with Google Sheets?',
+                  a: isEs ? 'Sí. Las plantillas funcionan con Microsoft Excel y Google Sheets. Todas las fórmulas son compatibles.' : 'Yes. The templates work with both Microsoft Excel and Google Sheets. All formulas are compatible.',
+                },
+                {
+                  q: isEs ? '¿Hay garantía de devolución?' : 'Is there a money-back guarantee?',
+                  a: isEs ? 'Sí, ofrecemos una garantía de 30 días. Si no estás satisfecho, te devolvemos el 100% del dinero.' : 'Yes, we offer a 30-day money-back guarantee. If you\'re not satisfied, we\'ll refund 100% of your purchase.',
+                },
+                {
+                  q: isEs ? '¿Puedo modificar las plantillas?' : 'Can I modify the templates?',
+                  a: isEs ? 'Absolutamente. Las plantillas son completamente editables. Añade tu logo, modifica precios, personaliza todo.' : 'Absolutely. The templates are fully editable. Add your logo, modify pricing, customize everything.',
+                },
+              ].map((faq, idx) => (
+                <div key={idx} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                  <h3 className="font-bold text-lg text-slate-900 mb-2">{faq.q}</h3>
+                  <p className="text-slate-600">{faq.a}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="py-16 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+        {/* CTA Section */}
+        <section className="py-16 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              {isEs ? '¿Listo para Estimar Como un Profesional?' : 'Ready to Estimate Like a Pro?'}
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6">
+              {isEs ? '¿Listo para Estimar Más Rápido?' : 'Ready to Estimate Faster?'}
             </h2>
             <p className="text-xl text-slate-300 mb-8">
               {isEs 
-                ? 'Obtén el paquete completo y empieza a crear presupuestos precisos en minutos.'
-                : 'Get the complete bundle and start creating accurate estimates in minutes.'}
+                ? 'Únete a cientos de contratistas que ahorran horas en cada estimación.'
+                : 'Join hundreds of contractors saving hours on every estimate.'}
             </p>
-            <StripeCheckoutButton
-              productId="bundle-full"
-              text={isEs ? 'Obtener las 8 Plantillas — $99' : 'Get All 8 Templates — $99'}
-              variant="large"
-            />
-            <p className="text-sm text-slate-400 mt-4">
-              {isEs 
-                ? 'Garantía de 30 días • Descarga instantánea • Actualizaciones de por vida'
-                : '30-day money-back guarantee • Instant download • Lifetime updates'}
-            </p>
+            <a
+              href={BUNDLE_GUMROAD}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+            >
+              {isEs ? 'Obtener las 8 Plantillas — $99' : 'Get All 8 Templates — $99'}
+            </a>
           </div>
         </section>
       </main>
