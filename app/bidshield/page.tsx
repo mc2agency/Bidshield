@@ -62,10 +62,16 @@ export default function BidShieldLandingPage() {
               Sign In
             </Link>
             <Link
+              href="/bidshield/dashboard?demo=true"
+              className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium text-sm transition-colors"
+            >
+              Try Demo
+            </Link>
+            <Link
               href="/bidshield/dashboard"
               className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-colors shadow-lg shadow-emerald-500/20"
             >
-              Start Free Trial
+              Start Free
             </Link>
           </div>
         </div>
@@ -106,16 +112,16 @@ export default function BidShieldLandingPage() {
               href="/bidshield/dashboard"
               className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
             >
-              Start Free Trial
+              Start Free
               <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
             <Link
-              href="#features"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-white/20 hover:bg-white/20 transition-all duration-300"
+              href="/bidshield/dashboard?demo=true"
+              className="inline-flex items-center justify-center px-8 py-4 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-semibold text-lg transition-all duration-300"
             >
-              See How It Works
+              🎯 Try Demo (No Login)
             </Link>
           </div>
 
