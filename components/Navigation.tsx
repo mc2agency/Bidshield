@@ -48,13 +48,12 @@ export default function Navigation() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-500/30 group-hover:shadow-emerald-500/50 group-hover:scale-105 transition-all duration-300">
-                MC2
-              </div>
-              <span className="font-bold text-slate-900 hidden sm:inline group-hover:text-emerald-600 transition-colors">
-                Estimating
-              </span>
+            <Link href="/" className="flex items-center group">
+              <img 
+                src="/mc2-logo.jpg" 
+                alt="MC2 Estimating" 
+                className="h-10 w-auto group-hover:scale-105 transition-transform duration-300"
+              />
             </Link>
           </div>
 
