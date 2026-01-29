@@ -53,9 +53,9 @@ export default function Navigation() {
               <Image 
                 src="/mc2-logo.jpg" 
                 alt="MC2 Estimating" 
-                width={120}
-                height={40}
-                className="h-10 w-auto group-hover:scale-105 transition-transform duration-300"
+                width={160}
+                height={56}
+                className="h-14 w-auto group-hover:scale-105 transition-transform duration-300 -my-2"
                 priority
               />
             </Link>
