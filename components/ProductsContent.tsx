@@ -5,17 +5,17 @@ import { useLanguage } from '@/lib/i18n';
 import { BundleSchema, FAQSchema } from '@/components/ProductSchema';
 
 const TEMPLATES = [
-  { id: 'asphalt-shingle', icon: '🏠', title: 'Asphalt Shingle', titleEs: 'Teja Asfáltica', description: '3-tab, architectural, and designer shingles with pitch multipliers', descEs: 'Tejas de 3 lengüetas, arquitectónicas y de diseño con multiplicadores de pendiente', gumroad: 'https://mc2agency.gumroad.com/l/asphalt-shingle' },
-  { id: 'tpo', icon: '🔷', title: 'TPO Single-Ply', titleEs: 'TPO Monocapa', description: 'Mechanically attached & fully adhered TPO membrane systems', descEs: 'Sistemas de membrana TPO adheridos mecánicamente y totalmente', gumroad: 'https://mc2agency.gumroad.com/l/tpo' },
-  { id: 'epdm', icon: '⬛', title: 'EPDM Rubber', titleEs: 'Caucho EPDM', description: 'Mechanically attached, fully adhered, and ballasted rubber', descEs: 'Caucho adherido mecánicamente, totalmente adherido y lastrado', gumroad: 'https://mc2agency.gumroad.com/l/epdm' },
-  { id: 'metal', icon: '🔩', title: 'Metal Standing Seam', titleEs: 'Metal Junta Alzada', description: 'Standing seam, corrugated, and metal shingle systems', descEs: 'Sistemas de junta alzada, corrugado y teja metálica', gumroad: 'https://mc2agency.gumroad.com/l/metal' },
-  { id: 'tile', icon: '🧱', title: 'Tile Roofing', titleEs: 'Techo de Teja', description: 'Concrete, clay, and interlocking tile with breakage factors', descEs: 'Teja de concreto, arcilla y entrelazada con factores de rotura', gumroad: 'https://mc2agency.gumroad.com/l/tile' },
-  { id: 'bur', icon: '🔥', title: 'BUR (Built-Up)', titleEs: 'BUR (Multicapa)', description: 'Hot-applied & cold-applied multi-ply roofing systems', descEs: 'Sistemas multicapa aplicados en caliente y en frío', gumroad: 'https://mc2agency.gumroad.com/l/bur' },
-  { id: 'sbs', icon: '📜', title: 'Siplast SBS Modified', titleEs: 'SBS Modificado', description: 'Torch-applied & self-adhered modified bitumen', descEs: 'Betún modificado aplicado con soplete y autoadhesivo', gumroad: 'https://mc2agency.gumroad.com/l/sbs' },
-  { id: 'spray-foam', icon: '💨', title: 'Spray Foam Insulation', titleEs: 'Espuma en Spray', description: 'Open-cell, closed-cell, and roof coating systems', descEs: 'Sistemas de celda abierta, celda cerrada y recubrimiento', gumroad: 'https://mc2agency.gumroad.com/l/spray-foam' },
+  { id: 'asphalt-shingle', icon: '🏠', title: 'Asphalt Shingle', titleEs: 'Teja Asfáltica', description: '3-tab, architectural, and designer shingles with pitch multipliers', descEs: 'Tejas de 3 lengüetas, arquitectónicas y de diseño con multiplicadores de pendiente', gumroad: 'https://estimatrix7.gumroad.com/l/qgdtph' },
+  { id: 'tpo', icon: '🔷', title: 'TPO Single-Ply', titleEs: 'TPO Monocapa', description: 'Mechanically attached & fully adhered TPO membrane systems', descEs: 'Sistemas de membrana TPO adheridos mecánicamente y totalmente', gumroad: 'https://estimatrix7.gumroad.com/l/ayfelk' },
+  { id: 'epdm', icon: '⬛', title: 'EPDM Rubber', titleEs: 'Caucho EPDM', description: 'Mechanically attached, fully adhered, and ballasted rubber', descEs: 'Caucho adherido mecánicamente, totalmente adherido y lastrado', gumroad: 'https://estimatrix7.gumroad.com/l/iljfee' },
+  { id: 'metal', icon: '🔩', title: 'Metal Standing Seam', titleEs: 'Metal Junta Alzada', description: 'Standing seam, corrugated, and metal shingle systems', descEs: 'Sistemas de junta alzada, corrugado y teja metálica', gumroad: 'https://estimatrix7.gumroad.com/l/aggzt' },
+  { id: 'tile', icon: '🧱', title: 'Tile Roofing', titleEs: 'Techo de Teja', description: 'Concrete, clay, and interlocking tile with breakage factors', descEs: 'Teja de concreto, arcilla y entrelazada con factores de rotura', gumroad: 'https://estimatrix7.gumroad.com/l/mzrsum' },
+  { id: 'bur', icon: '🔥', title: 'BUR (Built-Up)', titleEs: 'BUR (Multicapa)', description: 'Hot-applied & cold-applied multi-ply roofing systems', descEs: 'Sistemas multicapa aplicados en caliente y en frío', gumroad: 'https://estimatrix7.gumroad.com/l/wympl' },
+  { id: 'sbs', icon: '📜', title: 'SBS Modified Bitumen', titleEs: 'SBS Modificado', description: 'Torch-applied & self-adhered modified bitumen', descEs: 'Betún modificado aplicado con soplete y autoadhesivo', gumroad: 'https://estimatrix7.gumroad.com/l/ninqqd' },
+  { id: 'spray-foam', icon: '💨', title: 'Spray Foam Insulation', titleEs: 'Espuma en Spray', description: 'Open-cell, closed-cell, and roof coating systems', descEs: 'Sistemas de celda abierta, celda cerrada y recubrimiento', gumroad: 'https://estimatrix7.gumroad.com/l/yqqdd' },
 ];
 
-const BUNDLE_GUMROAD = 'https://mc2agency.gumroad.com/l/bundle';
+const BUNDLE_GUMROAD = 'https://estimatrix7.gumroad.com/l/mc2-contractor-bundle';
 
 export default function ProductsContent() {
   const { language } = useLanguage();
@@ -67,7 +67,7 @@ export default function ProductsContent() {
             <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl shadow-2xl overflow-hidden">
               <div className="relative">
                 <div className="absolute top-4 right-4 bg-yellow-400 text-slate-900 px-4 py-2 rounded-full text-sm font-bold">
-                  {isEs ? 'MEJOR VALOR — AHORRA $133' : 'BEST VALUE — SAVE $133'}
+                  {isEs ? 'MEJOR VALOR — AHORRA $103' : 'BEST VALUE — SAVE $103'}
                 </div>
                 <div className="p-8 sm:p-12 text-white">
                   <div className="flex items-center gap-4 mb-6">
@@ -92,7 +92,7 @@ export default function ProductsContent() {
 
                       <div className="mb-6">
                         <div className="flex items-baseline gap-3 mb-2">
-                          <span className="text-5xl font-bold">$99</span>
+                          <span className="text-5xl font-bold">$129</span>
                           <span className="text-2xl text-emerald-200 line-through">$232</span>
                         </div>
                         <p className="text-sm text-emerald-200">
@@ -106,7 +106,7 @@ export default function ProductsContent() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all"
                       >
-                        {isEs ? 'Obtener las 8 Plantillas — $99' : 'Get All 8 Templates — $99'}
+                        {isEs ? 'Obtener las 8 Plantillas — $129' : 'Get All 8 Templates — $129'}
                       </a>
                     </div>
 
@@ -235,7 +235,7 @@ export default function ProductsContent() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
             >
-              {isEs ? 'Obtener las 8 Plantillas — $99' : 'Get All 8 Templates — $99'}
+              {isEs ? 'Obtener las 8 Plantillas — $129' : 'Get All 8 Templates — $129'}
             </a>
           </div>
         </section>
