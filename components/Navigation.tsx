@@ -48,13 +48,8 @@ export default function Navigation() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-1 group">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                MC2
-              </span>
-              <span className="text-lg font-medium text-slate-700 hidden sm:inline">
-                Estimating
-              </span>
+            <Link href="/" className="font-bold text-xl text-slate-800 hover:text-emerald-600 transition-colors">
+              MC2 Estimating
             </Link>
           </div>
 
