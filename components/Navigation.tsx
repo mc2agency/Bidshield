@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { LanguageToggle } from '@/lib/i18n';
@@ -49,15 +48,13 @@ export default function Navigation() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center group">
-              <Image 
-                src="/mc2-logo.jpg" 
-                alt="MC2 Estimating" 
-                width={160}
-                height={56}
-                className="h-14 w-auto group-hover:scale-105 transition-transform duration-300 -my-2"
-                priority
-              />
+            <Link href="/" className="flex items-center gap-1 group">
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                MC2
+              </span>
+              <span className="text-lg font-medium text-slate-700 hidden sm:inline">
+                Estimating
+              </span>
             </Link>
           </div>
 
