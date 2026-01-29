@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { LanguageToggle } from '@/lib/i18n';
@@ -49,10 +50,13 @@ export default function Navigation() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center group">
-              <img 
+              <Image 
                 src="/mc2-logo.jpg" 
                 alt="MC2 Estimating" 
+                width={120}
+                height={40}
                 className="h-10 w-auto group-hover:scale-105 transition-transform duration-300"
+                priority
               />
             </Link>
           </div>
