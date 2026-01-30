@@ -313,10 +313,21 @@ export function getStats() {
     0
   );
 
+  // Win/Loss stats
+  const wonProjects = projects.filter((p) => p.status === "won");
+  const lostProjects = projects.filter((p) => p.status === "lost");
+  const decidedProjects = wonProjects.length + lostProjects.length;
+  const winRate = decidedProjects > 0 ? Math.round((wonProjects.length / decidedProjects) * 100) : 0;
+  const wonValue = wonProjects.reduce((sum, p) => sum + (p.estimatedValue || 0), 0);
+
   return {
     activeProjects: activeProjects.length,
     expiringQuotes: expiringQuotes.length,
     openRFIs: openRFIs.length,
     pipelineValue,
+    wonProjects: wonProjects.length,
+    lostProjects: lostProjects.length,
+    winRate,
+    wonValue,
   };
 }

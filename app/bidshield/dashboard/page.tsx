@@ -16,7 +16,7 @@ function DashboardContent() {
   const isDemo = searchParams.get("demo") === "true";
   
   const [projects, setProjects] = useState<Project[]>([]);
-  const [stats, setStats] = useState({ activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0 });
+  const [stats, setStats] = useState({ activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0, wonProjects: 0, lostProjects: 0, winRate: 0, wonValue: 0 });
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProject, setNewProject] = useState({
     name: "",
@@ -63,6 +63,10 @@ function DashboardContent() {
     expiringQuotes: 1,
     openRFIs: 3,
     pipelineValue: 1270000,
+    wonProjects: 8,
+    lostProjects: 5,
+    winRate: 62,
+    wonValue: 3200000,
   };
 
   // Load data
@@ -134,9 +138,9 @@ function DashboardContent() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { value: stats.activeProjects, label: "Active Bids", color: "text-white" },
-          { value: stats.expiringQuotes, label: "Quotes Expiring", color: stats.expiringQuotes > 0 ? "text-red-500" : "text-white" },
-          { value: stats.openRFIs, label: "Open RFIs", color: stats.openRFIs > 0 ? "text-amber-500" : "text-white" },
-          { value: `$${(stats.pipelineValue / 1000000).toFixed(1)}M`, label: "Pipeline Value", color: "text-emerald-500" },
+          { value: `${stats.winRate}%`, label: "Win Rate", color: stats.winRate >= 50 ? "text-emerald-500" : stats.winRate > 0 ? "text-amber-500" : "text-slate-400" },
+          { value: `${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`, label: "Won / Decided", color: "text-emerald-500" },
+          { value: `$${(stats.pipelineValue / 1000000).toFixed(1)}M`, label: "Pipeline Value", color: "text-blue-400" },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -146,6 +150,23 @@ function DashboardContent() {
             <div className="text-[13px] text-slate-400 mt-1">{stat.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* MC2 Templates Promo Banner */}
+      <div className="bg-gradient-to-r from-emerald-900/50 to-slate-800 border border-emerald-700/50 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="text-3xl">📊</div>
+          <div>
+            <p className="font-semibold text-emerald-100">Speed up your estimates with MC2 Templates</p>
+            <p className="text-sm text-emerald-300/80">Material takeoffs, labor calcs & professional proposals — all pre-built</p>
+          </div>
+        </div>
+        <a 
+          href="/products" 
+          className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg text-sm whitespace-nowrap transition-colors"
+        >
+          View Templates →
+        </a>
       </div>
 
       {/* Active Bids */}
