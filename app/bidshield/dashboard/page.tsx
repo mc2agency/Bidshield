@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   getProjects,
   createProject,
+  updateProject,
   getStats,
   getChecklistProgress,
   type Project,
@@ -231,6 +232,39 @@ function DashboardContent() {
                     ))}
                   </div>
                 )}
+                {/* Won/Lost Buttons */}
+                <div className="flex gap-2 mt-4 pt-3 border-t border-slate-700">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isDemo) {
+                        setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "won" as const } : p));
+                      } else {
+                        updateProject(project.id, { status: "won" });
+                        setProjects(getProjects());
+                        setStats(getStats());
+                      }
+                    }}
+                    className="flex-1 py-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    ✅ Won
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isDemo) {
+                        setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "lost" as const } : p));
+                      } else {
+                        updateProject(project.id, { status: "lost" });
+                        setProjects(getProjects());
+                        setStats(getStats());
+                      }
+                    }}
+                    className="flex-1 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    ❌ Lost
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -245,6 +279,43 @@ function DashboardContent() {
           </div>
         </div>
       </div>
+
+      {/* Completed Bids */}
+      {projects.filter(p => p.status === "won" || p.status === "lost").length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold text-white mb-5">📊 Completed Bids</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projects.filter(p => p.status === "won" || p.status === "lost").map((project) => (
+              <div
+                key={project.id}
+                className={`bg-slate-800 rounded-xl p-5 border-2 ${
+                  project.status === "won" ? "border-emerald-600/50" : "border-red-600/50"
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-[17px] font-semibold text-white">{project.name}</h3>
+                  <span
+                    className={`text-[11px] font-medium px-2.5 py-1 rounded text-white ${
+                      project.status === "won" ? "bg-emerald-600" : "bg-red-600"
+                    }`}
+                  >
+                    {project.status === "won" ? "✅ WON" : "❌ LOST"}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-400 mb-2">{project.location}</p>
+                <div className="text-[13px] text-slate-500 mb-2">
+                  GC: {project.gc || "N/A"} • {project.sqft?.toLocaleString() || "?"} SF
+                </div>
+                {project.estimatedValue && (
+                  <div className={`text-lg font-bold ${project.status === "won" ? "text-emerald-400" : "text-slate-500"}`}>
+                    ${project.estimatedValue.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Alerts */}
       {(stats.expiringQuotes > 0 || stats.openRFIs > 0) && (
