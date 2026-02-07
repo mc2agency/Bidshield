@@ -1,16 +1,11 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  getProject,
-  getChecklist,
-  updateChecklistItem,
-  getChecklistProgress,
-  getPhaseProgress,
-  type ChecklistItem,
-  type Project,
-} from "@/lib/bidshield/storage";
+import { useAuth } from "@clerk/nextjs";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { masterChecklist } from "@/lib/bidshield/checklist-data";
 
 type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
@@ -24,153 +19,119 @@ const statusConfig: Record<ChecklistStatus, { icon: string; color: string; bg: s
 };
 
 // Generate demo checklist items with some pre-filled
-function generateDemoChecklist(): ChecklistItem[] {
-  const items: ChecklistItem[] = [];
-  const doneItems = ["p1-1", "p1-2", "p1-3", "p2-1", "p2-2", "p2-3", "p3-1", "p3-2"];
-  const rfiItems = ["p3-4", "p5-1"];
-  
+const demoItems = (() => {
+  const items: { phaseKey: string; itemId: string; status: ChecklistStatus }[] = [];
+  const doneIds = ["p1-1", "p1-2", "p1-3", "p2-1", "p2-2", "p2-3", "p3-1", "p3-2"];
+  const rfiIds = ["p3-4", "p5-1"];
+
   for (const [phaseKey, phase] of Object.entries(masterChecklist)) {
     for (const item of phase.items) {
       let status: ChecklistStatus = "pending";
-      if (doneItems.includes(item.id)) status = "done";
-      if (rfiItems.includes(item.id)) status = "rfi";
-      
-      items.push({
-        phaseKey,
-        itemId: item.id,
-        status,
-      });
+      if (doneIds.includes(item.id)) status = "done";
+      if (rfiIds.includes(item.id)) status = "rfi";
+      items.push({ phaseKey, itemId: item.id, status });
     }
   }
   return items;
-}
+})();
 
 function ChecklistContent() {
   const searchParams = useSearchParams();
-  const projectId = searchParams.get("project");
+  const projectIdParam = searchParams.get("project");
   const isDemo = searchParams.get("demo") === "true";
 
-  const [project, setProject] = useState<Project | undefined>(undefined);
-  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [overall, setOverall] = useState(0);
+  // Only pass valid Convex IDs (not "demo_1" etc.)
+  const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
 
-  // Demo project data
-  const demoProjects: Record<string, Project> = {
-    demo_1: {
-      id: "demo_1",
-      name: "Harbor Point Tower",
-      location: "Jersey City, NJ",
-      bidDate: "2026-02-15",
-      status: "in_progress",
-      gc: "Turner Construction",
-      sqft: 45000,
-      estimatedValue: 850000,
-      assemblies: ["TPO 60mil", "Tapered ISO"],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    },
-    demo_2: {
-      id: "demo_2",
-      name: "Riverside Medical Center",
-      location: "Newark, NJ",
-      bidDate: "2026-02-20",
-      status: "setup",
-      gc: "Skanska",
-      sqft: 28000,
-      estimatedValue: 420000,
-      assemblies: ["EPDM", "Green Roof"],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    },
-  };
+  // Convex queries
+  const project = useQuery(
+    api.bidshield.getProject,
+    !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
+  );
+  const checklistItems = useQuery(
+    api.bidshield.getChecklist,
+    !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
+  );
+  const overallProgress = useQuery(
+    api.bidshield.getChecklistProgress,
+    !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
+  );
 
-  // Load data
-  useEffect(() => {
-    if (!projectId) return;
+  // Convex mutation
+  const updateChecklistItemMut = useMutation(api.bidshield.updateChecklistItem);
 
-    if (isDemo) {
-      // Demo mode - use fake data
-      const demoProject = demoProjects[projectId] || {
-        id: projectId,
-        name: "Demo Project",
-        location: "Demo Location",
-        bidDate: "2026-02-15",
-        status: "setup" as const,
-        assemblies: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      setProject(demoProject);
-      setChecklistItems(generateDemoChecklist());
-      setOverall(12); // ~12% done in demo
-      setExpanded({ phase1: true });
-    } else {
-      setProject(getProject(projectId));
-      setChecklistItems(getChecklist(projectId));
-      setOverall(getChecklistProgress(projectId));
-      setExpanded({ phase1: true });
-    }
-  }, [projectId, isDemo]);
+  // Demo state
+  const [demoChecklistState, setDemoChecklistState] = useState(demoItems);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({ phase1: true });
+
+  // Resolve data source
+  const projectData = isDemo ? {
+    name: projectIdParam === "demo_2" ? "Riverside Medical Center" : "Harbor Point Tower",
+    location: projectIdParam === "demo_2" ? "Newark, NJ" : "Jersey City, NJ",
+    bidDate: projectIdParam === "demo_2" ? "2026-02-20" : "2026-02-15",
+  } : project;
+
+  const resolvedItems = isDemo ? demoChecklistState : (checklistItems ?? []);
+  const overall = isDemo
+    ? (() => {
+        const done = demoChecklistState.filter(i => i.status === "done" || i.status === "na").length;
+        return demoChecklistState.length > 0 ? Math.round((done / demoChecklistState.length) * 100) : 0;
+      })()
+    : (overallProgress ?? 0);
 
   const toggleExpand = (key: string) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const cycleStatus = (phaseKey: string, itemId: string) => {
-    if (!projectId) return;
-    
+  const cycleStatus = async (phaseKey: string, itemId: string) => {
+    if (!projectIdParam) return;
+
     const order: ChecklistStatus[] = ["pending", "done", "rfi", "na"];
-    const currentItem = checklistItems.find(
-      (i) => i.phaseKey === phaseKey && i.itemId === itemId
+
+    if (isDemo) {
+      setDemoChecklistState((prev) => {
+        const current = prev.find(i => i.phaseKey === phaseKey && i.itemId === itemId);
+        if (!current) return prev;
+        const idx = order.indexOf(current.status);
+        const nextStatus = order[(idx + 1) % order.length];
+        return prev.map(i =>
+          i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: nextStatus } : i
+        );
+      });
+      return;
+    }
+
+    // Real mode: find current status and cycle
+    const currentItem = resolvedItems.find(
+      (i: any) => i.phaseKey === phaseKey && i.itemId === itemId
     );
     if (!currentItem) return;
-
     const idx = order.indexOf(currentItem.status);
     const nextStatus = order[(idx + 1) % order.length];
 
-    if (isDemo) {
-      // In demo mode, just update local state
-      setChecklistItems((prev) =>
-        prev.map((item) =>
-          item.phaseKey === phaseKey && item.itemId === itemId
-            ? { ...item, status: nextStatus }
-            : item
-        )
-      );
-      // Recalculate progress
-      const updated = checklistItems.map((item) =>
-        item.phaseKey === phaseKey && item.itemId === itemId
-          ? { ...item, status: nextStatus }
-          : item
-      );
-      const doneCount = updated.filter((i) => i.status === "done" || i.status === "na").length;
-      setOverall(Math.round((doneCount / updated.length) * 100));
-    } else {
-      updateChecklistItem(projectId, phaseKey, itemId, nextStatus);
-      setChecklistItems(getChecklist(projectId));
-      setOverall(getChecklistProgress(projectId));
-    }
+    await updateChecklistItemMut({
+      projectId: projectIdParam as Id<"bidshield_projects">,
+      phaseKey,
+      itemId,
+      status: nextStatus,
+    });
   };
 
   const getItemStatus = (phaseKey: string, itemId: string): ChecklistStatus => {
-    const item = checklistItems.find(
-      (i) => i.phaseKey === phaseKey && i.itemId === itemId
+    const item = resolvedItems.find(
+      (i: any) => i.phaseKey === phaseKey && i.itemId === itemId
     );
-    return item?.status || "pending";
+    return (item?.status as ChecklistStatus) || "pending";
   };
 
-  const getPhaseProgressCalc = (phaseKey: string): number => {
-    if (isDemo) {
-      const phaseItems = checklistItems.filter((i) => i.phaseKey === phaseKey);
-      if (phaseItems.length === 0) return 0;
-      const doneCount = phaseItems.filter((i) => i.status === "done" || i.status === "na").length;
-      return Math.round((doneCount / phaseItems.length) * 100);
-    }
-    return projectId ? getPhaseProgress(projectId, phaseKey) : 0;
+  const getPhaseProgress = (phaseKey: string): number => {
+    const phaseItems = resolvedItems.filter((i: any) => i.phaseKey === phaseKey);
+    if (phaseItems.length === 0) return 0;
+    const doneCount = phaseItems.filter((i: any) => i.status === "done" || i.status === "na").length;
+    return Math.round((doneCount / phaseItems.length) * 100);
   };
 
-  if (!projectId) {
+  if (!projectIdParam) {
     return (
       <div className="text-center py-20">
         <p className="text-slate-400">No project selected. Go back to the dashboard to select a project.</p>
@@ -178,7 +139,7 @@ function ChecklistContent() {
     );
   }
 
-  if (!project) {
+  if (!isDemo && !projectData) {
     return (
       <div className="text-center py-20">
         <p className="text-slate-400">Loading project...</p>
@@ -191,9 +152,11 @@ function ChecklistContent() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
         <div>
           <h2 className="text-xl font-semibold text-white">
-            📋 {project.name}
+            📋 {projectData?.name || "Project"}
           </h2>
-          <p className="text-sm text-slate-400">{project.location} • Bid: {project.bidDate}</p>
+          <p className="text-sm text-slate-400">
+            {projectData?.location} • Bid: {projectData?.bidDate}
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-400">Overall: {overall}%</span>
@@ -208,7 +171,7 @@ function ChecklistContent() {
 
       <div className="flex flex-col gap-2">
         {Object.entries(masterChecklist).map(([phaseKey, phase]) => {
-          const progress = getPhaseProgressCalc(phaseKey);
+          const progress = getPhaseProgress(phaseKey);
           const isOpen = expanded[phaseKey];
 
           return (

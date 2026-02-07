@@ -1,23 +1,82 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  getProjects,
-  createProject,
-  updateProject,
-  getStats,
-  getChecklistProgress,
-  type Project,
-} from "@/lib/bidshield/storage";
+import { useAuth } from "@clerk/nextjs";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+
+// Demo data for unauthenticated preview
+const demoProjects = [
+  {
+    _id: "demo_1" as Id<"bidshield_projects">,
+    name: "Harbor Point Tower",
+    location: "Jersey City, NJ",
+    bidDate: "2026-02-15",
+    status: "in_progress" as const,
+    gc: "Turner Construction",
+    sqft: 45000,
+    estimatedValue: 850000,
+    assemblies: ["TPO 60mil", "Tapered ISO"],
+    userId: "demo",
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+  {
+    _id: "demo_2" as Id<"bidshield_projects">,
+    name: "Riverside Medical Center",
+    location: "Newark, NJ",
+    bidDate: "2026-02-20",
+    status: "setup" as const,
+    gc: "Skanska",
+    sqft: 28000,
+    estimatedValue: 420000,
+    assemblies: ["EPDM", "Green Roof"],
+    userId: "demo",
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+];
+
+const demoStats = {
+  activeProjects: 2,
+  expiringQuotes: 1,
+  openRFIs: 3,
+  pipelineValue: 1270000,
+  wonProjects: 8,
+  lostProjects: 5,
+  winRate: 62,
+  wonValue: 3200000,
+};
 
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
-  
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [stats, setStats] = useState({ activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0, wonProjects: 0, lostProjects: 0, winRate: 0, wonValue: 0 });
+  const { userId } = useAuth();
+
+  // Convex queries — only run when authenticated (not demo)
+  const convexProjects = useQuery(
+    api.bidshield.getProjects,
+    !isDemo && userId ? { userId } : "skip"
+  );
+  const convexStats = useQuery(
+    api.bidshield.getStats,
+    !isDemo && userId ? { userId } : "skip"
+  );
+
+  // Convex mutations
+  const createProjectMut = useMutation(api.bidshield.createProject);
+  const updateProjectMut = useMutation(api.bidshield.updateProject);
+
+  // Use demo data or real data
+  const projects = isDemo ? demoProjects : (convexProjects ?? []);
+  const stats = isDemo ? demoStats : (convexStats ?? {
+    activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0,
+    wonProjects: 0, lostProjects: 0, winRate: 0, wonValue: 0,
+  });
+
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProject, setNewProject] = useState({
     name: "",
@@ -29,83 +88,24 @@ function DashboardContent() {
     estimatedValue: "",
   });
 
-  // Demo data
-  const demoProjects: Project[] = [
-    {
-      id: "demo_1",
-      name: "Harbor Point Tower",
-      location: "Jersey City, NJ",
-      bidDate: "2026-02-15",
-      status: "in_progress",
-      gc: "Turner Construction",
-      sqft: 45000,
-      estimatedValue: 850000,
-      assemblies: ["TPO 60mil", "Tapered ISO"],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    },
-    {
-      id: "demo_2",
-      name: "Riverside Medical Center",
-      location: "Newark, NJ",
-      bidDate: "2026-02-20",
-      status: "setup",
-      gc: "Skanska",
-      sqft: 28000,
-      estimatedValue: 420000,
-      assemblies: ["EPDM", "Green Roof"],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    },
-  ];
+  // For demo mode local state (won/lost toggles)
+  const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
 
-  const demoStats = {
-    activeProjects: 2,
-    expiringQuotes: 1,
-    openRFIs: 3,
-    pipelineValue: 1270000,
-    wonProjects: 8,
-    lostProjects: 5,
-    winRate: 62,
-    wonValue: 3200000,
-  };
+  const isLoading = !isDemo && convexProjects === undefined;
 
-  // Load data
-  useEffect(() => {
-    if (isDemo) {
-      setProjects(demoProjects);
-      setStats(demoStats);
-    } else {
-      setProjects(getProjects());
-      setStats(getStats());
-    }
-  }, [isDemo]);
-
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!newProject.name || !newProject.location || !newProject.bidDate) return;
 
     if (isDemo) {
-      // In demo mode, create a fake project and navigate
-      const fakeProject = {
-        id: `demo_${Date.now()}`,
-        name: newProject.name,
-        location: newProject.location,
-        bidDate: newProject.bidDate,
-        status: "setup" as const,
-        gc: newProject.gc || undefined,
-        sqft: newProject.sqft ? parseInt(newProject.sqft) : undefined,
-        estimatedValue: newProject.estimatedValue ? parseInt(newProject.estimatedValue) : undefined,
-        assemblies: newProject.assemblies.split(",").map((a) => a.trim()).filter(Boolean),
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      setProjects([...projects, fakeProject]);
       setShowNewProject(false);
-      router.push(`/bidshield/dashboard/checklist?demo=true&project=${fakeProject.id}`);
+      router.push(`/bidshield/dashboard/checklist?demo=true&project=demo_1`);
       return;
     }
 
-    const project = createProject({
+    if (!userId) return;
+
+    const projectId = await createProjectMut({
+      userId,
       name: newProject.name,
       location: newProject.location,
       bidDate: newProject.bidDate,
@@ -115,16 +115,33 @@ function DashboardContent() {
       assemblies: newProject.assemblies.split(",").map((a) => a.trim()).filter(Boolean),
     });
 
-    setProjects(getProjects());
-    setStats(getStats());
     setNewProject({ name: "", location: "", bidDate: "", gc: "", sqft: "", assemblies: "", estimatedValue: "" });
     setShowNewProject(false);
-    router.push(`/bidshield/dashboard/checklist?project=${project.id}`);
+    router.push(`/bidshield/dashboard/checklist?project=${projectId}`);
   };
 
-  const activeProjects = projects.filter(
-    (p) => p.status === "setup" || p.status === "in_progress"
-  );
+  const handleStatusChange = async (projectId: Id<"bidshield_projects">, status: "won" | "lost") => {
+    if (isDemo) {
+      setDemoOverrides(prev => ({ ...prev, [projectId]: status }));
+      return;
+    }
+    await updateProjectMut({ projectId, status });
+  };
+
+  const getProjectStatus = (project: typeof projects[0]) => {
+    if (isDemo && demoOverrides[project._id]) return demoOverrides[project._id];
+    return project.status;
+  };
+
+  const activeProjects = projects.filter((p) => {
+    const status = getProjectStatus(p);
+    return status === "setup" || status === "in_progress";
+  });
+
+  const completedProjects = projects.filter((p) => {
+    const status = getProjectStatus(p);
+    return status === "won" || status === "lost";
+  });
 
   const getHref = (base: string, projectId?: string) => {
     const params = new URLSearchParams();
@@ -132,6 +149,21 @@ function DashboardContent() {
     if (projectId) params.set("project", projectId);
     return `${base}?${params.toString()}`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="bg-slate-800 rounded-xl p-6 border border-slate-700 animate-pulse">
+              <div className="h-10 bg-slate-700 rounded mb-2" />
+              <div className="h-4 bg-slate-700 rounded w-20 mx-auto" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -162,8 +194,8 @@ function DashboardContent() {
             <p className="text-sm text-emerald-300/80">Material takeoffs, labor calcs & professional proposals — all pre-built</p>
           </div>
         </div>
-        <a 
-          href="/products" 
+        <a
+          href="/products"
           className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg text-sm whitespace-nowrap transition-colors"
         >
           View Templates →
@@ -181,93 +213,18 @@ function DashboardContent() {
             + New Bid
           </button>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {activeProjects.map((project) => {
-            const progress = isDemo ? (project.status === "in_progress" ? 45 : 10) : getChecklistProgress(project.id);
-            return (
-              <div
-                key={project.id}
-                onClick={() => router.push(getHref("/bidshield/dashboard/checklist", project.id))}
-                className="bg-slate-800 rounded-xl p-5 border border-slate-700 cursor-pointer hover:border-slate-600 transition-all"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-[17px] font-semibold text-white">{project.name}</h3>
-                  <span
-                    className={`text-[11px] font-medium px-2.5 py-1 rounded text-white ${
-                      project.status === "in_progress" ? "bg-emerald-600" : "bg-amber-600"
-                    }`}
-                  >
-                    {project.status === "in_progress" ? "In Progress" : "Setup"}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-400 mb-3">{project.location}</p>
-                <div className="flex justify-between text-[13px] text-slate-500 mb-2">
-                  <span>GC: {project.gc || "TBD"}</span>
-                  <span>{project.sqft?.toLocaleString() || "?"} SF</span>
-                </div>
-                <div className="text-[13px] text-slate-500 mb-3">
-                  Bid Date: {project.bidDate}
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 rounded-full transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <span className="text-[13px] font-semibold text-emerald-500">
-                    {progress}%
-                  </span>
-                </div>
-                {project.assemblies && project.assemblies.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {project.assemblies.map((assembly, idx) => (
-                      <span
-                        key={idx}
-                        className="text-[11px] bg-slate-700 text-slate-400 px-2 py-1 rounded"
-                      >
-                        {assembly}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {/* Won/Lost Buttons */}
-                <div className="flex gap-2 mt-4 pt-3 border-t border-slate-700">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isDemo) {
-                        setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "won" as const } : p));
-                      } else {
-                        updateProject(project.id, { status: "won" });
-                        setProjects(getProjects());
-                        setStats(getStats());
-                      }
-                    }}
-                    className="flex-1 py-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 text-xs font-semibold rounded-lg transition-colors"
-                  >
-                    ✅ Won
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isDemo) {
-                        setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "lost" as const } : p));
-                      } else {
-                        updateProject(project.id, { status: "lost" });
-                        setProjects(getProjects());
-                        setStats(getStats());
-                      }
-                    }}
-                    className="flex-1 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-colors"
-                  >
-                    ❌ Lost
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {activeProjects.map((project) => (
+            <ProjectCard
+              key={project._id}
+              project={project}
+              isDemo={isDemo}
+              getHref={getHref}
+              onStatusChange={handleStatusChange}
+              router={router}
+            />
+          ))}
 
           {/* New Bid Card */}
           <div
@@ -281,38 +238,41 @@ function DashboardContent() {
       </div>
 
       {/* Completed Bids */}
-      {projects.filter(p => p.status === "won" || p.status === "lost").length > 0 && (
+      {completedProjects.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold text-white mb-5">📊 Completed Bids</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.filter(p => p.status === "won" || p.status === "lost").map((project) => (
-              <div
-                key={project.id}
-                className={`bg-slate-800 rounded-xl p-5 border-2 ${
-                  project.status === "won" ? "border-emerald-600/50" : "border-red-600/50"
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-[17px] font-semibold text-white">{project.name}</h3>
-                  <span
-                    className={`text-[11px] font-medium px-2.5 py-1 rounded text-white ${
-                      project.status === "won" ? "bg-emerald-600" : "bg-red-600"
-                    }`}
-                  >
-                    {project.status === "won" ? "✅ WON" : "❌ LOST"}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-400 mb-2">{project.location}</p>
-                <div className="text-[13px] text-slate-500 mb-2">
-                  GC: {project.gc || "N/A"} • {project.sqft?.toLocaleString() || "?"} SF
-                </div>
-                {project.estimatedValue && (
-                  <div className={`text-lg font-bold ${project.status === "won" ? "text-emerald-400" : "text-slate-500"}`}>
-                    ${project.estimatedValue.toLocaleString()}
+            {completedProjects.map((project) => {
+              const status = getProjectStatus(project);
+              return (
+                <div
+                  key={project._id}
+                  className={`bg-slate-800 rounded-xl p-5 border-2 ${
+                    status === "won" ? "border-emerald-600/50" : "border-red-600/50"
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-[17px] font-semibold text-white">{project.name}</h3>
+                    <span
+                      className={`text-[11px] font-medium px-2.5 py-1 rounded text-white ${
+                        status === "won" ? "bg-emerald-600" : "bg-red-600"
+                      }`}
+                    >
+                      {status === "won" ? "✅ WON" : "❌ LOST"}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  <p className="text-sm text-slate-400 mb-2">{project.location}</p>
+                  <div className="text-[13px] text-slate-500 mb-2">
+                    GC: {project.gc || "N/A"} • {project.sqft?.toLocaleString() || "?"} SF
+                  </div>
+                  {project.estimatedValue && (
+                    <div className={`text-lg font-bold ${status === "won" ? "text-emerald-400" : "text-slate-500"}`}>
+                      ${project.estimatedValue.toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -353,7 +313,7 @@ function DashboardContent() {
             className="bg-slate-800 rounded-2xl p-6 sm:p-8 w-full max-w-lg border border-slate-700 max-h-[90vh] overflow-y-auto"
           >
             <h2 className="text-xl font-semibold text-white mb-6">New Bid Project</h2>
-            
+
             <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Project Name *</label>
@@ -365,7 +325,7 @@ function DashboardContent() {
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Location *</label>
                 <input
@@ -376,7 +336,7 @@ function DashboardContent() {
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Bid Date *</label>
                 <input
@@ -386,7 +346,7 @@ function DashboardContent() {
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">General Contractor</label>
@@ -420,7 +380,7 @@ function DashboardContent() {
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Assemblies (comma-separated)</label>
                 <input
@@ -451,6 +411,94 @@ function DashboardContent() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Separate component for project cards to use individual progress queries
+function ProjectCard({ project, isDemo, getHref, onStatusChange, router }: {
+  project: any;
+  isDemo: boolean;
+  getHref: (base: string, projectId?: string) => string;
+  onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
+  router: ReturnType<typeof useRouter>;
+}) {
+  const progress = useQuery(
+    api.bidshield.getChecklistProgress,
+    !isDemo ? { projectId: project._id } : "skip"
+  );
+
+  const displayProgress = isDemo
+    ? (project.status === "in_progress" ? 45 : 10)
+    : (progress ?? 0);
+
+  return (
+    <div
+      onClick={() => router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
+      className="bg-slate-800 rounded-xl p-5 border border-slate-700 cursor-pointer hover:border-slate-600 transition-all"
+    >
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="text-[17px] font-semibold text-white">{project.name}</h3>
+        <span
+          className={`text-[11px] font-medium px-2.5 py-1 rounded text-white ${
+            project.status === "in_progress" ? "bg-emerald-600" : "bg-amber-600"
+          }`}
+        >
+          {project.status === "in_progress" ? "In Progress" : "Setup"}
+        </span>
+      </div>
+      <p className="text-sm text-slate-400 mb-3">{project.location}</p>
+      <div className="flex justify-between text-[13px] text-slate-500 mb-2">
+        <span>GC: {project.gc || "TBD"}</span>
+        <span>{project.sqft?.toLocaleString() || "?"} SF</span>
+      </div>
+      <div className="text-[13px] text-slate-500 mb-3">
+        Bid Date: {project.bidDate}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-emerald-500 rounded-full transition-all"
+            style={{ width: `${displayProgress}%` }}
+          />
+        </div>
+        <span className="text-[13px] font-semibold text-emerald-500">
+          {displayProgress}%
+        </span>
+      </div>
+      {project.assemblies && project.assemblies.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {project.assemblies.map((assembly: string, idx: number) => (
+            <span
+              key={idx}
+              className="text-[11px] bg-slate-700 text-slate-400 px-2 py-1 rounded"
+            >
+              {assembly}
+            </span>
+          ))}
+        </div>
+      )}
+      {/* Won/Lost Buttons */}
+      <div className="flex gap-2 mt-4 pt-3 border-t border-slate-700">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onStatusChange(project._id, "won");
+          }}
+          className="flex-1 py-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 text-xs font-semibold rounded-lg transition-colors"
+        >
+          ✅ Won
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onStatusChange(project._id, "lost");
+          }}
+          className="flex-1 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-colors"
+        >
+          ❌ Lost
+        </button>
+      </div>
     </div>
   );
 }

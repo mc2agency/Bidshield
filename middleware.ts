@@ -3,7 +3,14 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 // Define protected routes that require authentication
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
+  '/bidshield/dashboard(.*)',
 ]);
+
+// Allow demo mode to bypass auth for BidShield
+function isDemoRequest(req: Request): boolean {
+  const url = new URL(req.url);
+  return url.searchParams.get('demo') === 'true';
+}
 
 // Define public routes that don't need authentication
 const isPublicRoute = createRouteMatcher([
@@ -26,7 +33,8 @@ const isPublicRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, req) => {
   // Protect dashboard routes - require authentication
-  if (isProtectedRoute(req)) {
+  // Allow demo mode to bypass for BidShield preview
+  if (isProtectedRoute(req) && !isDemoRequest(req)) {
     await auth.protect();
   }
 });

@@ -30,11 +30,12 @@ export const createProject = mutation({
     bidDate: v.string(),
     gc: v.optional(v.string()),
     sqft: v.optional(v.number()),
+    estimatedValue: v.optional(v.number()),
     assemblies: v.array(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    
+
     // Create the project
     const projectId = await ctx.db.insert("bidshield_projects", {
       userId: args.userId,
@@ -44,6 +45,7 @@ export const createProject = mutation({
       status: "setup",
       gc: args.gc,
       sqft: args.sqft,
+      estimatedValue: args.estimatedValue,
       assemblies: args.assemblies,
       createdAt: now,
       updatedAt: now,
@@ -94,7 +96,7 @@ export const updateProject = mutation({
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([_, v]) => v !== undefined)
     );
-    
+
     await ctx.db.patch(projectId, {
       ...filteredUpdates,
       updatedAt: Date.now(),
@@ -110,9 +112,19 @@ export const deleteProject = mutation({
       .query("bidshield_checklist_items")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .collect();
-    
+
     for (const item of items) {
       await ctx.db.delete(item._id);
+    }
+
+    // Delete all quotes linked to this project
+    const quotes = await ctx.db
+      .query("bidshield_quotes")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    for (const quote of quotes) {
+      await ctx.db.delete(quote._id);
     }
 
     // Delete all RFIs
@@ -120,7 +132,7 @@ export const deleteProject = mutation({
       .query("bidshield_rfis")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .collect();
-    
+
     for (const rfi of rfis) {
       await ctx.db.delete(rfi._id);
     }
@@ -135,21 +147,10 @@ export const deleteProject = mutation({
 export const getChecklist = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
-    const items = await ctx.db
+    return await ctx.db
       .query("bidshield_checklist_items")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .collect();
-
-    // Group by phase
-    const byPhase: Record<string, typeof items> = {};
-    for (const item of items) {
-      if (!byPhase[item.phaseKey]) {
-        byPhase[item.phaseKey] = [];
-      }
-      byPhase[item.phaseKey].push(item);
-    }
-
-    return byPhase;
   },
 });
 
@@ -186,16 +187,15 @@ export const updateChecklistItem = mutation({
     }
 
     // Update project status if needed
-    const allItems = await ctx.db
-      .query("bidshield_checklist_items")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-
-    const doneCount = allItems.filter((i) => i.status === "done" || i.status === "na").length;
-    const progress = Math.round((doneCount / allItems.length) * 100);
+    const doneCount = items.filter((i) => {
+      if (i.phaseKey === args.phaseKey && i.itemId === args.itemId) {
+        return args.status === "done" || args.status === "na";
+      }
+      return i.status === "done" || i.status === "na";
+    }).length;
 
     const project = await ctx.db.get(args.projectId);
-    if (project && project.status === "setup" && progress > 0) {
+    if (project && project.status === "setup" && doneCount > 0) {
       await ctx.db.patch(args.projectId, {
         status: "in_progress",
         updatedAt: Date.now(),
@@ -228,8 +228,13 @@ export const createQuote = mutation({
     projectId: v.optional(v.id("bidshield_projects")),
     vendorName: v.string(),
     vendorEmail: v.optional(v.string()),
+    vendorPhone: v.optional(v.string()),
     category: v.string(),
     products: v.array(v.string()),
+    quoteAmount: v.optional(v.number()),
+    quoteDate: v.optional(v.string()),
+    expirationDate: v.optional(v.string()),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -238,8 +243,13 @@ export const createQuote = mutation({
       projectId: args.projectId,
       vendorName: args.vendorName,
       vendorEmail: args.vendorEmail,
+      vendorPhone: args.vendorPhone,
       category: args.category,
       products: args.products,
+      quoteAmount: args.quoteAmount,
+      quoteDate: args.quoteDate,
+      expirationDate: args.expirationDate,
+      notes: args.notes,
       status: "none",
       createdAt: now,
       updatedAt: now,
@@ -271,7 +281,7 @@ export const updateQuote = mutation({
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([_, v]) => v !== undefined)
     );
-    
+
     await ctx.db.patch(quoteId, {
       ...filteredUpdates,
       updatedAt: Date.now(),
@@ -333,7 +343,7 @@ export const updateRFI = mutation({
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([_, v]) => v !== undefined)
     );
-    
+
     await ctx.db.patch(rfiId, {
       ...filteredUpdates,
       updatedAt: Date.now(),
@@ -360,12 +370,26 @@ export const getStats = query({
       (p) => p.status === "setup" || p.status === "in_progress"
     );
 
-    const expiringQuotes = quotes.filter((q) => q.status === "expiring");
-    
+    const expiringQuotes = quotes.filter((q) => {
+      if (q.status === "expiring") return true;
+      if (!q.expirationDate) return false;
+      const expDate = new Date(q.expirationDate);
+      const now = new Date();
+      const daysUntilExpiry = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry <= 14 && daysUntilExpiry > 0;
+    });
+
     const pipelineValue = activeProjects.reduce(
       (sum, p) => sum + (p.estimatedValue || 0),
       0
     );
+
+    // Win/Loss stats
+    const wonProjects = projects.filter((p) => p.status === "won");
+    const lostProjects = projects.filter((p) => p.status === "lost");
+    const decidedProjects = wonProjects.length + lostProjects.length;
+    const winRate = decidedProjects > 0 ? Math.round((wonProjects.length / decidedProjects) * 100) : 0;
+    const wonValue = wonProjects.reduce((sum, p) => sum + (p.estimatedValue || 0), 0);
 
     // Count open RFIs across all projects
     let openRFIs = 0;
@@ -382,6 +406,26 @@ export const getStats = query({
       expiringQuotes: expiringQuotes.length,
       openRFIs,
       pipelineValue,
+      wonProjects: wonProjects.length,
+      lostProjects: lostProjects.length,
+      winRate,
+      wonValue,
     };
+  },
+});
+
+// ===== CHECKLIST PROGRESS (helper) =====
+
+export const getChecklistProgress = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const items = await ctx.db
+      .query("bidshield_checklist_items")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    if (items.length === 0) return 0;
+    const doneCount = items.filter((i) => i.status === "done" || i.status === "na").length;
+    return Math.round((doneCount / items.length) * 100);
   },
 });

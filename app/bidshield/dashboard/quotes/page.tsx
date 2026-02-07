@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  getProject,
-  getQuotes,
-  createQuote,
-  updateQuote,
-  type Quote,
-} from "@/lib/bidshield/storage";
+import { useAuth } from "@clerk/nextjs";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
 const VENDOR_CATEGORIES = [
   { key: "insulation", name: "Insulation", icon: "🧱" },
@@ -21,14 +18,34 @@ const VENDOR_CATEGORIES = [
 
 function QuotesContent() {
   const searchParams = useSearchParams();
-  const projectId = searchParams.get("project");
+  const projectIdParam = searchParams.get("project");
+  const isDemo = searchParams.get("demo") === "true";
+  const { userId } = useAuth();
 
-  const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [project, setProject] = useState<ReturnType<typeof getProject>>(undefined);
+  const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
+
+  // Convex queries
+  const project = useQuery(
+    api.bidshield.getProject,
+    !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
+  );
+  const quotes = useQuery(
+    api.bidshield.getQuotes,
+    !isDemo && userId
+      ? isValidConvexId
+        ? { userId, projectId: projectIdParam as Id<"bidshield_projects"> }
+        : { userId }
+      : "skip"
+  );
+
+  // Convex mutations
+  const createQuoteMut = useMutation(api.bidshield.createQuote);
+  const updateQuoteMut = useMutation(api.bidshield.updateQuote);
+
+  const resolvedQuotes = quotes ?? [];
+
   const [showModal, setShowModal] = useState(false);
-  const [editQuote, setEditQuote] = useState<Quote | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
-
   const [newQuote, setNewQuote] = useState({
     vendorName: "",
     vendorEmail: "",
@@ -41,21 +58,17 @@ function QuotesContent() {
     notes: "",
   });
 
-  // Load data
-  useEffect(() => {
-    if (projectId) {
-      setProject(getProject(projectId));
-      setQuotes(getQuotes(projectId));
-    } else {
-      setQuotes(getQuotes());
-    }
-  }, [projectId]);
+  const showNotification = (msg: string) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 3000);
+  };
 
-  const handleCreateQuote = () => {
-    if (!newQuote.vendorName || !newQuote.category) return;
+  const handleCreateQuote = async () => {
+    if (!newQuote.vendorName || !newQuote.category || !userId) return;
 
-    createQuote({
-      projectId: projectId || undefined,
+    await createQuoteMut({
+      userId,
+      projectId: isValidConvexId ? (projectIdParam as Id<"bidshield_projects">) : undefined,
       vendorName: newQuote.vendorName,
       vendorEmail: newQuote.vendorEmail || undefined,
       vendorPhone: newQuote.vendorPhone || undefined,
@@ -67,46 +80,35 @@ function QuotesContent() {
       notes: newQuote.notes || undefined,
     });
 
-    setQuotes(projectId ? getQuotes(projectId) : getQuotes());
     setNewQuote({
-      vendorName: "",
-      vendorEmail: "",
-      vendorPhone: "",
-      category: "insulation",
-      products: "",
-      quoteAmount: "",
-      quoteDate: "",
-      expirationDate: "",
-      notes: "",
+      vendorName: "", vendorEmail: "", vendorPhone: "", category: "insulation",
+      products: "", quoteAmount: "", quoteDate: "", expirationDate: "", notes: "",
     });
     setShowModal(false);
     showNotification("Quote added!");
   };
 
-  const handleUpdateStatus = (quote: Quote, status: Quote["status"]) => {
-    updateQuote(quote.id, { status });
-    setQuotes(projectId ? getQuotes(projectId) : getQuotes());
+  const handleUpdateStatus = async (quoteId: Id<"bidshield_quotes">, status: string) => {
+    await updateQuoteMut({
+      quoteId,
+      status: status as any,
+    });
     showNotification("Quote updated!");
   };
 
-  const showNotification = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const getQuoteStatus = (quote: Quote): Quote["status"] => {
+  const getQuoteStatus = (quote: any): string => {
     if (!quote.expirationDate) return quote.status;
     const expDate = new Date(quote.expirationDate);
     const now = new Date();
     const daysUntilExpiry = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (daysUntilExpiry < 0) return "expired";
     if (daysUntilExpiry <= 14) return "expiring";
     if (quote.quoteAmount) return "valid";
     return quote.status;
   };
 
-  const statusBadge = (status: Quote["status"]) => {
+  const statusBadge = (status: string) => {
     const map: Record<string, { bg: string; text: string; label: string }> = {
       valid: { bg: "bg-emerald-500/20", text: "text-emerald-400", label: "✓ Valid" },
       received: { bg: "bg-blue-500/20", text: "text-blue-400", label: "📥 Received" },
@@ -125,8 +127,12 @@ function QuotesContent() {
 
   const groupedByCategory = VENDOR_CATEGORIES.map((cat) => ({
     ...cat,
-    quotes: quotes.filter((q) => q.category === cat.key),
+    quotes: resolvedQuotes.filter((q: any) => q.category === cat.key),
   }));
+
+  if (!isDemo && quotes === undefined) {
+    return <div className="text-slate-400">Loading quotes...</div>;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -144,21 +150,23 @@ function QuotesContent() {
             <p className="text-sm text-slate-400">{project.name}</p>
           )}
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
-        >
-          + Add Quote
-        </button>
+        {!isDemo && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          >
+            + Add Quote
+          </button>
+        )}
       </div>
 
       {/* Quote Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Quotes", value: quotes.length, color: "text-white" },
-          { label: "Valid", value: quotes.filter((q) => getQuoteStatus(q) === "valid").length, color: "text-emerald-500" },
-          { label: "Expiring Soon", value: quotes.filter((q) => getQuoteStatus(q) === "expiring").length, color: "text-amber-500" },
-          { label: "Expired", value: quotes.filter((q) => getQuoteStatus(q) === "expired").length, color: "text-red-500" },
+          { label: "Total Quotes", value: resolvedQuotes.length, color: "text-white" },
+          { label: "Valid", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "valid").length, color: "text-emerald-500" },
+          { label: "Expiring Soon", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "expiring").length, color: "text-amber-500" },
+          { label: "Expired", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "expired").length, color: "text-red-500" },
         ].map((stat) => (
           <div key={stat.label} className="bg-slate-800 rounded-lg p-4 border border-slate-700">
             <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -182,21 +190,23 @@ function QuotesContent() {
             {cat.quotes.length === 0 ? (
               <div className="text-center py-6 text-slate-500 text-sm">
                 No quotes yet.{" "}
-                <button
-                  onClick={() => {
-                    setNewQuote({ ...newQuote, category: cat.key });
-                    setShowModal(true);
-                  }}
-                  className="text-emerald-400 hover:text-emerald-300"
-                >
-                  Add one →
-                </button>
+                {!isDemo && (
+                  <button
+                    onClick={() => {
+                      setNewQuote({ ...newQuote, category: cat.key });
+                      setShowModal(true);
+                    }}
+                    className="text-emerald-400 hover:text-emerald-300"
+                  >
+                    Add one →
+                  </button>
+                )}
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {cat.quotes.map((quote) => (
+                {cat.quotes.map((quote: any) => (
                   <div
-                    key={quote.id}
+                    key={quote._id}
                     className="p-3 bg-slate-900 rounded-lg hover:bg-slate-850 transition-colors"
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -215,9 +225,9 @@ function QuotesContent() {
                       </div>
                     )}
 
-                    {quote.products.length > 0 && (
+                    {quote.products && quote.products.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {quote.products.slice(0, 3).map((product, idx) => (
+                        {quote.products.slice(0, 3).map((product: string, idx: number) => (
                           <span
                             key={idx}
                             className="text-[10px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded"
@@ -249,22 +259,24 @@ function QuotesContent() {
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="flex gap-2 mt-3">
-                      {getQuoteStatus(quote) !== "valid" && quote.quoteAmount && (
+                    {!isDemo && (
+                      <div className="flex gap-2 mt-3">
+                        {getQuoteStatus(quote) !== "valid" && quote.quoteAmount && (
+                          <button
+                            onClick={() => handleUpdateStatus(quote._id, "valid")}
+                            className="text-[11px] px-2 py-1 bg-emerald-600/20 text-emerald-400 rounded hover:bg-emerald-600/30"
+                          >
+                            Mark Valid
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleUpdateStatus(quote, "valid")}
-                          className="text-[11px] px-2 py-1 bg-emerald-600/20 text-emerald-400 rounded hover:bg-emerald-600/30"
+                          onClick={() => handleUpdateStatus(quote._id, "requested")}
+                          className="text-[11px] px-2 py-1 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30"
                         >
-                          Mark Valid
+                          📧 Request Update
                         </button>
-                      )}
-                      <button
-                        onClick={() => handleUpdateStatus(quote, "requested")}
-                        className="text-[11px] px-2 py-1 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30"
-                      >
-                        📧 Request Update
-                      </button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

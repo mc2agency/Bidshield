@@ -10,7 +10,11 @@ const navItems = [
   { href: "/bidshield/dashboard", icon: "📊", label: "Dashboard" },
   { href: "/bidshield/dashboard/checklist", icon: "📋", label: "Checklist" },
   { href: "/bidshield/dashboard/quotes", icon: "💰", label: "Quotes" },
+  { href: "/bidshield/dashboard/rfis", icon: "📨", label: "RFIs" },
   { href: "/bidshield/dashboard/labor", icon: "👷", label: "Labor" },
+  { href: "/bidshield/dashboard/datasheets", icon: "📑", label: "Materials" },
+  { href: "/bidshield/dashboard/validator", icon: "🛡️", label: "Validator" },
+  { href: "/bidshield/dashboard/analytics", icon: "📈", label: "Analytics" },
 ];
 
 function DashboardContent({ children }: { children: React.ReactNode }) {

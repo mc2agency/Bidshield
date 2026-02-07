@@ -149,6 +149,35 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // ===== LEADS & CONTACT =====
+
+  // Email subscribers (checklist downloads, newsletter)
+  email_subscribers: defineTable({
+    email: v.string(),
+    source: v.string(), // "checklist", "newsletter", "contact_form"
+    subscribedAt: v.number(),
+  })
+    .index("by_email", ["email"]),
+
+  // Contact form submissions
+  contact_submissions: defineTable({
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+    company: v.optional(v.string()),
+    subject: v.string(),
+    message: v.string(),
+    newsletter: v.boolean(),
+    status: v.union(
+      v.literal("new"),
+      v.literal("read"),
+      v.literal("replied")
+    ),
+    createdAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_email", ["email"]),
+
   // Custom labor rates (user-specific)
   bidshield_labor_rates: defineTable({
     userId: v.string(),

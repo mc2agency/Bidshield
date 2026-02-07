@@ -107,6 +107,51 @@ export const getUserPurchases = query({
   },
 });
 
+// Check if a user owns a specific product (by email)
+export const verifyPurchaseByEmail = query({
+  args: {
+    email: v.string(),
+    productId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const purchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .collect();
+
+    const owned = purchases.some((p) => p.productId === args.productId);
+
+    // Also check if user has a bundle that includes this product
+    const hasBundle = purchases.some((p) =>
+      p.productId === "template-bundle" ||
+      p.productId === "starter-bundle" ||
+      p.productId === "professional-bundle" ||
+      p.productId === "master-toolkit"
+    );
+
+    return { owned: owned || hasBundle };
+  },
+});
+
+// Get all purchased product IDs for a user (by email)
+export const getPurchasedProductIds = query({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const purchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .collect();
+
+    return purchases.map((p) => ({
+      productId: p.productId,
+      productName: p.productName,
+      purchasedAt: p.purchasedAt,
+    }));
+  },
+});
+
 // Sync purchases when user creates account
 // Called after user signs up to link existing purchases to their account
 export const syncPurchasesToUser = mutation({
