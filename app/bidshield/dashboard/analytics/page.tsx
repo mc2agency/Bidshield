@@ -68,8 +68,8 @@ function AnalyticsContent() {
   }
 
   const totalBids = stats.wonProjects + stats.lostProjects;
-  const wonProjects = projects.filter((p) => p.status === "won");
-  const lostProjects = projects.filter((p) => p.status === "lost");
+  const wonProjects = projects.filter((p: { status: string }) => p.status === "won");
+  const lostProjects = projects.filter((p: { status: string }) => p.status === "lost");
 
   // Revenue by month (demo data)
   const monthlyData = isDemo
@@ -237,9 +237,9 @@ function AnalyticsContent() {
             </thead>
             <tbody>
               {[...wonProjects, ...lostProjects]
-                .sort((a, b) => (b.bidDate || "").localeCompare(a.bidDate || ""))
+                .sort((a: { bidDate?: string }, b: { bidDate?: string }) => (b.bidDate || "").localeCompare(a.bidDate || ""))
                 .slice(0, 10)
-                .map((p, i) => (
+                .map((p: { name: string; estimatedValue?: number; bidDate?: string; status: string }, i: number) => (
                   <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30">
                     <td className="p-3 text-sm text-slate-200">{p.name}</td>
                     <td className="p-3 text-sm font-bold text-slate-300">
