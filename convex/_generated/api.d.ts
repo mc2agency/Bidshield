@@ -8,8 +8,10 @@
  * @module
  */
 
-import type * as courseProgress from "../courseProgress.js";
+import type * as bidshield from "../bidshield.js";
+import type * as bidshieldDefaults from "../bidshieldDefaults.js";
 import type * as gumroad from "../gumroad.js";
+import type * as leads from "../leads.js";
 import type * as users from "../users.js";
 
 import type {
@@ -19,8 +21,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  courseProgress: typeof courseProgress;
+  bidshield: typeof bidshield;
+  bidshieldDefaults: typeof bidshieldDefaults;
   gumroad: typeof gumroad;
+  leads: typeof leads;
   users: typeof users;
 }>;
 
