@@ -77,13 +77,13 @@ function ProjectDetail() {
   // Compute stats
   const checklistItems = isDemo ? [] : (checklist ?? []);
   const totalItems = isDemo ? 95 : checklistItems.length;
-  const doneItems = isDemo ? 65 : checklistItems.filter((i) => i.status === "done" || i.status === "na").length;
-  const rfiItems = isDemo ? 4 : checklistItems.filter((i) => i.status === "rfi").length;
+  const doneItems = isDemo ? 65 : checklistItems.filter((i: { status: string }) => i.status === "done" || i.status === "na").length;
+  const rfiItems = isDemo ? 4 : checklistItems.filter((i: { status: string }) => i.status === "rfi").length;
   const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
 
   const quoteCount = isDemo ? 5 : (quotes ?? []).length;
   const rfiCount = isDemo ? 3 : (rfis ?? []).length;
-  const openRFIs = isDemo ? 1 : (rfis ?? []).filter((r) => r.status === "sent").length;
+  const openRFIs = isDemo ? 1 : (rfis ?? []).filter((r: { status: string }) => r.status === "sent").length;
 
   const statusStyle = statusColors[projectData?.status || "setup"] || statusColors.setup;
   const demoQuery = isDemo ? "&demo=true" : "";
@@ -97,8 +97,8 @@ function ProjectDetail() {
 
   // Phase progress summary
   const phaseProgress = Object.entries(masterChecklist).map(([phaseKey, phase]) => {
-    const phaseItems = checklistItems.filter((i) => i.phaseKey === phaseKey);
-    const done = phaseItems.filter((i) => i.status === "done" || i.status === "na").length;
+    const phaseItems = checklistItems.filter((i: { phaseKey: string; status: string }) => i.phaseKey === phaseKey);
+    const done = phaseItems.filter((i: { status: string }) => i.status === "done" || i.status === "na").length;
     const total = phase.items.length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     return { phaseKey, title: phase.title, icon: phase.icon, pct, done, total, critical: phase.critical };

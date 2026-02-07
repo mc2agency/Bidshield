@@ -7,6 +7,22 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
+interface BidProject {
+  _id: Id<"bidshield_projects">;
+  name: string;
+  location: string;
+  bidDate: string;
+  status: string;
+  gc?: string;
+  sqft?: number;
+  estimatedValue?: number;
+  assemblies?: string[];
+  userId: string;
+  createdAt: number;
+  updatedAt: number;
+  [key: string]: unknown;
+}
+
 // Demo data for unauthenticated preview
 const demoProjects = [
   {
@@ -71,7 +87,7 @@ function DashboardContent() {
   const updateProjectMut = useMutation(api.bidshield.updateProject);
 
   // Use demo data or real data
-  const projects = isDemo ? demoProjects : (convexProjects ?? []);
+  const projects: BidProject[] = isDemo ? demoProjects : (convexProjects ?? []);
   const stats = isDemo ? demoStats : (convexStats ?? {
     activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0,
     wonProjects: 0, lostProjects: 0, winRate: 0, wonValue: 0,
@@ -133,22 +149,16 @@ function DashboardContent() {
     return project.status;
   };
 
-  const activeProjects = projects.filter((p) => {
+  const activeProjects = projects.filter((p: BidProject) => {
     const status = getProjectStatus(p);
     return status === "setup" || status === "in_progress";
   });
 
-  const completedProjects = projects.filter((p) => {
+  const completedProjects = projects.filter((p: BidProject) => {
     const status = getProjectStatus(p);
     return status === "won" || status === "lost";
   });
 
-  const getHref = (base: string, projectId?: string) => {
-    const params = new URLSearchParams();
-    if (isDemo) params.set("demo", "true");
-    if (projectId) params.set("project", projectId);
-    return `${base}?${params.toString()}`;
-  };
 
   if (isLoading) {
     return (
@@ -215,12 +225,11 @@ function DashboardContent() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {activeProjects.map((project) => (
+          {activeProjects.map((project: BidProject) => (
             <ProjectCard
               key={project._id}
               project={project}
               isDemo={isDemo}
-              getHref={getHref}
               onStatusChange={handleStatusChange}
               router={router}
             />
@@ -242,7 +251,7 @@ function DashboardContent() {
         <div>
           <h2 className="text-xl font-semibold text-white mb-5">📊 Completed Bids</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedProjects.map((project) => {
+            {completedProjects.map((project: BidProject) => {
               const status = getProjectStatus(project);
               return (
                 <div
@@ -416,10 +425,9 @@ function DashboardContent() {
 }
 
 // Separate component for project cards to use individual progress queries
-function ProjectCard({ project, isDemo, getHref, onStatusChange, router }: {
-  project: any;
+function ProjectCard({ project, isDemo, onStatusChange, router }: {
+  project: BidProject;
   isDemo: boolean;
-  getHref: (base: string, projectId?: string) => string;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
   router: ReturnType<typeof useRouter>;
 }) {

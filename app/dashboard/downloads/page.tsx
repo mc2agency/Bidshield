@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -35,7 +36,7 @@ const PRODUCT_FILES: Record<string, { name: string; files: string[] }> = {
   },
 };
 
-export default function DownloadsPage() {
+function DownloadsContent() {
   const { user, isLoaded } = useUser();
   const [isClient, setIsClient] = useState(false);
 
@@ -180,3 +181,15 @@ export default function DownloadsPage() {
     </main>
   );
 }
+
+export default dynamic(() => Promise.resolve(DownloadsContent), {
+  ssr: false,
+  loading: () => (
+    <main className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-slate-600">Loading your downloads...</p>
+      </div>
+    </main>
+  ),
+});

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation } from 'convex/react';
+import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
+
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
 interface EmailCaptureProps {
   variant?: 'full' | 'banner';
@@ -13,18 +15,19 @@ export default function EmailCapture({ variant = 'full' }: EmailCaptureProps) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const subscribeEmail = useMutation(api.leads.subscribeEmail);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setLoading(true);
     try {
-      await subscribeEmail({ email, source: 'checklist' });
+      if (convexUrl) {
+        const client = new ConvexHttpClient(convexUrl);
+        await client.mutation(api.leads.subscribeEmail, { email, source: 'checklist' });
+      }
       setSubmitted(true);
     } catch {
-      // Still show success to user - email is captured client-side at minimum
+      // Still show success to user
       setSubmitted(true);
     } finally {
       setLoading(false);

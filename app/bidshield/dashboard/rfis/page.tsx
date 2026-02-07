@@ -90,7 +90,7 @@ function RFIContent() {
 
   const rfis = isDemo ? demoRFIs : (convexRFIs ?? []);
 
-  const filteredRFIs = filter === "all" ? rfis : rfis.filter((r) => r.status === filter);
+  const filteredRFIs = filter === "all" ? rfis : rfis.filter((r: { status: string }) => r.status === filter);
 
   const handleCreate = async () => {
     if (!newQuestion.trim() || !projectIdParam || isDemo) return;
@@ -153,10 +153,10 @@ function RFIContent() {
 
   const statusCounts = {
     all: rfis.length,
-    draft: rfis.filter((r) => r.status === "draft").length,
-    sent: rfis.filter((r) => r.status === "sent").length,
-    answered: rfis.filter((r) => r.status === "answered").length,
-    closed: rfis.filter((r) => r.status === "closed").length,
+    draft: rfis.filter((r: { status: string }) => r.status === "draft").length,
+    sent: rfis.filter((r: { status: string }) => r.status === "sent").length,
+    answered: rfis.filter((r: { status: string }) => r.status === "answered").length,
+    closed: rfis.filter((r: { status: string }) => r.status === "closed").length,
   };
 
   return (
@@ -206,7 +206,7 @@ function RFIContent() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {filteredRFIs.map((rfi) => {
+          {filteredRFIs.map((rfi: { _id: Id<"bidshield_rfis">; status: string; question: string; sentTo?: string; sentAt?: number; response?: string; respondedAt?: number; createdAt: number }) => {
             const config = statusConfig[rfi.status as RFIStatus];
             const isExpanded = selectedRFI === (rfi._id as string);
 

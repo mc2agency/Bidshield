@@ -46,7 +46,7 @@ function AnalyticsContent() {
   );
 
   const stats = isDemo ? demoStats : convexStats;
-  const projects = isDemo
+  const projects: { name: string; status: string; estimatedValue?: number; bidDate?: string }[] = isDemo
     ? [
         { name: "Harbor Point Tower", status: "in_progress", estimatedValue: 850000, bidDate: "2026-02-15" },
         { name: "Riverside Medical Center", status: "setup", estimatedValue: 420000, bidDate: "2026-02-20" },

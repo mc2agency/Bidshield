@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -197,19 +198,8 @@ function DashboardContent() {
   );
 }
 
-// Page component with client-side hydration check
-export default function DashboardPage() {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // During SSR, render loading state
-  if (!isClient) {
-    return <DashboardLoading />;
-  }
-
-  // On client, render the full dashboard with hooks
-  return <DashboardContent />;
-}
+// Page component - skip SSR to avoid Clerk/Convex provider issues during prerender
+export default dynamic(() => Promise.resolve(DashboardContent), {
+  ssr: false,
+  loading: () => <DashboardLoading />,
+});
