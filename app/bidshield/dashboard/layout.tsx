@@ -7,14 +7,14 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 
 const navItems = [
-  { href: "/bidshield/dashboard", icon: "📊", label: "Dashboard" },
-  { href: "/bidshield/dashboard/checklist", icon: "📋", label: "Checklist" },
-  { href: "/bidshield/dashboard/addenda", icon: "📁", label: "Addenda" },
-  { href: "/bidshield/dashboard/quotes", icon: "💰", label: "Quotes" },
-  { href: "/bidshield/dashboard/rfis", icon: "📨", label: "RFIs" },
-  { href: "/bidshield/dashboard/labor", icon: "👷", label: "Labor" },
-  { href: "/bidshield/dashboard/validator", icon: "🛡️", label: "Validator" },
-  { href: "/bidshield/dashboard/analytics", icon: "📈", label: "Analytics" },
+  { href: "/bidshield/dashboard", icon: "📊", label: "Dashboard", projectOnly: false },
+  { href: "/bidshield/dashboard/checklist", icon: "📋", label: "Checklist", projectOnly: true },
+  { href: "/bidshield/dashboard/addenda", icon: "📁", label: "Addenda", projectOnly: true },
+  { href: "/bidshield/dashboard/quotes", icon: "💰", label: "Quotes", projectOnly: true },
+  { href: "/bidshield/dashboard/rfis", icon: "📨", label: "RFIs", projectOnly: true },
+  { href: "/bidshield/dashboard/labor", icon: "👷", label: "Labor", projectOnly: true },
+  { href: "/bidshield/dashboard/validator", icon: "🛡️", label: "Validator", projectOnly: true },
+  { href: "/bidshield/dashboard/analytics", icon: "📈", label: "Analytics", projectOnly: false },
 ];
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
@@ -59,6 +59,19 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  // Detect project context: show project-only tabs when inside a project page
+  const projectId = searchParams.get("id") || searchParams.get("project");
+  const isProjectContext = !!projectId
+    || pathname.includes("/project")
+    || pathname.includes("/checklist")
+    || pathname.includes("/addenda")
+    || pathname.includes("/quotes")
+    || pathname.includes("/rfis")
+    || pathname.includes("/labor")
+    || pathname.includes("/validator");
+
+  const visibleNavItems = navItems.filter(item => !item.projectOnly || isProjectContext);
+
   const getHref = (href: string) => isDemo ? `${href}?demo=true` : href;
 
   return (
@@ -79,7 +92,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="hidden md:flex gap-1">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive =
               item.href === "/bidshield/dashboard"
                 ? pathname === "/bidshield/dashboard"
@@ -119,7 +132,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="md:hidden flex overflow-x-auto gap-1 px-4 py-2 bg-slate-800/50 border-b border-slate-700">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive =
             item.href === "/bidshield/dashboard"
               ? pathname === "/bidshield/dashboard"
