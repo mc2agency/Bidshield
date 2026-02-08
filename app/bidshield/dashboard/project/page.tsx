@@ -101,6 +101,8 @@ function LineItemTable({
   const verified = items.filter((i) => i.verified).length;
   const total = items.length;
   const allVerified = total > 0 && verified === total;
+  const qtySum = items.reduce((sum, i) => sum + (i.quantity ?? 0), 0);
+  const unitLabel = unit === "EA" ? "items" : unit;
 
   const [editingQty, setEditingQty] = useState<string | null>(null);
   const [qtyInput, setQtyInput] = useState("");
@@ -188,6 +190,19 @@ function LineItemTable({
                 );
               })}
             </tbody>
+            {items.length > 0 && (
+              <tfoot>
+                <tr className="border-t border-slate-500 bg-slate-700">
+                  <td className="py-2 text-white text-xs font-semibold">TOTAL</td>
+                  <td className="py-2 text-right text-white text-xs font-semibold tabular-nums">
+                    {qtySum.toLocaleString("en-US")} {unitLabel}
+                  </td>
+                  <td colSpan={3} className="py-2 text-center text-slate-400 text-[11px]">
+                    {verified} of {total} verified
+                  </td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       )}
@@ -601,6 +616,20 @@ function TakeoffReconciliation({
                       )
                     ))}
                   </tbody>
+                  {displaySections.length > 0 && (
+                    <tfoot>
+                      <tr className="border-t border-slate-500 bg-slate-700">
+                        <td className="py-2 text-white text-xs font-semibold">TOTAL</td>
+                        <td className="py-2 text-slate-400 text-[11px] hidden sm:table-cell">
+                          {displaySections.length} section{displaySections.length !== 1 ? "s" : ""} &middot; {displaySections.filter((s) => s.completed).length} of {displaySections.length} verified
+                        </td>
+                        <td className="py-2 text-right text-white text-xs font-semibold tabular-nums">
+                          {fmt(takenOff)} SF
+                        </td>
+                        <td colSpan={2}></td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
             )}
