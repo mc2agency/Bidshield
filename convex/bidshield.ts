@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { masterChecklist } from "./bidshieldDefaults";
+import { getChecklistForTrade } from "./bidshieldDefaults";
 
 // ===== PROJECTS =====
 
@@ -28,6 +28,9 @@ export const createProject = mutation({
     name: v.string(),
     location: v.string(),
     bidDate: v.string(),
+    trade: v.optional(v.string()),
+    systemType: v.optional(v.string()),
+    deckType: v.optional(v.string()),
     gc: v.optional(v.string()),
     sqft: v.optional(v.number()),
     estimatedValue: v.optional(v.number()),
@@ -35,6 +38,7 @@ export const createProject = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
+    const trade = args.trade || "roofing";
 
     // Create the project
     const projectId = await ctx.db.insert("bidshield_projects", {
@@ -43,6 +47,9 @@ export const createProject = mutation({
       location: args.location,
       bidDate: args.bidDate,
       status: "setup",
+      trade,
+      systemType: args.systemType,
+      deckType: args.deckType,
       gc: args.gc,
       sqft: args.sqft,
       estimatedValue: args.estimatedValue,
@@ -51,8 +58,9 @@ export const createProject = mutation({
       updatedAt: now,
     });
 
-    // Initialize checklist items from master template
-    for (const [phaseKey, phase] of Object.entries(masterChecklist)) {
+    // Initialize checklist items from trade-specific template
+    const checklist = getChecklistForTrade(trade, args.systemType, args.deckType);
+    for (const [phaseKey, phase] of Object.entries(checklist)) {
       for (const item of phase.items) {
         await ctx.db.insert("bidshield_checklist_items", {
           projectId,
@@ -184,6 +192,20 @@ export const updateChecklistItem = mutation({
         notes: args.notes,
         updatedAt: Date.now(),
       });
+    } else {
+      // Upsert: create item if it doesn't exist (e.g. new phases added after project creation)
+      const project = await ctx.db.get(args.projectId);
+      if (project) {
+        await ctx.db.insert("bidshield_checklist_items", {
+          projectId: args.projectId,
+          userId: project.userId,
+          phaseKey: args.phaseKey,
+          itemId: args.itemId,
+          status: args.status,
+          notes: args.notes,
+          updatedAt: Date.now(),
+        });
+      }
     }
 
     // Update project status if needed
@@ -193,9 +215,13 @@ export const updateChecklistItem = mutation({
       }
       return i.status === "done" || i.status === "na";
     }).length;
+    // Include the current item if it was just created (upsert case)
+    const totalDone = !item && (args.status === "done" || args.status === "na")
+      ? doneCount + 1
+      : doneCount;
 
-    const project = await ctx.db.get(args.projectId);
-    if (project && project.status === "setup" && doneCount > 0) {
+    const project = item ? await ctx.db.get(args.projectId) : await ctx.db.get(args.projectId);
+    if (project && project.status === "setup" && totalDone > 0) {
       await ctx.db.patch(args.projectId, {
         status: "in_progress",
         updatedAt: Date.now(),

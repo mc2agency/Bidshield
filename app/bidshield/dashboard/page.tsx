@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { trades } from "@/convex/bidshieldDefaults";
 
 interface BidProject {
   _id: Id<"bidshield_projects">;
@@ -98,6 +99,9 @@ function DashboardContent() {
     name: "",
     location: "",
     bidDate: "",
+    trade: "roofing",
+    systemType: "",
+    deckType: "",
     gc: "",
     sqft: "",
     assemblies: "",
@@ -125,13 +129,16 @@ function DashboardContent() {
       name: newProject.name,
       location: newProject.location,
       bidDate: newProject.bidDate,
+      trade: newProject.trade || "roofing",
+      systemType: newProject.systemType || undefined,
+      deckType: newProject.deckType || undefined,
       gc: newProject.gc || undefined,
       sqft: newProject.sqft ? parseInt(newProject.sqft) : undefined,
       estimatedValue: newProject.estimatedValue ? parseInt(newProject.estimatedValue) : undefined,
       assemblies: newProject.assemblies.split(",").map((a) => a.trim()).filter(Boolean),
     });
 
-    setNewProject({ name: "", location: "", bidDate: "", gc: "", sqft: "", assemblies: "", estimatedValue: "" });
+    setNewProject({ name: "", location: "", bidDate: "", trade: "roofing", systemType: "", deckType: "", gc: "", sqft: "", assemblies: "", estimatedValue: "" });
     setShowNewProject(false);
     router.push(`/bidshield/dashboard/checklist?project=${projectId}`);
   };
@@ -335,25 +342,84 @@ function DashboardContent() {
                 />
               </div>
 
+              {/* Trade Selection */}
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Location *</label>
-                <input
-                  type="text"
-                  value={newProject.location}
-                  onChange={(e) => setNewProject({ ...newProject, location: e.target.value })}
-                  placeholder="Jersey City, NJ"
+                <label className="block text-xs text-slate-400 mb-1">Trade *</label>
+                <select
+                  value={newProject.trade}
+                  onChange={(e) => setNewProject({ ...newProject, trade: e.target.value, systemType: "", deckType: "" })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+                >
+                  {trades.map((t) => (
+                    <option key={t.id} value={t.id} disabled={!t.available}>
+                      {t.label}{!t.available ? " (Coming Soon)" : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Bid Date *</label>
-                <input
-                  type="date"
-                  value={newProject.bidDate}
-                  onChange={(e) => setNewProject({ ...newProject, bidDate: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+              {/* System Type & Deck Type (conditional on trade) */}
+              {(() => {
+                const selectedTrade = trades.find((t) => t.id === newProject.trade);
+                if (!selectedTrade) return null;
+                return (
+                  <>
+                    {selectedTrade.systemTypes.length > 0 && (
+                      <div>
+                        <label className="block text-xs text-slate-400 mb-1">System Type</label>
+                        <select
+                          value={newProject.systemType}
+                          onChange={(e) => setNewProject({ ...newProject, systemType: e.target.value })}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                          <option value="">-- Select system --</option>
+                          {selectedTrade.systemTypes.map((s) => (
+                            <option key={s.id} value={s.id}>{s.label}</option>
+                          ))}
+                        </select>
+                        <p className="text-[11px] text-slate-500 mt-1">Adds system-specific checklist items</p>
+                      </div>
+                    )}
+                    {selectedTrade.deckTypes.length > 0 && (
+                      <div>
+                        <label className="block text-xs text-slate-400 mb-1">Deck Type</label>
+                        <select
+                          value={newProject.deckType}
+                          onChange={(e) => setNewProject({ ...newProject, deckType: e.target.value })}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                          <option value="">-- Select deck --</option>
+                          {selectedTrade.deckTypes.map((d) => (
+                            <option key={d.id} value={d.id}>{d.label}</option>
+                          ))}
+                        </select>
+                        <p className="text-[11px] text-slate-500 mt-1">Adds deck-specific structural items</p>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Location *</label>
+                  <input
+                    type="text"
+                    value={newProject.location}
+                    onChange={(e) => setNewProject({ ...newProject, location: e.target.value })}
+                    placeholder="Jersey City, NJ"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">Bid Date *</label>
+                  <input
+                    type="date"
+                    value={newProject.bidDate}
+                    onChange={(e) => setNewProject({ ...newProject, bidDate: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -455,7 +521,26 @@ function ProjectCard({ project, isDemo, onStatusChange, router }: {
           {project.status === "in_progress" ? "In Progress" : "Setup"}
         </span>
       </div>
-      <p className="text-sm text-slate-400 mb-3">{project.location}</p>
+      <p className="text-sm text-slate-400 mb-2">{project.location}</p>
+      {((project as any).trade || (project as any).systemType) && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {(project as any).trade && (
+            <span className="text-[10px] font-medium bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded capitalize">
+              {(project as any).trade}
+            </span>
+          )}
+          {(project as any).systemType && (
+            <span className="text-[10px] font-medium bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded uppercase">
+              {(project as any).systemType}
+            </span>
+          )}
+          {(project as any).deckType && (
+            <span className="text-[10px] font-medium bg-slate-600/50 text-slate-400 px-2 py-0.5 rounded capitalize">
+              {(project as any).deckType} deck
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex justify-between text-[13px] text-slate-500 mb-2">
         <span>GC: {project.gc || "TBD"}</span>
         <span>{project.sqft?.toLocaleString() || "?"} SF</span>

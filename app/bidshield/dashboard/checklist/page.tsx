@@ -6,7 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { masterChecklist } from "@/lib/bidshield/checklist-data";
+import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 
 type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
 
@@ -19,12 +19,13 @@ const statusConfig: Record<ChecklistStatus, { icon: string; color: string; bg: s
 };
 
 // Generate demo checklist items with some pre-filled
+const demoChecklist = getChecklistForTrade("roofing", "tpo", "steel");
 const demoItems = (() => {
   const items: { phaseKey: string; itemId: string; status: ChecklistStatus }[] = [];
   const doneIds = ["p1-1", "p1-2", "p1-3", "p2-1", "p2-2", "p2-3", "p3-1", "p3-2"];
   const rfiIds = ["p3-4", "p5-1"];
 
-  for (const [phaseKey, phase] of Object.entries(masterChecklist)) {
+  for (const [phaseKey, phase] of Object.entries(demoChecklist)) {
     for (const item of phase.items) {
       let status: ChecklistStatus = "pending";
       if (doneIds.includes(item.id)) status = "done";
@@ -69,7 +70,16 @@ function ChecklistContent() {
     name: projectIdParam === "demo_2" ? "Riverside Medical Center" : "Harbor Point Tower",
     location: projectIdParam === "demo_2" ? "Newark, NJ" : "Jersey City, NJ",
     bidDate: projectIdParam === "demo_2" ? "2026-02-20" : "2026-02-15",
+    trade: "roofing",
+    systemType: projectIdParam === "demo_2" ? "epdm" : "tpo",
+    deckType: projectIdParam === "demo_2" ? "concrete" : "steel",
   } : project;
+
+  // Build trade-aware checklist template
+  const trade = (projectData as any)?.trade || "roofing";
+  const systemType = (projectData as any)?.systemType || undefined;
+  const deckType = (projectData as any)?.deckType || undefined;
+  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType);
 
   const resolvedItems = isDemo ? demoChecklistState : (checklistItems ?? []);
   const overall = isDemo
@@ -157,6 +167,16 @@ function ChecklistContent() {
           <p className="text-sm text-slate-400">
             {projectData?.location} • Bid: {projectData?.bidDate}
           </p>
+          {(systemType || deckType) && (
+            <div className="flex gap-2 mt-1">
+              {systemType && (
+                <span className="text-[10px] font-medium bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded uppercase">{systemType}</span>
+              )}
+              {deckType && (
+                <span className="text-[10px] font-medium bg-slate-600/50 text-slate-400 px-2 py-0.5 rounded capitalize">{deckType} deck</span>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-400">Overall: {overall}%</span>
@@ -170,7 +190,7 @@ function ChecklistContent() {
       </div>
 
       <div className="flex flex-col gap-2">
-        {Object.entries(masterChecklist).map(([phaseKey, phase]) => {
+        {Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
           const progress = getPhaseProgress(phaseKey);
           const isOpen = expanded[phaseKey];
 

@@ -68,6 +68,9 @@ export default defineSchema({
       v.literal("lost"),
       v.literal("no_bid")
     ),
+    trade: v.optional(v.string()), // "roofing", "concrete", etc.
+    systemType: v.optional(v.string()), // "tpo", "sbs", "epdm", etc.
+    deckType: v.optional(v.string()), // "steel", "concrete", "wood", etc.
     gc: v.optional(v.string()), // General Contractor
     owner: v.optional(v.string()),
     sqft: v.optional(v.number()),

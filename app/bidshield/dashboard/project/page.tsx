@@ -7,7 +7,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
-import { masterChecklist } from "@/lib/bidshield/checklist-data";
+import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 
 const statusColors: Record<string, { text: string; bg: string }> = {
   setup: { text: "text-slate-400", bg: "bg-slate-700" },
@@ -55,8 +55,17 @@ function ProjectDetail() {
         estimatedValue: 850000,
         assemblies: ["TPO 60mil", "Tapered ISO"],
         notes: "Pre-bid meeting 2/5. Site visit scheduled 2/7.",
+        trade: "roofing",
+        systemType: "tpo",
+        deckType: "steel",
       }
     : project;
+
+  // Build trade-aware checklist template
+  const trade = (projectData as any)?.trade || "roofing";
+  const systemType = (projectData as any)?.systemType || undefined;
+  const deckType = (projectData as any)?.deckType || undefined;
+  const checklistTemplate = getChecklistForTrade(trade, systemType, deckType);
 
   if (!projectIdParam) {
     return (
@@ -96,7 +105,7 @@ function ProjectDetail() {
     : null;
 
   // Phase progress summary
-  const phaseProgress = Object.entries(masterChecklist).map(([phaseKey, phase]) => {
+  const phaseProgress = Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
     const phaseItems = checklistItems.filter((i: { phaseKey: string; status: string }) => i.phaseKey === phaseKey);
     const done = phaseItems.filter((i: { status: string }) => i.status === "done" || i.status === "na").length;
     const total = phase.items.length;
@@ -121,6 +130,12 @@ function ProjectDetail() {
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded uppercase ${statusStyle.text} ${statusStyle.bg}`}>
               {(projectData?.status || "setup").replace("_", " ")}
             </span>
+            {systemType && (
+              <span className="text-[10px] font-medium bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded uppercase">{systemType}</span>
+            )}
+            {deckType && (
+              <span className="text-[10px] font-medium bg-slate-600/50 text-slate-400 px-2 py-0.5 rounded capitalize">{deckType} deck</span>
+            )}
           </div>
         </div>
         <div className="text-right">
@@ -247,7 +262,7 @@ function ProjectDetail() {
         </div>
         <div className="space-y-2">
           {(isDemo
-            ? Object.entries(masterChecklist).map(([k, p]) => ({
+            ? Object.entries(checklistTemplate).map(([k, p]) => ({
                 phaseKey: k,
                 title: p.title,
                 icon: p.icon,
