@@ -118,7 +118,7 @@ function DashboardContent() {
 
     if (isDemo) {
       setShowNewProject(false);
-      router.push(`/bidshield/dashboard/checklist?demo=true&project=demo_1`);
+      router.push(`/bidshield/dashboard/project?id=demo_1&demo=true#checklist`);
       return;
     }
 
@@ -140,7 +140,7 @@ function DashboardContent() {
 
     setNewProject({ name: "", location: "", bidDate: "", trade: "roofing", systemType: "", deckType: "", gc: "", sqft: "", assemblies: "", estimatedValue: "" });
     setShowNewProject(false);
-    router.push(`/bidshield/dashboard/checklist?project=${projectId}`);
+    router.push(`/bidshield/dashboard/project?id=${projectId}#checklist`);
   };
 
   const handleStatusChange = async (projectId: Id<"bidshield_projects">, status: "won" | "lost") => {
