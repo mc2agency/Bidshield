@@ -395,7 +395,25 @@ function TakeoffReconciliation({
   // Determine overall status for warnings
   const areaHasIssue = controlNumber !== null && deltaPct !== null && deltaPct > 2;
   const areaIsRed = controlNumber !== null && deltaPct !== null && deltaPct > 5;
-  const allGood = controlNumber !== null && deltaPct !== null && deltaPct <= 2 && linearUnverified === 0 && countUnverified === 0;
+  const areaGood = controlNumber !== null && deltaPct !== null && deltaPct <= 2;
+  const allGood = areaGood && linearUnverified === 0 && countUnverified === 0;
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"areas" | "linear" | "counts">("areas");
+
+  // Tab status indicators
+  const areaComplete = displaySections.length > 0 && displaySections.every((s) => s.completed) && areaGood;
+  const areaPartial = displaySections.length > 0 && displaySections.some((s) => s.completed);
+  const linearComplete = linearTotal > 0 && linearVerified === linearTotal;
+  const linearPartial = linearVerified > 0;
+  const countComplete = countTotal > 0 && countVerified === countTotal;
+  const countPartial = countVerified > 0;
+
+  const getStatusDot = (complete: boolean, partial: boolean) => {
+    if (complete) return <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5" />;
+    if (partial) return <span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1.5" />;
+    return <span className="inline-block w-2 h-2 rounded-full bg-slate-500 mr-1.5" />;
+  };
 
   return (
     <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
@@ -411,7 +429,7 @@ function TakeoffReconciliation({
         )}
       </div>
 
-      {/* Stat cards */}
+      {/* Stat cards — always visible */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
           {editingControl ? (
@@ -463,7 +481,7 @@ function TakeoffReconciliation({
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar — always visible */}
       {progressPct !== null && (
         <div className="mb-4">
           <div className="flex justify-between items-center mb-1">
@@ -476,160 +494,219 @@ function TakeoffReconciliation({
         </div>
       )}
 
-      {/* Area section table */}
-      {displaySections.length > 0 && (
-        <div className="overflow-x-auto mb-3">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[11px] text-slate-500 border-b border-slate-700">
-                <th className="text-left py-2 font-medium">Section Name</th>
-                <th className="text-left py-2 font-medium hidden sm:table-cell">Assembly</th>
-                <th className="text-right py-2 font-medium">SF</th>
-                <th className="text-center py-2 font-medium w-10">Status</th>
-                <th className="text-right py-2 font-medium w-16"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {displaySections.map((section) => (
-                editingId === section._id ? (
-                  <tr key={section._id} className="border-b border-slate-700/50">
-                    <td className="py-2 pr-2">
-                      <input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                        className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-amber-500" />
-                    </td>
-                    <td className="py-2 pr-2 hidden sm:table-cell">
-                      <select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })}
-                        className="bg-slate-900 border border-slate-600 rounded px-1 py-1 text-white text-xs w-full focus:outline-none focus:border-amber-500">
-                        {ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </td>
-                    <td className="py-2 pr-2">
-                      <input type="number" value={editData.squareFeet} onChange={(e) => setEditData({ ...editData, squareFeet: e.target.value })}
-                        className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs w-20 text-right focus:outline-none focus:border-amber-500" />
-                    </td>
-                    <td colSpan={2} className="py-2 text-right">
-                      <button onClick={handleSaveEdit} className="text-[11px] text-emerald-400 hover:text-emerald-300 mr-2">Save</button>
-                      <button onClick={() => setEditingId(null)} className="text-[11px] text-slate-500 hover:text-slate-300">Cancel</button>
-                    </td>
-                  </tr>
-                ) : (
-                  <tr key={section._id} className="border-b border-slate-700/50 group">
-                    <td className="py-2 text-slate-200">{section.name}</td>
-                    <td className="py-2 text-slate-400 text-xs hidden sm:table-cell">{section.assemblyType}</td>
-                    <td className="py-2 text-right text-slate-200 tabular-nums">{fmt(section.squareFeet)}</td>
-                    <td className="py-2 text-center">
-                      <button onClick={() => handleToggleComplete(section)} className="text-base">{section.completed ? "✅" : "⬜"}</button>
-                    </td>
-                    <td className="py-2 text-right">
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleStartEdit(section)} className="text-[11px] text-slate-400 hover:text-slate-200 mr-2">Edit</button>
-                        <button onClick={() => handleDeleteSection(section._id)} className="text-[11px] text-red-400 hover:text-red-300">Del</button>
-                      </span>
-                    </td>
-                  </tr>
-                )
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {displaySections.length === 0 && !showAddForm && (
-        <div className="text-center py-6 text-slate-500 text-sm mb-3">
-          No sections yet. Add your first takeoff section to start reconciling.
-        </div>
-      )}
-
-      {showAddForm ? (
-        <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 mb-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="text-[11px] text-slate-400 mb-1 block">Section Name *</label>
-              <input value={newSection.name} onChange={(e) => setNewSection({ ...newSection, name: e.target.value })} placeholder="e.g., Main Roof Area A"
-                className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[11px] text-slate-400 mb-1 block">Assembly Type *</label>
-              <select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })}
-                className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500">
-                {ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] text-slate-400 mb-1 block">Square Feet *</label>
-              <input type="number" value={newSection.squareFeet} onChange={(e) => setNewSection({ ...newSection, squareFeet: e.target.value })} placeholder="e.g., 22000"
-                className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label className="text-[11px] text-slate-400 mb-1 block">Notes</label>
-              <input value={newSection.notes} onChange={(e) => setNewSection({ ...newSection, notes: e.target.value })} placeholder="Optional notes"
-                className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
-            </div>
+      {/* Tabs */}
+      <div className="grid grid-cols-3 mb-0">
+        <button
+          onClick={() => setActiveTab("areas")}
+          className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${
+            activeTab === "areas"
+              ? "bg-slate-700 text-white border-amber-500"
+              : "bg-slate-800 text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-750"
+          } rounded-tl-lg`}
+        >
+          <div className="flex items-center justify-center">
+            {getStatusDot(areaComplete, areaPartial)}
+            <span className="hidden sm:inline">Areas (SF)</span>
+            <span className="sm:hidden">Areas</span>
           </div>
-          <div className="flex gap-2">
-            <button onClick={handleAddSection} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">Add Section</button>
-            <button onClick={() => setShowAddForm(false)} className="text-sm text-slate-400 hover:text-slate-200 px-4 py-2 transition-colors">Cancel</button>
+          <div className="text-[10px] text-slate-500 mt-0.5">{displaySections.length} section{displaySections.length !== 1 ? "s" : ""}</div>
+        </button>
+        <button
+          onClick={() => setActiveTab("linear")}
+          className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${
+            activeTab === "linear"
+              ? "bg-slate-700 text-white border-amber-500"
+              : "bg-slate-800 text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-750"
+          }`}
+        >
+          <div className="flex items-center justify-center">
+            {getStatusDot(linearComplete, linearPartial)}
+            <span className="hidden sm:inline">Linear (LF)</span>
+            <span className="sm:hidden">Linear</span>
           </div>
-        </div>
-      ) : (
-        <button onClick={() => setShowAddForm(true)} className="text-sm text-amber-400 hover:text-amber-300 font-medium transition-colors">+ Add Section</button>
-      )}
+          <div className="text-[10px] text-slate-500 mt-0.5">{linearVerified} of {linearTotal} verified</div>
+        </button>
+        <button
+          onClick={() => setActiveTab("counts")}
+          className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${
+            activeTab === "counts"
+              ? "bg-slate-700 text-white border-amber-500"
+              : "bg-slate-800 text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-750"
+          } rounded-tr-lg`}
+        >
+          <div className="flex items-center justify-center">
+            {getStatusDot(countComplete, countPartial)}
+            <span className="hidden sm:inline">Counts (EA)</span>
+            <span className="sm:hidden">Counts</span>
+          </div>
+          <div className="text-[10px] text-slate-500 mt-0.5">{countVerified} of {countTotal} verified</div>
+        </button>
+      </div>
 
-      {/* Divider */}
-      <div className="border-t border-slate-700 mt-4" />
+      {/* Tab content */}
+      <div className="bg-slate-700/30 rounded-b-lg p-4 border border-slate-700 border-t-0">
+        {/* Areas tab */}
+        {activeTab === "areas" && (
+          <div>
+            {displaySections.length > 0 && (
+              <div className="overflow-x-auto mb-3">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[11px] text-slate-500 border-b border-slate-700">
+                      <th className="text-left py-2 font-medium">Section Name</th>
+                      <th className="text-left py-2 font-medium hidden sm:table-cell">Assembly</th>
+                      <th className="text-right py-2 font-medium">SF</th>
+                      <th className="text-center py-2 font-medium w-10">Status</th>
+                      <th className="text-right py-2 font-medium w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displaySections.map((section) => (
+                      editingId === section._id ? (
+                        <tr key={section._id} className="border-b border-slate-700/50">
+                          <td className="py-2 pr-2">
+                            <input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                              className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-amber-500" />
+                          </td>
+                          <td className="py-2 pr-2 hidden sm:table-cell">
+                            <select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })}
+                              className="bg-slate-900 border border-slate-600 rounded px-1 py-1 text-white text-xs w-full focus:outline-none focus:border-amber-500">
+                              {ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </td>
+                          <td className="py-2 pr-2">
+                            <input type="number" value={editData.squareFeet} onChange={(e) => setEditData({ ...editData, squareFeet: e.target.value })}
+                              className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs w-20 text-right focus:outline-none focus:border-amber-500" />
+                          </td>
+                          <td colSpan={2} className="py-2 text-right">
+                            <button onClick={handleSaveEdit} className="text-[11px] text-emerald-400 hover:text-emerald-300 mr-2">Save</button>
+                            <button onClick={() => setEditingId(null)} className="text-[11px] text-slate-500 hover:text-slate-300">Cancel</button>
+                          </td>
+                        </tr>
+                      ) : (
+                        <tr key={section._id} className="border-b border-slate-700/50 group">
+                          <td className="py-2 text-slate-200">{section.name}</td>
+                          <td className="py-2 text-slate-400 text-xs hidden sm:table-cell">{section.assemblyType}</td>
+                          <td className="py-2 text-right text-slate-200 tabular-nums">{fmt(section.squareFeet)}</td>
+                          <td className="py-2 text-center">
+                            <button onClick={() => handleToggleComplete(section)} className="text-base">{section.completed ? "✅" : "⬜"}</button>
+                          </td>
+                          <td className="py-2 text-right">
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => handleStartEdit(section)} className="text-[11px] text-slate-400 hover:text-slate-200 mr-2">Edit</button>
+                              <button onClick={() => handleDeleteSection(section._id)} className="text-[11px] text-red-400 hover:text-red-300">Del</button>
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-      {/* Linear Items */}
-      <LineItemTable
-        title="Linear Items"
-        unit="LF"
-        items={linearItems}
-        isDemo={isDemo}
-        onUpdateItem={handleUpdateLineItem}
-        onDeleteItem={handleDeleteLineItem}
-        onAddItem={handleAddLinearItem}
-      />
+            {displaySections.length === 0 && !showAddForm && (
+              <div className="text-center py-6 text-slate-500 text-sm mb-3">
+                No sections yet. Add your first takeoff section to start reconciling.
+              </div>
+            )}
 
-      {/* Count Items */}
-      <LineItemTable
-        title="Count Items"
-        unit="EA"
-        items={countItems}
-        isDemo={isDemo}
-        onUpdateItem={handleUpdateLineItem}
-        onDeleteItem={handleDeleteLineItem}
-        onAddItem={handleAddCountItem}
-      />
-
-      {/* Stacked warnings */}
-      <div className="mt-4 space-y-2">
-        {controlNumber === null && (
-          <div className="p-3 bg-slate-700/50 rounded-lg text-sm text-slate-400">
-            Enter your gross roof area from the site plan to enable area reconciliation.
+            {showAddForm ? (
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="text-[11px] text-slate-400 mb-1 block">Section Name *</label>
+                    <input value={newSection.name} onChange={(e) => setNewSection({ ...newSection, name: e.target.value })} placeholder="e.g., Main Roof Area A"
+                      className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 mb-1 block">Assembly Type *</label>
+                    <select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })}
+                      className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500">
+                      {ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 mb-1 block">Square Feet *</label>
+                    <input type="number" value={newSection.squareFeet} onChange={(e) => setNewSection({ ...newSection, squareFeet: e.target.value })} placeholder="e.g., 22000"
+                      className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 mb-1 block">Notes</label>
+                    <input value={newSection.notes} onChange={(e) => setNewSection({ ...newSection, notes: e.target.value })} placeholder="Optional notes"
+                      className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={handleAddSection} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">Add Section</button>
+                  <button onClick={() => setShowAddForm(false)} className="text-sm text-slate-400 hover:text-slate-200 px-4 py-2 transition-colors">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setShowAddForm(true)} className="text-sm text-amber-400 hover:text-amber-300 font-medium transition-colors">+ Add Section</button>
+            )}
           </div>
         )}
-        {areaIsRed && (
-          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
-            Area: {fmt(Math.abs(delta!))} SF unaccounted for ({deltaPct!.toFixed(1)}%). Check plans for missed roof sections.
-          </div>
+
+        {/* Linear tab */}
+        {activeTab === "linear" && (
+          <LineItemTable
+            title="Linear Items"
+            unit="LF"
+            items={linearItems}
+            isDemo={isDemo}
+            onUpdateItem={handleUpdateLineItem}
+            onDeleteItem={handleDeleteLineItem}
+            onAddItem={handleAddLinearItem}
+          />
         )}
-        {areaHasIssue && !areaIsRed && (
-          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm text-amber-400">
-            Area: Minor discrepancy of {fmt(Math.abs(delta!))} SF ({deltaPct!.toFixed(1)}%). Verify all sections are accounted for.
-          </div>
+
+        {/* Counts tab */}
+        {activeTab === "counts" && (
+          <LineItemTable
+            title="Count Items"
+            unit="EA"
+            items={countItems}
+            isDemo={isDemo}
+            onUpdateItem={handleUpdateLineItem}
+            onDeleteItem={handleDeleteLineItem}
+            onAddItem={handleAddCountItem}
+          />
         )}
-        {linearUnverified > 0 && (
-          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm text-amber-400">
-            Linear: {linearUnverified} of {linearTotal} items not verified
-          </div>
-        )}
-        {countUnverified > 0 && (
-          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm text-amber-400">
-            Counts: {countUnverified} of {countTotal} items not verified
-          </div>
-        )}
-        {allGood && (
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-sm text-emerald-400">
-            Takeoff fully reconciled and verified.
+      </div>
+
+      {/* Compact warning summary — always visible below tabs */}
+      <div className="mt-3 p-3 bg-slate-900 rounded-lg border border-slate-700">
+        {allGood ? (
+          <div className="text-sm text-emerald-400 text-center">Takeoff fully reconciled and verified.</div>
+        ) : controlNumber === null ? (
+          <div className="text-sm text-slate-400 text-center">Enter your gross roof area from the site plan to enable area reconciliation.</div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs">
+            {/* Area status */}
+            {areaGood && (
+              <span className="text-emerald-400">Area: Reconciled</span>
+            )}
+            {areaHasIssue && !areaIsRed && (
+              <span className="text-amber-400">Area: {fmt(Math.abs(delta!))} SF off ({deltaPct!.toFixed(1)}%)</span>
+            )}
+            {areaIsRed && (
+              <span className="text-red-400">Area: {fmt(Math.abs(delta!))} SF off ({deltaPct!.toFixed(1)}%)</span>
+            )}
+            <span className="text-slate-600 hidden sm:inline">&bull;</span>
+            {/* Linear status */}
+            {linearUnverified === 0 ? (
+              <span className="text-emerald-400">Linear: All verified</span>
+            ) : (
+              <span className="text-amber-400">Linear: {linearUnverified}/{linearTotal} unverified</span>
+            )}
+            <span className="text-slate-600 hidden sm:inline">&bull;</span>
+            {/* Count status */}
+            {countUnverified === 0 ? (
+              <span className="text-emerald-400">Counts: All verified</span>
+            ) : (
+              <span className="text-amber-400">Counts: {countUnverified}/{countTotal} unverified</span>
+            )}
           </div>
         )}
       </div>
