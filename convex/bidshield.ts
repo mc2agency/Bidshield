@@ -97,6 +97,7 @@ export const updateProject = mutation({
     sqft: v.optional(v.number()),
     estimatedValue: v.optional(v.number()),
     assemblies: v.optional(v.array(v.string())),
+    grossRoofArea: v.optional(v.number()),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -143,6 +144,16 @@ export const deleteProject = mutation({
 
     for (const rfi of rfis) {
       await ctx.db.delete(rfi._id);
+    }
+
+    // Delete all takeoff sections
+    const sections = await ctx.db
+      .query("bidshield_takeoff_sections")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    for (const section of sections) {
+      await ctx.db.delete(section._id);
     }
 
     // Delete the project
@@ -578,6 +589,80 @@ export const deleteAddendum = mutation({
   args: { addendumId: v.id("bidshield_addenda") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.addendumId);
+  },
+});
+
+// ===== TAKEOFF SECTIONS =====
+
+export const getTakeoffSections = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const sections = await ctx.db
+      .query("bidshield_takeoff_sections")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    return sections.sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+});
+
+export const createTakeoffSection = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    name: v.string(),
+    assemblyType: v.string(),
+    squareFeet: v.number(),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("bidshield_takeoff_sections")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    const maxSort = existing.length > 0
+      ? Math.max(...existing.map((s) => s.sortOrder))
+      : -1;
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_takeoff_sections", {
+      projectId: args.projectId,
+      userId: args.userId,
+      name: args.name,
+      assemblyType: args.assemblyType,
+      squareFeet: args.squareFeet,
+      completed: false,
+      notes: args.notes,
+      sortOrder: maxSort + 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const updateTakeoffSection = mutation({
+  args: {
+    sectionId: v.id("bidshield_takeoff_sections"),
+    name: v.optional(v.string()),
+    assemblyType: v.optional(v.string()),
+    squareFeet: v.optional(v.number()),
+    completed: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { sectionId, ...updates } = args;
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    await ctx.db.patch(sectionId, {
+      ...filteredUpdates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const deleteTakeoffSection = mutation({
+  args: { sectionId: v.id("bidshield_takeoff_sections") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.sectionId);
   },
 });
 

@@ -76,12 +76,29 @@ export default defineSchema({
     sqft: v.optional(v.number()),
     estimatedValue: v.optional(v.number()),
     assemblies: v.array(v.string()), // ["RT-1 IRMA", "RT-2 Green Roof"]
+    grossRoofArea: v.optional(v.number()), // Control number from site plan (SF)
     notes: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
     .index("by_status", ["userId", "status"]),
+
+  // Takeoff sections for reconciliation
+  bidshield_takeoff_sections: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    name: v.string(),
+    assemblyType: v.string(),
+    squareFeet: v.number(),
+    completed: v.boolean(),
+    notes: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
 
   // Checklist items for each project
   bidshield_checklist_items: defineTable({
