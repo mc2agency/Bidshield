@@ -148,7 +148,7 @@ function DashboardContent() {
       setDemoOverrides(prev => ({ ...prev, [projectId]: status }));
       return;
     }
-    await updateProjectMut({ projectId, status });
+    await updateProjectMut({ projectId, status, completedDate: new Date().toISOString().split("T")[0] });
   };
 
   const getProjectStatus = (project: typeof projects[0]) => {

@@ -99,6 +99,17 @@ export const updateProject = mutation({
     assemblies: v.optional(v.array(v.string())),
     grossRoofArea: v.optional(v.number()),
     notes: v.optional(v.string()),
+    totalBidAmount: v.optional(v.number()),
+    materialCost: v.optional(v.number()),
+    laborCost: v.optional(v.number()),
+    otherCost: v.optional(v.number()),
+    primaryAssembly: v.optional(v.string()),
+    lossReason: v.optional(v.string()),
+    lossReasonNote: v.optional(v.string()),
+    completedDate: v.optional(v.string()),
+    actualCost: v.optional(v.number()),
+    actualMaterialCost: v.optional(v.number()),
+    actualLaborCost: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { projectId, ...updates } = args;
@@ -448,6 +459,17 @@ export const getStats = query({
       openRFIs += rfis.filter((r) => r.status === "sent").length;
     }
 
+    const projectsWithPricing = projects.filter(
+      (p) => p.totalBidAmount && p.sqft && p.sqft > 0
+    );
+    const avgDollarPerSf =
+      projectsWithPricing.length > 0
+        ? projectsWithPricing.reduce(
+            (sum, p) => sum + p.totalBidAmount! / p.sqft!,
+            0
+          ) / projectsWithPricing.length
+        : 0;
+
     return {
       activeProjects: activeProjects.length,
       expiringQuotes: expiringQuotes.length,
@@ -457,7 +479,59 @@ export const getStats = query({
       lostProjects: lostProjects.length,
       winRate,
       wonValue,
+      avgDollarPerSf,
     };
+  },
+});
+
+// ===== BID COMPARISON DATA =====
+
+export const getComparisonData = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const projects = await ctx.db
+      .query("bidshield_projects")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+
+    // Aggregate $/SF stats by assembly type
+    const assemblyStats: Record<
+      string,
+      { totalDollarPerSf: number; count: number; won: number; lost: number }
+    > = {};
+    for (const p of projects) {
+      const assembly = p.primaryAssembly || "Other";
+      if (!assemblyStats[assembly]) {
+        assemblyStats[assembly] = { totalDollarPerSf: 0, count: 0, won: 0, lost: 0 };
+      }
+      if (p.totalBidAmount && p.sqft && p.sqft > 0) {
+        assemblyStats[assembly].totalDollarPerSf += p.totalBidAmount / p.sqft;
+        assemblyStats[assembly].count += 1;
+      }
+      if (p.status === "won") assemblyStats[assembly].won += 1;
+      if (p.status === "lost") assemblyStats[assembly].lost += 1;
+    }
+
+    // Win rate by GC
+    const gcStats: Record<string, { won: number; lost: number; total: number }> = {};
+    for (const p of projects) {
+      if (p.gc && (p.status === "won" || p.status === "lost")) {
+        if (!gcStats[p.gc]) gcStats[p.gc] = { won: 0, lost: 0, total: 0 };
+        gcStats[p.gc].total += 1;
+        if (p.status === "won") gcStats[p.gc].won += 1;
+        if (p.status === "lost") gcStats[p.gc].lost += 1;
+      }
+    }
+
+    // Loss reason tallies
+    const lossReasons: Record<string, number> = {};
+    for (const p of projects) {
+      if (p.status === "lost" && p.lossReason) {
+        lossReasons[p.lossReason] = (lossReasons[p.lossReason] || 0) + 1;
+      }
+    }
+
+    return { projects, assemblyStats, gcStats, lossReasons };
   },
 });
 

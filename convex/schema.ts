@@ -78,6 +78,20 @@ export default defineSchema({
     assemblies: v.array(v.string()), // ["RT-1 IRMA", "RT-2 Green Roof"]
     grossRoofArea: v.optional(v.number()), // Control number from site plan (SF)
     notes: v.optional(v.string()),
+    // Bid pricing
+    totalBidAmount: v.optional(v.number()),
+    materialCost: v.optional(v.number()),
+    laborCost: v.optional(v.number()),
+    otherCost: v.optional(v.number()),
+    primaryAssembly: v.optional(v.string()),
+    // Outcome details
+    lossReason: v.optional(v.string()),
+    lossReasonNote: v.optional(v.string()),
+    completedDate: v.optional(v.string()),
+    // Post-award tracking (won projects)
+    actualCost: v.optional(v.number()),
+    actualMaterialCost: v.optional(v.number()),
+    actualLaborCost: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
