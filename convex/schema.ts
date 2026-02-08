@@ -181,6 +181,23 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_email", ["email"]),
 
+  // Addenda tracking per project
+  bidshield_addenda: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    number: v.number(), // Addendum #1, #2, etc.
+    title: v.string(),
+    receivedDate: v.string(),
+    affectsScope: v.boolean(),
+    acknowledged: v.boolean(),
+    incorporated: v.boolean(),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
   // Custom labor rates (user-specific)
   bidshield_labor_rates: defineTable({
     userId: v.string(),

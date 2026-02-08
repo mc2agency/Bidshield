@@ -440,6 +440,147 @@ export const getStats = query({
   },
 });
 
+// ===== LABOR RATES =====
+
+export const getLaborRates = query({
+  args: { userId: v.string(), category: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    if (args.category) {
+      return await ctx.db
+        .query("bidshield_labor_rates")
+        .withIndex("by_category", (q) => q.eq("userId", args.userId).eq("category", args.category!))
+        .collect();
+    }
+    return await ctx.db
+      .query("bidshield_labor_rates")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+  },
+});
+
+export const createLaborRate = mutation({
+  args: {
+    userId: v.string(),
+    category: v.string(),
+    task: v.string(),
+    rate: v.string(),
+    unit: v.string(),
+    crew: v.number(),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_labor_rates", {
+      userId: args.userId,
+      category: args.category,
+      task: args.task,
+      rate: args.rate,
+      unit: args.unit,
+      crew: args.crew,
+      notes: args.notes,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const updateLaborRate = mutation({
+  args: {
+    rateId: v.id("bidshield_labor_rates"),
+    task: v.optional(v.string()),
+    rate: v.optional(v.string()),
+    unit: v.optional(v.string()),
+    crew: v.optional(v.number()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { rateId, ...updates } = args;
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    await ctx.db.patch(rateId, {
+      ...filteredUpdates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const deleteLaborRate = mutation({
+  args: { rateId: v.id("bidshield_labor_rates") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.rateId);
+  },
+});
+
+// ===== ADDENDA =====
+
+export const getAddenda = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("bidshield_addenda")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const createAddendum = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    number: v.number(),
+    title: v.string(),
+    receivedDate: v.string(),
+    affectsScope: v.boolean(),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_addenda", {
+      projectId: args.projectId,
+      userId: args.userId,
+      number: args.number,
+      title: args.title,
+      receivedDate: args.receivedDate,
+      affectsScope: args.affectsScope,
+      acknowledged: false,
+      incorporated: false,
+      notes: args.notes,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const updateAddendum = mutation({
+  args: {
+    addendumId: v.id("bidshield_addenda"),
+    title: v.optional(v.string()),
+    affectsScope: v.optional(v.boolean()),
+    acknowledged: v.optional(v.boolean()),
+    incorporated: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { addendumId, ...updates } = args;
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    await ctx.db.patch(addendumId, {
+      ...filteredUpdates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const deleteAddendum = mutation({
+  args: { addendumId: v.id("bidshield_addenda") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.addendumId);
+  },
+});
+
 // ===== CHECKLIST PROGRESS (helper) =====
 
 export const getChecklistProgress = query({
