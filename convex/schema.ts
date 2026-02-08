@@ -100,6 +100,24 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Takeoff line items (linear LF + count EA) for reconciliation
+  bidshield_takeoff_line_items: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    category: v.union(v.literal("linear"), v.literal("count")),
+    itemType: v.string(), // e.g., "parapet_wall", "pipe_penetration"
+    label: v.string(),
+    quantity: v.optional(v.number()), // null = not yet measured
+    unit: v.string(), // "LF" or "EA"
+    verified: v.boolean(),
+    notes: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_project_category", ["projectId", "category"]),
+
   // Checklist items for each project
   bidshield_checklist_items: defineTable({
     projectId: v.id("bidshield_projects"),
