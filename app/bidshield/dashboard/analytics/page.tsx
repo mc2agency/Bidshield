@@ -17,16 +17,16 @@ import {
   ReferenceLine,
 } from "recharts";
 
-// Demo data: 10 historical projects for demo mode
+// Demo data: 10 historical projects for demo mode (4 won projects include actuals)
 const DEMO_PROJECTS = [
   { _id: "d1", name: "Harbor Point Tower", gc: "Turner Construction", primaryAssembly: "TPO 60mil Mechanically Attached", sqft: 45000, totalBidAmount: 850000, materialCost: 425000, laborCost: 340000, otherCost: 85000, status: "in_progress", bidDate: "2026-02-15", lossReason: undefined },
-  { _id: "d2", name: "Riverside Medical Center", gc: "Skanska USA", primaryAssembly: "TPO 60mil Mechanically Attached", sqft: 32000, totalBidAmount: 540000, materialCost: 270000, laborCost: 216000, otherCost: 54000, status: "won", bidDate: "2026-01-10", lossReason: undefined },
-  { _id: "d3", name: "Warehouse District Remodel", gc: "Turner Construction", primaryAssembly: "Modified Bitumen 2-Ply (SBS)", sqft: 18000, totalBidAmount: 310000, materialCost: 155000, laborCost: 124000, otherCost: 31000, status: "won", bidDate: "2025-12-05", lossReason: undefined },
-  { _id: "d4", name: "City Hall Restoration", gc: "Gilbane Building", primaryAssembly: "Modified Bitumen 2-Ply (SBS)", sqft: 28000, totalBidAmount: 620000, materialCost: 310000, laborCost: 248000, otherCost: 62000, status: "won", bidDate: "2025-11-22", lossReason: undefined },
+  { _id: "d2", name: "Riverside Medical Center", gc: "Skanska USA", primaryAssembly: "TPO 60mil Mechanically Attached", sqft: 32000, totalBidAmount: 540000, materialCost: 270000, laborCost: 216000, otherCost: 54000, status: "won", bidDate: "2026-01-10", lossReason: undefined, actualCost: 527580, actualMaterialCost: 263700, actualLaborCost: 214200, actualOtherCost: 49680, postJobStatus: "actuals_entered", completedDate: "2026-01-28" },
+  { _id: "d3", name: "Warehouse District Remodel", gc: "Turner Construction", primaryAssembly: "Modified Bitumen 2-Ply (SBS)", sqft: 18000, totalBidAmount: 310000, materialCost: 155000, laborCost: 124000, otherCost: 31000, status: "won", bidDate: "2025-12-05", lossReason: undefined, actualCost: 321160, actualMaterialCost: 162400, actualLaborCost: 126500, actualOtherCost: 32260, postJobStatus: "actuals_entered", completedDate: "2025-12-30" },
+  { _id: "d4", name: "City Hall Restoration", gc: "Gilbane Building", primaryAssembly: "Modified Bitumen 2-Ply (SBS)", sqft: 28000, totalBidAmount: 620000, materialCost: 310000, laborCost: 248000, otherCost: 62000, status: "won", bidDate: "2025-11-22", lossReason: undefined, actualCost: 645420, actualMaterialCost: 318200, actualLaborCost: 261400, actualOtherCost: 65820, postJobStatus: "actuals_entered", completedDate: "2025-12-18" },
   { _id: "d5", name: "Metro Office Complex", gc: "AECOM Tishman", primaryAssembly: "TPO 60mil Mechanically Attached", sqft: 52000, totalBidAmount: 780000, materialCost: 390000, laborCost: 312000, otherCost: 78000, status: "lost", bidDate: "2025-11-01", lossReason: "Price too high" },
   { _id: "d6", name: "Greenfield Elementary", gc: "Skanska USA", primaryAssembly: "TPO 60mil Fully Adhered", sqft: 14000, totalBidAmount: 280000, materialCost: 140000, laborCost: 112000, otherCost: 28000, status: "won", bidDate: "2025-10-15", lossReason: undefined },
   { _id: "d7", name: "Sunset Ridge Condos", gc: "Turner Construction", primaryAssembly: "TPO 60mil Mechanically Attached", sqft: 22000, totalBidAmount: 396000, materialCost: 198000, laborCost: 158400, otherCost: 39600, status: "lost", bidDate: "2025-09-20", lossReason: "GC preference" },
-  { _id: "d8", name: "Industrial Park Bldg C", gc: "AECOM Tishman", primaryAssembly: "EPDM 60mil", sqft: 38000, totalBidAmount: 550000, materialCost: 275000, laborCost: 220000, otherCost: 55000, status: "won", bidDate: "2025-08-10", lossReason: undefined },
+  { _id: "d8", name: "Industrial Park Bldg C", gc: "AECOM Tishman", primaryAssembly: "EPDM 60mil", sqft: 38000, totalBidAmount: 550000, materialCost: 275000, laborCost: 220000, otherCost: 55000, status: "won", bidDate: "2025-08-10", lossReason: undefined, actualCost: 583550, actualMaterialCost: 296000, actualLaborCost: 229000, actualOtherCost: 58550, postJobStatus: "actuals_entered", completedDate: "2025-09-05" },
   { _id: "d9", name: "County Courthouse Annex", gc: "Gilbane Building", primaryAssembly: "Modified Bitumen 2-Ply (SBS)", sqft: 16000, totalBidAmount: 320000, materialCost: 160000, laborCost: 128000, otherCost: 32000, status: "lost", bidDate: "2025-07-15", lossReason: "Scope issue" },
   { _id: "d10", name: "Lakewood Shopping Center", gc: "Turner Construction", primaryAssembly: "TPO 60mil Mechanically Attached", sqft: 60000, totalBidAmount: 960000, materialCost: 480000, laborCost: 384000, otherCost: 96000, status: "won", bidDate: "2025-06-01", lossReason: undefined },
 ];
@@ -137,11 +137,78 @@ function AnalyticsContent() {
     }))
     .sort((a, b) => (b.material + b.labor + b.other) - (a.material + a.labor + a.other));
 
+  // --- Estimating Accuracy ---
+  const projectsWithActuals = filteredProjects.filter(
+    (p) => p.actualCost && p.totalBidAmount && p.totalBidAmount > 0
+  );
+  const accuracyData = projectsWithActuals.map((p) => {
+    const totalVar = ((p.actualCost - p.totalBidAmount) / p.totalBidAmount) * 100;
+    const matVar = p.materialCost && p.actualMaterialCost
+      ? ((p.actualMaterialCost - p.materialCost) / p.materialCost) * 100 : null;
+    const labVar = p.laborCost && p.actualLaborCost
+      ? ((p.actualLaborCost - p.laborCost) / p.laborCost) * 100 : null;
+    return {
+      name: p.name,
+      estimated: p.totalBidAmount,
+      actual: p.actualCost,
+      varianceDollar: p.actualCost - p.totalBidAmount,
+      variancePct: totalVar,
+      matVariancePct: matVar,
+      labVariancePct: labVar,
+    };
+  });
+
+  const avgTotalVariance = accuracyData.length > 0
+    ? accuracyData.reduce((sum, d) => sum + d.variancePct, 0) / accuracyData.length : 0;
+  const avgMatVariance = accuracyData.length > 0
+    ? accuracyData.filter((d) => d.matVariancePct !== null).reduce((sum, d) => sum + (d.matVariancePct ?? 0), 0) / accuracyData.filter((d) => d.matVariancePct !== null).length : 0;
+  const avgLabVariance = accuracyData.length > 0
+    ? accuracyData.filter((d) => d.labVariancePct !== null).reduce((sum, d) => sum + (d.labVariancePct ?? 0), 0) / accuracyData.filter((d) => d.labVariancePct !== null).length : 0;
+
   // Win rate by GC
   const gcData = isDemo ? compileGcStats(DEMO_PROJECTS) : Object.entries(comparisonData?.gcStats ?? {})
     .map(([gc, data]: [string, any]) => ({ gc, won: data.won, lost: data.lost, total: data.total, winRate: data.total > 0 ? Math.round((data.won / data.total) * 100) : 0 }))
     .filter((g) => g.total >= 2)
     .sort((a, b) => b.total - a.total);
+
+  // Enhanced GC Intelligence
+  const gcIntelData = useMemo(() => {
+    const gcMap: Record<string, { won: number; lost: number; total: number; totalSF: number; totalBid: number; wonBid: number; wonSF: number }> = {};
+    for (const p of filteredProjects) {
+      if (!p.gc || !(p.status === "won" || p.status === "lost")) continue;
+      if (!gcMap[p.gc]) gcMap[p.gc] = { won: 0, lost: 0, total: 0, totalSF: 0, totalBid: 0, wonBid: 0, wonSF: 0 };
+      const g = gcMap[p.gc];
+      g.total += 1;
+      if (p.status === "won") { g.won += 1; g.wonBid += (p.totalBidAmount || 0); g.wonSF += (p.sqft || 0); }
+      if (p.status === "lost") g.lost += 1;
+      g.totalSF += (p.sqft || 0);
+      g.totalBid += (p.totalBidAmount || 0);
+    }
+    return Object.entries(gcMap)
+      .map(([gc, d]) => ({
+        gc,
+        bids: d.total,
+        wins: d.won,
+        winRate: d.total > 0 ? Math.round((d.won / d.total) * 100) : 0,
+        avgDpsf: d.totalSF > 0 ? d.totalBid / d.totalSF : 0,
+        wonDpsf: d.wonSF > 0 ? d.wonBid / d.wonSF : 0,
+        revenue: d.wonBid,
+      }))
+      .filter((g) => g.bids >= 2)
+      .sort((a, b) => b.bids - a.bids);
+  }, [filteredProjects]);
+
+  // GC Insights
+  const gcInsights = useMemo(() => {
+    const insights: string[] = [];
+    const bestGc = gcIntelData.reduce((best, g) => g.winRate > (best?.winRate ?? 0) ? g : best, gcIntelData[0]);
+    const worstGc = gcIntelData.reduce((worst, g) => g.winRate < (worst?.winRate ?? 100) ? g : worst, gcIntelData[0]);
+    const topRevenue = gcIntelData.reduce((top, g) => g.revenue > (top?.revenue ?? 0) ? g : top, gcIntelData[0]);
+    if (bestGc && bestGc.winRate > 0) insights.push(`Highest win rate: ${bestGc.gc} at ${bestGc.winRate}% (${bestGc.wins}/${bestGc.bids})`);
+    if (worstGc && worstGc.winRate < 100 && worstGc.gc !== bestGc?.gc) insights.push(`Lowest win rate: ${worstGc.gc} at ${worstGc.winRate}% — review pricing strategy`);
+    if (topRevenue && topRevenue.revenue > 0) insights.push(`Top revenue source: ${topRevenue.gc} ($${(topRevenue.revenue / 1000).toFixed(0)}k won)`);
+    return insights;
+  }, [gcIntelData]);
 
   // Loss reasons
   const lossReasonData = isDemo
@@ -288,6 +355,152 @@ function AnalyticsContent() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      )}
+
+      {/* Estimating Accuracy */}
+      {projectsWithActuals.length > 0 && (
+        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+          <h3 className="text-base font-semibold text-white mb-1">Estimating Accuracy</h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Comparing bid estimates to actual costs for completed projects
+          </p>
+
+          {/* Accuracy stat cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <div className="bg-slate-900 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-blue-400">{projectsWithActuals.length}</div>
+              <div className="text-[10px] text-slate-500 mt-1">Projects w/ Actuals</div>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 text-center">
+              <div className={`text-2xl font-bold ${Math.abs(avgTotalVariance) <= 5 ? "text-emerald-400" : Math.abs(avgTotalVariance) <= 10 ? "text-amber-400" : "text-red-400"}`}>
+                {avgTotalVariance > 0 ? "+" : ""}{avgTotalVariance.toFixed(1)}%
+              </div>
+              <div className="text-[10px] text-slate-500 mt-1">Avg Total Variance</div>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 text-center">
+              <div className={`text-2xl font-bold ${Math.abs(avgMatVariance) <= 5 ? "text-emerald-400" : Math.abs(avgMatVariance) <= 10 ? "text-amber-400" : "text-red-400"}`}>
+                {avgMatVariance > 0 ? "+" : ""}{avgMatVariance.toFixed(1)}%
+              </div>
+              <div className="text-[10px] text-slate-500 mt-1">Avg Material Var.</div>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 text-center">
+              <div className={`text-2xl font-bold ${Math.abs(avgLabVariance) <= 5 ? "text-emerald-400" : Math.abs(avgLabVariance) <= 10 ? "text-amber-400" : "text-red-400"}`}>
+                {avgLabVariance > 0 ? "+" : ""}{avgLabVariance.toFixed(1)}%
+              </div>
+              <div className="text-[10px] text-slate-500 mt-1">Avg Labor Var.</div>
+            </div>
+          </div>
+
+          {/* Accuracy by project table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  {["Project", "Estimated", "Actual", "Variance $", "Variance %", "Status"].map((h) => (
+                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-700">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {accuracyData.map((d, i) => {
+                  const absPct = Math.abs(d.variancePct);
+                  const color = absPct <= 5 ? "text-emerald-400" : absPct <= 10 ? "text-amber-400" : "text-red-400";
+                  const statusLabel = absPct <= 5 ? "On Target" : absPct <= 10 ? "Review" : "Over Budget";
+                  const statusBg = absPct <= 5 ? "bg-emerald-500/20 text-emerald-400" : absPct <= 10 ? "bg-amber-500/20 text-amber-400" : "bg-red-500/20 text-red-400";
+                  return (
+                    <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30">
+                      <td className="p-2.5 text-sm text-slate-200 max-w-[160px] truncate">{d.name}</td>
+                      <td className="p-2.5 text-sm text-slate-300 tabular-nums">${(d.estimated / 1000).toFixed(0)}k</td>
+                      <td className="p-2.5 text-sm text-slate-300 tabular-nums">${(d.actual / 1000).toFixed(0)}k</td>
+                      <td className={`p-2.5 text-sm tabular-nums font-semibold ${color}`}>
+                        {d.varianceDollar > 0 ? "+" : ""}{d.varianceDollar > 999 || d.varianceDollar < -999 ? `$${(d.varianceDollar / 1000).toFixed(1)}k` : `$${d.varianceDollar.toLocaleString()}`}
+                      </td>
+                      <td className="p-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-bold tabular-nums ${color}`}>{d.variancePct > 0 ? "+" : ""}{d.variancePct.toFixed(1)}%</span>
+                          {/* Mini variance bar */}
+                          <div className="w-16 h-2 bg-slate-700 rounded-full overflow-hidden relative">
+                            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500" />
+                            {d.variancePct > 0 ? (
+                              <div className="absolute top-0 bottom-0 bg-red-500 rounded-full" style={{ left: "50%", width: `${Math.min(50, absPct * 4)}%` }} />
+                            ) : (
+                              <div className="absolute top-0 bottom-0 bg-emerald-500 rounded-full" style={{ right: "50%", width: `${Math.min(50, absPct * 4)}%` }} />
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-2.5">
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${statusBg}`}>{statusLabel}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Trend message */}
+          <div className="mt-4 p-3 bg-slate-900 rounded-lg text-xs text-slate-400">
+            {avgTotalVariance <= 0
+              ? `Your estimates are averaging ${Math.abs(avgTotalVariance).toFixed(1)}% under actual costs — strong estimating accuracy.`
+              : avgTotalVariance <= 5
+                ? `Your estimates average +${avgTotalVariance.toFixed(1)}% over actual — within acceptable range but monitor trends.`
+                : `Your estimates average +${avgTotalVariance.toFixed(1)}% over actual — consider reviewing ${Math.abs(avgLabVariance) > Math.abs(avgMatVariance) ? "labor" : "material"} estimating methods.`
+            }
+          </div>
+        </div>
+      )}
+
+      {/* GC Intelligence */}
+      {gcIntelData.length > 0 && (
+        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+          <h3 className="text-base font-semibold text-white mb-1">GC Intelligence</h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Performance breakdown by general contractor
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  {["General Contractor", "Bids", "Wins", "Win %", "Avg $/SF", "Won $/SF", "Revenue"].map((h) => (
+                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-700">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {gcIntelData.map((g) => (
+                  <tr key={g.gc} className="border-b border-slate-700/50 hover:bg-slate-700/30">
+                    <td className="p-2.5 text-sm text-slate-200 max-w-[160px] truncate">{g.gc}</td>
+                    <td className="p-2.5 text-sm text-slate-300 tabular-nums">{g.bids}</td>
+                    <td className="p-2.5 text-sm text-emerald-400 tabular-nums font-semibold">{g.wins}</td>
+                    <td className="p-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold tabular-nums ${g.winRate >= 60 ? "text-emerald-400" : g.winRate >= 40 ? "text-amber-400" : "text-red-400"}`}>{g.winRate}%</span>
+                        <div className="w-12 h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${g.winRate >= 60 ? "bg-emerald-500" : g.winRate >= 40 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${g.winRate}%` }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-2.5 text-sm text-slate-300 tabular-nums">{g.avgDpsf > 0 ? `$${g.avgDpsf.toFixed(2)}` : "—"}</td>
+                    <td className="p-2.5 text-sm text-emerald-400 tabular-nums">{g.wonDpsf > 0 ? `$${g.wonDpsf.toFixed(2)}` : "—"}</td>
+                    <td className="p-2.5 text-sm text-slate-300 tabular-nums font-semibold">{g.revenue > 0 ? `$${(g.revenue / 1000).toFixed(0)}k` : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Auto-generated insights */}
+          {gcInsights.length > 0 && (
+            <div className="mt-4 space-y-1.5">
+              {gcInsights.map((insight, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs text-slate-400">
+                  <span className="text-amber-500 mt-px">*</span>
+                  <span>{insight}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

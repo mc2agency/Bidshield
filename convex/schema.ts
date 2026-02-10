@@ -92,6 +92,9 @@ export default defineSchema({
     actualCost: v.optional(v.number()),
     actualMaterialCost: v.optional(v.number()),
     actualLaborCost: v.optional(v.number()),
+    actualOtherCost: v.optional(v.number()),
+    postJobStatus: v.optional(v.string()), // "in_progress", "completed", "actuals_entered"
+    postJobNotes: v.optional(v.string()), // Lessons learned, variance explanations
     createdAt: v.number(),
     updatedAt: v.number(),
   })

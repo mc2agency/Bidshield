@@ -311,6 +311,23 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
               {labCost && <div className="flex justify-between"><span className="text-slate-400">Labor:</span><span className="text-slate-300">${labCost.toLocaleString()} ({bidAmt > 0 ? Math.round((labCost / bidAmt) * 100) : 0}%)</span></div>}
               {othCost && <div className="flex justify-between"><span className="text-slate-400">Other:</span><span className="text-slate-300">${othCost.toLocaleString()} ({bidAmt > 0 ? Math.round((othCost / bidAmt) * 100) : 0}%)</span></div>}
               {dpsf && <div className="flex justify-between pt-2 border-t border-slate-700"><span className="text-slate-400">$/SF:</span><span className="text-emerald-400 font-bold">${dpsf.toFixed(2)}</span></div>}
+              {/* Actual vs Estimated (for won projects with actuals) */}
+              {project?.actualCost && bidAmt > 0 && (() => {
+                const variance = ((project.actualCost - bidAmt) / bidAmt) * 100;
+                const absPct = Math.abs(variance);
+                const varColor = absPct <= 5 ? "text-emerald-400" : absPct <= 10 ? "text-amber-400" : "text-red-400";
+                return (
+                  <div className="pt-2 border-t border-slate-700 space-y-2">
+                    <div className="flex justify-between"><span className="text-slate-400">Actual Cost:</span><span className="text-white font-semibold">${project.actualCost.toLocaleString()}</span></div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Variance:</span>
+                      <span className={`font-bold ${varColor}`}>
+                        {variance > 0 ? "+" : ""}{variance.toFixed(1)}% (${Math.abs(project.actualCost - bidAmt).toLocaleString()})
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div className="text-sm text-slate-500 py-4 text-center">No pricing entered yet</div>
