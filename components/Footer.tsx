@@ -3,12 +3,12 @@ import Link from 'next/link';
 export default function Footer() {
   const footerSections = [
     {
-      title: 'Tools & Templates',
+      title: 'Products',
       links: [
+        { href: '/bidshield/dashboard', label: 'BidShield Dashboard' },
+        { href: '/products', label: 'Templates' },
         { href: '/products/template-bundle', label: 'Template Bundle' },
-        { href: '/products/estimating-checklist', label: 'Estimating Checklist' },
-        { href: '/products/proposal-templates', label: 'Proposal Templates' },
-        { href: '/membership', label: 'MC2 Pro Access' },
+        { href: '/blog', label: 'Blog' },
       ],
     },
     {
@@ -17,7 +17,7 @@ export default function Footer() {
         { href: '/products', label: 'All Products' },
         { href: '/updates', label: 'Product Updates' },
         { href: '/support', label: 'Support' },
-        { href: '/blog', label: 'Blog' },
+        { href: '/bidshield/dashboard?demo=true', label: 'Try Demo' },
       ],
     },
     {
@@ -44,13 +44,14 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                MC2
+              <span className="text-2xl">🛡️</span>
+              <div className="flex flex-col leading-none">
+                <span className="text-xl font-bold text-white">BidShield</span>
+                <span className="text-[10px] text-slate-400">by MC2 Estimating</span>
               </div>
-              <span className="text-xl font-bold text-white">Estimating</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Professional roofing estimating tools contractors use to build accurate bids faster.
+              Protecting contractors from costly bidding errors.
             </p>
             <div className="flex gap-4 pt-2">
               <a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors" aria-label="Twitter">

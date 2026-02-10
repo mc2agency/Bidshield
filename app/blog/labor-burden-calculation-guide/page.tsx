@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Labor Burden Calculation for Contractors [Complete Guide 2025] | MC2 Estimating',
+  title: 'Labor Burden Calculation for Contractors [Complete Guide 2025]',
   description: 'Learn how to accurately calculate labor burden including FICA, Medicare, workers comp, and all hidden costs. Avoid losing money on every job.',
 };
 

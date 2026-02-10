@@ -63,7 +63,7 @@ function DashboardContent() {
             Welcome back, {user.firstName || user.emailAddresses[0].emailAddress}!
           </h1>
           <p className="text-slate-300 text-lg">
-            Your MC2 Estimating dashboard
+            Your BidShield dashboard
           </p>
         </div>
       </div>

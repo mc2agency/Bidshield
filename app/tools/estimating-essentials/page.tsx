@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Estimating Essentials - Complete Construction Estimating Tool | MC2 Estimating',
+  title: 'Estimating Essentials - Complete Construction Estimating Tool',
   description: 'Master construction estimating from specifications to final bid. 8 comprehensive parts covering blueprints, takeoff, pricing, labor costs, and real project walkthroughs. Badge included.',
   keywords: 'construction estimating tool, roofing estimation tools, reading blueprints, Bluebeam takeoff, labor burden calculation, estimating essentials'
 };

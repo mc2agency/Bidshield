@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Best Roofing Estimating Software 2025: Compare Top Platforms | MC2 Estimating',
+  title: 'Best Roofing Estimating Software 2025: Compare Top Platforms',
   description: 'Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.',
 };
 

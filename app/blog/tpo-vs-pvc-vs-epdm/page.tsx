@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'TPO vs PVC vs EPDM: Complete Single-Ply Roofing Comparison [2025] | MC2 Estimating',
+  title: 'TPO vs PVC vs EPDM: Complete Single-Ply Roofing Comparison [2025]',
   description: 'Compare TPO, PVC, and EPDM single-ply roofing systems. Cost, performance, installation, and which membrane is best for your commercial roofing project.',
 };
 

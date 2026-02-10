@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Bluebeam Mastery for Estimators - Complete Digital Takeoff Tool | MC2 Estimating',
+  title: 'Bluebeam Mastery for Estimators - Complete Digital Takeoff Tool',
   description: 'Master Bluebeam Revu for construction takeoff. 8 parts covering calibration, measurement tools, advanced techniques, and Excel reporting. Go from beginner to expert.',
   keywords: 'Bluebeam Revu tools, digital takeoff tool, construction measurement, PDF takeoff, Bluebeam for estimators, quantity takeoff'
 };

@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 
 export const metadata: Metadata = {
-  title: 'Construction Submittals Tool - Shop Drawings & RFIs | MC2 Estimating',
+  title: 'Construction Submittals Tool - Shop Drawings & RFIs',
   description: 'Master the complete submittal process for commercial construction. Master shop drawings, product submittals, RFIs, change orders, and closeout documentation.',
   keywords: 'construction submittals, shop drawings, RFI process, product submittals, commercial construction, submittal logs, contractor submittals'
 };

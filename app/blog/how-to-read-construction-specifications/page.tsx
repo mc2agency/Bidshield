@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'How to Read Construction Specifications [Complete Guide 2025] | MC2 Estimating',
+  title: 'How to Read Construction Specifications [Complete Guide 2025]',
   description: 'Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.',
 };
 

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Product Updates | MC2 Estimating',
+  title: 'Product Updates',
   description: 'Latest updates to MC2 Estimating tools and templates. New features, improvements, and additions to the tool vault.',
   keywords: 'MC2 updates, estimating tools updates, template updates, changelog',
 };

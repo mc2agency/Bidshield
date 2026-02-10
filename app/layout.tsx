@@ -47,11 +47,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "MC2 Estimating - Professional Roofing Estimating Tools & Templates",
-    template: "%s | MC2 Estimating",
+    default: "BidShield — Bidding Command Center for Commercial Roofing",
+    template: "%s | BidShield by MC2 Estimating",
   },
-  description: "Professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, checklists, and workflow tools for roofing professionals.",
-  keywords: ["roofing estimation", "construction estimating", "roofing templates", "estimating tools", "roofing calculators", "contractor tools", "bid templates"],
+  description: "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker. Built by estimators, for estimators.",
+  keywords: ["roofing estimation", "construction estimating", "roofing templates", "estimating tools", "roofing calculators", "contractor tools", "bid templates", "bidshield", "bid management"],
   authors: [{ name: "MC2 Estimating" }],
   creator: "MC2 Estimating",
   publisher: "MC2 Estimating",
@@ -60,22 +60,22 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://mc2estimating.com",
-    siteName: "MC2 Estimating",
-    title: "MC2 Estimating - Professional Roofing Estimating Tools & Templates",
-    description: "Professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, and workflow tools.",
+    siteName: "BidShield by MC2 Estimating",
+    title: "BidShield — Bidding Command Center for Commercial Roofing",
+    description: "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "MC2 Estimating",
+        alt: "BidShield by MC2 Estimating",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MC2 Estimating",
-    description: "Professional roofing estimating tools, templates, and calculators.",
+    title: "BidShield by MC2 Estimating",
+    description: "The bidding command center for commercial roofing estimators. Catch mistakes before they cost money.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -108,10 +108,10 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "MC2 Estimating",
+              "name": "BidShield by MC2 Estimating",
               "url": "https://mc2estimating.com",
               "logo": "https://mc2estimating.com/og-image.png",
-              "description": "Professional roofing estimating tools, templates, and calculators for construction contractors.",
+              "description": "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker.",
               "sameAs": [],
               "contactPoint": {
                 "@type": "ContactPoint",

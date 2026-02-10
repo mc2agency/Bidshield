@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Spray Foam Roofing 101: Complete Guide to SPF Systems [2025] | MC2 Estimating',
+  title: 'Spray Foam Roofing 101: Complete Guide to SPF Systems [2025]',
   description: 'Learn everything about spray polyurethane foam (SPF) roofing systems. Installation, costs, pros and cons, and how to estimate foam roofing projects.',
 };
 

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us | MC2 Estimating',
+  title: 'About Us',
   description: 'MC2 Estimating sells professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, and workflow tools.',
   keywords: 'about MC2, estimating tools, roofing templates, construction estimating tools',
 };

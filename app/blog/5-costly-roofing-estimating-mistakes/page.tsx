@@ -3,7 +3,7 @@ import Link from "next/link";
 import Navigation from "@/components/Navigation";
 
 export const metadata: Metadata = {
-  title: "5 Costly Roofing Estimating Mistakes (And How to Avoid Them) | MC2 Estimating",
+  title: "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)",
   description: "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
   keywords: "roofing estimating mistakes, bid errors, roofing contractor tips, estimating accuracy, construction bidding",
   openGraph: {

@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 
 export const metadata: Metadata = {
-  title: 'Roof Measurement & Technology Tool - Drones, Apps & Digital Tools | MC2 Estimating',
+  title: 'Roof Measurement & Technology Tool - Drones, Apps & Digital Tools',
   description: 'Master modern roof measurement technology including drones, satellite measurement, mobile apps, and digital reporting. Master EagleView, Hover, drones, and more.',
   keywords: 'roof measurement technology, drone roof measurement, EagleView, Hover app, satellite measurement, roofing technology tool, digital roof measurement'
 };

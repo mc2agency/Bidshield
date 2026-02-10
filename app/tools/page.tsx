@@ -4,7 +4,7 @@ import { GumroadProductKey } from '@/lib/gumroad-products';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Professional Estimating Tools | MC2 Estimating',
+  title: 'Professional Estimating Tools',
   description: 'Master construction estimating with professional tools. Master Bluebeam, AutoCAD, roofing takeoffs, and more. Video guides with lifetime access.',
   keywords: 'estimating tools, Bluebeam tools, construction estimating tool, roofing estimator tools, takeoff tools',
 };

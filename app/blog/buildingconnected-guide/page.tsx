@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'BuildingConnected Guide: How to Find & Win Construction Bids [2025] | MC2 Estimating',
+  title: 'BuildingConnected Guide: How to Find & Win Construction Bids [2025]',
   description: 'Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.',
 };
 

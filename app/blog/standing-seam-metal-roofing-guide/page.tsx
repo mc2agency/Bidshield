@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation | MC2 Estimating',
+  title: 'Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation',
   description: 'Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.',
 };
 

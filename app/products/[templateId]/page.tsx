@@ -158,7 +158,7 @@ export async function generateMetadata({ params }: { params: Promise<{ templateI
   }
 
   return {
-    title: `${template.fullTitle} | MC2 Estimating`,
+    title: template.fullTitle,
     description: template.longDescription,
   };
 }

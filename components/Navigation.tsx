@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { LanguageToggle } from '@/lib/i18n';
 
@@ -10,6 +11,7 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const ticking = useRef(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsClient(true);
@@ -31,49 +33,55 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [updateScrollState]);
 
-  // SIMPLIFIED: Only what matters for sales
   const navLinks = [
+    { href: '/bidshield/dashboard', label: 'Dashboard' },
+    { href: '/bidshield/dashboard/analytics', label: 'Analytics' },
     { href: '/products', label: 'Templates' },
-    { href: '/bidshield', label: 'BidShield', badge: 'FREE' },
     { href: '/blog', label: 'Blog' },
   ];
+
+  const checkActive = (href: string) => {
+    if (href === '/bidshield/dashboard') return pathname === '/bidshield/dashboard';
+    return pathname.startsWith(href);
+  };
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
       scrolled
-        ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-900/5 border-b border-slate-200/50'
-        : 'bg-white/50 backdrop-blur-md'
+        ? 'bg-slate-900/95 backdrop-blur-xl shadow-lg shadow-black/20 border-b border-slate-700/50'
+        : 'bg-slate-900/80 backdrop-blur-md border-b border-slate-800/50'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="font-bold text-xl text-slate-800 hover:text-emerald-600 transition-colors">
-              MC2 Estimating
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <span className="text-2xl">🛡️</span>
+              <div className="flex flex-col leading-none">
+                <span className="text-lg font-bold text-white tracking-tight">BidShield</span>
+                <span className="text-[10px] text-slate-400">by MC2 Estimating</span>
+              </div>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navLinks.map(({ href, label, badge }) => (
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
-                className="relative px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors group"
+                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  checkActive(href)
+                    ? 'bg-slate-700/80 text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
               >
-                <span className="flex items-center gap-1.5">
-                  {label}
-                  {badge && (
-                    <span className="text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-1.5 py-0.5 rounded-full leading-none">
-                      {badge}
-                    </span>
-                  )}
-                </span>
-                <span className="absolute bottom-1 left-4 right-4 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
+                {label}
               </Link>
             ))}
 
-            {/* Language Toggle */}
+            <div className="w-px h-6 bg-slate-700 mx-2" />
+
             {isClient && <LanguageToggle />}
 
             {isClient ? (
@@ -81,26 +89,20 @@ export default function Navigation() {
                 <SignedOut>
                   <Link
                     href="/sign-in"
-                    className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                    className="px-3.5 py-2 text-sm text-slate-300 hover:text-white font-medium transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
-                    href="/products"
-                    className="ml-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
+                    href="/bidshield/dashboard"
+                    className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300"
                   >
-                    Get Templates
+                    Get Started
                   </Link>
                 </SignedOut>
 
                 <SignedIn>
-                  <Link
-                    href="/bidshield/dashboard"
-                    className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                  >
-                    Dashboard
-                  </Link>
-                  <div className="ml-4">
+                  <div className="ml-2">
                     <UserButton afterSignOutUrl="/" />
                   </div>
                 </SignedIn>
@@ -108,7 +110,7 @@ export default function Navigation() {
             ) : (
               <Link
                 href="/sign-in"
-                className="ml-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                className="px-3.5 py-2 text-sm text-slate-300 hover:text-white font-medium transition-colors"
               >
                 Sign In
               </Link>
@@ -119,7 +121,7 @@ export default function Navigation() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-600 hover:text-emerald-600 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
               aria-label="Toggle menu"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,32 +140,30 @@ export default function Navigation() {
       <div className={`md:hidden overflow-hidden transition-all duration-300 ${
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
-        <div className="bg-white/95 backdrop-blur-xl border-t border-slate-200/50 px-4 py-4 space-y-1">
-          {/* Mobile Language Toggle */}
+        <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 px-4 py-4 space-y-1">
           <div className="px-4 py-2 mb-2">
             <LanguageToggle />
           </div>
-          {navLinks.map(({ href, label, badge }) => (
+          {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 font-medium transition-colors"
+              className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                checkActive(href)
+                  ? 'bg-slate-700/80 text-white'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               {label}
-              {badge && (
-                <span className="text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-1.5 py-0.5 rounded-full leading-none">
-                  {badge}
-                </span>
-              )}
             </Link>
           ))}
           <Link
-            href="/products"
-            className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-center font-semibold shadow-lg shadow-emerald-500/30"
+            href="/bidshield/dashboard"
+            className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg text-center font-semibold text-sm shadow-lg shadow-emerald-500/20"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Get Templates
+            Get Started
           </Link>
         </div>
       </div>

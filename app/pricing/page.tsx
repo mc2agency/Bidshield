@@ -3,7 +3,7 @@ import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Pricing | MC2 Estimating',
+  title: 'Pricing',
   description: 'Simple, transparent pricing for professional roofing estimating tools. Choose individual templates or get everything with MC2 Pro access.',
   keywords: 'roofing templates pricing, estimating tools cost, MC2 Pro pricing',
 };
