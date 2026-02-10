@@ -33,6 +33,10 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
     api.bidshield.getScopeItems,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const addenda = useQuery(
+    api.bidshield.getAddenda,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const [hasRun, setHasRun] = useState(true);
 
@@ -166,6 +170,26 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
         items.push({ label: "Scope Coverage", status: "warn", message: `${pct}% addressed — ${remaining} item${remaining !== 1 ? "s" : ""} still need review`, tabLink: "scope" });
       } else {
         items.push({ label: "Scope Coverage", status: "fail", message: `Only ${pct}% addressed — ${remaining} scope item${remaining !== 1 ? "s" : ""} need review before bid`, tabLink: "scope" });
+      }
+    }
+
+    // 8. ADDENDA REVIEW
+    if (isDemo) {
+      items.push({ label: "Addenda Review", status: "fail", message: "Addendum #3 affects scope and has not been re-priced", tabLink: "addenda" });
+    } else if (addenda) {
+      const total = addenda.length;
+      const notReviewed = addenda.filter((a: any) => a.affectsScope === undefined || a.affectsScope === null).length;
+      const needsRePrice = addenda.filter((a: any) => a.affectsScope === true && !a.repriced).length;
+
+      if (total === 0) {
+        items.push({ label: "Addenda Review", status: "pass", message: "No addenda received" });
+      } else if (needsRePrice > 0) {
+        const nums = addenda.filter((a: any) => a.affectsScope === true && !a.repriced).map((a: any) => `#${a.number}`).join(", ");
+        items.push({ label: "Addenda Review", status: "fail", message: `Addend${needsRePrice !== 1 ? "a" : "um"} ${nums} affect${needsRePrice === 1 ? "s" : ""} scope — not re-priced`, tabLink: "addenda" });
+      } else if (notReviewed > 0) {
+        items.push({ label: "Addenda Review", status: "warn", message: `${notReviewed} addend${notReviewed !== 1 ? "a" : "um"} not yet reviewed`, tabLink: "addenda" });
+      } else {
+        items.push({ label: "Addenda Review", status: "pass", message: `All ${total} addenda reviewed${addenda.some((a: any) => a.affectsScope && a.repriced) ? " and re-priced" : ""}` });
       }
     }
 

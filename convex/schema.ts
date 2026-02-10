@@ -237,9 +237,15 @@ export default defineSchema({
     number: v.number(), // Addendum #1, #2, etc.
     title: v.string(),
     receivedDate: v.string(),
-    affectsScope: v.boolean(),
+    affectsScope: v.optional(v.boolean()), // null = not yet reviewed
     acknowledged: v.boolean(),
     incorporated: v.boolean(),
+    scopeImpact: v.optional(v.string()), // What changed for your scope
+    repriced: v.optional(v.boolean()), // Have you re-priced for this?
+    repricedDate: v.optional(v.string()), // When re-pricing completed
+    priceImpact: v.optional(v.number()), // Dollar impact: +4500 or -2000
+    impactCategories: v.optional(v.string()), // Comma-separated: "material,labor,schedule,scope"
+    priority: v.optional(v.string()), // "critical", "high", "normal", "low"
     notes: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),

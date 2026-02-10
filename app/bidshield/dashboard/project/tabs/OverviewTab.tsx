@@ -81,8 +81,9 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   // --- Addenda stats ---
   const addendaList = isDemo ? [] : (addenda ?? []);
   const addendaCount = isDemo ? 3 : addendaList.length;
-  const unincorporated = isDemo ? 1 : addendaList.filter((a: any) => !a.incorporated).length;
-  const scopeNotRepriced = isDemo ? 1 : addendaList.filter((a: any) => a.affectsScope && !a.incorporated).length;
+  const addendaNotReviewed = isDemo ? 0 : addendaList.filter((a: any) => a.affectsScope === undefined || a.affectsScope === null).length;
+  const scopeNotRepriced = isDemo ? 1 : addendaList.filter((a: any) => a.affectsScope === true && !a.repriced).length;
+  const addendaNetImpact = isDemo ? 2800 : addendaList.reduce((sum: number, a: any) => sum + (a.priceImpact || 0), 0);
 
   // --- Takeoff stats ---
   const demoSections = [{ squareFeet: 22000 }, { squareFeet: 12500 }, { squareFeet: 4200 }, { squareFeet: 2800 }];
@@ -159,7 +160,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const takeoffHealth: HealthStatus = reconPct === null ? "gray" : deltaPct !== null && Math.abs(deltaPct) <= 2 ? "green" : deltaPct !== null && Math.abs(deltaPct) <= 5 ? "amber" : "red";
   const pricingHealth: HealthStatus = dpsf === null ? "gray" : dpsf >= 14 && dpsf <= 24 ? "green" : dpsf >= 10 && dpsf <= 30 ? "amber" : "red";
   const quotesHealth: HealthStatus = expiredQuotes > 0 ? "red" : expiringQuotes > 0 ? "amber" : quoteCount > 0 ? "green" : "gray";
-  const addendaHealth: HealthStatus = scopeNotRepriced > 0 ? "red" : unincorporated > 0 ? "amber" : addendaCount > 0 ? "green" : "gray";
+  const addendaHealth: HealthStatus = scopeNotRepriced > 0 ? "red" : addendaNotReviewed > 0 ? "amber" : addendaCount > 0 ? "green" : "gray";
   const checklistHealth: HealthStatus = checklistPct >= 80 ? "green" : checklistPct >= 50 ? "amber" : checklistPct > 0 ? "red" : "gray";
   const rfiHealth: HealthStatus = openRFIs > 0 ? "amber" : rfiCount > 0 ? "green" : "gray";
   const materialsHealth: HealthStatus = matUnpriced > 0 ? "amber" : matItemCount > 0 ? "green" : "gray";
@@ -172,7 +173,8 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   if (expiringQuotes > 0) alerts.push({ color: "amber", text: `${expiringQuotes} quote${expiringQuotes !== 1 ? "s" : ""} expiring soon`, tab: "quotes" });
   if (openRFIs > 0) alerts.push({ color: "amber", text: `${openRFIs} RFI${openRFIs !== 1 ? "s" : ""} awaiting response`, tab: "rfis" });
   if (rfiItems > 0) alerts.push({ color: "amber", text: `${rfiItems} checklist item${rfiItems !== 1 ? "s" : ""} flagged as RFI`, tab: "checklist" });
-  if (scopeNotRepriced > 0) alerts.push({ color: "red", text: `${scopeNotRepriced} addend${scopeNotRepriced !== 1 ? "a" : "um"} not re-priced`, tab: "addenda" });
+  if (scopeNotRepriced > 0) alerts.push({ color: "red", text: `${scopeNotRepriced} addend${scopeNotRepriced !== 1 ? "a" : "um"} affect${scopeNotRepriced === 1 ? "s" : ""} scope — not re-priced`, tab: "addenda" });
+  if (addendaNotReviewed > 0) alerts.push({ color: "amber", text: `${addendaNotReviewed} addend${addendaNotReviewed !== 1 ? "a" : "um"} not yet reviewed`, tab: "addenda" });
   if (matUnpriced > 0) alerts.push({ color: "amber", text: `${matUnpriced} material${matUnpriced !== 1 ? "s" : ""} missing pricing`, tab: "materials" });
   if (scopeUnaddressed > 0) alerts.push({ color: scopePct < 80 ? "red" : "amber", text: `${scopeUnaddressed} scope item${scopeUnaddressed !== 1 ? "s" : ""} not addressed`, tab: "scope" });
   if (scopeExcluded > 0) alerts.push({ color: "amber", text: `${scopeExcluded} scope exclusion${scopeExcluded !== 1 ? "s" : ""} — verify proposal language`, tab: "scope" });
@@ -245,7 +247,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
             { tab: "pricing" as TabId, label: "Pricing", status: pricingHealth, metric: dpsf ? `$${dpsf.toFixed(2)}/SF` : "No pricing", detail: dpsf ? (pricingHealth === "green" ? "In Range" : "Review needed") : undefined },
             { tab: "materials" as TabId, label: "Materials", status: materialsHealth, metric: matItemCount > 0 ? `$${matTotalCost.toLocaleString()}` : "Not started", detail: matUnpriced > 0 ? `${matUnpriced} unpriced` : matDpsf ? `$${matDpsf.toFixed(2)}/SF` : undefined },
             { tab: "quotes" as TabId, label: "Quotes", status: quotesHealth, metric: `${quoteCount} quote${quoteCount !== 1 ? "s" : ""}`, detail: expiringQuotes > 0 ? `${expiringQuotes} expiring soon` : expiredQuotes > 0 ? `${expiredQuotes} expired` : undefined },
-            { tab: "addenda" as TabId, label: "Addenda", status: addendaHealth, metric: `${addendaCount} received`, detail: scopeNotRepriced > 0 ? `${scopeNotRepriced} not re-priced` : undefined },
+            { tab: "addenda" as TabId, label: "Addenda", status: addendaHealth, metric: `${addendaCount} received`, detail: scopeNotRepriced > 0 ? `${scopeNotRepriced} not re-priced` : addendaNotReviewed > 0 ? `${addendaNotReviewed} not reviewed` : addendaNetImpact !== 0 ? `${addendaNetImpact > 0 ? "+" : ""}$${addendaNetImpact.toLocaleString()}` : undefined },
             { tab: "checklist" as TabId, label: "Checklist", status: checklistHealth, metric: `${checklistPct}% complete`, detail: undefined },
             { tab: "rfis" as TabId, label: "RFIs", status: rfiHealth, metric: `${rfiCount} total`, detail: openRFIs > 0 ? `${openRFIs} awaiting` : undefined },
             { tab: "scope" as TabId, label: "Scope", status: scopeHealth, metric: scopeTotal > 0 ? `${scopePct}% addressed` : "Not started", detail: scopeUnaddressed > 0 ? `${scopeUnaddressed} unaddressed` : scopeExcluded > 0 ? `${scopeExcluded} excluded` : undefined },

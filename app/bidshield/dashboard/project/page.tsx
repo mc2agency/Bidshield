@@ -115,7 +115,9 @@ function ProjectDetail() {
     const rfiCount = isDemo ? 3 : (rfis ?? []).length;
     const openRFIs = isDemo ? 1 : (rfis ?? []).filter((r: any) => r.status === "sent" || r.status === "draft").length;
     const addendaCount = isDemo ? 3 : (addenda ?? []).length;
-    const unincorporated = isDemo ? 1 : (addenda ?? []).filter((a: any) => !a.incorporated).length;
+    const addendaNeedsAction = isDemo ? 1 : (addenda ?? []).filter((a: any) =>
+      (a.affectsScope === undefined || a.affectsScope === null) || (a.affectsScope === true && !a.repriced)
+    ).length;
 
     return [
       { id: "overview" as TabId, label: "Overview", icon: "📊" },
@@ -151,7 +153,7 @@ function ProjectDetail() {
       },
       {
         id: "addenda" as TabId, label: "Addenda", icon: "📁",
-        badge: unincorporated > 0 ? { label: `${unincorporated}`, color: "red" as const }
+        badge: addendaNeedsAction > 0 ? { label: `${addendaNeedsAction}`, color: "red" as const }
           : addendaCount > 0 ? { label: `${addendaCount}`, color: "green" as const }
           : undefined,
       },
