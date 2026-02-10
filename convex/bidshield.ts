@@ -177,6 +177,16 @@ export const deleteProject = mutation({
       await ctx.db.delete(li._id);
     }
 
+    // Delete all project materials
+    const materials = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    for (const mat of materials) {
+      await ctx.db.delete(mat._id);
+    }
+
     // Delete the project
     await ctx.db.delete(args.projectId);
   },
@@ -904,6 +914,203 @@ export const deleteTakeoffLineItem = mutation({
   args: { itemId: v.id("bidshield_takeoff_line_items") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.itemId);
+  },
+});
+
+// ===== PROJECT MATERIALS =====
+
+export const getProjectMaterials = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const items = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    return items.sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+});
+
+export const addProjectMaterial = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    templateKey: v.optional(v.string()),
+    category: v.string(),
+    name: v.string(),
+    unit: v.string(),
+    calcType: v.string(),
+    quantity: v.optional(v.number()),
+    unitPrice: v.optional(v.number()),
+    totalCost: v.optional(v.number()),
+    wasteFactor: v.number(),
+    coverage: v.optional(v.number()),
+    qtyPerSf: v.optional(v.number()),
+    takeoffItemType: v.optional(v.string()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    const maxSort = existing.length > 0
+      ? Math.max(...existing.map((s) => s.sortOrder))
+      : -1;
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_project_materials", {
+      projectId: args.projectId,
+      userId: args.userId,
+      templateKey: args.templateKey,
+      category: args.category,
+      name: args.name,
+      unit: args.unit,
+      calcType: args.calcType,
+      quantity: args.quantity,
+      unitPrice: args.unitPrice,
+      totalCost: args.totalCost,
+      wasteFactor: args.wasteFactor,
+      coverage: args.coverage,
+      qtyPerSf: args.qtyPerSf,
+      takeoffItemType: args.takeoffItemType,
+      notes: args.notes,
+      sortOrder: maxSort + 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const updateProjectMaterial = mutation({
+  args: {
+    materialId: v.id("bidshield_project_materials"),
+    quantity: v.optional(v.number()),
+    unitPrice: v.optional(v.number()),
+    totalCost: v.optional(v.number()),
+    wasteFactor: v.optional(v.number()),
+    coverage: v.optional(v.number()),
+    qtyPerSf: v.optional(v.number()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { materialId, ...updates } = args;
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    await ctx.db.patch(materialId, {
+      ...filteredUpdates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const deleteProjectMaterial = mutation({
+  args: { materialId: v.id("bidshield_project_materials") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.materialId);
+  },
+});
+
+// Bulk add materials from templates
+export const initProjectMaterials = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    materials: v.array(v.object({
+      templateKey: v.optional(v.string()),
+      category: v.string(),
+      name: v.string(),
+      unit: v.string(),
+      calcType: v.string(),
+      quantity: v.optional(v.number()),
+      unitPrice: v.optional(v.number()),
+      totalCost: v.optional(v.number()),
+      wasteFactor: v.number(),
+      coverage: v.optional(v.number()),
+      qtyPerSf: v.optional(v.number()),
+      takeoffItemType: v.optional(v.string()),
+    })),
+  },
+  handler: async (ctx, args) => {
+    // Check if materials already exist
+    const existing = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    if (existing.length > 0) return existing.sort((a, b) => a.sortOrder - b.sortOrder);
+
+    const now = Date.now();
+    const created = [];
+    for (let i = 0; i < args.materials.length; i++) {
+      const m = args.materials[i];
+      const id = await ctx.db.insert("bidshield_project_materials", {
+        projectId: args.projectId,
+        userId: args.userId,
+        templateKey: m.templateKey,
+        category: m.category,
+        name: m.name,
+        unit: m.unit,
+        calcType: m.calcType,
+        quantity: m.quantity,
+        unitPrice: m.unitPrice,
+        totalCost: m.totalCost,
+        wasteFactor: m.wasteFactor,
+        coverage: m.coverage,
+        qtyPerSf: m.qtyPerSf,
+        takeoffItemType: m.takeoffItemType,
+        sortOrder: i,
+        createdAt: now,
+        updatedAt: now,
+      });
+      created.push({ _id: id, ...m, sortOrder: i });
+    }
+    return created;
+  },
+});
+
+// ===== USER MATERIAL PRICES =====
+
+export const getUserMaterialPrices = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("bidshield_user_material_prices")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+  },
+});
+
+export const upsertUserMaterialPrice = mutation({
+  args: {
+    userId: v.string(),
+    materialName: v.string(),
+    unit: v.string(),
+    unitPrice: v.number(),
+    vendorName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("bidshield_user_material_prices")
+      .withIndex("by_user_material", (q) => q.eq("userId", args.userId).eq("materialName", args.materialName))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        unitPrice: args.unitPrice,
+        unit: args.unit,
+        vendorName: args.vendorName,
+        updatedAt: Date.now(),
+      });
+      return existing._id;
+    }
+
+    return await ctx.db.insert("bidshield_user_material_prices", {
+      userId: args.userId,
+      materialName: args.materialName,
+      unit: args.unit,
+      unitPrice: args.unitPrice,
+      vendorName: args.vendorName,
+      updatedAt: Date.now(),
+    });
   },
 });
 

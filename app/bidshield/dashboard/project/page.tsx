@@ -16,6 +16,7 @@ import {
   ChecklistTab,
   TakeoffTab,
   PricingTab,
+  MaterialsTab,
   QuotesTab,
   RFIsTab,
   AddendaTab,
@@ -63,6 +64,10 @@ function ProjectDetail() {
     api.bidshield.getAddenda,
     !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
   );
+  const projectMaterials = useQuery(
+    api.bidshield.getProjectMaterials,
+    !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
+  );
 
   // Demo data
   const projectData = isDemo
@@ -95,6 +100,9 @@ function ProjectDetail() {
     const doneItems = isDemo ? 65 : checklistItems.filter((i: any) => i.status === "done" || i.status === "na").length;
     const checklistPct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
 
+    const matItems = isDemo ? 12 : (projectMaterials ?? []).length;
+    const unpricedMats = isDemo ? 0 : (projectMaterials ?? []).filter((m: any) => !m.unitPrice || m.unitPrice <= 0).length;
+
     const quoteCount = isDemo ? 5 : (quotes ?? []).length;
     const rfiCount = isDemo ? 3 : (rfis ?? []).length;
     const openRFIs = isDemo ? 1 : (rfis ?? []).filter((r: any) => r.status === "sent" || r.status === "draft").length;
@@ -111,6 +119,12 @@ function ProjectDetail() {
       },
       { id: "takeoff" as TabId, label: "Takeoff", icon: "📐" },
       { id: "pricing" as TabId, label: "Pricing", icon: "💲" },
+      {
+        id: "materials" as TabId, label: "Materials", icon: "🧱",
+        badge: unpricedMats > 0 ? { label: `${unpricedMats}`, color: "amber" as const }
+          : matItems > 0 ? { label: `${matItems}`, color: "green" as const }
+          : undefined,
+      },
       {
         id: "quotes" as TabId, label: "Quotes", icon: "💰",
         badge: quoteCount > 0 ? { label: `${quoteCount}`, color: "blue" as const } : undefined,
@@ -130,7 +144,7 @@ function ProjectDetail() {
       { id: "labor" as TabId, label: "Labor", icon: "👷" },
       { id: "validator" as TabId, label: "Validator", icon: "🛡️" },
     ];
-  }, [isDemo, checklist, quotes, rfis, addenda]);
+  }, [isDemo, checklist, quotes, rfis, addenda, projectMaterials]);
 
   if (!projectIdParam) {
     return (
@@ -212,6 +226,7 @@ function ProjectDetail() {
         {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
         {activeTab === "takeoff" && <TakeoffTab {...tabProps} />}
         {activeTab === "pricing" && <PricingTab {...tabProps} />}
+        {activeTab === "materials" && <MaterialsTab {...tabProps} />}
         {activeTab === "quotes" && <QuotesTab {...tabProps} />}
         {activeTab === "rfis" && <RFIsTab {...tabProps} />}
         {activeTab === "addenda" && <AddendaTab {...tabProps} />}

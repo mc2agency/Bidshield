@@ -3,6 +3,7 @@ export type TabId =
   | "checklist"
   | "takeoff"
   | "pricing"
+  | "materials"
   | "quotes"
   | "rfis"
   | "addenda"

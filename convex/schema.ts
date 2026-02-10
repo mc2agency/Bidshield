@@ -247,6 +247,42 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Project materials (calculated material list per project)
+  bidshield_project_materials: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    templateKey: v.optional(v.string()), // links to static template, null for custom
+    category: v.string(), // "membrane", "insulation", "fasteners", "adhesive", "edge_metal", "accessories"
+    name: v.string(),
+    unit: v.string(), // "RL", "BD", "BX", "CS", "GL", "PC", "EA"
+    calcType: v.string(), // "coverage", "qty_per_sf", "linear_from_takeoff", "count_from_takeoff", "fixed"
+    quantity: v.optional(v.number()), // calculated or manual
+    unitPrice: v.optional(v.number()),
+    totalCost: v.optional(v.number()),
+    wasteFactor: v.number(), // 1.0 = no waste, 1.10 = 10% waste
+    coverage: v.optional(v.number()), // SF per unit (for coverage calc)
+    qtyPerSf: v.optional(v.number()), // units per SF (for qty_per_sf calc)
+    takeoffItemType: v.optional(v.string()), // links to takeoff line item type for linear/count
+    notes: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // User-saved material prices (personal price book)
+  bidshield_user_material_prices: defineTable({
+    userId: v.string(),
+    materialName: v.string(),
+    unit: v.string(),
+    unitPrice: v.number(),
+    vendorName: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_material", ["userId", "materialName"]),
+
   // Custom labor rates (user-specific)
   bidshield_labor_rates: defineTable({
     userId: v.string(),

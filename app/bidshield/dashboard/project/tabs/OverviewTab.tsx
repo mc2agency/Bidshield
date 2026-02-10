@@ -44,6 +44,10 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
     api.bidshield.getTakeoffLineItems,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const projectMaterials = useQuery(
+    api.bidshield.getProjectMaterials,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   // --- Checklist stats ---
   const checklistItems = isDemo ? [] : (checklist ?? []);
@@ -93,6 +97,20 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const countVerified = isDemo ? 3 : countItems.filter((li: any) => li.verified).length;
   const countTotal = isDemo ? 11 : countItems.length;
 
+  // --- Materials stats ---
+  const matList = isDemo
+    ? [
+        { totalCost: 13680, unitPrice: 285 }, { totalCost: 50218, unitPrice: 34 }, { totalCost: 32494, unitPrice: 22 },
+        { totalCost: 3480, unitPrice: 145 }, { totalCost: 2640, unitPrice: 165 }, { totalCost: 36630, unitPrice: 185 },
+        { totalCost: 16120, unitPrice: 65 }, { totalCost: 1512, unitPrice: 18 }, { totalCost: 1764, unitPrice: 42 },
+        { totalCost: 840, unitPrice: 35 }, { totalCost: 1000, unitPrice: 125 }, { totalCost: 28600, unitPrice: 55 },
+      ]
+    : (projectMaterials ?? []);
+  const matItemCount = matList.length;
+  const matTotalCost = matList.reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
+  const matUnpriced = matList.filter((m: any) => !m.unitPrice || m.unitPrice <= 0).length;
+  const matDpsf = controlSF > 0 && matTotalCost > 0 ? matTotalCost / controlSF : null;
+
   // --- Pricing stats ---
   const bidAmt = isDemo ? 850000 : project?.totalBidAmount;
   const matCost = isDemo ? 425000 : project?.materialCost;
@@ -124,6 +142,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const addendaHealth: HealthStatus = scopeNotRepriced > 0 ? "red" : unincorporated > 0 ? "amber" : addendaCount > 0 ? "green" : "gray";
   const checklistHealth: HealthStatus = checklistPct >= 80 ? "green" : checklistPct >= 50 ? "amber" : checklistPct > 0 ? "red" : "gray";
   const rfiHealth: HealthStatus = openRFIs > 0 ? "amber" : rfiCount > 0 ? "green" : "gray";
+  const materialsHealth: HealthStatus = matUnpriced > 0 ? "amber" : matItemCount > 0 ? "green" : "gray";
 
   // --- Alerts ---
   const alerts: { color: "red" | "amber"; text: string; tab: TabId }[] = [];
@@ -133,6 +152,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   if (openRFIs > 0) alerts.push({ color: "amber", text: `${openRFIs} RFI${openRFIs !== 1 ? "s" : ""} awaiting response`, tab: "rfis" });
   if (rfiItems > 0) alerts.push({ color: "amber", text: `${rfiItems} checklist item${rfiItems !== 1 ? "s" : ""} flagged as RFI`, tab: "checklist" });
   if (scopeNotRepriced > 0) alerts.push({ color: "red", text: `${scopeNotRepriced} addend${scopeNotRepriced !== 1 ? "a" : "um"} not re-priced`, tab: "addenda" });
+  if (matUnpriced > 0) alerts.push({ color: "amber", text: `${matUnpriced} material${matUnpriced !== 1 ? "s" : ""} missing pricing`, tab: "materials" });
 
   return (
     <div className="flex flex-col gap-5">
@@ -196,10 +216,11 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
       {/* Bid Health Summary */}
       <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
         <h3 className="text-sm font-semibold text-white mb-4">Bid Health Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
           {([
             { tab: "takeoff" as TabId, label: "Takeoff", status: takeoffHealth, metric: reconPct !== null ? `${reconPct}% reconciled` : "Not started", detail: deltaSF > 0 && controlSF > 0 ? `${deltaSF.toLocaleString()} SF gap` : undefined },
             { tab: "pricing" as TabId, label: "Pricing", status: pricingHealth, metric: dpsf ? `$${dpsf.toFixed(2)}/SF` : "No pricing", detail: dpsf ? (pricingHealth === "green" ? "In Range" : "Review needed") : undefined },
+            { tab: "materials" as TabId, label: "Materials", status: materialsHealth, metric: matItemCount > 0 ? `$${matTotalCost.toLocaleString()}` : "Not started", detail: matUnpriced > 0 ? `${matUnpriced} unpriced` : matDpsf ? `$${matDpsf.toFixed(2)}/SF` : undefined },
             { tab: "quotes" as TabId, label: "Quotes", status: quotesHealth, metric: `${quoteCount} quote${quoteCount !== 1 ? "s" : ""}`, detail: expiringQuotes > 0 ? `${expiringQuotes} expiring soon` : expiredQuotes > 0 ? `${expiredQuotes} expired` : undefined },
             { tab: "addenda" as TabId, label: "Addenda", status: addendaHealth, metric: `${addendaCount} received`, detail: scopeNotRepriced > 0 ? `${scopeNotRepriced} not re-priced` : undefined },
             { tab: "checklist" as TabId, label: "Checklist", status: checklistHealth, metric: `${checklistPct}% complete`, detail: undefined },
@@ -271,7 +292,25 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
+        {/* Materials Snapshot */}
+        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-sm font-semibold text-white">Materials Snapshot</h3>
+            <button onClick={() => onNavigateTab?.("materials")} className="text-[11px] text-amber-500 hover:text-amber-400">Open Materials &rarr;</button>
+          </div>
+          {matItemCount > 0 ? (
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-slate-400">Total Cost:</span><span className="text-white font-semibold">${matTotalCost.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Line Items:</span><span className="text-slate-300">{matItemCount}</span></div>
+              {matDpsf && <div className="flex justify-between"><span className="text-slate-400">Material $/SF:</span><span className="text-emerald-400 font-bold">${matDpsf.toFixed(2)}</span></div>}
+              {matUnpriced > 0 && <div className="flex justify-between pt-2 border-t border-slate-700"><span className="text-slate-400">Unpriced:</span><span className="text-amber-400">{matUnpriced} items</span></div>}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-500 py-4 text-center">No materials generated yet</div>
+          )}
+        </div>
+
         {/* Takeoff Snapshot */}
         <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
           <div className="flex justify-between items-center mb-3">
