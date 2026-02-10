@@ -17,6 +17,7 @@ import {
   TakeoffTab,
   PricingTab,
   MaterialsTab,
+  ScopeTab,
   QuotesTab,
   RFIsTab,
   AddendaTab,
@@ -68,6 +69,10 @@ function ProjectDetail() {
     api.bidshield.getProjectMaterials,
     !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
   );
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip"
+  );
 
   // Demo data
   const projectData = isDemo
@@ -103,6 +108,9 @@ function ProjectDetail() {
     const matItems = isDemo ? 12 : (projectMaterials ?? []).length;
     const unpricedMats = isDemo ? 0 : (projectMaterials ?? []).filter((m: any) => !m.unitPrice || m.unitPrice <= 0).length;
 
+    const scopeTotal = isDemo ? 40 : (scopeItems ?? []).length;
+    const scopeUnaddressed = isDemo ? 19 : (scopeItems ?? []).filter((s: any) => s.status === "unaddressed").length;
+
     const quoteCount = isDemo ? 5 : (quotes ?? []).length;
     const rfiCount = isDemo ? 3 : (rfis ?? []).length;
     const openRFIs = isDemo ? 1 : (rfis ?? []).filter((r: any) => r.status === "sent" || r.status === "draft").length;
@@ -126,6 +134,12 @@ function ProjectDetail() {
           : undefined,
       },
       {
+        id: "scope" as TabId, label: "Scope", icon: "🔍",
+        badge: scopeUnaddressed > 0 ? { label: `${scopeUnaddressed}`, color: "amber" as const }
+          : scopeTotal > 0 ? { label: "✓", color: "green" as const }
+          : undefined,
+      },
+      {
         id: "quotes" as TabId, label: "Quotes", icon: "💰",
         badge: quoteCount > 0 ? { label: `${quoteCount}`, color: "blue" as const } : undefined,
       },
@@ -144,7 +158,7 @@ function ProjectDetail() {
       { id: "labor" as TabId, label: "Labor", icon: "👷" },
       { id: "validator" as TabId, label: "Validator", icon: "🛡️" },
     ];
-  }, [isDemo, checklist, quotes, rfis, addenda, projectMaterials]);
+  }, [isDemo, checklist, quotes, rfis, addenda, projectMaterials, scopeItems]);
 
   if (!projectIdParam) {
     return (
@@ -227,6 +241,7 @@ function ProjectDetail() {
         {activeTab === "takeoff" && <TakeoffTab {...tabProps} />}
         {activeTab === "pricing" && <PricingTab {...tabProps} />}
         {activeTab === "materials" && <MaterialsTab {...tabProps} />}
+        {activeTab === "scope" && <ScopeTab {...tabProps} />}
         {activeTab === "quotes" && <QuotesTab {...tabProps} />}
         {activeTab === "rfis" && <RFIsTab {...tabProps} />}
         {activeTab === "addenda" && <AddendaTab {...tabProps} />}

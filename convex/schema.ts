@@ -271,6 +271,29 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Scope items (scope gap checker per project)
+  bidshield_scope_items: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    category: v.string(), // "demolition", "access", "protection", "schedule", "flashing", "warranty", "safety", "general"
+    name: v.string(),
+    status: v.union(
+      v.literal("unaddressed"),
+      v.literal("included"),
+      v.literal("excluded"),
+      v.literal("by_others"),
+      v.literal("na")
+    ),
+    cost: v.optional(v.number()), // cost if included
+    note: v.optional(v.string()),
+    isDefault: v.boolean(), // true = auto-generated, false = user-added
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
   // User-saved material prices (personal price book)
   bidshield_user_material_prices: defineTable({
     userId: v.string(),

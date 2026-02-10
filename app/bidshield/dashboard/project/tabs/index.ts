@@ -3,6 +3,7 @@ export { default as ChecklistTab } from "./ChecklistTab";
 export { default as TakeoffTab } from "./TakeoffTab";
 export { default as PricingTab } from "./PricingTab";
 export { default as MaterialsTab } from "./MaterialsTab";
+export { default as ScopeTab } from "./ScopeTab";
 export { default as QuotesTab } from "./QuotesTab";
 export { default as RFIsTab } from "./RFIsTab";
 export { default as AddendaTab } from "./AddendaTab";

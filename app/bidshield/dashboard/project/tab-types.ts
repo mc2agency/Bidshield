@@ -4,6 +4,7 @@ export type TabId =
   | "takeoff"
   | "pricing"
   | "materials"
+  | "scope"
   | "quotes"
   | "rfis"
   | "addenda"

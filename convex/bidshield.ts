@@ -187,6 +187,16 @@ export const deleteProject = mutation({
       await ctx.db.delete(mat._id);
     }
 
+    // Delete all scope items
+    const scopeItems = await ctx.db
+      .query("bidshield_scope_items")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    for (const si of scopeItems) {
+      await ctx.db.delete(si._id);
+    }
+
     // Delete the project
     await ctx.db.delete(args.projectId);
   },
@@ -1111,6 +1121,123 @@ export const upsertUserMaterialPrice = mutation({
       vendorName: args.vendorName,
       updatedAt: Date.now(),
     });
+  },
+});
+
+// ===== SCOPE ITEMS =====
+
+export const getScopeItems = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const items = await ctx.db
+      .query("bidshield_scope_items")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    return items.sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+});
+
+export const initScopeItems = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    items: v.array(v.object({
+      category: v.string(),
+      name: v.string(),
+      sortOrder: v.number(),
+    })),
+  },
+  handler: async (ctx, args) => {
+    // Check if items already exist
+    const existing = await ctx.db
+      .query("bidshield_scope_items")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    if (existing.length > 0) return existing.sort((a, b) => a.sortOrder - b.sortOrder);
+
+    const now = Date.now();
+    const created = [];
+    for (const item of args.items) {
+      const id = await ctx.db.insert("bidshield_scope_items", {
+        projectId: args.projectId,
+        userId: args.userId,
+        category: item.category,
+        name: item.name,
+        status: "unaddressed",
+        isDefault: true,
+        sortOrder: item.sortOrder,
+        createdAt: now,
+        updatedAt: now,
+      });
+      created.push({ _id: id, ...item, status: "unaddressed", isDefault: true });
+    }
+    return created;
+  },
+});
+
+export const updateScopeItem = mutation({
+  args: {
+    itemId: v.id("bidshield_scope_items"),
+    status: v.optional(v.union(
+      v.literal("unaddressed"),
+      v.literal("included"),
+      v.literal("excluded"),
+      v.literal("by_others"),
+      v.literal("na")
+    )),
+    cost: v.optional(v.number()),
+    note: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { itemId, ...updates } = args;
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    await ctx.db.patch(itemId, {
+      ...filteredUpdates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const addCustomScopeItem = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    category: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("bidshield_scope_items")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    const maxSort = existing.length > 0
+      ? Math.max(...existing.map((s) => s.sortOrder))
+      : 0;
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_scope_items", {
+      projectId: args.projectId,
+      userId: args.userId,
+      category: args.category,
+      name: args.name,
+      status: "unaddressed",
+      isDefault: false,
+      sortOrder: maxSort + 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const deleteScopeItem = mutation({
+  args: { itemId: v.id("bidshield_scope_items") },
+  handler: async (ctx, args) => {
+    const item = await ctx.db.get(args.itemId);
+    if (!item) return;
+    // Only allow deleting custom items
+    if (item.isDefault) return;
+    await ctx.db.delete(args.itemId);
   },
 });
 

@@ -29,6 +29,10 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
     api.bidshield.getRFIs,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const [hasRun, setHasRun] = useState(true);
 
@@ -144,6 +148,25 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       if (!projectData?.estimatedValue) missing.push("Estimated value");
       if (missing.length > 0) items.push({ label: "Project Info", status: "warn", message: `Missing: ${missing.join(", ")}` });
       else items.push({ label: "Project Info", status: "pass", message: "All project details filled in" });
+    }
+
+    // 7. SCOPE COVERAGE
+    if (isDemo) {
+      items.push({ label: "Scope Coverage", status: "fail", message: "Only 52% addressed — 19 scope items need review before bid", tabLink: "scope" });
+    } else if (scopeItems) {
+      const total = scopeItems.length;
+      const addressed = scopeItems.filter((s: { status: string }) => s.status !== "unaddressed").length;
+      const pct = total > 0 ? Math.round((addressed / total) * 100) : 0;
+      const remaining = total - addressed;
+      if (total === 0) {
+        items.push({ label: "Scope Coverage", status: "warn", message: "No scope items initialized — open the Scope tab to generate", tabLink: "scope" });
+      } else if (pct === 100) {
+        items.push({ label: "Scope Coverage", status: "pass", message: `All ${total} scope items addressed` });
+      } else if (pct >= 80) {
+        items.push({ label: "Scope Coverage", status: "warn", message: `${pct}% addressed — ${remaining} item${remaining !== 1 ? "s" : ""} still need review`, tabLink: "scope" });
+      } else {
+        items.push({ label: "Scope Coverage", status: "fail", message: `Only ${pct}% addressed — ${remaining} scope item${remaining !== 1 ? "s" : ""} need review before bid`, tabLink: "scope" });
+      }
     }
 
     // Calculate score

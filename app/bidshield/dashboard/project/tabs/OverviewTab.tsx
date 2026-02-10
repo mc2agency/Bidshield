@@ -48,6 +48,10 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
     api.bidshield.getProjectMaterials,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   // --- Checklist stats ---
   const checklistItems = isDemo ? [] : (checklist ?? []);
@@ -111,6 +115,22 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const matUnpriced = matList.filter((m: any) => !m.unitPrice || m.unitPrice <= 0).length;
   const matDpsf = controlSF > 0 && matTotalCost > 0 ? matTotalCost / controlSF : null;
 
+  // --- Scope stats ---
+  const scopeList = isDemo
+    ? Array.from({ length: 40 }, (_, i) => ({
+        status: i < 12 ? "included" : i < 16 ? "excluded" : i < 19 ? "by_others" : i < 21 ? "na" : "unaddressed",
+        cost: i < 12 ? [5200, 3800, 800, 2400, 4500, 1200, 3600, 6800, 4200, 2100, 8400, 8200][i] : 0,
+      }))
+    : (scopeItems ?? []);
+  const scopeTotal = scopeList.length;
+  const scopeAddressed = scopeList.filter((s: any) => s.status !== "unaddressed").length;
+  const scopeUnaddressed = scopeTotal - scopeAddressed;
+  const scopePct = scopeTotal > 0 ? Math.round((scopeAddressed / scopeTotal) * 100) : 0;
+  const scopeIncludedCost = scopeList
+    .filter((s: any) => s.status === "included")
+    .reduce((sum: number, s: any) => sum + (s.cost || 0), 0);
+  const scopeExcluded = scopeList.filter((s: any) => s.status === "excluded").length;
+
   // --- Pricing stats ---
   const bidAmt = isDemo ? 850000 : project?.totalBidAmount;
   const matCost = isDemo ? 425000 : project?.materialCost;
@@ -143,6 +163,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const checklistHealth: HealthStatus = checklistPct >= 80 ? "green" : checklistPct >= 50 ? "amber" : checklistPct > 0 ? "red" : "gray";
   const rfiHealth: HealthStatus = openRFIs > 0 ? "amber" : rfiCount > 0 ? "green" : "gray";
   const materialsHealth: HealthStatus = matUnpriced > 0 ? "amber" : matItemCount > 0 ? "green" : "gray";
+  const scopeHealth: HealthStatus = scopeTotal === 0 ? "gray" : scopePct === 100 ? "green" : scopePct >= 80 ? "amber" : "red";
 
   // --- Alerts ---
   const alerts: { color: "red" | "amber"; text: string; tab: TabId }[] = [];
@@ -153,6 +174,8 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   if (rfiItems > 0) alerts.push({ color: "amber", text: `${rfiItems} checklist item${rfiItems !== 1 ? "s" : ""} flagged as RFI`, tab: "checklist" });
   if (scopeNotRepriced > 0) alerts.push({ color: "red", text: `${scopeNotRepriced} addend${scopeNotRepriced !== 1 ? "a" : "um"} not re-priced`, tab: "addenda" });
   if (matUnpriced > 0) alerts.push({ color: "amber", text: `${matUnpriced} material${matUnpriced !== 1 ? "s" : ""} missing pricing`, tab: "materials" });
+  if (scopeUnaddressed > 0) alerts.push({ color: scopePct < 80 ? "red" : "amber", text: `${scopeUnaddressed} scope item${scopeUnaddressed !== 1 ? "s" : ""} not addressed`, tab: "scope" });
+  if (scopeExcluded > 0) alerts.push({ color: "amber", text: `${scopeExcluded} scope exclusion${scopeExcluded !== 1 ? "s" : ""} — verify proposal language`, tab: "scope" });
 
   return (
     <div className="flex flex-col gap-5">
@@ -225,6 +248,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
             { tab: "addenda" as TabId, label: "Addenda", status: addendaHealth, metric: `${addendaCount} received`, detail: scopeNotRepriced > 0 ? `${scopeNotRepriced} not re-priced` : undefined },
             { tab: "checklist" as TabId, label: "Checklist", status: checklistHealth, metric: `${checklistPct}% complete`, detail: undefined },
             { tab: "rfis" as TabId, label: "RFIs", status: rfiHealth, metric: `${rfiCount} total`, detail: openRFIs > 0 ? `${openRFIs} awaiting` : undefined },
+            { tab: "scope" as TabId, label: "Scope", status: scopeHealth, metric: scopeTotal > 0 ? `${scopePct}% addressed` : "Not started", detail: scopeUnaddressed > 0 ? `${scopeUnaddressed} unaddressed` : scopeExcluded > 0 ? `${scopeExcluded} excluded` : undefined },
             { tab: "validator" as TabId, label: "Validator", status: "gray" as HealthStatus, metric: "Run check", detail: undefined },
           ]).map((card) => {
             const c = healthColor(card.status);
@@ -292,7 +316,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Materials Snapshot */}
         <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
           <div className="flex justify-between items-center mb-3">
@@ -327,6 +351,29 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
             </div>
           ) : (
             <div className="text-sm text-slate-500 py-4 text-center">No control # set</div>
+          )}
+        </div>
+
+        {/* Scope Snapshot */}
+        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-sm font-semibold text-white">Scope Snapshot</h3>
+            <button onClick={() => onNavigateTab?.("scope")} className="text-[11px] text-amber-500 hover:text-amber-400">Open Scope &rarr;</button>
+          </div>
+          {scopeTotal > 0 ? (
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="flex-1 h-2.5 bg-slate-700 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${scopePct === 100 ? "bg-emerald-500" : scopePct >= 80 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${scopePct}%` }} />
+                </div>
+                <span className={`text-xs font-bold ${scopePct === 100 ? "text-emerald-400" : scopePct >= 80 ? "text-amber-400" : "text-red-400"}`}>{scopePct}%</span>
+              </div>
+              <div className="flex justify-between"><span className="text-slate-400">Addressed:</span><span className="text-slate-300">{scopeAddressed} / {scopeTotal}</span></div>
+              {scopeIncludedCost > 0 && <div className="flex justify-between"><span className="text-slate-400">Included Cost:</span><span className="text-emerald-400 font-bold">${scopeIncludedCost.toLocaleString()}</span></div>}
+              {scopeExcluded > 0 && <div className="flex justify-between pt-2 border-t border-slate-700"><span className="text-slate-400">Exclusions:</span><span className="text-amber-400">{scopeExcluded} items</span></div>}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-500 py-4 text-center">No scope items yet</div>
           )}
         </div>
 
