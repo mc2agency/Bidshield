@@ -17,24 +17,27 @@ function healthColor(status: HealthStatus) {
   }[status];
 }
 
-export default function OverviewTab({ projectId, isDemo, project, userId, onNavigateTab }: TabProps) {
+export default function OverviewTab({ projectId, isDemo, project, userId, onNavigateTab, cachedData }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
-  const checklist = useQuery(
+  // Use cached data from parent (page.tsx) when available to avoid duplicate Convex subscriptions.
+  // Always call useQuery (with "skip" when cached) to satisfy rules of hooks.
+  const hasCached = !!cachedData;
+  const _checklist = useQuery(
     api.bidshield.getChecklist,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+    !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const quotes = useQuery(
+  const _quotes = useQuery(
     api.bidshield.getQuotes,
-    !isDemo && userId ? { userId, projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined } : "skip"
+    !hasCached && !isDemo && userId ? { userId, projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined } : "skip"
   );
-  const rfis = useQuery(
+  const _rfis = useQuery(
     api.bidshield.getRFIs,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+    !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const addenda = useQuery(
+  const _addenda = useQuery(
     api.bidshield.getAddenda,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+    !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
   const takeoffSections = useQuery(
     api.bidshield.getTakeoffSections,
@@ -44,14 +47,20 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
     api.bidshield.getTakeoffLineItems,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const projectMaterials = useQuery(
+  const _projectMaterials = useQuery(
     api.bidshield.getProjectMaterials,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+    !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const scopeItems = useQuery(
+  const _scopeItems = useQuery(
     api.bidshield.getScopeItems,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+    !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const checklist = cachedData?.checklist ?? _checklist;
+  const quotes = cachedData?.quotes ?? _quotes;
+  const rfis = cachedData?.rfis ?? _rfis;
+  const addenda = cachedData?.addenda ?? _addenda;
+  const projectMaterials = cachedData?.projectMaterials ?? _projectMaterials;
+  const scopeItems = cachedData?.scopeItems ?? _scopeItems;
 
   // --- Checklist stats ---
   const checklistItems = isDemo ? [] : (checklist ?? []);
@@ -150,8 +159,9 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     return { phaseKey, title: phase.title.replace(/^Phase \d+: /, ""), icon: phase.icon, pct, critical: phase.critical };
   });
-  const demoPhases = Object.entries(checklistTemplate).map(([k, p]) => ({
-    phaseKey: k, title: p.title.replace(/^Phase \d+: /, ""), icon: p.icon, pct: Math.floor(Math.random() * 60 + 40), critical: p.critical,
+  const DEMO_PHASE_PCTS = [86, 72, 47, 46, 51, 78, 63, 58, 47, 76, 53, 79, 78, 96, 41, 55, 42, 74];
+  const demoPhases = Object.entries(checklistTemplate).map(([k, p], idx) => ({
+    phaseKey: k, title: p.title.replace(/^Phase \d+: /, ""), icon: p.icon, pct: DEMO_PHASE_PCTS[idx] ?? 60, critical: p.critical,
   }));
   const phases = isDemo ? demoPhases : phaseProgress;
   const topIssues = [...phases].sort((a, b) => a.pct - b.pct).slice(0, 4);

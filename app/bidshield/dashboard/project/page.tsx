@@ -188,6 +188,15 @@ function ProjectDetail() {
     ? Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
+  const cachedData = {
+    checklist: checklist ?? undefined,
+    quotes: quotes ?? undefined,
+    rfis: rfis ?? undefined,
+    addenda: addenda ?? undefined,
+    projectMaterials: projectMaterials ?? undefined,
+    scopeItems: scopeItems ?? undefined,
+  };
+
   const tabProps = {
     projectId: projectIdParam,
     isDemo,
@@ -238,7 +247,7 @@ function ProjectDetail() {
 
       {/* Tab Content */}
       <div className="p-6 max-w-[1400px] mx-auto w-full">
-        {activeTab === "overview" && <OverviewTab {...tabProps} />}
+        {activeTab === "overview" && <OverviewTab {...tabProps} cachedData={cachedData} />}
         {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
         {activeTab === "takeoff" && <TakeoffTab {...tabProps} />}
         {activeTab === "pricing" && <PricingTab {...tabProps} />}

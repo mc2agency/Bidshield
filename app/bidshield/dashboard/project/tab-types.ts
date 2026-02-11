@@ -9,8 +9,7 @@ export type TabId =
   | "rfis"
   | "addenda"
   | "labor"
-  | "validator"
-  | "analytics";
+  | "validator";
 
 export type TabBadge = {
   label: string;
@@ -30,4 +29,13 @@ export interface TabProps {
   project: any;
   userId?: string;
   onNavigateTab?: (tab: TabId) => void;
+  /** Pre-fetched data from parent to avoid duplicate Convex subscriptions */
+  cachedData?: {
+    checklist?: any[];
+    quotes?: any[];
+    rfis?: any[];
+    addenda?: any[];
+    projectMaterials?: any[];
+    scopeItems?: any[];
+  };
 }

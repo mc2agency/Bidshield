@@ -5,16 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
-
-const ASSEMBLY_TYPES = [
-  "TPO 60mil Mechanically Attached", "TPO 60mil Fully Adhered",
-  "TPO 80mil Mechanically Attached", "TPO 80mil Fully Adhered",
-  "PVC 60mil Mechanically Attached", "PVC 60mil Fully Adhered",
-  "Modified Bitumen 2-Ply (SBS)", "Modified Bitumen 3-Ply (SBS)",
-  "Modified Bitumen (APP)", "EPDM 60mil", "Metal Roof Panels",
-  "Metal Wall Panels", "Pavers / Ballast", "Green Roof",
-  "Waterproofing / Below Grade", "Other",
-];
+import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
 
 type TakeoffSection = {
   _id: string; name: string; assemblyType: string; squareFeet: number;

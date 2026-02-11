@@ -6,6 +6,37 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 
+const DEMO_QUOTES = [
+  {
+    _id: "demo_q1", vendorName: "ABC Roofing Supply", vendorEmail: "sales@abcsupply.com",
+    category: "membrane", products: ["TPO 60mil White", "TPO Membrane Adhesive"],
+    quoteAmount: 28500, quoteDate: "2026-01-20", expirationDate: "2026-03-20",
+    status: "received", notes: "Bulk pricing for 45k SF",
+  },
+  {
+    _id: "demo_q2", vendorName: "Midwest Insulation", vendorEmail: "quotes@midwestins.com",
+    category: "insulation", products: ["Polyiso 2.6\"", "Polyiso 1.5\" Cover Board"],
+    quoteAmount: 34200, quoteDate: "2026-01-22", expirationDate: "2026-02-22",
+    status: "received", notes: "Includes delivery to site",
+  },
+  {
+    _id: "demo_q3", vendorName: "FastenMaster Pro", category: "fasteners",
+    products: ["FM Approved Fasteners", "Plates 3\""],
+    quoteAmount: 6800, quoteDate: "2026-01-25", expirationDate: "2026-04-25",
+    status: "received",
+  },
+  {
+    _id: "demo_q4", vendorName: "Metro Sheet Metal", vendorEmail: "estimating@metrosheetmetal.com",
+    category: "sheet_metal", products: ["Edge Metal", "Coping Cap", "Scupper Boxes"],
+    quoteAmount: 12400, quoteDate: "2026-01-18", expirationDate: "2026-02-18",
+    status: "received", notes: "Custom coping profile per detail 5/A-501",
+  },
+  {
+    _id: "demo_q5", vendorName: "Crane Rentals Inc", category: "equipment",
+    quoteAmount: 0, status: "requested",
+  },
+];
+
 const VENDOR_CATEGORIES = [
   { key: "insulation", name: "Insulation", icon: "🧱" },
   { key: "membrane", name: "Membrane", icon: "🛡️" },
@@ -29,8 +60,9 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
 
   const createQuoteMut = useMutation(api.bidshield.createQuote);
   const updateQuoteMut = useMutation(api.bidshield.updateQuote);
+  const deleteQuoteMut = useMutation(api.bidshield.deleteQuote);
 
-  const resolvedQuotes = quotes ?? [];
+  const resolvedQuotes = isDemo ? DEMO_QUOTES : (quotes ?? []);
 
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
@@ -72,6 +104,13 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const handleUpdateStatus = async (quoteId: Id<"bidshield_quotes">, status: string) => {
     await updateQuoteMut({ quoteId, status: status as any });
     showNotification("Quote updated!");
+  };
+
+  const handleDelete = async (quoteId: Id<"bidshield_quotes">, vendorName: string) => {
+    if (!userId || isDemo) return;
+    if (!confirm(`Delete quote from "${vendorName}"? This cannot be undone.`)) return;
+    await deleteQuoteMut({ quoteId, userId });
+    showNotification("Quote deleted.");
   };
 
   const getQuoteStatus = (quote: any): string => {
@@ -225,6 +264,12 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                           className="text-[11px] px-2 py-1 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30"
                         >
                           📧 Request Update
+                        </button>
+                        <button
+                          onClick={() => handleDelete(quote._id, quote.vendorName)}
+                          className="text-[11px] px-2 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 ml-auto"
+                        >
+                          🗑 Delete
                         </button>
                       </div>
                     )}

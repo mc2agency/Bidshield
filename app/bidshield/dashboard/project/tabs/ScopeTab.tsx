@@ -89,9 +89,9 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedExclusions, setCopiedExclusions] = useState(false);
 
-  // Debounced save refs
-  const costTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const noteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Debounced save refs (keyed by item ID to avoid cross-item cancellation)
+  const costTimerRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const noteTimerRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const items = isDemo ? DEMO_SCOPE_ITEMS : (scopeItems ?? []);
 
@@ -180,20 +180,26 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
   // Debounced cost save
   const handleCostChange = (item: any, value: string) => {
     if (isDemo) return;
-    if (costTimerRef.current) clearTimeout(costTimerRef.current);
-    costTimerRef.current = setTimeout(async () => {
+    const id = item._id as string;
+    const existing = costTimerRefs.current.get(id);
+    if (existing) clearTimeout(existing);
+    costTimerRefs.current.set(id, setTimeout(async () => {
       const cost = value ? parseFloat(value) : 0;
       await updateItem({ itemId: item._id, cost });
-    }, 600);
+      costTimerRefs.current.delete(id);
+    }, 600));
   };
 
   // Debounced note save
   const handleNoteChange = (item: any, value: string) => {
     if (isDemo) return;
-    if (noteTimerRef.current) clearTimeout(noteTimerRef.current);
-    noteTimerRef.current = setTimeout(async () => {
+    const id = item._id as string;
+    const existing = noteTimerRefs.current.get(id);
+    if (existing) clearTimeout(existing);
+    noteTimerRefs.current.set(id, setTimeout(async () => {
       await updateItem({ itemId: item._id, note: value });
-    }, 600);
+      noteTimerRefs.current.delete(id);
+    }, 600));
   };
 
   // Build exclusions text for clipboard
@@ -439,7 +445,7 @@ function ScopeItemRow({
   const isIncluded = item.status === "included";
 
   return (
-    <div className={`px-5 py-3 border-l-3 ${isUnaddressed ? "border-l-amber-500/60 bg-amber-500/5" : "border-l-transparent"} hover:bg-slate-700/10`}>
+    <div className={`px-5 py-3 border-l-4 ${isUnaddressed ? "border-l-amber-500/60 bg-amber-500/5" : "border-l-transparent"} hover:bg-slate-700/10`}>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         {/* Name + unaddressed badge */}
         <div className="flex-1 min-w-0">

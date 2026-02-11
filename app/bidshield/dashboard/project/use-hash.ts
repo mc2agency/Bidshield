@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import type { TabId } from "./tab-types";
 
 const VALID_TABS: TabId[] = [
-  "overview", "checklist", "takeoff", "pricing", "quotes",
-  "rfis", "addenda", "labor", "validator", "analytics",
+  "overview", "checklist", "takeoff", "pricing", "materials",
+  "scope", "quotes", "rfis", "addenda", "labor", "validator",
 ];
 
 function parseHash(): TabId | null {

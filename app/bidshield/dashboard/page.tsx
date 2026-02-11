@@ -202,21 +202,29 @@ function DashboardContent() {
         ))}
       </div>
 
-      {/* MC2 Templates Promo Banner */}
+      {/* Templates Promo Banner */}
       <div className="bg-gradient-to-r from-emerald-900/50 to-slate-800 border border-emerald-700/50 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="text-3xl">📊</div>
           <div>
-            <p className="font-semibold text-emerald-100">Speed up your estimates with MC2 Templates</p>
+            <p className="font-semibold text-emerald-100">Speed up your estimates with BidShield Templates</p>
             <p className="text-sm text-emerald-300/80">Material takeoffs, labor calcs & professional proposals — all pre-built</p>
           </div>
         </div>
-        <a
-          href="/products"
-          className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg text-sm whitespace-nowrap transition-colors"
-        >
-          View Templates →
-        </a>
+        <div className="flex gap-3">
+          <a
+            href={isDemo ? "/bidshield/dashboard/datasheets?demo=true" : "/bidshield/dashboard/datasheets"}
+            className="px-5 py-2.5 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/20 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors"
+          >
+            Material Database
+          </a>
+          <a
+            href="/products"
+            className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg text-sm whitespace-nowrap transition-colors"
+          >
+            View Templates →
+          </a>
+        </div>
       </div>
 
       {/* Active Bids */}

@@ -5,16 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
-
-const ASSEMBLY_TYPES = [
-  "TPO 60mil Mechanically Attached", "TPO 60mil Fully Adhered",
-  "TPO 80mil Mechanically Attached", "TPO 80mil Fully Adhered",
-  "PVC 60mil Mechanically Attached", "PVC 60mil Fully Adhered",
-  "Modified Bitumen 2-Ply (SBS)", "Modified Bitumen 3-Ply (SBS)",
-  "Modified Bitumen (APP)", "EPDM 60mil", "Metal Roof Panels",
-  "Metal Wall Panels", "Pavers / Ballast", "Green Roof",
-  "Waterproofing / Below Grade", "Other",
-];
+import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
 
 const LOSS_REASONS = [
   "Price too high", "Scope issue", "Missed deadline", "GC preference",
@@ -420,7 +411,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 function ComparisonRow({ label, estimated, actual, varianceAmt, variancePct, bold }: {
   label: string; estimated?: number; actual?: number; varianceAmt: number | null; variancePct: number | null; bold?: boolean;
 }) {
-  const fmt = (n?: number) => n ? `$${n.toLocaleString()}` : "—";
+  const fmt = (n?: number) => n != null ? `$${n.toLocaleString()}` : "—";
   return (
     <tr className="border-b border-slate-700/50">
       <td className={`py-2 px-3 ${bold ? "text-white font-semibold" : "text-slate-300"}`}>{label}</td>

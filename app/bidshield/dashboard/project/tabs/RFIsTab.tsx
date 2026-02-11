@@ -61,12 +61,13 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
 
   const createRFIMut = useMutation(api.bidshield.createRFI);
   const updateRFIMut = useMutation(api.bidshield.updateRFI);
+  const deleteRFIMut = useMutation(api.bidshield.deleteRFI);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<string | null>(null);
   const [newQuestion, setNewQuestion] = useState("");
   const [newSentTo, setNewSentTo] = useState("");
-  const [responseText, setResponseText] = useState("");
+  const [responseTexts, setResponseTexts] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<RFIStatus | "all">("all");
 
   const rfis = isDemo ? demoRFIs : (convexRFIs ?? []);
@@ -91,15 +92,23 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
   };
 
   const handleMarkAnswered = async (rfiId: Id<"bidshield_rfis">) => {
-    if (isDemo || !responseText.trim()) return;
-    await updateRFIMut({ rfiId, status: "answered", response: responseText, respondedAt: Date.now() });
-    setResponseText("");
+    const text = responseTexts[rfiId as string] || "";
+    if (isDemo || !text.trim()) return;
+    await updateRFIMut({ rfiId, status: "answered", response: text, respondedAt: Date.now() });
+    setResponseTexts((prev) => { const next = { ...prev }; delete next[rfiId as string]; return next; });
     setSelectedRFI(null);
   };
 
   const handleClose = async (rfiId: Id<"bidshield_rfis">) => {
     if (isDemo) return;
     await updateRFIMut({ rfiId, status: "closed" });
+  };
+
+  const handleDelete = async (rfiId: Id<"bidshield_rfis">) => {
+    if (isDemo || !userId) return;
+    if (!confirm("Delete this RFI? This cannot be undone.")) return;
+    await deleteRFIMut({ rfiId, userId });
+    setSelectedRFI(null);
   };
 
   const statusCounts = {
@@ -187,8 +196,8 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
                       <div className="mb-4">
                         <label className="block text-xs text-slate-400 mb-1">Record Response</label>
                         <textarea
-                          value={responseText}
-                          onChange={(e) => setResponseText(e.target.value)}
+                          value={responseTexts[rfi._id as string] || ""}
+                          onChange={(e) => setResponseTexts((prev) => ({ ...prev, [rfi._id as string]: e.target.value }))}
                           placeholder="Paste or type the response received..."
                           rows={3}
                           className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -200,10 +209,13 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
                         <button onClick={() => handleSend(rfi._id)} disabled={isDemo} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Mark as Sent</button>
                       )}
                       {rfi.status === "sent" && (
-                        <button onClick={() => handleMarkAnswered(rfi._id)} disabled={isDemo || !responseText.trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Mark Answered</button>
+                        <button onClick={() => handleMarkAnswered(rfi._id)} disabled={isDemo || !(responseTexts[rfi._id as string] || "").trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Mark Answered</button>
                       )}
                       {(rfi.status === "answered" || rfi.status === "sent") && (
                         <button onClick={() => handleClose(rfi._id)} disabled={isDemo} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Close RFI</button>
+                      )}
+                      {!isDemo && (
+                        <button onClick={() => handleDelete(rfi._id)} className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-semibold rounded-lg transition-colors ml-auto">🗑 Delete</button>
                       )}
                     </div>
                   </div>

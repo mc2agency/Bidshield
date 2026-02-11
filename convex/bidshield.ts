@@ -2,6 +2,13 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getChecklistForTrade } from "./bidshieldDefaults";
 
+async function validateAuth(ctx: any, userId: string) {
+  // Skip validation for demo mode
+  if (userId.startsWith("demo_")) return;
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Not authenticated");
+}
+
 // ===== PROJECTS =====
 
 export const getProjects = query({
@@ -37,6 +44,7 @@ export const createProject = mutation({
     assemblies: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const now = Date.now();
     const trade = args.trade || "roofing";
 
@@ -318,6 +326,7 @@ export const createQuote = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_quotes", {
       userId: args.userId,
@@ -370,6 +379,16 @@ export const updateQuote = mutation({
   },
 });
 
+export const deleteQuote = mutation({
+  args: { quoteId: v.id("bidshield_quotes"), userId: v.string() },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const quote = await ctx.db.get(args.quoteId);
+    if (!quote) throw new Error("Quote not found");
+    await ctx.db.delete(args.quoteId);
+  },
+});
+
 // ===== RFIs =====
 
 export const getRFIs = query({
@@ -391,6 +410,7 @@ export const createRFI = mutation({
     sentTo: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_rfis", {
       projectId: args.projectId,
@@ -429,6 +449,16 @@ export const updateRFI = mutation({
       ...filteredUpdates,
       updatedAt: Date.now(),
     });
+  },
+});
+
+export const deleteRFI = mutation({
+  args: { rfiId: v.id("bidshield_rfis"), userId: v.string() },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const rfi = await ctx.db.get(args.rfiId);
+    if (!rfi) throw new Error("RFI not found");
+    await ctx.db.delete(args.rfiId);
   },
 });
 
@@ -587,6 +617,7 @@ export const createLaborRate = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_labor_rates", {
       userId: args.userId,
@@ -654,6 +685,7 @@ export const createAddendum = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_addenda", {
       projectId: args.projectId,
@@ -729,6 +761,7 @@ export const createTakeoffSection = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const existing = await ctx.db
       .query("bidshield_takeoff_sections")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -904,6 +937,7 @@ export const createTakeoffLineItem = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const existing = await ctx.db
       .query("bidshield_takeoff_line_items")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))

@@ -92,21 +92,6 @@ export const handleGumroadPurchase = mutation({
   },
 });
 
-// Get user's purchase history
-export const getUserPurchases = query({
-  args: {
-    userId: v.id("users"),
-  },
-  handler: async (ctx, args) => {
-    const purchases = await ctx.db
-      .query("purchases")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .collect();
-
-    return purchases;
-  },
-});
-
 // Check if a user owns a specific product (by email)
 export const verifyPurchaseByEmail = query({
   args: {
@@ -152,67 +137,3 @@ export const getPurchasedProductIds = query({
   },
 });
 
-// Sync purchases when user creates account
-// Called after user signs up to link existing purchases to their account
-export const syncPurchasesToUser = mutation({
-  args: {
-    userId: v.id("users"),
-    email: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // Find all purchases with this email that don't have a userId yet
-    const orphanedPurchases = await ctx.db
-      .query("purchases")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .collect();
-
-    const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // Use Sets for O(1) lookup instead of O(n) array.includes()
-    const existingCourses = new Set(user.purchasedCourses);
-    const existingProducts = new Set(user.purchasedProducts);
-    const newCourses = new Set<string>();
-    const newProducts = new Set<string>();
-    let membershipGranted = false;
-
-    // Update each purchase and collect access grants
-    for (const purchase of orphanedPurchases) {
-      // Update purchase with userId
-      await ctx.db.patch(purchase._id, {
-        userId: args.userId,
-      });
-
-      // Grant access based on product type
-      if (purchase.productType === "course") {
-        if (!existingCourses.has(purchase.productId)) {
-          newCourses.add(purchase.productId);
-        }
-      } else if (purchase.productType === "product") {
-        if (!existingProducts.has(purchase.productId)) {
-          newProducts.add(purchase.productId);
-        }
-      } else if (purchase.productType === "membership") {
-        membershipGranted = true;
-      }
-    }
-
-    // Only update if there are changes
-    if (newCourses.size > 0 || newProducts.size > 0 || membershipGranted) {
-      await ctx.db.patch(args.userId, {
-        purchasedCourses: [...existingCourses, ...newCourses],
-        purchasedProducts: [...existingProducts, ...newProducts],
-        membershipLevel: membershipGranted ? "pro" : user.membershipLevel,
-      });
-    }
-
-    return {
-      purchasesLinked: orphanedPurchases.length,
-      coursesGranted: newCourses.size,
-      productsGranted: newProducts.size,
-      membershipGranted,
-    };
-  },
-});
