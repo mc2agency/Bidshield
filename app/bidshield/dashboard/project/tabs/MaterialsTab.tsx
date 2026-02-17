@@ -272,6 +272,13 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
 
   return (
     <div className="flex flex-col gap-5">
+      {/* System badge */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Materials for</span>
+        <span className="text-xs font-semibold bg-slate-900 text-white px-2.5 py-1 rounded-lg">{project?.primaryAssembly || project?.systemType?.toUpperCase() || "TPO"}</span>
+        <span className="text-xs text-slate-400 ml-auto">{totalSF.toLocaleString()} SF</span>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
