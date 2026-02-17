@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         if (userId && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
-          );
+          ) as unknown as Stripe.Subscription;
 
           await convex.mutation(api.users.updateBidShieldSubscription, {
             clerkId: userId,
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
               plan: planId === "pro_annual" ? "annual" : "monthly",
               status: "active",
               stripeSubscriptionId: subscription.id,
-              currentPeriodEnd: subscription.current_period_end * 1000,
+              currentPeriodEnd: (subscription as any).current_period_end * 1000,
             },
           });
         }
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
               plan: subscription.metadata?.planId === "pro_annual" ? "annual" : "monthly",
               status: status as "active" | "canceled" | "past_due",
               stripeSubscriptionId: subscription.id,
-              currentPeriodEnd: subscription.current_period_end * 1000,
+              currentPeriodEnd: (subscription as any).current_period_end * 1000,
             },
           });
         }
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
               plan: subscription.metadata?.planId === "pro_annual" ? "annual" : "monthly",
               status: "canceled",
               stripeSubscriptionId: subscription.id,
-              currentPeriodEnd: subscription.current_period_end * 1000,
+              currentPeriodEnd: (subscription as any).current_period_end * 1000,
             },
           });
         }
