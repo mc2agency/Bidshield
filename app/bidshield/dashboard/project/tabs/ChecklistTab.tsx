@@ -69,7 +69,7 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
       const currentStatus = (current as any)?.status || "pending";
       const nextIdx = (order.indexOf(currentStatus) + 1) % order.length;
       const convexId = (current as any)?._id;
-      if (convexId) await updateChecklistItemMut({ itemId: convexId, status: order[nextIdx] });
+      if (convexId) await updateChecklistItemMut({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: order[nextIdx] });
     }
   };
 
