@@ -1,6 +1,6 @@
 "use client";
 
-import { materialPrices } from "@/lib/bidshield/demo-data";
+const materialPrices: any[] = [];
 import { useState } from "react";
 
 export default function DatasheetsPage() {

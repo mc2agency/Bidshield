@@ -1,4 +1,5 @@
 "use client";
+import { DEMO_QUOTES as IMPORTED_QUOTES } from "@/lib/bidshield/demo-data";
 
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";

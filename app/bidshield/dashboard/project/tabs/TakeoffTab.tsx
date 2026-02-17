@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
+import { DEMO_TAKEOFF_SECTIONS as IMPORTED_SECTIONS, DEMO_LINEAR_ITEMS as IMPORTED_LINEAR, DEMO_COUNT_ITEMS as IMPORTED_COUNT } from "@/lib/bidshield/demo-data";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
 
 type TakeoffSection = {
@@ -137,7 +138,7 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
 
 export default function TakeoffTab({ projectId, isDemo, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
-  const [demoGrossRoof, setDemoGrossRoof] = useState(45000);
+  const [demoGrossRoof, setDemoGrossRoof] = useState(68000);
   const grossRoofArea: number | null = isDemo ? demoGrossRoof : (project?.grossRoofArea ?? null);
 
   const sections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");

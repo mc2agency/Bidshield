@@ -1,4 +1,5 @@
 "use client";
+import { DEMO_ADDENDA as IMPORTED_ADDENDA } from "@/lib/bidshield/demo-data";
 
 import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";

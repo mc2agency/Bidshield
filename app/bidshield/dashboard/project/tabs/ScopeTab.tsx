@@ -1,4 +1,5 @@
 "use client";
+import { DEMO_SCOPE_ITEMS as IMPORTED_SCOPE } from "@/lib/bidshield/demo-data";
 
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
@@ -9,58 +10,8 @@ import { SCOPE_CATEGORIES, DEFAULT_SCOPE_ITEMS, type ScopeCategory } from "@/lib
 
 type ScopeStatus = "unaddressed" | "included" | "excluded" | "by_others" | "na";
 
-// === DEMO DATA (Harbor Point Tower ~65% addressed) ===
-const DEMO_SCOPE_ITEMS = [
-  // Included (12 items, $51,200 total)
-  { _id: "ds_1", category: "demolition", name: "Demo / Tear-off of existing roof", status: "included" as ScopeStatus, cost: 28000, note: "Full tear-off to deck", isDefault: true, sortOrder: 1 },
-  { _id: "ds_2", category: "demolition", name: "Dumpster / Debris disposal", status: "included" as ScopeStatus, cost: 4500, note: "3 pulls estimated", isDefault: true, sortOrder: 2 },
-  { _id: "ds_5", category: "access", name: "Mobilization / Demobilization", status: "included" as ScopeStatus, cost: 3500, note: "", isDefault: true, sortOrder: 9 },
-  { _id: "ds_6", category: "protection", name: "Temporary waterproofing", status: "included" as ScopeStatus, cost: 6200, note: "Phased work requires temp", isDefault: true, sortOrder: 10 },
-  { _id: "ds_7", category: "flashing", name: "Penetration flashings (all)", status: "included" as ScopeStatus, cost: 0, note: "Included in membrane line item", isDefault: true, sortOrder: 18 },
-  { _id: "ds_8", category: "flashing", name: "Parapet wall flashing / coping", status: "included" as ScopeStatus, cost: 0, note: "Included in edge metal", isDefault: true, sortOrder: 19 },
-  { _id: "ds_9", category: "flashing", name: "Edge metal / Drip edge", status: "included" as ScopeStatus, cost: 0, note: "Included in materials tab", isDefault: true, sortOrder: 23 },
-  { _id: "ds_10", category: "warranty", name: "Manufacturer warranty inspection fee", status: "included" as ScopeStatus, cost: 3000, note: "Carlisle NDL warranty", isDefault: true, sortOrder: 25 },
-  { _id: "ds_11", category: "safety", name: "OSHA fall protection (guardrails, anchors)", status: "included" as ScopeStatus, cost: 4800, note: "Perimeter guardrails 4 weeks", isDefault: true, sortOrder: 29 },
-  { _id: "ds_12", category: "general", name: "Permits", status: "included" as ScopeStatus, cost: 1200, note: "City of JC building permit", isDefault: true, sortOrder: 33 },
-  { _id: "ds_13", category: "general", name: "Submittals / Shop drawings", status: "included" as ScopeStatus, cost: 0, note: "", isDefault: true, sortOrder: 36 },
-  { _id: "ds_14", category: "general", name: "Punch list / Final cleanup", status: "included" as ScopeStatus, cost: 0, note: "", isDefault: true, sortOrder: 38 },
-
-  // Excluded (4 items)
-  { _id: "ds_20", category: "demolition", name: "Hazmat / Asbestos abatement", status: "excluded" as ScopeStatus, note: "Not expected per Phase I report", isDefault: true, sortOrder: 3 },
-  { _id: "ds_21", category: "schedule", name: "Winter conditions premium", status: "excluded" as ScopeStatus, note: "Summer schedule", isDefault: true, sortOrder: 16 },
-  { _id: "ds_22", category: "safety", name: "Safety netting / Debris containment", status: "excluded" as ScopeStatus, note: "Not required per spec", isDefault: true, sortOrder: 30 },
-  { _id: "ds_23", category: "general", name: "Bonding (performance / payment)", status: "excluded" as ScopeStatus, note: "Not required", isDefault: true, sortOrder: 34 },
-
-  // By Others (3 items)
-  { _id: "ds_30", category: "access", name: "Crane / Hoist time", status: "by_others" as ScopeStatus, note: "GC providing per pre-bid meeting", isDefault: true, sortOrder: 5 },
-  { _id: "ds_31", category: "protection", name: "Interior protection", status: "by_others" as ScopeStatus, note: "GC responsibility", isDefault: true, sortOrder: 11 },
-  { _id: "ds_32", category: "flashing", name: "Counterflashing / reglet", status: "by_others" as ScopeStatus, note: "By sheet metal sub", isDefault: true, sortOrder: 20 },
-
-  // N/A (2 items)
-  { _id: "ds_40", category: "safety", name: "Hot work permits", status: "na" as ScopeStatus, note: "TPO — no torch work", isDefault: true, sortOrder: 32 },
-  { _id: "ds_41", category: "safety", name: "Fire watch", status: "na" as ScopeStatus, note: "TPO — no torch work", isDefault: true, sortOrder: 31 },
-
-  // Unaddressed (19 items)
-  { _id: "ds_50", category: "demolition", name: "Wet insulation removal", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 4 },
-  { _id: "ds_51", category: "access", name: "Roof access (ladder, stairs, hatch)", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 6 },
-  { _id: "ds_52", category: "access", name: "Material staging area", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 7 },
-  { _id: "ds_53", category: "access", name: "Material hoisting / conveyor", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 8 },
-  { _id: "ds_54", category: "protection", name: "Vapor barrier", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 12 },
-  { _id: "ds_55", category: "protection", name: "Dust / debris protection for occupied spaces", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 13 },
-  { _id: "ds_56", category: "schedule", name: "Phasing / Sequencing plan", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 14 },
-  { _id: "ds_57", category: "schedule", name: "After-hours / Weekend premium", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 15 },
-  { _id: "ds_58", category: "schedule", name: "Occupied building restrictions", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 17 },
-  { _id: "ds_59", category: "flashing", name: "Expansion joints / Area dividers", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 21 },
-  { _id: "ds_60", category: "flashing", name: "Sheet metal gutters / Downspouts", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 22 },
-  { _id: "ds_61", category: "flashing", name: "Scupper flashings", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 24 },
-  { _id: "ds_62", category: "warranty", name: "Extended warranty upgrade", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 26 },
-  { _id: "ds_63", category: "warranty", name: "Warranty-required details", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 27 },
-  { _id: "ds_64", category: "warranty", name: "As-built documentation / Photos", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 28 },
-  { _id: "ds_65", category: "general", name: "Insurance (additional insured)", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 35 },
-  { _id: "ds_66", category: "general", name: "Project management / Supervision", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 37 },
-  { _id: "ds_67", category: "general", name: "Testing (flood test, core cuts)", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 39 },
-  { _id: "ds_68", category: "general", name: "Owner / GC-required meetings", status: "unaddressed" as ScopeStatus, isDefault: true, sortOrder: 40 },
-];
+// Use centralized demo data
+const DEMO_SCOPE_ITEMS_DATA = IMPORTED_SCOPE;
 
 const STATUS_BUTTONS: { value: ScopeStatus; label: string; icon: string; activeClass: string }[] = [
   { value: "included", label: "Included", icon: "✅", activeClass: "bg-emerald-50 border-emerald-500 text-emerald-600" },
@@ -83,12 +34,12 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
   const deleteItem = useMutation(api.bidshield.deleteScopeItem);
 
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
-  const [filterStatus, setFilterStatus] = useState<ScopeStatus | "all">("unaddressed");
+  const [filterStatus, setFilterStatus] = useState<ScopeStatus | "all">("all");
   const [sortMode, setSortMode] = useState<"default" | "unaddressed_first">("unaddressed_first");
   const [isInitializing, setIsInitializing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedExclusions, setCopiedExclusions] = useState(false);
-  const [demoScopeState, setDemoScopeState] = useState<any[]>(DEMO_SCOPE_ITEMS);
+  const [demoScopeState, setDemoScopeState] = useState<any[]>(DEMO_SCOPE_ITEMS_DATA);
 
   // Debounced save refs (keyed by item ID to avoid cross-item cancellation)
   const costTimerRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());

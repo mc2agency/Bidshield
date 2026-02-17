@@ -37,10 +37,10 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
     !isDemo && userId ? { userId } : "skip"
   );
 
-  const grossRoofArea: number | null = isDemo ? 45000 : (project?.grossRoofArea ?? null);
+  const grossRoofArea: number | null = isDemo ? 68000 : (project?.grossRoofArea ?? null);
 
   const [demoPricing, setDemoPricing] = useState({
-    totalBidAmount: 850000 as number | undefined, materialCost: 425000 as number | undefined, laborCost: 340000 as number | undefined, otherCost: 85000 as number | undefined,
+    totalBidAmount: 1250000 as number | undefined, materialCost: 612000 as number | undefined, laborCost: 488000 as number | undefined, otherCost: 150000 as number | undefined,
     primaryAssembly: "TPO 60mil Mechanically Attached" as string | undefined,
     lossReason: undefined as string | undefined, lossReasonNote: undefined as string | undefined,
     actualCost: undefined as number | undefined, actualMaterialCost: undefined as number | undefined,

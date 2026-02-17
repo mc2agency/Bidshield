@@ -69,12 +69,12 @@ function ProjectDetail() {
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
 
   const projectData = isDemo
-    ? { name: "Harbor Point Tower", location: "Jersey City, NJ", bidDate: "2026-02-15",
-        status: "in_progress" as const, gc: "Turner Construction", sqft: 45000,
-        estimatedValue: 850000, assemblies: ["TPO 60mil", "Tapered ISO"],
-        notes: "Pre-bid meeting 2/5. Site visit scheduled 2/7.",
+    ? { name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
+        status: "in_progress" as const, gc: "Skanska USA", sqft: 68000,
+        estimatedValue: 1250000, assemblies: ["TPO 60mil", "Tapered ISO"],
+        notes: "Pre-bid walkthrough completed 2/12. Owner wants 20-yr NDL warranty. Existing roof has wet insulation in NE quadrant.",
         trade: "roofing", systemType: "tpo", deckType: "steel",
-        grossRoofArea: 45000, totalBidAmount: 850000, materialCost: 425000, laborCost: 340000 }
+        grossRoofArea: 68000, totalBidAmount: 1250000, materialCost: 612000, laborCost: 488000 }
     : project;
 
   const openTab = useCallback((tab: TabId) => setActiveTab(tab), []);
@@ -84,20 +84,20 @@ function ProjectDetail() {
     const items: ActionItem[] = [];
     const cl = isDemo ? [] : (checklist ?? []);
     const clTotal = isDemo ? 95 : cl.length;
-    const clDone = isDemo ? 65 : cl.filter((i: any) => i.status === "done" || i.status === "na").length;
+    const clDone = isDemo ? 68 : cl.filter((i: any) => i.status === "done" || i.status === "na").length;
     const clPct = clTotal > 0 ? Math.round((clDone / clTotal) * 100) : 0;
     const clPending = clTotal - clDone;
-    const clRfi = isDemo ? 4 : cl.filter((i: any) => i.status === "rfi").length;
+    const clRfi = isDemo ? 3 : cl.filter((i: any) => i.status === "rfi").length;
 
-    const sc = isDemo ? Array.from({ length: 40 }, (_, i) => ({ status: i < 12 ? "included" : i < 16 ? "excluded" : i < 19 ? "by_others" : i < 21 ? "na" : "unaddressed" })) : (scopeItems ?? []);
+    const sc = isDemo ? Array.from({ length: 40 }, (_, i) => ({ status: i < 14 ? "included" : i < 16 ? "excluded" : i < 18 ? "by_others" : i < 21 ? "na" : "unaddressed" })) : (scopeItems ?? []);
     const scTotal = sc.length;
     const scUnaddressed = sc.filter((s: any) => s.status === "unaddressed").length;
     const scPct = scTotal > 0 ? Math.round(((scTotal - scUnaddressed) / scTotal) * 100) : 100;
 
-    const demoSections = [{ squareFeet: 22000 }, { squareFeet: 12500 }, { squareFeet: 4200 }, { squareFeet: 2800 }];
+    const demoSections = [{ squareFeet: 28500 }, { squareFeet: 24800 }, { squareFeet: 8200 }, { squareFeet: 3400 }];
     const sections = isDemo ? demoSections : (takeoffSections ?? []);
     const takenOff = sections.reduce((sum: number, s: any) => sum + (s.squareFeet || 0), 0);
-    const controlSF = isDemo ? 45000 : (projectData as any)?.grossRoofArea ?? 0;
+    const controlSF = isDemo ? 68000 : (projectData as any)?.grossRoofArea ?? 0;
     const deltaSF = controlSF > 0 ? Math.abs(controlSF - takenOff) : 0;
     const deltaPct = controlSF > 0 ? (deltaSF / controlSF) * 100 : null;
 
