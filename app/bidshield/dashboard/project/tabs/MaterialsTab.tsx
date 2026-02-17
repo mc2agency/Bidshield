@@ -15,7 +15,7 @@ import {
   type MaterialTemplate,
 } from "@/lib/bidshield/material-templates";
 
-// Demo material data for Harbor Point Tower (TPO 60mil, 45,000 SF)
+// Demo material data for Meridian Business Park (TPO 60mil, 68,000 SF)
 const DEMO_MATERIALS = [
   { _id: "dm_1", templateKey: "tpo-60mil", category: "membrane", name: "TPO 60mil Membrane (10' wide)", unit: "RL", calcType: "coverage", quantity: 48, unitPrice: 285, totalCost: 13680, wasteFactor: 1.05, coverage: 1000 },
   { _id: "dm_2", templateKey: "iso-2.5in", category: "insulation", name: 'Polyiso 2.5" (4x8)', unit: "BD", calcType: "coverage", quantity: 1477, unitPrice: 34, totalCost: 50218, wasteFactor: 1.05, coverage: 32 },

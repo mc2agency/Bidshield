@@ -238,12 +238,12 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-slate-700 block mb-1">Project name *</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Harbor Point Tower" className={inputCls} autoFocus />
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Meridian Business Park" className={inputCls} autoFocus />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1">Location *</label>
-                    <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Jersey City, NJ" className={inputCls} />
+                    <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Charlotte, NC" className={inputCls} />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1">Bid date *</label>
@@ -253,16 +253,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1">General contractor</label>
-                    <input type="text" value={gc} onChange={(e) => setGc(e.target.value)} placeholder="Turner Construction" className={inputCls} />
+                    <input type="text" value={gc} onChange={(e) => setGc(e.target.value)} placeholder="Skanska USA" className={inputCls} />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-700 block mb-1">Roof area (SF)</label>
-                    <input type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} placeholder="45000" className={inputCls} />
+                    <input type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} placeholder="68000" className={inputCls} />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-700 block mb-1">Estimated bid value ($)</label>
-                  <input type="number" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="850000" className={inputCls} />
+                  <input type="number" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="1250000" className={inputCls} />
                 </div>
               </div>
             </div>

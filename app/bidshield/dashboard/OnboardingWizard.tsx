@@ -225,7 +225,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     type="text"
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
-                    placeholder="e.g. Harbor Point Tower"
+                    placeholder="e.g. Meridian Business Park"
                     className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
                   />
                 </div>
@@ -237,7 +237,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. Jersey City, NJ"
+                    placeholder="e.g. Charlotte, NC"
                     className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
                   />
                 </div>
@@ -261,7 +261,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                       type="number"
                       value={sqft}
                       onChange={(e) => setSqft(e.target.value)}
-                      placeholder="e.g. 45000"
+                      placeholder="e.g. 68000"
                       className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
                     />
                   </div>
@@ -274,7 +274,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     type="text"
                     value={gc}
                     onChange={(e) => setGc(e.target.value)}
-                    placeholder="e.g. Turner Construction"
+                    placeholder="e.g. Skanska USA"
                     className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
                   />
                 </div>

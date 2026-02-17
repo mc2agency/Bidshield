@@ -39,14 +39,14 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const demoSections = [{ squareFeet: 22000 }, { squareFeet: 12500 }, { squareFeet: 4200 }, { squareFeet: 2800 }];
   const sections = isDemo ? demoSections : (takeoffSections ?? []);
   const takenOff = sections.reduce((sum: number, s: any) => sum + (s.squareFeet || 0), 0);
-  const controlSF = isDemo ? 45000 : project?.grossRoofArea ?? 0;
+  const controlSF = isDemo ? 68000 : project?.grossRoofArea ?? 0;
   const deltaSF = controlSF > 0 ? Math.abs(controlSF - takenOff) : 0;
   const deltaPct = controlSF > 0 ? Math.abs((controlSF - takenOff) / controlSF) * 100 : null;
 
-  const bidAmt = isDemo ? 850000 : project?.totalBidAmount;
+  const bidAmt = isDemo ? 1250000 : project?.totalBidAmount;
   const matCost = isDemo ? 425000 : project?.materialCost;
   const labCost = isDemo ? 340000 : project?.laborCost;
-  const grossArea = isDemo ? 45000 : project?.grossRoofArea;
+  const grossArea = isDemo ? 68000 : project?.grossRoofArea;
   const dpsf = bidAmt && grossArea && grossArea > 0 ? bidAmt / grossArea : null;
   const pricingComplete = !!(bidAmt && bidAmt > 0 && matCost && labCost);
 

@@ -20,8 +20,8 @@ function ExportContent() {
 
   // Demo data
   const project = isDemo ? {
-    name: "Harbor Point Tower", location: "Jersey City, NJ", bidDate: "2026-02-15",
-    gc: "Turner Construction", sqft: 45000, totalBidAmount: 850000,
+    name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
+    gc: "Skanska USA", sqft: 68000, totalBidAmount: 1250000,
     systemType: "TPO", deckType: "Steel", assemblies: ["TPO 60mil", "Tapered ISO"],
     materialCost: 425000, laborCost: 340000, notes: "Pre-bid meeting 2/5. Site visit scheduled 2/7.",
   } : projectData;
