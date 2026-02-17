@@ -74,6 +74,7 @@ function ProjectDetail() {
         estimatedValue: 1250000, assemblies: ["TPO 60mil", "Tapered ISO"],
         notes: "Pre-bid walkthrough completed 2/12. Owner wants 20-yr NDL warranty. Existing roof has wet insulation in NE quadrant.",
         trade: "roofing", systemType: "tpo", deckType: "steel",
+        primaryAssembly: "TPO 60mil Mechanically Attached",
         grossRoofArea: 68000, totalBidAmount: 1250000, materialCost: 612000, laborCost: 488000 }
     : project;
 
@@ -282,13 +283,35 @@ function ProjectDetail() {
           );
         })()}
 
-        {((projectData as any)?.totalBidAmount || (projectData as any)?.grossRoofArea) && (
-          <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-            {(projectData as any)?.totalBidAmount && <span className="bg-white px-3 py-1.5 rounded-lg border border-slate-100">${(projectData as any).totalBidAmount.toLocaleString()}</span>}
-            {(projectData as any)?.grossRoofArea && <span className="bg-white px-3 py-1.5 rounded-lg border border-slate-100">{(projectData as any).grossRoofArea.toLocaleString()} SF</span>}
-            {(projectData as any)?.systemType && <span className="bg-white px-3 py-1.5 rounded-lg border border-slate-100 uppercase">{(projectData as any).systemType}</span>}
+        {/* Project info */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3">
+          {/* Primary Assembly — prominent */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Roof System</span>
+            <span className="text-sm font-semibold text-slate-900">{(projectData as any)?.primaryAssembly || (projectData as any)?.systemType?.toUpperCase() || "Not set"}</span>
           </div>
-        )}
+          <div className="h-px bg-slate-100" />
+          <div className="grid grid-cols-3 gap-3 text-center">
+            {(projectData as any)?.grossRoofArea && (
+              <div>
+                <div className="text-sm font-bold text-slate-900">{(projectData as any).grossRoofArea.toLocaleString()}</div>
+                <div className="text-[10px] text-slate-400">SQ FT</div>
+              </div>
+            )}
+            {(projectData as any)?.totalBidAmount && (
+              <div>
+                <div className="text-sm font-bold text-slate-900">${((projectData as any).totalBidAmount / 1000).toFixed(0)}K</div>
+                <div className="text-[10px] text-slate-400">BID AMT</div>
+              </div>
+            )}
+            {(projectData as any)?.grossRoofArea && (projectData as any)?.totalBidAmount && (
+              <div>
+                <div className="text-sm font-bold text-slate-900">${((projectData as any).totalBidAmount / (projectData as any).grossRoofArea).toFixed(2)}</div>
+                <div className="text-[10px] text-slate-400">$/SF</div>
+              </div>
+            )}
+          </div>
+        </div>
 
         {(projectData as any)?.notes && (
           <div className="bg-white rounded-lg p-3 border border-slate-100">
