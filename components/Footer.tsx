@@ -47,7 +47,7 @@ export default function Footer() {
               <span className="text-2xl">🛡️</span>
               <div className="flex flex-col leading-none">
                 <span className="text-xl font-bold text-white">BidShield</span>
-                <span className="text-[10px] text-slate-400">by MC2 Estimating</span>
+                <span className="text-[10px] text-slate-400">by MC2Agency</span>
               </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
@@ -89,7 +89,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="pt-8 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
-            &copy; {new Date().getFullYear()} MC2 Estimating. All rights reserved.
+            &copy; {new Date().getFullYear()} MC2Agency LLC. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-slate-500">
             <Link href="/terms" className="hover:text-emerald-400 transition-colors">Terms</Link>

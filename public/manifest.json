@@ -1,7 +1,7 @@
 {
   "name": "BidShield — Bid QA for Commercial Roofing",
   "short_name": "BidShield",
-  "description": "Catch bidding mistakes before they cost money. Checklist, scope gap checker, takeoff reconciliation, bid validator.",
+  "description": "Catch bidding mistakes before they cost money. 5-phase guided workflow, readiness scoring, scope gap checker, bid validator.",
   "start_url": "/bidshield/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",

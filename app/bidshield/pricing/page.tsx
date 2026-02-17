@@ -105,7 +105,7 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-xl font-bold text-slate-900">BidShield</span>
-            <span className="text-xs text-slate-400">by MC2 Estimating</span>
+            <span className="text-xs text-slate-400">by MC2Agency</span>
           </Link>
           <Link
             href={isSignedIn ? "/bidshield/dashboard" : "/sign-in"}

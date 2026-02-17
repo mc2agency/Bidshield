@@ -59,7 +59,7 @@ export default function Navigation() {
               <span className="text-2xl">🛡️</span>
               <div className="flex flex-col leading-none">
                 <span className="text-lg font-bold text-white tracking-tight">BidShield</span>
-                <span className="text-[10px] text-slate-400">by MC2 Estimating</span>
+                <span className="text-[10px] text-slate-400">by MC2Agency</span>
               </div>
             </Link>
           </div>
