@@ -117,48 +117,33 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">Addenda Tracker</h2>
-          <p className="text-sm text-slate-500 mt-1">Track all addenda and their impact on your bid</p>
+      {/* Focused summary */}
+      {pendingRePrice > 0 ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="text-sm font-bold text-red-800">{pendingRePrice} addend{pendingRePrice > 1 ? "a" : "um"} needs re-pricing</div>
+          <p className="text-xs text-red-600 mt-1">Scope-affecting changes without updated pricing are bid blockers</p>
+          {netPriceImpact !== 0 && (
+            <div className="mt-2 text-xs text-red-700">
+              Net impact: <span className="font-bold">{netPriceImpact > 0 ? "+" : ""}${netPriceImpact.toLocaleString()}</span>
+            </div>
+          )}
         </div>
+      ) : totalAddenda > 0 ? (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div className="text-sm font-bold text-emerald-700">All {totalAddenda} addenda reviewed ✓</div>
+          <div className="text-xs text-emerald-600 mt-0.5">{scopeAffecting} affect scope · {repricedCount} re-priced</div>
+        </div>
+      ) : null}
+
+      {/* Add button */}
+      <div className="flex justify-between items-center">
+        <span className="text-xs text-slate-400">{totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"}</span>
         {!isDemo && (
-          <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">
+          <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors">
             + Add Addendum
           </button>
         )}
       </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className="text-2xl font-bold text-slate-900">{totalAddenda}</div>
-          <div className="text-[11px] text-slate-500">Total Addenda</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className={`text-2xl font-bold ${scopeAffecting > 0 ? "text-amber-600" : "text-slate-500"}`}>{scopeAffecting}</div>
-          <div className="text-[11px] text-slate-500">Affect Scope</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className="text-2xl font-bold text-emerald-600">{repricedCount}</div>
-          <div className="text-[11px] text-slate-500">Re-priced</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className={`text-2xl font-bold ${pendingRePrice > 0 ? "text-red-600" : "text-emerald-600"}`}>{pendingRePrice}</div>
-          <div className="text-[11px] text-slate-500">Pending Re-price</div>
-        </div>
-      </div>
-
-      {/* Net Price Impact */}
-      {netPriceImpact !== 0 && (
-        <div className="bg-white rounded-lg p-3 border border-slate-200 text-center">
-          <span className="text-sm text-slate-500">Net Price Impact: </span>
-          <span className={`text-sm font-bold ${netPriceImpact > 0 ? "text-red-600" : "text-emerald-600"}`}>
-            {netPriceImpact > 0 ? "+" : ""}${netPriceImpact.toLocaleString()}
-          </span>
-        </div>
-      )}
 
       {/* Warning Banner */}
       {warningItems.length > 0 && (

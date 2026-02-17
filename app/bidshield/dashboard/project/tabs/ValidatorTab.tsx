@@ -221,43 +221,43 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold text-slate-900">Bid Readiness Validator</h2>
-
       {scoreData ? (
-        <div className="flex flex-col gap-6">
-          <div className="bg-white rounded-xl p-6 border border-slate-200 flex flex-col sm:flex-row items-center gap-6">
-            <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center ${gradeColors[scoreData.grade] || gradeColors.F}`}>
-              <span className="text-4xl font-bold">{scoreData.grade}</span>
-            </div>
-            <div className="flex-1 text-center sm:text-left">
-              <div className="text-lg font-semibold text-slate-900">{projectData?.name || "Project"}</div>
-              <div className="text-sm text-slate-500 mt-1">
-                Readiness Score: <span className="font-bold text-slate-900">{scoreData.score}/100</span>
+        <div className="flex flex-col gap-4">
+          {/* Focused status */}
+          {scoreData.items.filter(i => i.status === "fail").length > 0 ? (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-bold text-red-800">Not ready — {scoreData.items.filter(i => i.status === "fail").length} checks failing</div>
+                  <p className="text-xs text-red-600 mt-0.5">Fix these before submitting your bid</p>
+                </div>
+                <div className="text-2xl font-extrabold text-red-600">{scoreData.score}<span className="text-sm font-normal text-red-400">/100</span></div>
               </div>
-              <div className="w-full max-w-xs h-3 bg-slate-100 rounded-full overflow-hidden mt-2">
-                <div className={`h-full rounded-full transition-all ${scoreData.score >= 90 ? "bg-emerald-500" : scoreData.score >= 65 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${scoreData.score}%` }} />
+              <div className="h-2 bg-red-100 rounded-full overflow-hidden mt-3">
+                <div className={`h-full rounded-full ${scoreData.score >= 90 ? "bg-emerald-500" : scoreData.score >= 65 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${scoreData.score}%` }} />
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-slate-900">{scoreData.items.filter(i => i.status === "pass").length}</div>
-              <div className="text-xs text-slate-500">of {scoreData.items.length} checks passed</div>
+          ) : scoreData.items.filter(i => i.status === "warn").length > 0 ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-bold text-amber-800">Ready with {scoreData.items.filter(i => i.status === "warn").length} warnings</div>
+                  <p className="text-xs text-amber-600 mt-0.5">Review warnings before submitting</p>
+                </div>
+                <div className="text-2xl font-extrabold text-amber-600">{scoreData.score}<span className="text-sm font-normal text-amber-400">/100</span></div>
+              </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-red-50 border border-red-500/30 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">{scoreData.items.filter(i => i.status === "fail").length}</div>
-              <div className="text-[11px] text-slate-500">Must Fix</div>
+          ) : (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-bold text-emerald-700">All {scoreData.items.length} checks passing ✓</div>
+                  <p className="text-xs text-emerald-600 mt-0.5">Bid is ready to submit</p>
+                </div>
+                <div className="text-2xl font-extrabold text-emerald-600">{scoreData.score}<span className="text-sm font-normal text-emerald-400">/100</span></div>
+              </div>
             </div>
-            <div className="bg-amber-50 border border-amber-500/30 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-amber-600">{scoreData.items.filter(i => i.status === "warn").length}</div>
-              <div className="text-[11px] text-slate-500">Warnings</div>
-            </div>
-            <div className="bg-emerald-50 border border-emerald-500/30 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">{scoreData.items.filter(i => i.status === "pass").length}</div>
-              <div className="text-[11px] text-slate-500">Passed</div>
-            </div>
-          </div>
+          )}
 
           <div className="flex flex-col gap-3">
             {scoreData.items.filter(i => i.status === "fail").map((item, idx) => (

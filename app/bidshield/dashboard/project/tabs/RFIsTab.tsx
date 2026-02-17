@@ -118,35 +118,38 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
     answered: rfis.filter((r: { status: string }) => r.status === "answered").length,
     closed: rfis.filter((r: { status: string }) => r.status === "closed").length,
   };
+  const pendingCount = statusCounts.draft + statusCounts.sent;
+  const items = rfis;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">📨 RFIs — {project?.name || "Project"}</h2>
-          <p className="text-sm text-slate-500">Track questions sent to GCs, architects, and engineers</p>
+      {/* Focused summary */}
+      {pendingCount > 0 ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="text-sm font-bold text-blue-800">{pendingCount} RFI{pendingCount > 1 ? "s" : ""} awaiting response</div>
+          <p className="text-xs text-blue-600 mt-1">Open questions can affect your pricing — track responses before submitting</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          disabled={isDemo}
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-slate-900 text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
-        >
+      ) : items.length > 0 ? (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div className="text-sm font-bold text-emerald-700">All RFIs resolved ✓</div>
+        </div>
+      ) : null}
+
+      <div className="flex justify-between items-center">
+        <div className="flex flex-wrap gap-1.5">
+          {(["all", "draft", "sent", "answered", "closed"] as const).map((s) => (
+            <button key={s} onClick={() => setFilter(s)}
+              className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
+                filter === s ? "bg-slate-900 text-white" : "bg-white text-slate-500 hover:text-slate-900 border border-slate-200"
+              }`}>
+              {s === "all" ? "All" : statusConfig[s].label} ({statusCounts[s]})
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setShowCreateModal(true)} disabled={isDemo}
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 shrink-0 ml-2">
           + New RFI
         </button>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {(["all", "draft", "sent", "answered", "closed"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
-              filter === s ? "bg-emerald-600 text-slate-900" : "bg-white text-slate-500 hover:text-slate-900"
-            }`}
-          >
-            {s === "all" ? "All" : statusConfig[s].label} ({statusCounts[s]})
-          </button>
-        ))}
       </div>
 
       {filteredRFIs.length === 0 ? (

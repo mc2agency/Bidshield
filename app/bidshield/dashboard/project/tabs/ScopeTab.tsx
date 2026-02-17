@@ -252,41 +252,44 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Compact summary + controls row */}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2 bg-white rounded-lg p-3 border border-slate-200">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all ${addressedPct === 100 ? "bg-emerald-500" : addressedPct >= 80 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${addressedPct}%` }} />
-              </div>
-              <span className={`text-xs font-bold ${addressedPct === 100 ? "text-emerald-600" : "text-amber-600"}`}>{addressedPct}%</span>
-            </div>
-            <div className="flex gap-2 text-[10px]">
-              <span className="text-emerald-600 font-medium">{includedItems.length} incl</span>
-              <span className="text-red-500 font-medium">{excludedItems.length} excl</span>
-              <span className="text-blue-500 font-medium">{byOthersItems.length} others</span>
-              {unaddressedItems.length > 0 && <span className="text-amber-600 font-semibold">{unaddressedItems.length} unaddressed</span>}
-            </div>
+      {/* Focused summary — what you're here to do */}
+      {unaddressedItems.length > 0 ? (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-amber-800">
+              {unaddressedItems.length} scope items need a decision
+            </span>
+            <span className="text-xs font-bold text-amber-600">{addressedPct}% addressed</span>
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as ScopeStatus | "all")}
-              className="bg-white text-[11px] text-slate-600 rounded-md px-2 py-1.5 border border-slate-200"
-            >
-              <option value="all">All ({totalCount})</option>
-              <option value="unaddressed">Unaddressed ({unaddressedItems.length})</option>
-              <option value="included">Included ({includedItems.length})</option>
-              <option value="excluded">Excluded ({excludedItems.length})</option>
-              <option value="by_others">By Others ({byOthersItems.length})</option>
-              <option value="na">N/A ({naItems.length})</option>
-            </select>
-            <button onClick={() => setShowAddModal(true)} className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-md text-[11px] font-medium hover:bg-emerald-500 transition-colors">
-              + Add
-            </button>
+          <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${addressedPct >= 80 ? "bg-emerald-500" : "bg-amber-500"}`} style={{ width: `${addressedPct}%` }} />
+          </div>
+          <p className="text-xs text-amber-700 mt-2">For each item: mark as Included, Excluded, By Others, or N/A</p>
+        </div>
+      ) : (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-bold text-emerald-700">All scope items addressed ✓</div>
+              <div className="text-xs text-emerald-600 mt-0.5">{includedItems.length} included · {excludedItems.length} excluded · {byOthersItems.length} by others</div>
+            </div>
+            <span className="text-2xl">✅</span>
           </div>
         </div>
+      )}
+
+      {/* Controls row */}
+      <div className="flex items-center gap-2">
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as ScopeStatus | "all")}
+          className="bg-white text-xs text-slate-600 rounded-lg px-3 py-2 border border-slate-200 flex-1">
+          <option value="all">All ({totalCount})</option>
+          <option value="unaddressed">Unaddressed ({unaddressedItems.length})</option>
+          <option value="included">Included ({includedItems.length})</option>
+          <option value="excluded">Excluded ({excludedItems.length})</option>
+          <option value="by_others">By Others ({byOthersItems.length})</option>
+          <option value="na">N/A ({naItems.length})</option>
+        </select>
+        <button onClick={() => setShowAddModal(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-500">+ Add</button>
       </div>
 
       {/* Scope Items by Category */}
@@ -421,65 +424,51 @@ function ScopeItemRow({
   const isIncluded = item.status === "included";
 
   return (
-    <div className={`px-3 py-2 border-l-3 ${isUnaddressed ? "border-l-amber-500/60 bg-amber-500/5" : "border-l-transparent"} hover:bg-slate-50/50`}>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
-        {/* Name + unaddressed badge */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-700 truncate">{item.name}</span>
-            {isUnaddressed && <span className="text-[9px] bg-amber-50 text-amber-600 px-1 py-0.5 rounded font-semibold shrink-0">!</span>}
-            {!item.isDefault && <span className="text-[9px] bg-violet-50 text-violet-600 px-1 py-0.5 rounded shrink-0">Custom</span>}
-          </div>
+    <div className={`px-4 py-3 ${isUnaddressed ? "bg-amber-50/50" : ""}`}>
+      {/* Item name */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-sm text-slate-800 font-medium">{item.name}</span>
+          {!item.isDefault && <span className="text-[9px] bg-violet-50 text-violet-600 px-1 py-0.5 rounded shrink-0">Custom</span>}
         </div>
-
-        {/* Status buttons */}
-        <div className="flex items-center gap-1 shrink-0">
-          {STATUS_BUTTONS.map((btn) => {
-            const isActive = item.status === btn.value;
-            return (
-              <button
-                key={btn.value}
-                onClick={() => onStatusChange(item, btn.value)}
-                title={btn.label}
-                className={`px-2 py-0.5 text-[10px] font-medium rounded border transition-all ${
-                  isActive
-                    ? btn.activeClass
-                    : "bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600"
-                }`}
-              >
-                {btn.icon} <span className="hidden sm:inline">{btn.label}</span>
-              </button>
-            );
-          })}
-          {onDelete && (
-            <button onClick={onDelete} className="text-red-600/40 hover:text-red-600 text-xs ml-1" title="Delete custom item">
-              ×
-            </button>
-          )}
-        </div>
+        {onDelete && (
+          <button onClick={onDelete} className="text-red-600/40 hover:text-red-600 text-xs" title="Delete">×</button>
+        )}
       </div>
 
-      {/* Cost + Note row */}
-      <div className="flex items-center gap-2 mt-1">
+      {/* Status buttons — full width, big tappable */}
+      <div className="flex gap-1.5">
+        {STATUS_BUTTONS.map((btn) => {
+          const isActive = item.status === btn.value;
+          return (
+            <button
+              key={btn.value}
+              onClick={() => onStatusChange(item, btn.value)}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-all ${
+                isActive
+                  ? btn.activeClass
+                  : "bg-white border-slate-200 text-slate-400 hover:border-slate-300 active:scale-95"
+              }`}
+            >
+              {btn.icon} {btn.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Cost + Note */}
+      <div className="flex items-center gap-2 mt-2">
         {isIncluded && (
           <div className="flex items-center gap-0.5">
-            <span className="text-[10px] text-slate-400">$</span>
-            <input
-              type="number"
-              defaultValue={item.cost || ""}
-              placeholder="0"
+            <span className="text-xs text-slate-400">$</span>
+            <input type="number" defaultValue={item.cost || ""} placeholder="0"
               onBlur={(e) => onCostChange(item, e.target.value)}
-              className="w-16 bg-slate-50 text-xs text-emerald-600 text-right rounded px-1.5 py-0.5 border border-slate-200 focus:border-emerald-500 focus:outline-none"
-            />
+              className="w-20 bg-white text-sm text-emerald-600 text-right rounded-lg px-2 py-1 border border-slate-200 focus:border-emerald-500 focus:outline-none" />
           </div>
         )}
-        <input
-          type="text"
-          defaultValue={item.note || ""}
-          placeholder="Note..."
+        <input type="text" defaultValue={item.note || ""} placeholder="Add note..."
           onBlur={(e) => onNoteChange(item, e.target.value)}
-          className="flex-1 bg-transparent text-[11px] text-slate-500 placeholder:text-slate-400 px-1.5 py-0.5 rounded border border-transparent hover:border-slate-200 focus:border-slate-300 focus:outline-none"
-        />
+          className="flex-1 bg-transparent text-xs text-slate-500 placeholder:text-slate-300 px-2 py-1 rounded-lg border border-transparent hover:border-slate-200 focus:border-slate-300 focus:outline-none" />
       </div>
     </div>
   );

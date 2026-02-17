@@ -99,35 +99,27 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Compact header: progress + filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl p-3 border border-slate-200">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-28 h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${overall >= 80 ? "bg-emerald-500" : overall >= 40 ? "bg-amber-500" : "bg-slate-400"}`} style={{ width: `${overall}%` }} />
-            </div>
-            <span className={`text-sm font-bold tabular-nums ${overall >= 80 ? "text-emerald-600" : overall >= 40 ? "text-amber-600" : "text-slate-500"}`}>{overall}%</span>
+      {/* Focused summary — what you're here to do */}
+      {overall < 100 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-amber-800">
+              {resolvedItems.filter((i: any) => i.status !== "done" && i.status !== "na").length} items need your review
+            </span>
+            <span className="text-xs font-bold text-amber-600">{overall}% done</span>
           </div>
-          <span className="text-[10px] text-slate-400">{completeCount}/{Object.keys(checklistTemplate).length} phases done</span>
+          <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${overall >= 80 ? "bg-emerald-500" : "bg-amber-500"}`} style={{ width: `${overall}%` }} />
+          </div>
+          <p className="text-xs text-amber-700 mt-2">Tap any item to cycle: pending → done → RFI → N/A</p>
         </div>
-
-        {/* Filter pills */}
-        <div className="flex gap-1">
-          {(["incomplete", "all", "complete"] as FilterMode[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all capitalize ${
-                filter === f
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "text-slate-500 hover:bg-slate-100"
-              }`}
-            >
-              {f === "incomplete" ? `Needs Work (${incompleteCount})` : f === "complete" ? `Done (${completeCount})` : "All"}
-            </button>
-          ))}
+      )}
+      {overall >= 100 && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+          <div className="text-2xl mb-1">✅</div>
+          <div className="text-sm font-bold text-emerald-700">All checklist items complete</div>
         </div>
-      </div>
+      )}
 
       {/* Phases */}
       {phaseEntries.length === 0 && (
@@ -181,15 +173,15 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
                       <div
                         key={item.id}
                         onClick={() => cycleStatus(phaseKey, item.id)}
-                        className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors active:bg-slate-100"
                       >
-                        <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold ring-1 flex-shrink-0 ${config.color} ${config.bg} ${config.ring}`}>
+                        <span className={`w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold ring-1 flex-shrink-0 ${config.color} ${config.bg} ${config.ring}`}>
                           {config.icon}
                         </span>
-                        <span className={`text-xs flex-1 ${status === "done" || status === "na" ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                        <span className={`text-sm flex-1 ${status === "done" || status === "na" ? "text-slate-400 line-through" : "text-slate-700"}`}>
                           {item.text}
                         </span>
-                        {status === "rfi" && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">RFI</span>}
+                        {status === "rfi" && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold flex-shrink-0">RFI</span>}
                       </div>
                     );
                   })}
