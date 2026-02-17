@@ -302,6 +302,56 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
               </div>
             ))}
           </div>
+
+          {/* ── SUBMIT GATE + EXPORT ── */}
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            {scoreData.items.some(i => i.status === "fail") ? (
+              <div className="text-center">
+                <div className="text-3xl mb-2">🚫</div>
+                <h3 className="text-sm font-bold text-red-600 uppercase">Not Ready to Submit</h3>
+                <p className="text-xs text-slate-500 mt-1 mb-4">Resolve all failing checks before exporting your bid package.</p>
+                <div className="flex gap-3 justify-center">
+                  <a
+                    href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`}
+                    target="_blank"
+                    className="px-5 py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
+                  >
+                    📄 Export Draft (with warnings)
+                  </a>
+                </div>
+              </div>
+            ) : scoreData.items.some(i => i.status === "warn") ? (
+              <div className="text-center">
+                <div className="text-3xl mb-2">⚠️</div>
+                <h3 className="text-sm font-bold text-amber-600 uppercase">Ready with Warnings</h3>
+                <p className="text-xs text-slate-500 mt-1 mb-4">No blockers, but {scoreData.items.filter(i => i.status === "warn").length} item{scoreData.items.filter(i => i.status === "warn").length > 1 ? "s" : ""} should be reviewed.</p>
+                <div className="flex gap-3 justify-center">
+                  <a
+                    href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`}
+                    target="_blank"
+                    className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+                  >
+                    📄 Export Bid Summary
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div className="text-3xl mb-2">✅</div>
+                <h3 className="text-sm font-bold text-emerald-600 uppercase">Ready to Submit</h3>
+                <p className="text-xs text-slate-500 mt-1 mb-4">All checks passed. Your bid is ready.</p>
+                <div className="flex gap-3 justify-center">
+                  <a
+                    href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`}
+                    target="_blank"
+                    className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+                  >
+                    📄 Export Bid Summary
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="text-center py-20 bg-white rounded-xl border border-slate-200">
