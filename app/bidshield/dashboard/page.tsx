@@ -6,8 +6,8 @@ import { useAuth } from "@/lib/auth-shim";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { trades } from "@/convex/bidshieldDefaults";
 import OnboardingWizard from "./OnboardingWizard";
+import NewBidWizard from "./NewBidWizard";
 
 interface BidProject {
   _id: Id<"bidshield_projects">;
@@ -176,103 +176,6 @@ function ProjectCard({ project, isDemo, onStatusChange, router }: {
 }
 
 // ============================================================
-// NEW PROJECT MODAL
-// ============================================================
-function NewProjectModal({ isDemo, onClose, onCreate }: {
-  isDemo: boolean;
-  onClose: () => void;
-  onCreate: (project: any) => void;
-}) {
-  const [np, setNp] = useState({
-    name: "", location: "", bidDate: "", trade: "roofing",
-    systemType: "", deckType: "", gc: "", sqft: "", assemblies: "", estimatedValue: "",
-  });
-  const selectedTrade = trades.find((t) => t.id === np.trade);
-  const inputCls = "w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-slate-400";
-
-  return (
-    <div onClick={onClose} className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 pb-0">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">New Bid Project</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Fill in the project details to get started</p>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-        <div className="p-6 flex flex-col gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Project Name *</label>
-            <input type="text" value={np.name} onChange={(e) => setNp({ ...np, name: e.target.value })} placeholder="550 Harbor Point Tower" className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Trade *</label>
-            <select value={np.trade} onChange={(e) => setNp({ ...np, trade: e.target.value, systemType: "", deckType: "" })} className={inputCls}>
-              {trades.map((t) => (<option key={t.id} value={t.id} disabled={!t.available}>{t.label}{!t.available ? " (Coming Soon)" : ""}</option>))}
-            </select>
-          </div>
-          {selectedTrade && selectedTrade.systemTypes.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">System Type</label>
-                <select value={np.systemType} onChange={(e) => setNp({ ...np, systemType: e.target.value })} className={inputCls}>
-                  <option value="">Select system</option>
-                  {selectedTrade.systemTypes.map((s) => (<option key={s.id} value={s.id}>{s.label}</option>))}
-                </select>
-              </div>
-              {selectedTrade.deckTypes.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Deck Type</label>
-                  <select value={np.deckType} onChange={(e) => setNp({ ...np, deckType: e.target.value })} className={inputCls}>
-                    <option value="">Select deck</option>
-                    {selectedTrade.deckTypes.map((d) => (<option key={d.id} value={d.id}>{d.label}</option>))}
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Location *</label>
-              <input type="text" value={np.location} onChange={(e) => setNp({ ...np, location: e.target.value })} placeholder="Jersey City, NJ" className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Bid Date *</label>
-              <input type="date" value={np.bidDate} onChange={(e) => setNp({ ...np, bidDate: e.target.value })} className={inputCls} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">General Contractor</label>
-              <input type="text" value={np.gc} onChange={(e) => setNp({ ...np, gc: e.target.value })} placeholder="ABC Construction" className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Square Footage</label>
-              <input type="number" value={np.sqft} onChange={(e) => setNp({ ...np, sqft: e.target.value })} placeholder="15000" className={inputCls} />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Estimated Value ($)</label>
-            <input type="number" value={np.estimatedValue} onChange={(e) => setNp({ ...np, estimatedValue: e.target.value })} placeholder="500000" className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Assemblies</label>
-            <input type="text" value={np.assemblies} onChange={(e) => setNp({ ...np, assemblies: e.target.value })} placeholder="RT-1 TPO, RT-2 Modified Bitumen" className={inputCls} />
-            <p className="text-xs text-slate-400 mt-1">Comma-separated assembly names</p>
-          </div>
-        </div>
-        <div className="flex gap-3 justify-end p-6 pt-2 border-t border-slate-100">
-          <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
-          <button onClick={() => onCreate(np)} disabled={!np.name || !np.location || !np.bidDate} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm transition-colors shadow-sm">Create Project</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
 // MAIN DASHBOARD
 // ============================================================
 function DashboardContent() {
@@ -306,17 +209,20 @@ function DashboardContent() {
 
   const handleCreateProject = async (np: any) => {
     if (!np.name || !np.location || !np.bidDate) return;
-    if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true#checklist`); return; }
+    if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
     if (!userId) return;
     const projectId = await createProjectMut({
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
-      trade: np.trade || "roofing", systemType: np.systemType || undefined, deckType: np.deckType || undefined,
-      gc: np.gc || undefined, sqft: np.sqft ? parseInt(np.sqft) : undefined,
+      trade: np.trade || "roofing",
+      systemType: np.systemType || undefined,
+      deckType: np.deckType || undefined,
+      gc: np.gc || undefined,
+      sqft: np.sqft ? parseInt(np.sqft) : undefined,
       estimatedValue: np.estimatedValue ? parseInt(np.estimatedValue) : undefined,
-      assemblies: np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean),
+      assemblies: np.assemblies ? np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean) : [],
     });
     setShowNewProject(false);
-    router.push(`/bidshield/dashboard/project?id=${projectId}#checklist`);
+    router.push(`/bidshield/dashboard/project?id=${projectId}`);
   };
 
   const handleStatusChange = async (projectId: Id<"bidshield_projects">, status: "won" | "lost") => {
@@ -466,7 +372,7 @@ function DashboardContent() {
         </div>
       )}
 
-      {showNewProject && <NewProjectModal isDemo={isDemo} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
+      {showNewProject && <NewBidWizard isDemo={isDemo} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
     </div>
   );
 }
