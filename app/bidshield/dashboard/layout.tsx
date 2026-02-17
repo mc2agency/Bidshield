@@ -29,16 +29,16 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   if (!mounted) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-slate-900">
-        <div className="text-white text-lg">Loading BidShield...</div>
+      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
+        <div className="text-slate-500 text-lg">Loading BidShield...</div>
       </div>
     );
   }
 
   if (!isLoaded && !isDemo) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-slate-900">
-        <div className="text-white text-lg">Loading BidShield...</div>
+      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
+        <div className="text-slate-500 text-lg">Loading BidShield...</div>
       </div>
     );
   }
@@ -48,16 +48,16 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-[60vh] flex flex-col bg-slate-900 text-white">
+    <div className="min-h-[60vh] flex flex-col bg-slate-50">
       {isDemo && (
-        <div className="bg-amber-500 text-black text-center py-2 text-sm font-medium">
+        <div className="bg-emerald-600 text-white text-center py-2.5 text-sm font-medium">
           🎯 You&apos;re viewing a demo project — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to create your own
         </div>
       )}
 
       <main className="flex-1 p-6 max-w-[1400px] mx-auto w-full">{children}</main>
 
-      <footer className="flex justify-between px-6 py-4 border-t border-slate-700 text-xs text-slate-500">
+      <footer className="flex justify-between px-6 py-4 border-t border-slate-200 text-xs text-slate-400 bg-white">
         <span>BidShield by MC2 Estimating</span>
         <span>Protecting contractors from costly bidding errors</span>
       </footer>
@@ -68,8 +68,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={
-      <div className="min-h-[60vh] flex items-center justify-center bg-slate-900">
-        <div className="text-white text-lg">Loading BidShield...</div>
+      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
+        <div className="text-slate-500 text-lg">Loading BidShield...</div>
       </div>
     }>
       <DashboardContent>{children}</DashboardContent>
