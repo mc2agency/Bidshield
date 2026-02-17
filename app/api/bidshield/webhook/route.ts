@@ -3,13 +3,19 @@ import Stripe from "stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia" as any,
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-12-18.acacia" as any });
+}
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+function getConvex() {
+  if (!process.env.NEXT_PUBLIC_CONVEX_URL) throw new Error("CONVEX_URL not configured");
+  return new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL);
+}
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe();
+  const convex = getConvex();
   const body = await req.text();
   const sig = req.headers.get("stripe-signature")!;
 

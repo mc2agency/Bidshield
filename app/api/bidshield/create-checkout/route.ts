@@ -2,17 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia" as any,
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-12-18.acacia" as any });
+}
 
 const PRICE_IDS: Record<string, string> = {
-  pro_monthly: process.env.STRIPE_PRICE_PRO_MONTHLY!,
-  pro_annual: process.env.STRIPE_PRICE_PRO_ANNUAL!,
+  pro_monthly: process.env.STRIPE_PRICE_PRO_MONTHLY || "",
+  pro_annual: process.env.STRIPE_PRICE_PRO_ANNUAL || "",
 };
 
 export async function POST(req: NextRequest) {
   try {
+    const stripe = getStripe();
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
