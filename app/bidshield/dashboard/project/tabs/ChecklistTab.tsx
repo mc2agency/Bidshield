@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -8,13 +8,14 @@ import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import type { TabProps } from "../tab-types";
 
 type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
+type FilterMode = "incomplete" | "all" | "complete";
 
 const statusConfig: Record<ChecklistStatus, { icon: string; color: string; bg: string; ring: string }> = {
-  done: { icon: "\u2713", color: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-200" },
-  pending: { icon: "\u25CB", color: "text-slate-400", bg: "bg-slate-50", ring: "ring-slate-200" },
+  done: { icon: "✓", color: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-200" },
+  pending: { icon: "○", color: "text-slate-400", bg: "bg-slate-50", ring: "ring-slate-200" },
   rfi: { icon: "?", color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-200" },
-  warning: { icon: "\u26A0", color: "text-red-600", bg: "bg-red-50", ring: "ring-red-200" },
-  na: { icon: "\u2014", color: "text-slate-400", bg: "bg-slate-50", ring: "ring-slate-200" },
+  warning: { icon: "⚠", color: "text-red-600", bg: "bg-red-50", ring: "ring-red-200" },
+  na: { icon: "—", color: "text-slate-400", bg: "bg-slate-50", ring: "ring-slate-200" },
 };
 
 const demoChecklist = getChecklistForTrade("roofing", "tpo", "steel");
@@ -40,7 +41,8 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
   const updateChecklistItemMut = useMutation(api.bidshield.updateChecklistItem);
 
   const [demoChecklistState, setDemoChecklistState] = useState(demoItems);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({ phase1: true });
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [filter, setFilter] = useState<FilterMode>("incomplete");
 
   const trade = project?.trade || "roofing";
   const systemType = project?.systemType || undefined;
@@ -58,21 +60,22 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
     if (isDemo) {
       setDemoChecklistState((prev) => {
         const current = prev.find(i => i.phaseKey === phaseKey && i.itemId === itemId);
-        if (!current) return prev;
-        const idx = order.indexOf(current.status);
-        return prev.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: order[(idx + 1) % order.length] } : i);
+        const currentStatus = current?.status || "pending";
+        const nextIdx = (order.indexOf(currentStatus) + 1) % order.length;
+        return prev.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: order[nextIdx] } : i);
       });
-      return;
+    } else {
+      const current = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
+      const currentStatus = (current as any)?.status || "pending";
+      const nextIdx = (order.indexOf(currentStatus) + 1) % order.length;
+      const convexId = (current as any)?._id;
+      if (convexId) await updateChecklistItemMut({ itemId: convexId, status: order[nextIdx] });
     }
-    const currentItem = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
-    if (!currentItem) return;
-    const idx = order.indexOf(currentItem.status);
-    await updateChecklistItemMut({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: order[(idx + 1) % order.length] });
   };
 
   const getItemStatus = (phaseKey: string, itemId: string): ChecklistStatus => {
-    const item = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
-    return (item?.status as ChecklistStatus) || "pending";
+    const item = resolvedItems.find((i: any) => (isDemo ? i.phaseKey === phaseKey && i.itemId === itemId : i.phaseKey === phaseKey && i.itemId === itemId));
+    return ((item as any)?.status as ChecklistStatus) || "pending";
   };
 
   const getPhaseProgress = (phaseKey: string): number => {
@@ -81,61 +84,90 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
     return Math.round((items.filter((i: any) => i.status === "done" || i.status === "na").length / items.length) * 100);
   };
 
+  // Filter phases based on mode
+  const phaseEntries = useMemo(() => {
+    return Object.entries(checklistTemplate).filter(([phaseKey]) => {
+      const progress = getPhaseProgress(phaseKey);
+      if (filter === "incomplete") return progress < 100;
+      if (filter === "complete") return progress >= 100;
+      return true;
+    });
+  }, [checklistTemplate, filter, resolvedItems]);
+
+  const incompleteCount = Object.keys(checklistTemplate).filter(k => getPhaseProgress(k) < 100).length;
+  const completeCount = Object.keys(checklistTemplate).length - incompleteCount;
+
   return (
-    <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">{project?.name || "Project"} Checklist</h2>
-            {(systemType || deckType) && (
-              <div className="flex gap-2 mt-1.5">
-                {systemType && <span className="text-[10px] font-medium bg-violet-50 text-violet-600 px-2 py-0.5 rounded-md uppercase ring-1 ring-violet-200">{systemType}</span>}
-                {deckType && <span className="text-[10px] font-medium bg-slate-50 text-slate-500 px-2 py-0.5 rounded-md capitalize ring-1 ring-slate-200">{deckType} deck</span>}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-600">{overall}%</span>
-            <div className="w-32 sm:w-48 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+    <div className="flex flex-col gap-3">
+      {/* Compact header: progress + filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl p-3 border border-slate-200">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-28 h-2 bg-slate-100 rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all ${overall >= 80 ? "bg-emerald-500" : overall >= 40 ? "bg-amber-500" : "bg-slate-400"}`} style={{ width: `${overall}%` }} />
             </div>
+            <span className={`text-sm font-bold tabular-nums ${overall >= 80 ? "text-emerald-600" : overall >= 40 ? "text-amber-600" : "text-slate-500"}`}>{overall}%</span>
           </div>
+          <span className="text-[10px] text-slate-400">{completeCount}/{Object.keys(checklistTemplate).length} phases done</span>
+        </div>
+
+        {/* Filter pills */}
+        <div className="flex gap-1">
+          {(["incomplete", "all", "complete"] as FilterMode[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all capitalize ${
+                filter === f
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "text-slate-500 hover:bg-slate-100"
+              }`}
+            >
+              {f === "incomplete" ? `Needs Work (${incompleteCount})` : f === "complete" ? `Done (${completeCount})` : "All"}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Phases */}
-      <div className="flex flex-col gap-3">
-        {Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
+      {phaseEntries.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-3xl mb-2">{filter === "incomplete" ? "🎉" : "📋"}</div>
+          <p className="text-sm text-slate-500">{filter === "incomplete" ? "All phases complete!" : "No phases match this filter"}</p>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2">
+        {phaseEntries.map(([phaseKey, phase]) => {
           const progress = getPhaseProgress(phaseKey);
-          const isOpen = expanded[phaseKey];
+          const isOpen = expanded[phaseKey] ?? (filter === "incomplete" && progress < 100 && phaseEntries.indexOf(phaseEntries.find(([k]) => k === phaseKey)!) === 0);
 
           return (
-            <div key={phaseKey} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div key={phaseKey} className="bg-white rounded-lg border border-slate-200 overflow-hidden">
               <button
                 onClick={() => toggleExpand(phaseKey)}
-                className="w-full flex justify-between items-center p-4 hover:bg-slate-50 transition-colors"
+                className="w-full flex justify-between items-center px-3 py-2.5 hover:bg-slate-50 transition-colors"
               >
-                <div className="flex items-center gap-3 text-sm font-medium text-slate-800">
-                  <span className="text-lg">{phase.icon}</span>
-                  <span className="text-left">{phase.title}</span>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-800 min-w-0">
+                  <span className="text-base flex-shrink-0">{phase.icon}</span>
+                  <span className="truncate">{phase.title}</span>
                   {phase.critical && (
-                    <span className="text-[10px] font-semibold bg-red-100 text-red-700 px-2 py-0.5 rounded-full ring-1 ring-red-200">CRITICAL</span>
+                    <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded flex-shrink-0">!</span>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="hidden sm:block w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                  <div className="hidden sm:block w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${progress >= 80 ? "bg-emerald-500" : progress > 0 ? "bg-amber-500" : "bg-slate-300"}`} style={{ width: `${progress}%` }} />
                   </div>
-                  <span className={`text-sm font-semibold tabular-nums min-w-[40px] text-right ${progress >= 80 ? "text-emerald-600" : progress > 0 ? "text-amber-600" : "text-slate-400"}`}>{progress}%</span>
-                  <svg className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <span className={`text-xs font-bold tabular-nums w-8 text-right ${progress >= 80 ? "text-emerald-600" : progress > 0 ? "text-amber-600" : "text-slate-400"}`}>{progress}%</span>
+                  <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                   </svg>
                 </div>
               </button>
 
               {phase.criticalRule && isOpen && (
-                <div className="px-4 py-3 bg-amber-50 border-t border-amber-100 text-sm text-amber-700 font-medium">
+                <div className="px-3 py-2 bg-amber-50 border-t border-amber-100 text-xs text-amber-700">
                   {phase.criticalRule}
                 </div>
               )}
@@ -149,15 +181,15 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
                       <div
                         key={item.id}
                         onClick={() => cycleStatus(phaseKey, item.id)}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
                       >
-                        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ring-1 ${config.color} ${config.bg} ${config.ring}`}>
+                        <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold ring-1 flex-shrink-0 ${config.color} ${config.bg} ${config.ring}`}>
                           {config.icon}
                         </span>
-                        <span className={`text-sm flex-1 ${status === "done" || status === "na" ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                        <span className={`text-xs flex-1 ${status === "done" || status === "na" ? "text-slate-400 line-through" : "text-slate-700"}`}>
                           {item.text}
                         </span>
-                        {status === "rfi" && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">RFI</span>}
+                        {status === "rfi" && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">RFI</span>}
                       </div>
                     );
                   })}
@@ -168,17 +200,15 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
         })}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 p-4 bg-white rounded-xl border border-slate-200">
-        <span className="text-xs text-slate-400">Click items to cycle status:</span>
-        <div className="flex flex-wrap gap-4">
-          {Object.entries(statusConfig).map(([status, config]) => (
-            <div key={status} className="flex items-center gap-1.5">
-              <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] ring-1 ${config.color} ${config.bg} ${config.ring}`}>{config.icon}</span>
-              <span className="text-xs text-slate-500 capitalize">{status}</span>
-            </div>
-          ))}
-        </div>
+      {/* Compact legend */}
+      <div className="flex flex-wrap gap-3 px-3 py-2 bg-white rounded-lg border border-slate-200">
+        <span className="text-[10px] text-slate-400">Tap to cycle:</span>
+        {Object.entries(statusConfig).map(([status, config]) => (
+          <div key={status} className="flex items-center gap-1">
+            <span className={`w-4 h-4 flex items-center justify-center rounded-full text-[8px] ring-1 ${config.color} ${config.bg} ${config.ring}`}>{config.icon}</span>
+            <span className="text-[10px] text-slate-500 capitalize">{status}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
