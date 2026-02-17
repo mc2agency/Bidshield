@@ -264,18 +264,23 @@ function ProjectDetail() {
           </div>
         )}
 
-        <div>
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Browse</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {BROWSE_ITEMS.map((item) => (
-              <button key={item.id} onClick={() => openTab(item.id)}
-                className="bg-white rounded-lg px-3 py-3 text-left hover:shadow-sm active:scale-[0.98] border border-slate-100">
-                <span className="text-sm font-medium text-slate-700">{item.label}</span>
-                <svg className="w-3.5 h-3.5 text-slate-300 inline ml-1" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Sections not flagged — compact access */}
+        {(() => {
+          const flaggedTabs = new Set(actionItems.map(a => a.tab));
+          const unflagged = BROWSE_ITEMS.filter(item => !flaggedTabs.has(item.id));
+          if (unflagged.length === 0) return null;
+          return (
+            <div className="flex flex-wrap gap-2">
+              {unflagged.map((item) => (
+                <button key={item.id} onClick={() => openTab(item.id)}
+                  className="bg-white rounded-lg px-3 py-2.5 text-left hover:shadow-sm active:scale-[0.98] border border-slate-100 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                  <span className="text-xs font-medium text-slate-500">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          );
+        })()}
 
         {((projectData as any)?.totalBidAmount || (projectData as any)?.grossRoofArea) && (
           <div className="flex flex-wrap gap-2 text-xs text-slate-500">
