@@ -63,6 +63,7 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
   const updateRFIMut = useMutation(api.bidshield.updateRFI);
   const deleteRFIMut = useMutation(api.bidshield.deleteRFI);
 
+  const [demoRFIState, setDemoRFIState] = useState(demoRFIs as any[]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedRFI, setSelectedRFI] = useState<string | null>(null);
   const [newQuestion, setNewQuestion] = useState("");
@@ -70,43 +71,42 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
   const [responseTexts, setResponseTexts] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<RFIStatus | "all">("all");
 
-  const rfis = isDemo ? demoRFIs : (convexRFIs ?? []);
+  const rfis = isDemo ? demoRFIState : (convexRFIs ?? []);
   const filteredRFIs = filter === "all" ? rfis : rfis.filter((r: { status: string }) => r.status === filter);
 
   const handleCreate = async () => {
-    if (!newQuestion.trim() || isDemo) return;
-    await createRFIMut({
-      projectId: projectId as Id<"bidshield_projects">,
-      userId: userId || "",
-      question: newQuestion,
-      sentTo: newSentTo || undefined,
-    });
-    setNewQuestion("");
-    setNewSentTo("");
-    setShowCreateModal(false);
+    if (!newQuestion.trim()) return;
+    if (isDemo) {
+      setDemoRFIState(p => [...p, { _id: `demo_rfi_${Date.now()}`, number: p.length + 1, question: newQuestion, sentTo: newSentTo || undefined, status: "draft", createdAt: Date.now(), updatedAt: Date.now() }]);
+    } else {
+      await createRFIMut({ projectId: projectId as Id<"bidshield_projects">, userId: userId || "", question: newQuestion, sentTo: newSentTo || undefined });
+    }
+    setNewQuestion(""); setNewSentTo(""); setShowCreateModal(false);
   };
 
   const handleSend = async (rfiId: Id<"bidshield_rfis">) => {
-    if (isDemo) return;
+    if (isDemo) { setDemoRFIState(p => p.map(r => r._id === rfiId ? { ...r, status: "sent", sentAt: Date.now() } : r)); return; }
     await updateRFIMut({ rfiId, status: "sent", sentAt: Date.now() });
   };
 
   const handleMarkAnswered = async (rfiId: Id<"bidshield_rfis">) => {
     const text = responseTexts[rfiId as string] || "";
-    if (isDemo || !text.trim()) return;
-    await updateRFIMut({ rfiId, status: "answered", response: text, respondedAt: Date.now() });
-    setResponseTexts((prev) => { const next = { ...prev }; delete next[rfiId as string]; return next; });
+    if (!text.trim()) return;
+    if (isDemo) { setDemoRFIState(p => p.map(r => r._id === rfiId ? { ...r, status: "answered", response: text, respondedAt: Date.now() } : r)); }
+    else { await updateRFIMut({ rfiId, status: "answered", response: text, respondedAt: Date.now() }); }
+    setResponseTexts(prev => { const next = { ...prev }; delete next[rfiId as string]; return next; });
     setSelectedRFI(null);
   };
 
   const handleClose = async (rfiId: Id<"bidshield_rfis">) => {
-    if (isDemo) return;
+    if (isDemo) { setDemoRFIState(p => p.map(r => r._id === rfiId ? { ...r, status: "closed" } : r)); return; }
     await updateRFIMut({ rfiId, status: "closed" });
   };
 
   const handleDelete = async (rfiId: Id<"bidshield_rfis">) => {
-    if (isDemo || !userId) return;
-    if (!confirm("Delete this RFI? This cannot be undone.")) return;
+    if (!confirm("Delete this RFI?")) return;
+    if (isDemo) { setDemoRFIState(p => p.filter(r => r._id !== rfiId)); setSelectedRFI(null); return; }
+    if (!userId) return;
     await deleteRFIMut({ rfiId, userId });
     setSelectedRFI(null);
   };

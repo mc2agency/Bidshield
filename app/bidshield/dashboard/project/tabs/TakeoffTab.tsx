@@ -137,7 +137,8 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
 
 export default function TakeoffTab({ projectId, isDemo, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
-  const grossRoofArea: number | null = isDemo ? 45000 : (project?.grossRoofArea ?? null);
+  const [demoGrossRoof, setDemoGrossRoof] = useState(45000);
+  const grossRoofArea: number | null = isDemo ? demoGrossRoof : (project?.grossRoofArea ?? null);
 
   const sections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const updateProject = useMutation(api.bidshield.updateProject);
@@ -158,16 +159,17 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
     }
   }, [isDemo, isValidConvexId, userId, lineItems, initialized, projectId, initLineItems]);
 
-  const demoSections: TakeoffSection[] = [
+  const [demoSections, setDemoSections] = useState<TakeoffSection[]>([
     { _id: "ts_1", name: "Main Roof Area A", assemblyType: "TPO 60mil Mechanically Attached", squareFeet: 22000, completed: true, sortOrder: 0 },
     { _id: "ts_2", name: "Main Roof Area B", assemblyType: "TPO 60mil Mechanically Attached", squareFeet: 12500, completed: true, sortOrder: 1 },
     { _id: "ts_3", name: "Mechanical Room", assemblyType: "Modified Bitumen 2-Ply (SBS)", squareFeet: 4200, completed: true, sortOrder: 2 },
     { _id: "ts_4", name: "Canopy", assemblyType: "Metal Roof Panels", squareFeet: 2800, completed: false, sortOrder: 3 },
-  ];
+  ]);
 
   const displaySections: TakeoffSection[] = isDemo ? demoSections : (sections ?? []) as TakeoffSection[];
   const controlNumber = grossRoofArea;
-  const displayLineItems: LineItem[] = isDemo ? [...DEMO_LINEAR_ITEMS, ...DEMO_COUNT_ITEMS] : (lineItems ?? []) as LineItem[];
+  const [demoLineItems, setDemoLineItems] = useState<LineItem[]>([...DEMO_LINEAR_ITEMS, ...DEMO_COUNT_ITEMS]);
+  const displayLineItems: LineItem[] = isDemo ? demoLineItems : (lineItems ?? []) as LineItem[];
   const linearItems = displayLineItems.filter((i) => i.category === "linear");
   const countItems = displayLineItems.filter((i) => i.category === "count");
 
@@ -199,7 +201,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const [editData, setEditData] = useState({ name: "", assemblyType: "", squareFeet: "", notes: "" });
 
   const handleSaveControl = useCallback(async () => {
-    if (isDemo) { setEditingControl(false); return; }
+    if (isDemo) { const v = parseFloat(controlInput); if (!isNaN(v) && v > 0) setDemoGrossRoof(v); setEditingControl(false); return; }
     const val = parseFloat(controlInput);
     if (!isNaN(val) && val > 0 && isValidConvexId) {
       await updateProject({ projectId: projectId as Id<"bidshield_projects">, grossRoofArea: val });
@@ -208,7 +210,8 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   }, [controlInput, isDemo, isValidConvexId, projectId, updateProject]);
 
   const handleAddSection = useCallback(async () => {
-    if (isDemo || !userId || !isValidConvexId) { setShowAddForm(false); return; }
+    if (isDemo) { const sf = parseFloat(newSection.squareFeet); if (newSection.name.trim() && !isNaN(sf) && sf > 0) setDemoSections(p => [...p, { _id: `ts_${Date.now()}`, name: newSection.name.trim(), assemblyType: newSection.assemblyType, squareFeet: sf, completed: false, sortOrder: p.length }]); setNewSection({ name: "", assemblyType: ASSEMBLY_TYPES[0], squareFeet: "", notes: "" }); setShowAddForm(false); return; }
+    if (!userId || !isValidConvexId) { setShowAddForm(false); return; }
     const sf = parseFloat(newSection.squareFeet);
     if (!newSection.name.trim() || isNaN(sf) || sf <= 0) return;
     await createSection({ projectId: projectId as Id<"bidshield_projects">, userId, name: newSection.name.trim(), assemblyType: newSection.assemblyType, squareFeet: sf, notes: newSection.notes.trim() || undefined });
@@ -217,7 +220,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   }, [isDemo, userId, isValidConvexId, newSection, projectId, createSection]);
 
   const handleToggleComplete = useCallback(async (section: TakeoffSection) => {
-    if (isDemo) return;
+    if (isDemo) { setDemoSections(p => p.map(s => s._id === section._id ? { ...s, completed: !s.completed } : s)); return; }
     await updateSection({ sectionId: section._id as Id<"bidshield_takeoff_sections">, completed: !section.completed });
   }, [isDemo, updateSection]);
 
@@ -227,7 +230,8 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   const handleSaveEdit = useCallback(async () => {
-    if (isDemo || !editingId) { setEditingId(null); return; }
+    if (isDemo) { if (editingId) { const sf = parseFloat(editData.squareFeet); if (editData.name.trim() && !isNaN(sf) && sf > 0) setDemoSections(p => p.map(s => s._id === editingId ? { ...s, name: editData.name.trim(), assemblyType: editData.assemblyType, squareFeet: sf, notes: editData.notes.trim() || undefined } : s)); } setEditingId(null); return; }
+    if (!editingId) { setEditingId(null); return; }
     const sf = parseFloat(editData.squareFeet);
     if (!editData.name.trim() || isNaN(sf) || sf <= 0) return;
     await updateSection({ sectionId: editingId as Id<"bidshield_takeoff_sections">, name: editData.name.trim(), assemblyType: editData.assemblyType, squareFeet: sf, notes: editData.notes.trim() || undefined });
@@ -235,27 +239,29 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   }, [isDemo, editingId, editData, updateSection]);
 
   const handleDeleteSection = useCallback(async (sectionId: string) => {
-    if (isDemo) return;
+    if (isDemo) { setDemoSections(p => p.filter(s => s._id !== sectionId)); return; }
     await deleteSection({ sectionId: sectionId as Id<"bidshield_takeoff_sections"> });
   }, [isDemo, deleteSection]);
 
   const handleUpdateLineItem = useCallback(async (id: string, updates: { quantity?: number; verified?: boolean; notes?: string }) => {
-    if (isDemo) return;
+    if (isDemo) { setDemoLineItems(p => p.map(i => i._id === id ? { ...i, ...updates } : i)); return; }
     await updateLineItem({ itemId: id as Id<"bidshield_takeoff_line_items">, ...updates });
   }, [isDemo, updateLineItem]);
 
   const handleDeleteLineItem = useCallback(async (id: string) => {
-    if (isDemo) return;
+    if (isDemo) { setDemoLineItems(p => p.filter(i => i._id !== id)); return; }
     await deleteLineItem({ itemId: id as Id<"bidshield_takeoff_line_items"> });
   }, [isDemo, deleteLineItem]);
 
   const handleAddLinearItem = useCallback(async (label: string) => {
-    if (isDemo || !userId || !isValidConvexId) return;
+    if (isDemo) { setDemoLineItems(p => [...p, { _id: `li_${Date.now()}`, category: "linear", itemType: label.toLowerCase().replace(/ /g,"_"), label, unit: "LF", verified: false, sortOrder: p.length }]); return; }
+    if (!userId || !isValidConvexId) return;
     await createLineItem({ projectId: projectId as Id<"bidshield_projects">, userId, category: "linear", label });
   }, [isDemo, userId, isValidConvexId, projectId, createLineItem]);
 
   const handleAddCountItem = useCallback(async (label: string) => {
-    if (isDemo || !userId || !isValidConvexId) return;
+    if (isDemo) { setDemoLineItems(p => [...p, { _id: `ci_${Date.now()}`, category: "count", itemType: label.toLowerCase().replace(/ /g,"_"), label, unit: "EA", verified: false, sortOrder: p.length }]); return; }
+    if (!userId || !isValidConvexId) return;
     await createLineItem({ projectId: projectId as Id<"bidshield_projects">, userId, category: "count", label });
   }, [isDemo, userId, isValidConvexId, projectId, createLineItem]);
 

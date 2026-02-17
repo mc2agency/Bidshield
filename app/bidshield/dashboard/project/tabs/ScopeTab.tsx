@@ -88,7 +88,7 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
   const [isInitializing, setIsInitializing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedExclusions, setCopiedExclusions] = useState(false);
-  const [demoScopeState, setDemoScopeState] = useState(DEMO_SCOPE_ITEMS);
+  const [demoScopeState, setDemoScopeState] = useState<any[]>(DEMO_SCOPE_ITEMS);
 
   // Debounced save refs (keyed by item ID to avoid cross-item cancellation)
   const costTimerRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());

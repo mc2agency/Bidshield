@@ -62,7 +62,8 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const updateQuoteMut = useMutation(api.bidshield.updateQuote);
   const deleteQuoteMut = useMutation(api.bidshield.deleteQuote);
 
-  const resolvedQuotes = isDemo ? DEMO_QUOTES : (quotes ?? []);
+  const [demoQuotes, setDemoQuotes] = useState(DEMO_QUOTES as any[]);
+  const resolvedQuotes = isDemo ? demoQuotes : (quotes ?? []);
 
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
@@ -107,8 +108,9 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   };
 
   const handleDelete = async (quoteId: Id<"bidshield_quotes">, vendorName: string) => {
-    if (!userId || isDemo) return;
-    if (!confirm(`Delete quote from "${vendorName}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete quote from "${vendorName}"?`)) return;
+    if (isDemo) { setDemoQuotes(p => p.filter(q => q._id !== quoteId)); showNotification("Quote deleted."); return; }
+    if (!userId) return;
     await deleteQuoteMut({ quoteId, userId });
     showNotification("Quote deleted.");
   };

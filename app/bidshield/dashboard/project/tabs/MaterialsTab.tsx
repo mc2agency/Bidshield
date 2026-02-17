@@ -78,7 +78,8 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
   const [isInitializing, setIsInitializing] = useState(false);
 
   // Resolve materials (demo vs real)
-  const materials = isDemo ? DEMO_MATERIALS : (projectMaterials ?? []);
+  const [demoMaterials, setDemoMaterials] = useState(DEMO_MATERIALS as any[]);
+  const materials = isDemo ? demoMaterials : (projectMaterials ?? []);
   const lineItems = isDemo ? DEMO_TAKEOFF_LINE_ITEMS : (takeoffLineItems ?? []);
   const sections = isDemo ? [{ squareFeet: 22000 }, { squareFeet: 12500 }, { squareFeet: 4200 }, { squareFeet: 2800 }] : (takeoffSections ?? []);
   const totalSF = sections.reduce((sum: number, s: any) => sum + (s.squareFeet || 0), 0);
@@ -155,7 +156,7 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
 
   // Recalculate all quantities from current takeoff data
   const handleRecalculate = useCallback(async () => {
-    if (isDemo) return;
+    if (isDemo) return; // demo materials already have quantities
     for (const m of materials) {
       const mat = m as any;
       if (!mat.templateKey) continue;
@@ -188,7 +189,14 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
 
   // Save inline edit
   const saveEdit = async (m: any) => {
-    if (isDemo) { setEditingId(null); return; }
+    if (isDemo) {
+      const price = editPrice ? parseFloat(editPrice) : undefined;
+      const qty = editQty ? parseFloat(editQty) : undefined;
+      const waste = editWaste ? 1 + parseFloat(editWaste) / 100 : undefined;
+      const cost = price && qty ? qty * price : undefined;
+      setDemoMaterials(p => p.map(i => i._id === m._id ? { ...i, unitPrice: price ?? i.unitPrice, quantity: qty ?? i.quantity, wasteFactor: waste ?? i.wasteFactor, totalCost: cost ?? i.totalCost } : i));
+      setEditingId(null); return;
+    }
     const price = editPrice ? parseFloat(editPrice) : undefined;
     const qty = editQty ? parseFloat(editQty) : undefined;
     const waste = editWaste ? 1 + parseFloat(editWaste) / 100 : undefined;

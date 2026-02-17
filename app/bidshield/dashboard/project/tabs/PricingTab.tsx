@@ -39,15 +39,15 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
   const grossRoofArea: number | null = isDemo ? 45000 : (project?.grossRoofArea ?? null);
 
-  const demoPricing = {
-    totalBidAmount: 850000, materialCost: 425000, laborCost: 340000, otherCost: 85000,
-    primaryAssembly: "TPO 60mil Mechanically Attached",
+  const [demoPricing, setDemoPricing] = useState({
+    totalBidAmount: 850000 as number | undefined, materialCost: 425000 as number | undefined, laborCost: 340000 as number | undefined, otherCost: 85000 as number | undefined,
+    primaryAssembly: "TPO 60mil Mechanically Attached" as string | undefined,
     lossReason: undefined as string | undefined, lossReasonNote: undefined as string | undefined,
     actualCost: undefined as number | undefined, actualMaterialCost: undefined as number | undefined,
     actualLaborCost: undefined as number | undefined, actualOtherCost: undefined as number | undefined,
     postJobStatus: undefined as string | undefined, postJobNotes: undefined as string | undefined,
     completedDate: undefined as string | undefined,
-  };
+  });
 
   const pricing = isDemo ? demoPricing : {
     totalBidAmount: project?.totalBidAmount, materialCost: project?.materialCost,
@@ -90,8 +90,12 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   const handleSave = async () => {
-    if (isDemo || !isValidConvexId) { setEditing(false); return; }
     const parse = (s: string) => { const n = parseFloat(s); return isNaN(n) ? undefined : n; };
+    if (isDemo) {
+      setDemoPricing(p => ({ ...p, totalBidAmount: parse(form.totalBidAmount) ?? p.totalBidAmount, materialCost: parse(form.materialCost) ?? p.materialCost, laborCost: parse(form.laborCost) ?? p.laborCost, otherCost: parse(form.otherCost) ?? p.otherCost, primaryAssembly: form.primaryAssembly || p.primaryAssembly, lossReason: form.lossReason || undefined, lossReasonNote: form.lossReasonNote || undefined }));
+      setEditing(false); return;
+    }
+    if (!isValidConvexId) { setEditing(false); return; }
     await updateProject({
       projectId: projectId as Id<"bidshield_projects">,
       totalBidAmount: parse(form.totalBidAmount), materialCost: parse(form.materialCost),
@@ -103,8 +107,12 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   const handleSaveActuals = async () => {
-    if (isDemo || !isValidConvexId) { setEditingActuals(false); return; }
     const parse = (s: string) => { const n = parseFloat(s); return isNaN(n) ? undefined : n; };
+    if (isDemo) {
+      setDemoPricing(p => ({ ...p, actualCost: parse(actualsForm.actualCost), actualMaterialCost: parse(actualsForm.actualMaterialCost), actualLaborCost: parse(actualsForm.actualLaborCost), actualOtherCost: parse(actualsForm.actualOtherCost), postJobStatus: actualsForm.postJobStatus || undefined, postJobNotes: actualsForm.postJobNotes || undefined, completedDate: actualsForm.completedDate || undefined }));
+      setEditingActuals(false); return;
+    }
+    if (!isValidConvexId) { setEditingActuals(false); return; }
     await updateProject({
       projectId: projectId as Id<"bidshield_projects">,
       actualCost: parse(actualsForm.actualCost), actualMaterialCost: parse(actualsForm.actualMaterialCost),

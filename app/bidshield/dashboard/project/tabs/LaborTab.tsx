@@ -30,33 +30,37 @@ export default function LaborTab({ isDemo, userId }: TabProps) {
     category: "membrane", task: "", rate: "", unit: "/day", crew: "2", notes: "",
   });
 
-  const demoRates = Object.entries(defaultLaborRates).flatMap(([cat, items]) =>
-    items.map((item, idx) => ({
-      _id: `demo_${cat}_${idx}` as any,
-      category: cat, task: item.task, rate: item.rate, unit: item.unit, crew: item.crew, notes: item.notes,
-    }))
+  const [demoRates, setDemoRates] = useState(() =>
+    Object.entries(defaultLaborRates).flatMap(([cat, items]) =>
+      items.map((item, idx) => ({
+        _id: `demo_${cat}_${idx}` as any,
+        category: cat, task: item.task, rate: item.rate, unit: item.unit, crew: item.crew, notes: item.notes || "",
+      }))
+    )
   );
 
   const resolvedRates = isDemo ? demoRates : (rates ?? []);
   const filteredRates = resolvedRates.filter((r: any) => r.category === activeCategory);
 
   const handleAdd = async () => {
-    if (!newRate.task || !newRate.rate || !userId) return;
-    await createRateMut({
-      userId, category: newRate.category, task: newRate.task, rate: newRate.rate,
-      unit: newRate.unit, crew: parseInt(newRate.crew) || 2, notes: newRate.notes || undefined,
-    });
+    if (!newRate.task || !newRate.rate) return;
+    if (isDemo) {
+      setDemoRates(p => [...p, { _id: `demo_new_${Date.now()}` as any, category: newRate.category, task: newRate.task, rate: newRate.rate, unit: newRate.unit, crew: parseInt(newRate.crew) || 2, notes: newRate.notes || "" }]);
+    } else if (userId) {
+      await createRateMut({ userId, category: newRate.category, task: newRate.task, rate: newRate.rate, unit: newRate.unit, crew: parseInt(newRate.crew) || 2, notes: newRate.notes || undefined });
+    }
     setNewRate({ category: activeCategory, task: "", rate: "", unit: "/day", crew: "2", notes: "" });
     setShowAdd(false);
   };
 
   const handleDelete = async (rateId: Id<"bidshield_labor_rates">) => {
-    if (isDemo) return;
+    if (isDemo) { setDemoRates(p => p.filter(r => r._id !== rateId)); return; }
     await deleteRateMut({ rateId });
   };
 
   const handleSeedDefaults = async () => {
-    if (!userId || isDemo) return;
+    if (isDemo) return;
+    if (!userId) return;
     const defaultCat = defaultLaborRates[activeCategory as keyof typeof defaultLaborRates];
     if (!defaultCat) return;
     for (const item of defaultCat) {
@@ -74,7 +78,7 @@ export default function LaborTab({ isDemo, userId }: TabProps) {
           <h2 className="text-xl font-semibold text-slate-900">Labor Rate Database</h2>
           <p className="text-sm text-slate-500 mt-1">Your production rates — reuse across every bid</p>
         </div>
-        {!isDemo && (
+        {(
           <div className="flex gap-2">
             <button onClick={handleSeedDefaults} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Load Defaults</button>
             <button onClick={() => { setNewRate({ ...newRate, category: activeCategory }); setShowAdd(true); }} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">+ Add Rate</button>
@@ -149,7 +153,7 @@ export default function LaborTab({ isDemo, userId }: TabProps) {
                   <td className="px-4 py-3 text-right"><span className="text-emerald-600 font-semibold">{rate.rate}</span><span className="text-slate-500 ml-1">{rate.unit}</span></td>
                   <td className="px-4 py-3 text-center text-slate-600 hidden sm:table-cell">{rate.crew}</td>
                   <td className="px-4 py-3 text-slate-500 hidden md:table-cell">{rate.notes || "—"}</td>
-                  {!isDemo && (
+                  {(
                     <td className="px-4 py-3"><button onClick={() => handleDelete(rate._id)} className="text-slate-500 hover:text-red-600 text-xs transition-colors">Delete</button></td>
                   )}
                 </tr>
@@ -161,7 +165,7 @@ export default function LaborTab({ isDemo, userId }: TabProps) {
         <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
           <div className="text-4xl mb-3">{categories.find(c => c.id === activeCategory)?.icon || "👷"}</div>
           <p className="text-sm text-slate-500 mb-4">No rates in {categories.find(c => c.id === activeCategory)?.label || activeCategory} yet</p>
-          {!isDemo && (
+          {(
             <div className="flex gap-3 justify-center">
               <button onClick={handleSeedDefaults} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Load Industry Defaults</button>
               <button onClick={() => { setNewRate({ ...newRate, category: activeCategory }); setShowAdd(true); }} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm rounded-lg transition-colors">Add Custom Rate</button>
