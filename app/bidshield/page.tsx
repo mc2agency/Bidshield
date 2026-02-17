@@ -11,8 +11,8 @@ export default function BidShieldRedirect() {
   }, [router]);
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-slate-900">
-      <div className="text-white text-lg">Redirecting...</div>
+    <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
+      <div className="text-slate-900 text-lg">Redirecting...</div>
     </div>
   );
 }
