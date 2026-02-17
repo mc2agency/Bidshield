@@ -103,7 +103,7 @@ function AnalyticsInner() {
   if (!stats) {
     return (
       <div className="text-center py-20">
-        <p className="text-slate-400">Loading analytics...</p>
+        <p className="text-slate-500">Loading analytics...</p>
       </div>
     );
   }
@@ -222,18 +222,18 @@ function AnalyticsInner() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Analytics & Reports</h2>
-        <p className="text-sm text-slate-400 mt-1">
+        <h2 className="text-xl font-semibold text-slate-900">Analytics & Reports</h2>
+        <p className="text-sm text-slate-500 mt-1">
           Track your bidding performance, compare $/SF, and identify trends
         </p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 p-4 bg-slate-800 rounded-xl border border-slate-700">
+      <div className="flex flex-wrap gap-3 p-4 bg-white rounded-xl border border-slate-200">
         <div>
           <label className="text-[10px] text-slate-500 block mb-1">Assembly</label>
           <select value={assemblyFilter} onChange={(e) => setAssemblyFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
+            className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500">
             <option value="all">All Assemblies</option>
             {assemblies.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
@@ -241,7 +241,7 @@ function AnalyticsInner() {
         <div>
           <label className="text-[10px] text-slate-500 block mb-1">Outcome</label>
           <select value={outcomeFilter} onChange={(e) => setOutcomeFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
+            className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500">
             <option value="all">All Outcomes</option>
             <option value="won">Won</option>
             <option value="lost">Lost</option>
@@ -252,7 +252,7 @@ function AnalyticsInner() {
         <div>
           <label className="text-[10px] text-slate-500 block mb-1">Date Range</label>
           <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}
-            className="bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500">
+            className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500">
             <option value="all">All Time</option>
             <option value="6mo">Last 6 Months</option>
             <option value="12mo">Last 12 Months</option>
@@ -268,40 +268,40 @@ function AnalyticsInner() {
 
       {/* Top Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 text-center">
-          <div className="text-3xl font-bold text-emerald-400">{stats.winRate}%</div>
-          <div className="text-xs text-slate-400 mt-1">Win Rate</div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
+          <div className="text-3xl font-bold text-emerald-600">{stats.winRate}%</div>
+          <div className="text-xs text-slate-500 mt-1">Win Rate</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 text-center">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
           <div className="text-3xl font-bold text-blue-400">{totalBids}</div>
-          <div className="text-xs text-slate-400 mt-1">Decided Bids</div>
+          <div className="text-xs text-slate-500 mt-1">Decided Bids</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 text-center">
-          <div className="text-3xl font-bold text-emerald-400">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
+          <div className="text-3xl font-bold text-emerald-600">
             ${(stats.wonValue / 1000).toFixed(0)}k
           </div>
-          <div className="text-xs text-slate-400 mt-1">Revenue Won</div>
+          <div className="text-xs text-slate-500 mt-1">Revenue Won</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 text-center">
-          <div className="text-3xl font-bold text-amber-400">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
+          <div className="text-3xl font-bold text-amber-600">
             ${(stats.pipelineValue / 1000).toFixed(0)}k
           </div>
-          <div className="text-xs text-slate-400 mt-1">Active Pipeline</div>
+          <div className="text-xs text-slate-500 mt-1">Active Pipeline</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 text-center">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
           <div className="text-3xl font-bold text-purple-400">
             ${stats.avgDollarPerSf ? stats.avgDollarPerSf.toFixed(2) : "—"}
           </div>
-          <div className="text-xs text-slate-400 mt-1">Avg $/SF</div>
+          <div className="text-xs text-slate-500 mt-1">Avg $/SF</div>
         </div>
       </div>
 
       {/* $/SF by Project Chart */}
       {dollarPerSfData.length > 0 && (
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-          <h3 className="text-base font-semibold text-white mb-1">$/SF by Project</h3>
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="text-base font-semibold text-slate-900 mb-1">$/SF by Project</h3>
           <p className="text-xs text-slate-500 mb-4">
-            Color: <span className="text-emerald-400">Won</span> &middot; <span className="text-red-400">Lost</span> &middot; <span className="text-amber-400">Pending</span>
+            Color: <span className="text-emerald-600">Won</span> &middot; <span className="text-red-600">Lost</span> &middot; <span className="text-amber-600">Pending</span>
             {avgDpsf > 0 && <> &middot; Avg: <span className="text-purple-400">${avgDpsf.toFixed(2)}/SF</span></>}
           </p>
           <div style={{ height: Math.max(200, dollarPerSfData.length * 40) }}>
@@ -332,10 +332,10 @@ function AnalyticsInner() {
 
       {/* Cost Breakdown */}
       {costBreakdownData.length > 0 && (
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-          <h3 className="text-base font-semibold text-white mb-1">Cost Breakdown</h3>
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="text-base font-semibold text-slate-900 mb-1">Cost Breakdown</h3>
           <p className="text-xs text-slate-500 mb-4">
-            <span className="text-blue-400">Material</span> &middot; <span className="text-emerald-400">Labor</span> &middot; <span className="text-slate-400">Other</span>
+            <span className="text-blue-400">Material</span> &middot; <span className="text-emerald-600">Labor</span> &middot; <span className="text-slate-500">Other</span>
           </p>
           <div style={{ height: Math.max(200, costBreakdownData.length * 40) }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -360,32 +360,32 @@ function AnalyticsInner() {
 
       {/* Estimating Accuracy */}
       {projectsWithActuals.length > 0 && (
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-          <h3 className="text-base font-semibold text-white mb-1">Estimating Accuracy</h3>
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="text-base font-semibold text-slate-900 mb-1">Estimating Accuracy</h3>
           <p className="text-xs text-slate-500 mb-4">
             Comparing bid estimates to actual costs for completed projects
           </p>
 
           {/* Accuracy stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-            <div className="bg-slate-900 rounded-lg p-4 text-center">
+            <div className="bg-slate-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-blue-400">{projectsWithActuals.length}</div>
               <div className="text-[10px] text-slate-500 mt-1">Projects w/ Actuals</div>
             </div>
-            <div className="bg-slate-900 rounded-lg p-4 text-center">
-              <div className={`text-2xl font-bold ${Math.abs(avgTotalVariance) <= 5 ? "text-emerald-400" : Math.abs(avgTotalVariance) <= 10 ? "text-amber-400" : "text-red-400"}`}>
+            <div className="bg-slate-50 rounded-lg p-4 text-center">
+              <div className={`text-2xl font-bold ${Math.abs(avgTotalVariance) <= 5 ? "text-emerald-600" : Math.abs(avgTotalVariance) <= 10 ? "text-amber-600" : "text-red-600"}`}>
                 {avgTotalVariance > 0 ? "+" : ""}{avgTotalVariance.toFixed(1)}%
               </div>
               <div className="text-[10px] text-slate-500 mt-1">Avg Total Variance</div>
             </div>
-            <div className="bg-slate-900 rounded-lg p-4 text-center">
-              <div className={`text-2xl font-bold ${Math.abs(avgMatVariance) <= 5 ? "text-emerald-400" : Math.abs(avgMatVariance) <= 10 ? "text-amber-400" : "text-red-400"}`}>
+            <div className="bg-slate-50 rounded-lg p-4 text-center">
+              <div className={`text-2xl font-bold ${Math.abs(avgMatVariance) <= 5 ? "text-emerald-600" : Math.abs(avgMatVariance) <= 10 ? "text-amber-600" : "text-red-600"}`}>
                 {avgMatVariance > 0 ? "+" : ""}{avgMatVariance.toFixed(1)}%
               </div>
               <div className="text-[10px] text-slate-500 mt-1">Avg Material Var.</div>
             </div>
-            <div className="bg-slate-900 rounded-lg p-4 text-center">
-              <div className={`text-2xl font-bold ${Math.abs(avgLabVariance) <= 5 ? "text-emerald-400" : Math.abs(avgLabVariance) <= 10 ? "text-amber-400" : "text-red-400"}`}>
+            <div className="bg-slate-50 rounded-lg p-4 text-center">
+              <div className={`text-2xl font-bold ${Math.abs(avgLabVariance) <= 5 ? "text-emerald-600" : Math.abs(avgLabVariance) <= 10 ? "text-amber-600" : "text-red-600"}`}>
                 {avgLabVariance > 0 ? "+" : ""}{avgLabVariance.toFixed(1)}%
               </div>
               <div className="text-[10px] text-slate-500 mt-1">Avg Labor Var.</div>
@@ -398,21 +398,21 @@ function AnalyticsInner() {
               <thead>
                 <tr>
                   {["Project", "Estimated", "Actual", "Variance $", "Variance %", "Status"].map((h) => (
-                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-700">{h}</th>
+                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {accuracyData.map((d, i) => {
                   const absPct = Math.abs(d.variancePct);
-                  const color = absPct <= 5 ? "text-emerald-400" : absPct <= 10 ? "text-amber-400" : "text-red-400";
+                  const color = absPct <= 5 ? "text-emerald-600" : absPct <= 10 ? "text-amber-600" : "text-red-600";
                   const statusLabel = absPct <= 5 ? "On Target" : absPct <= 10 ? "Review" : "Over Budget";
-                  const statusBg = absPct <= 5 ? "bg-emerald-500/20 text-emerald-400" : absPct <= 10 ? "bg-amber-500/20 text-amber-400" : "bg-red-500/20 text-red-400";
+                  const statusBg = absPct <= 5 ? "bg-emerald-50 text-emerald-600" : absPct <= 10 ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600";
                   return (
-                    <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30">
-                      <td className="p-2.5 text-sm text-slate-200 max-w-[160px] truncate">{d.name}</td>
-                      <td className="p-2.5 text-sm text-slate-300 tabular-nums">${(d.estimated / 1000).toFixed(0)}k</td>
-                      <td className="p-2.5 text-sm text-slate-300 tabular-nums">${(d.actual / 1000).toFixed(0)}k</td>
+                    <tr key={i} className="border-b border-slate-200 hover:bg-slate-100/30">
+                      <td className="p-2.5 text-sm text-slate-700 max-w-[160px] truncate">{d.name}</td>
+                      <td className="p-2.5 text-sm text-slate-600 tabular-nums">${(d.estimated / 1000).toFixed(0)}k</td>
+                      <td className="p-2.5 text-sm text-slate-600 tabular-nums">${(d.actual / 1000).toFixed(0)}k</td>
                       <td className={`p-2.5 text-sm tabular-nums font-semibold ${color}`}>
                         {d.varianceDollar > 0 ? "+" : ""}{d.varianceDollar > 999 || d.varianceDollar < -999 ? `$${(d.varianceDollar / 1000).toFixed(1)}k` : `$${d.varianceDollar.toLocaleString()}`}
                       </td>
@@ -420,7 +420,7 @@ function AnalyticsInner() {
                         <div className="flex items-center gap-2">
                           <span className={`text-sm font-bold tabular-nums ${color}`}>{d.variancePct > 0 ? "+" : ""}{d.variancePct.toFixed(1)}%</span>
                           {/* Mini variance bar */}
-                          <div className="w-16 h-2 bg-slate-700 rounded-full overflow-hidden relative">
+                          <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden relative">
                             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500" />
                             {d.variancePct > 0 ? (
                               <div className="absolute top-0 bottom-0 bg-red-500 rounded-full" style={{ left: "50%", width: `${Math.min(50, absPct * 4)}%` }} />
@@ -441,7 +441,7 @@ function AnalyticsInner() {
           </div>
 
           {/* Trend message */}
-          <div className="mt-4 p-3 bg-slate-900 rounded-lg text-xs text-slate-400">
+          <div className="mt-4 p-3 bg-slate-50 rounded-lg text-xs text-slate-500">
             {avgTotalVariance <= 0
               ? `Your estimates are averaging ${Math.abs(avgTotalVariance).toFixed(1)}% under actual costs — strong estimating accuracy.`
               : avgTotalVariance <= 5
@@ -454,8 +454,8 @@ function AnalyticsInner() {
 
       {/* GC Intelligence */}
       {gcIntelData.length > 0 && (
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-          <h3 className="text-base font-semibold text-white mb-1">GC Intelligence</h3>
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="text-base font-semibold text-slate-900 mb-1">GC Intelligence</h3>
           <p className="text-xs text-slate-500 mb-4">
             Performance breakdown by general contractor
           </p>
@@ -464,27 +464,27 @@ function AnalyticsInner() {
               <thead>
                 <tr>
                   {["General Contractor", "Bids", "Wins", "Win %", "Avg $/SF", "Won $/SF", "Revenue"].map((h) => (
-                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-700">{h}</th>
+                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {gcIntelData.map((g) => (
-                  <tr key={g.gc} className="border-b border-slate-700/50 hover:bg-slate-700/30">
-                    <td className="p-2.5 text-sm text-slate-200 max-w-[160px] truncate">{g.gc}</td>
-                    <td className="p-2.5 text-sm text-slate-300 tabular-nums">{g.bids}</td>
-                    <td className="p-2.5 text-sm text-emerald-400 tabular-nums font-semibold">{g.wins}</td>
+                  <tr key={g.gc} className="border-b border-slate-200 hover:bg-slate-100/30">
+                    <td className="p-2.5 text-sm text-slate-700 max-w-[160px] truncate">{g.gc}</td>
+                    <td className="p-2.5 text-sm text-slate-600 tabular-nums">{g.bids}</td>
+                    <td className="p-2.5 text-sm text-emerald-600 tabular-nums font-semibold">{g.wins}</td>
                     <td className="p-2.5">
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-bold tabular-nums ${g.winRate >= 60 ? "text-emerald-400" : g.winRate >= 40 ? "text-amber-400" : "text-red-400"}`}>{g.winRate}%</span>
-                        <div className="w-12 h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <span className={`text-sm font-bold tabular-nums ${g.winRate >= 60 ? "text-emerald-600" : g.winRate >= 40 ? "text-amber-600" : "text-red-600"}`}>{g.winRate}%</span>
+                        <div className="w-12 h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full ${g.winRate >= 60 ? "bg-emerald-500" : g.winRate >= 40 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${g.winRate}%` }} />
                         </div>
                       </div>
                     </td>
-                    <td className="p-2.5 text-sm text-slate-300 tabular-nums">{g.avgDpsf > 0 ? `$${g.avgDpsf.toFixed(2)}` : "—"}</td>
-                    <td className="p-2.5 text-sm text-emerald-400 tabular-nums">{g.wonDpsf > 0 ? `$${g.wonDpsf.toFixed(2)}` : "—"}</td>
-                    <td className="p-2.5 text-sm text-slate-300 tabular-nums font-semibold">{g.revenue > 0 ? `$${(g.revenue / 1000).toFixed(0)}k` : "—"}</td>
+                    <td className="p-2.5 text-sm text-slate-600 tabular-nums">{g.avgDpsf > 0 ? `$${g.avgDpsf.toFixed(2)}` : "—"}</td>
+                    <td className="p-2.5 text-sm text-emerald-600 tabular-nums">{g.wonDpsf > 0 ? `$${g.wonDpsf.toFixed(2)}` : "—"}</td>
+                    <td className="p-2.5 text-sm text-slate-600 tabular-nums font-semibold">{g.revenue > 0 ? `$${(g.revenue / 1000).toFixed(0)}k` : "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -494,7 +494,7 @@ function AnalyticsInner() {
           {gcInsights.length > 0 && (
             <div className="mt-4 space-y-1.5">
               {gcInsights.map((insight, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs text-slate-400">
+                <div key={i} className="flex items-start gap-2 text-xs text-slate-500">
                   <span className="text-amber-500 mt-px">*</span>
                   <span>{insight}</span>
                 </div>
@@ -507,17 +507,17 @@ function AnalyticsInner() {
       {/* Win Rate by GC + Loss Reasons side by side */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Win Rate by GC */}
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-          <h3 className="text-base font-semibold text-white mb-4">Win Rate by GC</h3>
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="text-base font-semibold text-slate-900 mb-4">Win Rate by GC</h3>
           {gcData.length > 0 ? (
             <div className="space-y-3">
               {gcData.map((g) => (
                 <div key={g.gc}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-slate-200 truncate max-w-[180px]">{g.gc}</span>
-                    <span className="text-xs text-slate-400">{g.won}W / {g.lost}L ({g.winRate}%)</span>
+                    <span className="text-sm text-slate-700 truncate max-w-[180px]">{g.gc}</span>
+                    <span className="text-xs text-slate-500">{g.won}W / {g.lost}L ({g.winRate}%)</span>
                   </div>
-                  <div className="h-4 bg-slate-700 rounded-full overflow-hidden flex">
+                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden flex">
                     {g.won > 0 && (
                       <div
                         className="h-full bg-emerald-500 transition-all"
@@ -540,17 +540,17 @@ function AnalyticsInner() {
         </div>
 
         {/* Loss Reasons */}
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-          <h3 className="text-base font-semibold text-white mb-4">Loss Reasons</h3>
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="text-base font-semibold text-slate-900 mb-4">Loss Reasons</h3>
           {lossReasonData.length > 0 ? (
             <div className="space-y-3">
               {lossReasonData.map((d) => (
                 <div key={d.reason}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-slate-200">{d.reason}</span>
-                    <span className="text-xs text-slate-400">{d.count} ({totalLosses > 0 ? Math.round((d.count / totalLosses) * 100) : 0}%)</span>
+                    <span className="text-sm text-slate-700">{d.reason}</span>
+                    <span className="text-xs text-slate-500">{d.count} ({totalLosses > 0 ? Math.round((d.count / totalLosses) * 100) : 0}%)</span>
                   </div>
-                  <div className="h-4 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-red-500 rounded-full transition-all"
                       style={{ width: `${totalLosses > 0 ? (d.count / totalLosses) * 100 : 0}%` }}
@@ -566,8 +566,8 @@ function AnalyticsInner() {
       </div>
 
       {/* Project History Table */}
-      <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-        <h3 className="text-base font-semibold text-white mb-4">Project History</h3>
+      <div className="bg-white rounded-xl p-5 border border-slate-200">
+        <h3 className="text-base font-semibold text-slate-900 mb-4">Project History</h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -575,7 +575,7 @@ function AnalyticsInner() {
                 {["Project", "GC", "Assembly", "SF", "$/SF", "Amount", "Result", "Date"].map((h) => (
                   <th
                     key={h}
-                    className="text-left p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-700"
+                    className="text-left p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200"
                   >
                     {h}
                   </th>
@@ -588,15 +588,15 @@ function AnalyticsInner() {
                 .map((p: any, i: number) => {
                   const dpsf = p.totalBidAmount && p.sqft && p.sqft > 0 ? (p.totalBidAmount / p.sqft).toFixed(2) : "—";
                   const statusLabel = p.status === "won" ? "WON" : p.status === "lost" ? "LOST" : p.status === "submitted" ? "SUBMITTED" : p.status === "in_progress" ? "ACTIVE" : p.status === "no_bid" ? "NO BID" : "SETUP";
-                  const statusClasses = p.status === "won" ? "bg-emerald-500/20 text-emerald-400" : p.status === "lost" ? "bg-red-500/20 text-red-400" : p.status === "in_progress" || p.status === "submitted" ? "bg-amber-500/20 text-amber-400" : "bg-slate-700 text-slate-400";
+                  const statusClasses = p.status === "won" ? "bg-emerald-50 text-emerald-600" : p.status === "lost" ? "bg-red-50 text-red-600" : p.status === "in_progress" || p.status === "submitted" ? "bg-amber-50 text-amber-600" : "bg-slate-100 text-slate-500";
                   return (
-                    <tr key={p._id || i} className="border-b border-slate-700/50 hover:bg-slate-700/30">
-                      <td className="p-3 text-sm text-slate-200 max-w-[160px] truncate">{p.name}</td>
-                      <td className="p-3 text-sm text-slate-400 max-w-[120px] truncate">{p.gc || "—"}</td>
-                      <td className="p-3 text-[11px] text-slate-400 max-w-[140px] truncate">{p.primaryAssembly || "—"}</td>
-                      <td className="p-3 text-sm text-slate-300 tabular-nums">{p.sqft ? p.sqft.toLocaleString() : "—"}</td>
-                      <td className="p-3 text-sm text-slate-300 tabular-nums">{dpsf !== "—" ? `$${dpsf}` : "—"}</td>
-                      <td className="p-3 text-sm font-bold text-slate-300 tabular-nums">
+                    <tr key={p._id || i} className="border-b border-slate-200 hover:bg-slate-100/30">
+                      <td className="p-3 text-sm text-slate-700 max-w-[160px] truncate">{p.name}</td>
+                      <td className="p-3 text-sm text-slate-500 max-w-[120px] truncate">{p.gc || "—"}</td>
+                      <td className="p-3 text-[11px] text-slate-500 max-w-[140px] truncate">{p.primaryAssembly || "—"}</td>
+                      <td className="p-3 text-sm text-slate-600 tabular-nums">{p.sqft ? p.sqft.toLocaleString() : "—"}</td>
+                      <td className="p-3 text-sm text-slate-600 tabular-nums">{dpsf !== "—" ? `$${dpsf}` : "—"}</td>
+                      <td className="p-3 text-sm font-bold text-slate-600 tabular-nums">
                         {p.totalBidAmount ? `$${(p.totalBidAmount / 1000).toFixed(0)}k` : p.estimatedValue ? `$${(p.estimatedValue / 1000).toFixed(0)}k` : "—"}
                       </td>
                       <td className="p-3">
@@ -604,7 +604,7 @@ function AnalyticsInner() {
                           {statusLabel}
                         </span>
                       </td>
-                      <td className="p-3 text-sm text-slate-400">{p.bidDate || "—"}</td>
+                      <td className="p-3 text-sm text-slate-500">{p.bidDate || "—"}</td>
                     </tr>
                   );
                 })}
@@ -653,7 +653,7 @@ function compileLossReasons(projects: any[]) {
 
 export default function AnalyticsContent() {
   return (
-    <Suspense fallback={<div className="text-slate-400">Loading analytics...</div>}>
+    <Suspense fallback={<div className="text-slate-500">Loading analytics...</div>}>
       <AnalyticsInner />
     </Suspense>
   );

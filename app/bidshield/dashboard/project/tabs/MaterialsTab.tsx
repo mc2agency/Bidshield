@@ -245,14 +245,14 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="text-4xl">🧱</div>
-        <h3 className="text-lg font-semibold text-white">No materials yet</h3>
-        <p className="text-sm text-slate-400 text-center max-w-md">
+        <h3 className="text-lg font-semibold text-slate-900">No materials yet</h3>
+        <p className="text-sm text-slate-500 text-center max-w-md">
           Auto-generate a material list based on your project&apos;s system type ({project?.systemType?.toUpperCase() || "TPO"}) and takeoff data.
         </p>
         <button
           onClick={handleInitialize}
           disabled={isInitializing}
-          className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-500 transition-colors disabled:opacity-50"
+          className="px-6 py-3 bg-emerald-600 text-slate-900 rounded-lg font-semibold hover:bg-emerald-500 transition-colors disabled:opacity-50"
         >
           {isInitializing ? "Generating..." : "Generate Material List"}
         </button>
@@ -265,34 +265,34 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
     <div className="flex flex-col gap-5">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className="text-2xl font-bold text-emerald-400">${totalCost.toLocaleString()}</div>
-          <div className="text-[11px] text-slate-400">Total Material Cost</div>
+        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+          <div className="text-2xl font-bold text-emerald-600">${totalCost.toLocaleString()}</div>
+          <div className="text-[11px] text-slate-500">Total Material Cost</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className="text-2xl font-bold text-blue-400">{materials.length}</div>
-          <div className="text-[11px] text-slate-400">Line Items</div>
+        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+          <div className="text-2xl font-bold text-blue-600">{materials.length}</div>
+          <div className="text-[11px] text-slate-500">Line Items</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className="text-2xl font-bold text-slate-300">{dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
-          <div className="text-[11px] text-slate-400">Material $/SF</div>
+        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+          <div className="text-2xl font-bold text-slate-600">{dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
+          <div className="text-[11px] text-slate-500">Material $/SF</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className={`text-2xl font-bold ${unpricedCount > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+          <div className={`text-2xl font-bold ${unpricedCount > 0 ? "text-amber-600" : "text-emerald-600"}`}>
             {unpricedCount > 0 ? `${unpricedCount}` : "✓"}
           </div>
-          <div className="text-[11px] text-slate-400">{unpricedCount > 0 ? "Unpriced" : "All Priced"}</div>
+          <div className="text-[11px] text-slate-500">{unpricedCount > 0 ? "Unpriced" : "All Priced"}</div>
         </div>
       </div>
 
       {/* Category breakdown bar */}
       {totalCost > 0 && (
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+        <div className="bg-white rounded-xl p-4 border border-slate-200">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-semibold text-white">Cost Breakdown by Category</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Cost Breakdown by Category</h3>
             <span className="text-xs text-slate-500">Based on {totalSF.toLocaleString()} SF</span>
           </div>
-          <div className="flex h-4 rounded-full overflow-hidden bg-slate-700 mb-3">
+          <div className="flex h-4 rounded-full overflow-hidden bg-slate-100 mb-3">
             {(Object.entries(categoryTotals) as [string, number][])
               .filter(([_, v]) => v > 0)
               .sort((a, b) => b[1] - a[1])
@@ -307,7 +307,7 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
                   accessories: "bg-red-400",
                 };
                 return (
-                  <div key={cat} className={`${colors[cat] || "bg-slate-600"} transition-all`} style={{ width: `${pct}%` }} title={`${MATERIAL_CATEGORIES[cat as MaterialCategory]?.label}: $${val.toLocaleString()} (${pct.toFixed(0)}%)`} />
+                  <div key={cat} className={`${colors[cat] || "bg-slate-200"} transition-all`} style={{ width: `${pct}%` }} title={`${MATERIAL_CATEGORIES[cat as MaterialCategory]?.label}: $${val.toLocaleString()} (${pct.toFixed(0)}%)`} />
                 );
               })}
           </div>
@@ -317,15 +317,15 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
               .sort((a, b) => b[1] - a[1])
               .map(([cat, val]) => {
                 const colors: Record<string, string> = {
-                  membrane: "text-blue-400",
-                  insulation: "text-amber-400",
-                  fasteners: "text-slate-400",
-                  adhesive: "text-purple-400",
-                  edge_metal: "text-emerald-400",
-                  accessories: "text-red-400",
+                  membrane: "text-blue-600",
+                  insulation: "text-amber-600",
+                  fasteners: "text-slate-500",
+                  adhesive: "text-violet-600",
+                  edge_metal: "text-emerald-600",
+                  accessories: "text-red-600",
                 };
                 return (
-                  <span key={cat} className={`text-xs ${colors[cat] || "text-slate-400"}`}>
+                  <span key={cat} className={`text-xs ${colors[cat] || "text-slate-500"}`}>
                     {MATERIAL_CATEGORIES[cat as MaterialCategory]?.icon} {MATERIAL_CATEGORIES[cat as MaterialCategory]?.label}: ${val.toLocaleString()}
                   </span>
                 );
@@ -336,10 +336,10 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
 
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1 border border-slate-700">
+        <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-slate-200">
           <button
             onClick={() => setFilterCategory("all")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterCategory === "all" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterCategory === "all" ? "bg-emerald-600 text-slate-900" : "text-slate-500 hover:text-slate-900"}`}
           >
             All
           </button>
@@ -347,7 +347,7 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
             <button
               key={key}
               onClick={() => setFilterCategory(key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterCategory === key ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterCategory === key ? "bg-emerald-600 text-slate-900" : "text-slate-500 hover:text-slate-900"}`}
             >
               {cat.icon} <span className="hidden md:inline">{cat.label}</span>
             </button>
@@ -355,11 +355,11 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
         </div>
         <div className="flex gap-2 ml-auto">
           {!isDemo && (
-            <button onClick={handleRecalculate} className="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-600/30 transition-colors">
+            <button onClick={handleRecalculate} className="px-3 py-1.5 bg-blue-600/20 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-600/30 transition-colors">
               Recalculate
             </button>
           )}
-          <button onClick={() => setShowAddModal(true)} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-500 transition-colors">
+          <button onClick={() => setShowAddModal(true)} className="px-3 py-1.5 bg-emerald-600 text-slate-900 rounded-lg text-xs font-medium hover:bg-emerald-500 transition-colors">
             + Add Material
           </button>
         </div>
@@ -370,19 +370,19 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
         const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
         const catTotal = (items as any[]).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
         return (
-          <div key={cat} className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-700">
+          <div key={cat} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <span className="text-base">{catInfo?.icon}</span>
-                <h3 className="text-sm font-semibold text-white">{catInfo?.label}</h3>
+                <h3 className="text-sm font-semibold text-slate-900">{catInfo?.label}</h3>
                 <span className="text-xs text-slate-500">({(items as any[]).length} items)</span>
               </div>
-              <span className="text-sm font-semibold text-emerald-400">${catTotal.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-emerald-600">${catTotal.toLocaleString()}</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-slate-500 border-b border-slate-700/50">
+                  <tr className="text-xs text-slate-500 border-b border-slate-200">
                     <th className="text-left px-5 py-2 font-medium">Material</th>
                     <th className="text-center px-3 py-2 font-medium w-16">Unit</th>
                     <th className="text-right px-3 py-2 font-medium w-20">Qty</th>
@@ -396,24 +396,24 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
                   {(items as any[]).map((m: any) => {
                     const isEditing = editingId === m._id;
                     return (
-                      <tr key={m._id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                      <tr key={m._id} className="border-b border-slate-200/30 hover:bg-slate-100/20">
                         <td className="px-5 py-2.5">
-                          <div className="text-slate-200">{m.name}</div>
+                          <div className="text-slate-700">{m.name}</div>
                           {m.calcType === "linear_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (linear)</span>}
                           {m.calcType === "count_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (count)</span>}
                           {m.calcType === "coverage" && <span className="text-[10px] text-slate-500">{m.coverage} SF/unit</span>}
                         </td>
-                        <td className="text-center px-3 py-2.5 text-slate-400">{m.unit}</td>
+                        <td className="text-center px-3 py-2.5 text-slate-500">{m.unit}</td>
                         <td className="text-right px-3 py-2.5">
                           {isEditing ? (
                             <input
                               type="number"
                               value={editQty}
                               onChange={(e) => setEditQty(e.target.value)}
-                              className="w-16 bg-slate-700 text-white text-right text-xs rounded px-2 py-1 border border-slate-600"
+                              className="w-16 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1 border border-slate-300"
                             />
                           ) : (
-                            <span className={m.quantity ? "text-white" : "text-slate-500"}>{m.quantity ?? "—"}</span>
+                            <span className={m.quantity ? "text-slate-900" : "text-slate-500"}>{m.quantity ?? "—"}</span>
                           )}
                         </td>
                         <td className="text-center px-3 py-2.5">
@@ -422,10 +422,10 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
                               type="number"
                               value={editWaste}
                               onChange={(e) => setEditWaste(e.target.value)}
-                              className="w-12 bg-slate-700 text-white text-center text-xs rounded px-1 py-1 border border-slate-600"
+                              className="w-12 bg-white border border-slate-300 text-slate-900 text-center text-xs rounded px-1 py-1 border border-slate-300"
                             />
                           ) : (
-                            <span className="text-slate-400 text-xs">{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
+                            <span className="text-slate-500 text-xs">{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
                           )}
                         </td>
                         <td className="text-right px-3 py-2.5">
@@ -434,29 +434,29 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
                               type="number"
                               value={editPrice}
                               onChange={(e) => setEditPrice(e.target.value)}
-                              className="w-20 bg-slate-700 text-white text-right text-xs rounded px-2 py-1 border border-slate-600"
+                              className="w-20 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1 border border-slate-300"
                               step="0.01"
                             />
                           ) : (
-                            <span className={m.unitPrice ? "text-slate-200" : "text-amber-400"}>{m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}</span>
+                            <span className={m.unitPrice ? "text-slate-700" : "text-amber-600"}>{m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}</span>
                           )}
                         </td>
                         <td className="text-right px-5 py-2.5 font-semibold">
-                          <span className={m.totalCost ? "text-emerald-400" : "text-slate-500"}>
+                          <span className={m.totalCost ? "text-emerald-600" : "text-slate-500"}>
                             {m.totalCost ? `$${m.totalCost.toLocaleString()}` : "—"}
                           </span>
                         </td>
                         <td className="text-center px-3 py-2.5">
                           {isEditing ? (
                             <div className="flex gap-1">
-                              <button onClick={() => saveEdit(m)} className="text-emerald-400 hover:text-emerald-300 text-xs">Save</button>
-                              <button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-slate-400 text-xs">Cancel</button>
+                              <button onClick={() => saveEdit(m)} className="text-emerald-600 hover:text-emerald-300 text-xs">Save</button>
+                              <button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-slate-500 text-xs">Cancel</button>
                             </div>
                           ) : (
                             <div className="flex gap-1">
-                              <button onClick={() => startEdit(m)} className="text-slate-400 hover:text-white text-xs">Edit</button>
+                              <button onClick={() => startEdit(m)} className="text-slate-500 hover:text-slate-900 text-xs">Edit</button>
                               {!isDemo && (
-                                <button onClick={() => deleteMaterial({ materialId: m._id })} className="text-red-400/50 hover:text-red-400 text-xs">×</button>
+                                <button onClick={() => deleteMaterial({ materialId: m._id })} className="text-red-600/50 hover:text-red-600 text-xs">×</button>
                               )}
                             </div>
                           )}
@@ -515,10 +515,10 @@ function AddMaterialModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-2xl border border-slate-700 max-w-lg w-full max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
-          <h3 className="text-lg font-semibold text-white">Add Material</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white text-xl">&times;</button>
+      <div className="bg-white rounded-2xl border border-slate-200 max-w-lg w-full max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-900">Add Material</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-900 text-xl">&times;</button>
         </div>
         <div className="px-5 py-3">
           <input
@@ -526,7 +526,7 @@ function AddMaterialModal({
             placeholder="Search materials..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-700 text-white rounded-lg px-4 py-2 text-sm border border-slate-600 focus:border-emerald-500 focus:outline-none"
+            className="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-4 py-2 text-sm border border-slate-300 focus:border-emerald-500 focus:outline-none"
           />
         </div>
         <div className="flex-1 overflow-y-auto px-5 pb-5">
@@ -540,10 +540,10 @@ function AddMaterialModal({
                     <button
                       key={t.key}
                       onClick={() => onAdd(t)}
-                      className="w-full flex items-center justify-between p-3 bg-slate-900 hover:bg-slate-700/50 rounded-lg transition-colors text-left"
+                      className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-50 rounded-lg transition-colors text-left"
                     >
                       <div>
-                        <div className="text-sm text-slate-200">{t.name}</div>
+                        <div className="text-sm text-slate-700">{t.name}</div>
                         <div className="text-[10px] text-slate-500">
                           {t.calcType === "coverage" && `${t.defaultCoverage} SF/${t.unit}`}
                           {t.calcType === "qty_per_sf" && `${t.defaultQtyPerSf} per SF`}
@@ -552,7 +552,7 @@ function AddMaterialModal({
                           {t.calcType === "fixed" && "Manual qty"}
                         </div>
                       </div>
-                      {t.defaultUnitPrice && <span className="text-xs text-slate-400">${t.defaultUnitPrice}</span>}
+                      {t.defaultUnitPrice && <span className="text-xs text-slate-500">${t.defaultUnitPrice}</span>}
                     </button>
                   ))}
                 </div>

@@ -212,105 +212,105 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
   const scoreData = (hasRun && (isDemo || projectData)) ? buildScore() : null;
 
   const gradeColors: Record<string, string> = {
-    A: "text-emerald-400 border-emerald-500",
-    B: "text-blue-400 border-blue-500",
-    C: "text-amber-400 border-amber-500",
+    A: "text-emerald-600 border-emerald-500",
+    B: "text-blue-600 border-blue-500",
+    C: "text-amber-600 border-amber-500",
     D: "text-orange-400 border-orange-500",
-    F: "text-red-400 border-red-500",
+    F: "text-red-600 border-red-500",
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold text-white">Bid Readiness Validator</h2>
+      <h2 className="text-xl font-semibold text-slate-900">Bid Readiness Validator</h2>
 
       {scoreData ? (
         <div className="flex flex-col gap-6">
-          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 flex flex-col sm:flex-row items-center gap-6">
+          <div className="bg-white rounded-xl p-6 border border-slate-200 flex flex-col sm:flex-row items-center gap-6">
             <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center ${gradeColors[scoreData.grade] || gradeColors.F}`}>
               <span className="text-4xl font-bold">{scoreData.grade}</span>
             </div>
             <div className="flex-1 text-center sm:text-left">
-              <div className="text-lg font-semibold text-white">{projectData?.name || "Project"}</div>
-              <div className="text-sm text-slate-400 mt-1">
-                Readiness Score: <span className="font-bold text-white">{scoreData.score}/100</span>
+              <div className="text-lg font-semibold text-slate-900">{projectData?.name || "Project"}</div>
+              <div className="text-sm text-slate-500 mt-1">
+                Readiness Score: <span className="font-bold text-slate-900">{scoreData.score}/100</span>
               </div>
-              <div className="w-full max-w-xs h-3 bg-slate-700 rounded-full overflow-hidden mt-2">
+              <div className="w-full max-w-xs h-3 bg-slate-100 rounded-full overflow-hidden mt-2">
                 <div className={`h-full rounded-full transition-all ${scoreData.score >= 90 ? "bg-emerald-500" : scoreData.score >= 65 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${scoreData.score}%` }} />
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-white">{scoreData.items.filter(i => i.status === "pass").length}</div>
-              <div className="text-xs text-slate-400">of {scoreData.items.length} checks passed</div>
+              <div className="text-3xl font-bold text-slate-900">{scoreData.items.filter(i => i.status === "pass").length}</div>
+              <div className="text-xs text-slate-500">of {scoreData.items.length} checks passed</div>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-red-400">{scoreData.items.filter(i => i.status === "fail").length}</div>
-              <div className="text-[11px] text-slate-400">Must Fix</div>
+            <div className="bg-red-50 border border-red-500/30 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-red-600">{scoreData.items.filter(i => i.status === "fail").length}</div>
+              <div className="text-[11px] text-slate-500">Must Fix</div>
             </div>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-amber-400">{scoreData.items.filter(i => i.status === "warn").length}</div>
-              <div className="text-[11px] text-slate-400">Warnings</div>
+            <div className="bg-amber-50 border border-amber-500/30 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-amber-600">{scoreData.items.filter(i => i.status === "warn").length}</div>
+              <div className="text-[11px] text-slate-500">Warnings</div>
             </div>
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-400">{scoreData.items.filter(i => i.status === "pass").length}</div>
-              <div className="text-[11px] text-slate-400">Passed</div>
+            <div className="bg-emerald-50 border border-emerald-500/30 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-emerald-600">{scoreData.items.filter(i => i.status === "pass").length}</div>
+              <div className="text-[11px] text-slate-500">Passed</div>
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
             {scoreData.items.filter(i => i.status === "fail").map((item, idx) => (
-              <div key={`fail-${idx}`} className="bg-slate-800 rounded-lg border-l-4 border-red-500 p-4 flex items-start justify-between gap-3">
+              <div key={`fail-${idx}`} className="bg-white rounded-lg border-l-4 border-red-500 p-4 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <span className="text-red-500 font-bold text-lg mt-0.5">X</span>
                   <div>
-                    <div className="text-sm font-medium text-white">{item.label}</div>
-                    <div className="text-[13px] text-slate-400 mt-0.5">{item.message}</div>
+                    <div className="text-sm font-medium text-slate-900">{item.label}</div>
+                    <div className="text-[13px] text-slate-500 mt-0.5">{item.message}</div>
                   </div>
                 </div>
                 {item.tabLink && (
-                  <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1.5 bg-red-500/20 text-red-400 text-xs font-medium rounded hover:bg-red-500/30 transition-colors">
+                  <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1.5 bg-red-50 text-red-600 text-xs font-medium rounded hover:bg-red-500/30 transition-colors">
                     Fix
                   </button>
                 )}
               </div>
             ))}
             {scoreData.items.filter(i => i.status === "warn").map((item, idx) => (
-              <div key={`warn-${idx}`} className="bg-slate-800 rounded-lg border-l-4 border-amber-500 p-4 flex items-start justify-between gap-3">
+              <div key={`warn-${idx}`} className="bg-white rounded-lg border-l-4 border-amber-500 p-4 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <span className="text-amber-500 font-bold text-lg mt-0.5">!</span>
+                  <span className="text-amber-600 font-bold text-lg mt-0.5">!</span>
                   <div>
-                    <div className="text-sm font-medium text-white">{item.label}</div>
-                    <div className="text-[13px] text-slate-400 mt-0.5">{item.message}</div>
+                    <div className="text-sm font-medium text-slate-900">{item.label}</div>
+                    <div className="text-[13px] text-slate-500 mt-0.5">{item.message}</div>
                   </div>
                 </div>
                 {item.tabLink && (
-                  <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1.5 bg-amber-500/20 text-amber-400 text-xs font-medium rounded hover:bg-amber-500/30 transition-colors">
+                  <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1.5 bg-amber-50 text-amber-600 text-xs font-medium rounded hover:bg-amber-500/30 transition-colors">
                     Review
                   </button>
                 )}
               </div>
             ))}
             {scoreData.items.filter(i => i.status === "pass").map((item, idx) => (
-              <div key={`pass-${idx}`} className="bg-slate-800 rounded-lg border-l-4 border-emerald-500 p-4 flex items-start gap-3">
-                <span className="text-emerald-500 font-bold text-lg mt-0.5">&#10003;</span>
+              <div key={`pass-${idx}`} className="bg-white rounded-lg border-l-4 border-emerald-500 p-4 flex items-start gap-3">
+                <span className="text-emerald-600 font-bold text-lg mt-0.5">&#10003;</span>
                 <div>
-                  <div className="text-sm font-medium text-white">{item.label}</div>
-                  <div className="text-[13px] text-slate-400 mt-0.5">{item.message}</div>
+                  <div className="text-sm font-medium text-slate-900">{item.label}</div>
+                  <div className="text-[13px] text-slate-500 mt-0.5">{item.message}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="text-center py-20 bg-slate-800 rounded-xl border border-slate-700">
+        <div className="text-center py-20 bg-white rounded-xl border border-slate-200">
           <div className="text-6xl mb-4">&#128737;&#65039;</div>
-          <h3 className="text-lg font-semibold text-white mb-2">Validate Your Bid</h3>
-          <p className="text-sm text-slate-400 max-w-md mx-auto mb-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">Validate Your Bid</h3>
+          <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
             Check checklist completion, quote freshness, open RFIs, and bid date readiness before you submit.
           </p>
-          <button onClick={() => setHasRun(true)} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors">
+          <button onClick={() => setHasRun(true)} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">
             Run Validation
           </button>
         </div>

@@ -14,16 +14,16 @@ const LOSS_REASONS = [
 
 function varianceColor(pct: number): string {
   const abs = Math.abs(pct);
-  if (abs <= 5) return "text-emerald-400";
-  if (abs <= 10) return "text-amber-400";
-  return "text-red-400";
+  if (abs <= 5) return "text-emerald-600";
+  if (abs <= 10) return "text-amber-600";
+  return "text-red-600";
 }
 
 function varianceBg(pct: number): string {
   const abs = Math.abs(pct);
-  if (abs <= 5) return "bg-emerald-500/10 border-emerald-500/30";
-  if (abs <= 10) return "bg-amber-500/10 border-amber-500/30";
-  return "bg-red-500/10 border-red-500/30";
+  if (abs <= 5) return "bg-emerald-50 border-emerald-500/30";
+  if (abs <= 10) return "bg-amber-50 border-amber-500/30";
+  return "bg-red-50 border-red-500/30";
 }
 
 export default function PricingTab({ projectId, isDemo, project, userId }: TabProps) {
@@ -126,7 +126,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
     ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / p.sqft, 0) / similarProjects.length
     : null;
   const variance = dollarPerSf && avgDollarPerSf ? ((dollarPerSf - avgDollarPerSf) / avgDollarPerSf) * 100 : null;
-  const healthColor = variance === null ? "text-slate-500" : Math.abs(variance) <= 5 ? "text-emerald-400" : Math.abs(variance) <= 15 ? "text-amber-400" : "text-red-400";
+  const healthColor = variance === null ? "text-slate-500" : Math.abs(variance) <= 5 ? "text-emerald-600" : Math.abs(variance) <= 15 ? "text-amber-600" : "text-red-600";
   const healthLabel = !dollarPerSf ? "Enter bid amount" : !assembly ? "Set assembly type" : similarProjects.length < 3 ? "Need more data" : Math.abs(variance!) <= 5 ? "On Target" : Math.abs(variance!) <= 15 ? "Watch" : "Off Target";
 
   const status = project?.status || "setup";
@@ -152,57 +152,57 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
   return (
     <div className="flex flex-col gap-5">
       {/* Bid Pricing Card */}
-      <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+      <div className="bg-white rounded-xl p-5 border border-slate-200">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-semibold text-white">Bid Pricing & Outcome</h3>
-          <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-400 hover:text-emerald-300" : "text-slate-400 hover:text-slate-200"}`}>
+          <h3 className="text-sm font-semibold text-slate-900">Bid Pricing & Outcome</h3>
+          <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
             {editing ? "Save" : "Edit"}
           </button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
-          <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-            {editing ? <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="Total" className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-white">{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>}
+          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+            {editing ? <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="Total" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-slate-900">{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>}
             <div className="text-[10px] text-slate-500">Total Bid</div>
           </div>
-          <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-            {editing ? <input type="number" value={form.materialCost} onChange={(e) => setForm({ ...form, materialCost: e.target.value })} placeholder="Material" className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-blue-400">{pricing.materialCost ? fmtDollar(pricing.materialCost) : "—"}</div>}
+          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+            {editing ? <input type="number" value={form.materialCost} onChange={(e) => setForm({ ...form, materialCost: e.target.value })} placeholder="Material" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-blue-600">{pricing.materialCost ? fmtDollar(pricing.materialCost) : "—"}</div>}
             <div className="text-[10px] text-slate-500">Material</div>
           </div>
-          <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-            {editing ? <input type="number" value={form.laborCost} onChange={(e) => setForm({ ...form, laborCost: e.target.value })} placeholder="Labor" className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-emerald-400">{pricing.laborCost ? fmtDollar(pricing.laborCost) : "—"}</div>}
+          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+            {editing ? <input type="number" value={form.laborCost} onChange={(e) => setForm({ ...form, laborCost: e.target.value })} placeholder="Labor" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-emerald-600">{pricing.laborCost ? fmtDollar(pricing.laborCost) : "—"}</div>}
             <div className="text-[10px] text-slate-500">Labor</div>
           </div>
-          <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-            {editing ? <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-slate-300">{pricing.otherCost ? fmtDollar(pricing.otherCost) : "—"}</div>}
+          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+            {editing ? <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-slate-600">{pricing.otherCost ? fmtDollar(pricing.otherCost) : "—"}</div>}
             <div className="text-[10px] text-slate-500">Other</div>
           </div>
-          <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700 col-span-2 sm:col-span-1">
+          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200 col-span-2 sm:col-span-1">
             <div className={`text-lg font-bold ${healthColor}`}>{dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
             <div className="text-[10px] text-slate-500">$/SF</div>
           </div>
         </div>
 
         <div className="mb-4">
-          <label className="text-[11px] text-slate-400 mb-1 block">Primary Assembly</label>
+          <label className="text-[11px] text-slate-500 mb-1 block">Primary Assembly</label>
           {editing ? (
-            <select value={form.primaryAssembly} onChange={(e) => setForm({ ...form, primaryAssembly: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500">
+            <select value={form.primaryAssembly} onChange={(e) => setForm({ ...form, primaryAssembly: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">
               <option value="">Select assembly...</option>
               {ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           ) : (
-            <div className="text-sm text-slate-200">{pricing.primaryAssembly || "Not set"}</div>
+            <div className="text-sm text-slate-700">{pricing.primaryAssembly || "Not set"}</div>
           )}
         </div>
 
         {(dollarPerSf || assembly) && (
-          <div className={`mb-4 p-3 rounded-lg border ${healthLabel === "On Target" ? "bg-emerald-500/10 border-emerald-500/30" : healthLabel === "Watch" ? "bg-amber-500/10 border-amber-500/30" : healthLabel === "Off Target" ? "bg-red-500/10 border-red-500/30" : "bg-slate-700/50 border-slate-600"}`}>
+          <div className={`mb-4 p-3 rounded-lg border ${healthLabel === "On Target" ? "bg-emerald-50 border-emerald-500/30" : healthLabel === "Watch" ? "bg-amber-50 border-amber-500/30" : healthLabel === "Off Target" ? "bg-red-50 border-red-500/30" : "bg-slate-50 border-slate-300"}`}>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">Bid Health</span>
+              <span className="text-xs text-slate-500">Bid Health</span>
               <span className={`text-xs font-bold ${healthColor}`}>{healthLabel}</span>
             </div>
             {variance !== null && (
-              <div className="text-[11px] text-slate-400 mt-1">
+              <div className="text-[11px] text-slate-500 mt-1">
                 Your $/SF is {variance > 0 ? "+" : ""}{variance.toFixed(1)}% vs avg ${avgDollarPerSf!.toFixed(2)}/SF across {similarProjects.length} similar projects
               </div>
             )}
@@ -213,18 +213,18 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
         )}
 
         {isLost && (
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <h4 className="text-xs font-semibold text-red-400 mb-2">Loss Details</h4>
+          <div className="p-4 bg-red-50 border border-red-500/30 rounded-lg">
+            <h4 className="text-xs font-semibold text-red-600 mb-2">Loss Details</h4>
             {editing ? (
               <div className="space-y-2">
-                <select value={form.lossReason} onChange={(e) => setForm({ ...form, lossReason: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500">
+                <select value={form.lossReason} onChange={(e) => setForm({ ...form, lossReason: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">
                   <option value="">Select reason...</option>
                   {LOSS_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
-                <input value={form.lossReasonNote} onChange={(e) => setForm({ ...form, lossReasonNote: e.target.value })} placeholder="Additional notes (optional)" className="bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
+                <input value={form.lossReasonNote} onChange={(e) => setForm({ ...form, lossReasonNote: e.target.value })} placeholder="Additional notes (optional)" className="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" />
               </div>
             ) : (
-              <div className="text-sm text-slate-300">
+              <div className="text-sm text-slate-600">
                 {pricing.lossReason || "No reason recorded"}
                 {pricing.lossReasonNote && <span className="text-slate-500 ml-2">— {pricing.lossReasonNote}</span>}
               </div>
@@ -234,28 +234,28 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
         {editing && (
           <div className="mt-4 flex gap-2">
-            <button onClick={handleSave} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Changes</button>
-            <button onClick={() => setEditing(false)} className="text-sm text-slate-400 hover:text-slate-200 px-4 py-2 transition-colors">Cancel</button>
+            <button onClick={handleSave} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Changes</button>
+            <button onClick={() => setEditing(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
           </div>
         )}
       </div>
 
       {/* Actual Costs Section (won projects only) */}
       {isWon && (
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-white">Actual Costs (Post-Completion)</h3>
+              <h3 className="text-sm font-semibold text-slate-900">Actual Costs (Post-Completion)</h3>
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase ${
-                postJobStatus === "actuals_entered" ? "bg-emerald-500/20 text-emerald-400" :
-                postJobStatus === "completed" ? "bg-blue-500/20 text-blue-400" :
-                "bg-amber-500/20 text-amber-400"
+                postJobStatus === "actuals_entered" ? "bg-emerald-50 text-emerald-600" :
+                postJobStatus === "completed" ? "bg-blue-50 text-blue-600" :
+                "bg-amber-50 text-amber-600"
               }`}>
                 {postJobStatus === "actuals_entered" ? "Actuals Entered" : postJobStatus === "completed" ? "Completed" : "In Progress"}
               </span>
             </div>
             {!isDemo && (
-              <button onClick={editingActuals ? handleSaveActuals : startEditActuals} className={`text-xs font-medium transition-colors ${editingActuals ? "text-emerald-400 hover:text-emerald-300" : "text-slate-400 hover:text-slate-200"}`}>
+              <button onClick={editingActuals ? handleSaveActuals : startEditActuals} className={`text-xs font-medium transition-colors ${editingActuals ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
                 {editingActuals ? "Save" : "Edit"}
               </button>
             )}
@@ -266,7 +266,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] text-slate-500 mb-1 block">Post-Job Status</label>
-                  <select value={actualsForm.postJobStatus} onChange={(e) => setActualsForm({ ...actualsForm, postJobStatus: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-white text-sm w-full focus:outline-none focus:border-amber-500">
+                  <select value={actualsForm.postJobStatus} onChange={(e) => setActualsForm({ ...actualsForm, postJobStatus: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">
                     <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
                     <option value="actuals_entered">Actuals Entered</option>
@@ -274,41 +274,41 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
                 </div>
                 <div>
                   <label className="text-[10px] text-slate-500 mb-1 block">Completion Date</label>
-                  <input type="date" value={actualsForm.completedDate} onChange={(e) => setActualsForm({ ...actualsForm, completedDate: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-white text-sm w-full focus:outline-none focus:border-amber-500" />
+                  <input type="date" value={actualsForm.completedDate} onChange={(e) => setActualsForm({ ...actualsForm, completedDate: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" />
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Total</label><input type="number" value={actualsForm.actualCost} onChange={(e) => setActualsForm({ ...actualsForm, actualCost: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-white text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Material</label><input type="number" value={actualsForm.actualMaterialCost} onChange={(e) => setActualsForm({ ...actualsForm, actualMaterialCost: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-white text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Labor</label><input type="number" value={actualsForm.actualLaborCost} onChange={(e) => setActualsForm({ ...actualsForm, actualLaborCost: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-white text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Other</label><input type="number" value={actualsForm.actualOtherCost} onChange={(e) => setActualsForm({ ...actualsForm, actualOtherCost: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-white text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Total</label><input type="number" value={actualsForm.actualCost} onChange={(e) => setActualsForm({ ...actualsForm, actualCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Material</label><input type="number" value={actualsForm.actualMaterialCost} onChange={(e) => setActualsForm({ ...actualsForm, actualMaterialCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Labor</label><input type="number" value={actualsForm.actualLaborCost} onChange={(e) => setActualsForm({ ...actualsForm, actualLaborCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Other</label><input type="number" value={actualsForm.actualOtherCost} onChange={(e) => setActualsForm({ ...actualsForm, actualOtherCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
               </div>
               <div>
                 <label className="text-[10px] text-slate-500 mb-1 block">Notes / Lessons Learned</label>
-                <textarea value={actualsForm.postJobNotes} onChange={(e) => setActualsForm({ ...actualsForm, postJobNotes: e.target.value })} placeholder="What caused variances? Lessons for future bids..." rows={2} className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm resize-none focus:outline-none focus:border-amber-500" />
+                <textarea value={actualsForm.postJobNotes} onChange={(e) => setActualsForm({ ...actualsForm, postJobNotes: e.target.value })} placeholder="What caused variances? Lessons for future bids..." rows={2} className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm resize-none focus:outline-none focus:border-amber-500" />
               </div>
               <div className="flex gap-2">
-                <button onClick={handleSaveActuals} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Actuals</button>
-                <button onClick={() => setEditingActuals(false)} className="text-sm text-slate-400 hover:text-slate-200 px-4 py-2 transition-colors">Cancel</button>
+                <button onClick={handleSaveActuals} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Actuals</button>
+                <button onClick={() => setEditingActuals(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
               </div>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-                  <div className="text-lg font-bold text-white">{pricing.actualCost ? fmtDollar(pricing.actualCost) : "—"}</div>
+                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+                  <div className="text-lg font-bold text-slate-900">{pricing.actualCost ? fmtDollar(pricing.actualCost) : "—"}</div>
                   <div className="text-[10px] text-slate-500">Actual Total</div>
                 </div>
-                <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-                  <div className="text-lg font-bold text-blue-400">{pricing.actualMaterialCost ? fmtDollar(pricing.actualMaterialCost) : "—"}</div>
+                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+                  <div className="text-lg font-bold text-blue-600">{pricing.actualMaterialCost ? fmtDollar(pricing.actualMaterialCost) : "—"}</div>
                   <div className="text-[10px] text-slate-500">Actual Material</div>
                 </div>
-                <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-                  <div className="text-lg font-bold text-emerald-400">{pricing.actualLaborCost ? fmtDollar(pricing.actualLaborCost) : "—"}</div>
+                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+                  <div className="text-lg font-bold text-emerald-600">{pricing.actualLaborCost ? fmtDollar(pricing.actualLaborCost) : "—"}</div>
                   <div className="text-[10px] text-slate-500">Actual Labor</div>
                 </div>
-                <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-                  <div className="text-lg font-bold text-slate-300">{pricing.actualOtherCost ? fmtDollar(pricing.actualOtherCost) : "—"}</div>
+                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+                  <div className="text-lg font-bold text-slate-600">{pricing.actualOtherCost ? fmtDollar(pricing.actualOtherCost) : "—"}</div>
                   <div className="text-[10px] text-slate-500">Actual Other</div>
                 </div>
               </div>
@@ -316,7 +316,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
                 <div className="text-xs text-slate-500 mb-2">Completed: {pricing.completedDate}</div>
               )}
               {pricing.postJobNotes && (
-                <div className="p-3 bg-slate-900 rounded-lg text-sm text-slate-300 mb-3">{pricing.postJobNotes}</div>
+                <div className="p-3 bg-slate-50 rounded-lg text-sm text-slate-600 mb-3">{pricing.postJobNotes}</div>
               )}
               {!hasActuals && (
                 <div className="text-center py-4 text-sm text-slate-500">
@@ -330,14 +330,14 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
       {/* Estimate vs Actual Comparison (won projects with actuals) */}
       {isWon && hasActuals && pricing.totalBidAmount && (
-        <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
-          <h3 className="text-sm font-semibold text-white mb-4">Estimate vs. Actual Comparison</h3>
+        <div className="bg-white rounded-xl p-5 border border-slate-200">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4">Estimate vs. Actual Comparison</h3>
 
           {/* Comparison Table */}
           <div className="overflow-x-auto mb-4">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-700">
+                <tr className="border-b border-slate-200">
                   <th className="text-left py-2 px-3 text-xs text-slate-500 font-semibold">Category</th>
                   <th className="text-right py-2 px-3 text-xs text-slate-500 font-semibold">Estimated</th>
                   <th className="text-right py-2 px-3 text-xs text-slate-500 font-semibold">Actual</th>
@@ -350,10 +350,10 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
                 {pricing.laborCost && <ComparisonRow label="Labor" estimated={pricing.laborCost} actual={pricing.actualLaborCost} varianceAmt={labVariance} variancePct={labVariancePct} />}
                 {pricing.otherCost && <ComparisonRow label="Other" estimated={pricing.otherCost} actual={pricing.actualOtherCost} varianceAmt={othVariance} variancePct={othVariancePct} />}
                 {dollarPerSf && actualDpsf && (
-                  <tr className="border-t border-slate-700">
-                    <td className="py-2 px-3 text-slate-300">$/SF</td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">${dollarPerSf.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">${actualDpsf.toFixed(2)}</td>
+                  <tr className="border-t border-slate-200">
+                    <td className="py-2 px-3 text-slate-600">$/SF</td>
+                    <td className="py-2 px-3 text-right text-slate-600 tabular-nums">${dollarPerSf.toFixed(2)}</td>
+                    <td className="py-2 px-3 text-right text-slate-600 tabular-nums">${actualDpsf.toFixed(2)}</td>
                     <td className={`py-2 px-3 text-right tabular-nums ${dpsfVariancePct !== null ? varianceColor(dpsfVariancePct) : "text-slate-500"}`}>
                       {dpsfVariance !== null ? `${dpsfVariance > 0 ? "+" : ""}$${dpsfVariance.toFixed(2)} (${dpsfVariancePct!.toFixed(1)}%)` : "—"}
                     </td>
@@ -382,8 +382,8 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
                 { label: "Other", pct: othVariancePct },
               ].filter(v => v.pct !== null).map((v) => (
                 <div key={v.label} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-400 w-16">{v.label}</span>
-                  <div className="flex-1 h-3 bg-slate-700 rounded-full overflow-hidden relative">
+                  <span className="text-xs text-slate-500 w-16">{v.label}</span>
+                  <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden relative">
                     <div className="absolute inset-0 flex">
                       <div className="w-1/2" />
                       <div className="w-px bg-slate-500" />
@@ -413,10 +413,10 @@ function ComparisonRow({ label, estimated, actual, varianceAmt, variancePct, bol
 }) {
   const fmt = (n?: number) => n != null ? `$${n.toLocaleString()}` : "—";
   return (
-    <tr className="border-b border-slate-700/50">
-      <td className={`py-2 px-3 ${bold ? "text-white font-semibold" : "text-slate-300"}`}>{label}</td>
-      <td className="py-2 px-3 text-right text-slate-300 tabular-nums">{fmt(estimated)}</td>
-      <td className="py-2 px-3 text-right text-slate-300 tabular-nums">{fmt(actual)}</td>
+    <tr className="border-b border-slate-200">
+      <td className={`py-2 px-3 ${bold ? "text-slate-900 font-semibold" : "text-slate-600"}`}>{label}</td>
+      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">{fmt(estimated)}</td>
+      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">{fmt(actual)}</td>
       <td className={`py-2 px-3 text-right tabular-nums ${variancePct !== null ? varianceColor(variancePct) : "text-slate-500"}`}>
         {varianceAmt !== null ? `${varianceAmt > 0 ? "+" : ""}$${varianceAmt.toLocaleString()} (${variancePct!.toFixed(1)}%)` : "—"}
       </td>

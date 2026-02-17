@@ -126,12 +126,12 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
 
   const statusBadge = (status: string) => {
     const map: Record<string, { bg: string; text: string; label: string }> = {
-      valid: { bg: "bg-emerald-500/20", text: "text-emerald-400", label: "✓ Valid" },
-      received: { bg: "bg-blue-500/20", text: "text-blue-400", label: "📥 Received" },
-      requested: { bg: "bg-purple-500/20", text: "text-purple-400", label: "📧 Requested" },
-      expiring: { bg: "bg-amber-500/20", text: "text-amber-400", label: "⚠ Expiring" },
-      expired: { bg: "bg-red-500/20", text: "text-red-400", label: "✗ Expired" },
-      none: { bg: "bg-slate-700", text: "text-slate-400", label: "○ No Quote" },
+      valid: { bg: "bg-emerald-50", text: "text-emerald-600", label: "✓ Valid" },
+      received: { bg: "bg-blue-50", text: "text-blue-600", label: "📥 Received" },
+      requested: { bg: "bg-violet-50", text: "text-violet-600", label: "📧 Requested" },
+      expiring: { bg: "bg-amber-50", text: "text-amber-600", label: "⚠ Expiring" },
+      expired: { bg: "bg-red-50", text: "text-red-600", label: "✗ Expired" },
+      none: { bg: "bg-slate-100", text: "text-slate-500", label: "○ No Quote" },
     };
     const s = map[status] || map.none;
     return (
@@ -147,26 +147,26 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   }));
 
   if (!isDemo && quotes === undefined) {
-    return <div className="text-slate-400">Loading quotes...</div>;
+    return <div className="text-slate-500">Loading quotes...</div>;
   }
 
   return (
     <div className="flex flex-col gap-6">
       {notification && (
-        <div className="fixed top-20 right-6 bg-emerald-500 text-white px-5 py-3 rounded-lg text-sm font-medium z-50 animate-pulse">
+        <div className="fixed top-20 right-6 bg-emerald-500 text-slate-900 px-5 py-3 rounded-lg text-sm font-medium z-50 animate-pulse">
           {notification}
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-white">💰 Vendor Quotes</h2>
-          {project && <p className="text-sm text-slate-400">{project.name}</p>}
+          <h2 className="text-xl font-semibold text-slate-900">💰 Vendor Quotes</h2>
+          {project && <p className="text-sm text-slate-500">{project.name}</p>}
         </div>
         {!isDemo && (
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors"
           >
             + Add Quote
           </button>
@@ -176,14 +176,14 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       {/* Quote Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Quotes", value: resolvedQuotes.length, color: "text-white" },
-          { label: "Valid", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "valid").length, color: "text-emerald-500" },
-          { label: "Expiring Soon", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "expiring").length, color: "text-amber-500" },
+          { label: "Total Quotes", value: resolvedQuotes.length, color: "text-slate-900" },
+          { label: "Valid", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "valid").length, color: "text-emerald-600" },
+          { label: "Expiring Soon", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "expiring").length, color: "text-amber-600" },
           { label: "Expired", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "expired").length, color: "text-red-500" },
         ].map((stat) => (
-          <div key={stat.label} className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+          <div key={stat.label} className="bg-white rounded-lg p-4 border border-slate-200">
             <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-            <div className="text-xs text-slate-400">{stat.label}</div>
+            <div className="text-xs text-slate-500">{stat.label}</div>
           </div>
         ))}
       </div>
@@ -191,10 +191,10 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       {/* Quotes by Category */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {groupedByCategory.map((cat) => (
-          <div key={cat.key} className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+          <div key={cat.key} className="bg-white rounded-xl p-5 border border-slate-200">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xl">{cat.icon}</span>
-              <h3 className="text-[15px] font-semibold text-white">{cat.name}</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">{cat.name}</h3>
               <span className="text-xs text-slate-500 ml-auto">
                 {cat.quotes.length} vendor{cat.quotes.length !== 1 ? "s" : ""}
               </span>
@@ -206,7 +206,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 {!isDemo && (
                   <button
                     onClick={() => { setNewQuote({ ...newQuote, category: cat.key }); setShowModal(true); }}
-                    className="text-emerald-400 hover:text-emerald-300"
+                    className="text-emerald-600 hover:text-emerald-300"
                   >
                     Add one →
                   </button>
@@ -215,23 +215,23 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
             ) : (
               <div className="flex flex-col gap-2">
                 {cat.quotes.map((quote: any) => (
-                  <div key={quote._id} className="p-3 bg-slate-900 rounded-lg hover:bg-slate-850 transition-colors">
+                  <div key={quote._id} className="p-3 bg-slate-50 rounded-lg hover:bg-slate-850 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="text-sm font-medium text-white">{quote.vendorName}</div>
+                        <div className="text-sm font-medium text-slate-900">{quote.vendorName}</div>
                         {quote.vendorEmail && <div className="text-xs text-slate-500">{quote.vendorEmail}</div>}
                       </div>
                       {statusBadge(getQuoteStatus(quote))}
                     </div>
                     {quote.quoteAmount && (
-                      <div className="text-lg font-bold text-emerald-400 mb-1">
+                      <div className="text-lg font-bold text-emerald-600 mb-1">
                         ${quote.quoteAmount.toLocaleString()}
                       </div>
                     )}
                     {quote.products && quote.products.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-2">
                         {quote.products.slice(0, 3).map((product: string, idx: number) => (
-                          <span key={idx} className="text-[10px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded">
+                          <span key={idx} className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
                             {product}
                           </span>
                         ))}
@@ -244,8 +244,8 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                       {quote.quoteDate && <span className="text-slate-500">Quoted: {quote.quoteDate}</span>}
                       {quote.expirationDate && (
                         <span className={`${
-                          getQuoteStatus(quote) === "expired" ? "text-red-400" :
-                          getQuoteStatus(quote) === "expiring" ? "text-amber-400" : "text-slate-500"
+                          getQuoteStatus(quote) === "expired" ? "text-red-600" :
+                          getQuoteStatus(quote) === "expiring" ? "text-amber-600" : "text-slate-500"
                         }`}>Exp: {quote.expirationDate}</span>
                       )}
                     </div>
@@ -254,20 +254,20 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                         {getQuoteStatus(quote) !== "valid" && quote.quoteAmount && (
                           <button
                             onClick={() => handleUpdateStatus(quote._id, "valid")}
-                            className="text-[11px] px-2 py-1 bg-emerald-600/20 text-emerald-400 rounded hover:bg-emerald-600/30"
+                            className="text-[11px] px-2 py-1 bg-emerald-600/20 text-emerald-600 rounded hover:bg-emerald-600/30"
                           >
                             Mark Valid
                           </button>
                         )}
                         <button
                           onClick={() => handleUpdateStatus(quote._id, "requested")}
-                          className="text-[11px] px-2 py-1 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30"
+                          className="text-[11px] px-2 py-1 bg-blue-600/20 text-blue-600 rounded hover:bg-blue-600/30"
                         >
                           📧 Request Update
                         </button>
                         <button
                           onClick={() => handleDelete(quote._id, quote.vendorName)}
-                          className="text-[11px] px-2 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 ml-auto"
+                          className="text-[11px] px-2 py-1 bg-red-600/20 text-red-600 rounded hover:bg-red-600/30 ml-auto"
                         >
                           🗑 Delete
                         </button>
@@ -284,55 +284,55 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       {/* Add Quote Modal */}
       {showModal && (
         <div onClick={() => setShowModal(false)} className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div onClick={(e) => e.stopPropagation()} className="bg-slate-800 rounded-2xl p-6 w-full max-w-lg border border-slate-700 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold text-white mb-6">Add Vendor Quote</h2>
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-lg border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6">Add Vendor Quote</h2>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Vendor Name *</label>
-                <input type="text" value={newQuote.vendorName} onChange={(e) => setNewQuote({ ...newQuote, vendorName: e.target.value })} placeholder="ABC Roofing Supply" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <label className="block text-xs text-slate-500 mb-1">Vendor Name *</label>
+                <input type="text" value={newQuote.vendorName} onChange={(e) => setNewQuote({ ...newQuote, vendorName: e.target.value })} placeholder="ABC Roofing Supply" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Email</label>
-                  <input type="email" value={newQuote.vendorEmail} onChange={(e) => setNewQuote({ ...newQuote, vendorEmail: e.target.value })} placeholder="sales@vendor.com" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <label className="block text-xs text-slate-500 mb-1">Email</label>
+                  <input type="email" value={newQuote.vendorEmail} onChange={(e) => setNewQuote({ ...newQuote, vendorEmail: e.target.value })} placeholder="sales@vendor.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Phone</label>
-                  <input type="tel" value={newQuote.vendorPhone} onChange={(e) => setNewQuote({ ...newQuote, vendorPhone: e.target.value })} placeholder="(555) 123-4567" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <label className="block text-xs text-slate-500 mb-1">Phone</label>
+                  <input type="tel" value={newQuote.vendorPhone} onChange={(e) => setNewQuote({ ...newQuote, vendorPhone: e.target.value })} placeholder="(555) 123-4567" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Category *</label>
-                <select value={newQuote.category} onChange={(e) => setNewQuote({ ...newQuote, category: e.target.value })} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <label className="block text-xs text-slate-500 mb-1">Category *</label>
+                <select value={newQuote.category} onChange={(e) => setNewQuote({ ...newQuote, category: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
                   {VENDOR_CATEGORIES.map((cat) => <option key={cat.key} value={cat.key}>{cat.icon} {cat.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Products (comma-separated)</label>
-                <input type="text" value={newQuote.products} onChange={(e) => setNewQuote({ ...newQuote, products: e.target.value })} placeholder="TPO 60mil, Cover Board, Fasteners" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <label className="block text-xs text-slate-500 mb-1">Products (comma-separated)</label>
+                <input type="text" value={newQuote.products} onChange={(e) => setNewQuote({ ...newQuote, products: e.target.value })} placeholder="TPO 60mil, Cover Board, Fasteners" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Quote Amount ($)</label>
-                  <input type="number" value={newQuote.quoteAmount} onChange={(e) => setNewQuote({ ...newQuote, quoteAmount: e.target.value })} placeholder="15000" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <label className="block text-xs text-slate-500 mb-1">Quote Amount ($)</label>
+                  <input type="number" value={newQuote.quoteAmount} onChange={(e) => setNewQuote({ ...newQuote, quoteAmount: e.target.value })} placeholder="15000" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Quote Date</label>
-                  <input type="date" value={newQuote.quoteDate} onChange={(e) => setNewQuote({ ...newQuote, quoteDate: e.target.value })} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <label className="block text-xs text-slate-500 mb-1">Quote Date</label>
+                  <input type="date" value={newQuote.quoteDate} onChange={(e) => setNewQuote({ ...newQuote, quoteDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Expiration</label>
-                  <input type="date" value={newQuote.expirationDate} onChange={(e) => setNewQuote({ ...newQuote, expirationDate: e.target.value })} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <label className="block text-xs text-slate-500 mb-1">Expiration</label>
+                  <input type="date" value={newQuote.expirationDate} onChange={(e) => setNewQuote({ ...newQuote, expirationDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Notes</label>
-                <textarea value={newQuote.notes} onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })} placeholder="Contact John for bulk pricing..." rows={2} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
+                <label className="block text-xs text-slate-500 mb-1">Notes</label>
+                <textarea value={newQuote.notes} onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })} placeholder="Contact John for bulk pricing..." rows={2} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none" />
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowModal(false)} className="px-5 py-2.5 border border-slate-600 text-slate-400 rounded-md text-sm hover:bg-slate-700">Cancel</button>
-              <button onClick={handleCreateQuote} disabled={!newQuote.vendorName} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-md text-sm">Add Quote</button>
+              <button onClick={() => setShowModal(false)} className="px-5 py-2.5 border border-slate-300 text-slate-500 rounded-md text-sm hover:bg-slate-100">Cancel</button>
+              <button onClick={handleCreateQuote} disabled={!newQuote.vendorName} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:cursor-not-allowed text-slate-900 font-semibold rounded-md text-sm">Add Quote</button>
             </div>
           </div>
         </div>

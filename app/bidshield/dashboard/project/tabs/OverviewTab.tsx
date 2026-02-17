@@ -168,7 +168,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
       {/* ── BID READINESS ── */}
       <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
         <div className="flex justify-between items-start mb-5">
-          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Bid Readiness</h3>
+          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-widerr">Bid Readiness</h3>
           {daysUntilBid !== null && (
             <div className="text-right">
               <div className={`text-lg font-bold ${deadlineColor}`}>{deadlineText}</div>
@@ -199,7 +199,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
 
       {/* ── ACTION ITEMS ── */}
       <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
+        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-widerr mb-4">
           Action Items ({redYellowItems.length})
         </h3>
 

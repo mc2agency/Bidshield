@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { trades } from "@/convex/bidshieldDefaults";
+import OnboardingWizard from "./OnboardingWizard";
 
 interface BidProject {
   _id: Id<"bidshield_projects">;
@@ -292,7 +293,15 @@ function DashboardContent() {
   });
 
   const [showNewProject, setShowNewProject] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
+
+  // Show onboarding for new users with zero projects
+  useEffect(() => {
+    if (!isDemo && convexProjects !== undefined && convexProjects.length === 0 && userId) {
+      setShowOnboarding(true);
+    }
+  }, [isDemo, convexProjects, userId]);
   const isLoading = !isDemo && convexProjects === undefined;
 
   const handleCreateProject = async (np: any) => {
@@ -341,6 +350,18 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Onboarding for new users */}
+      {showOnboarding && userId && (
+        <OnboardingWizard
+          userId={userId}
+          onComplete={(projectId) => {
+            setShowOnboarding(false);
+            router.push(`/bidshield/dashboard/project?id=${projectId}#checklist`);
+          }}
+          onSkip={() => setShowOnboarding(false)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>

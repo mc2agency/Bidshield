@@ -63,14 +63,14 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
   return (
     <div className="mt-5">
       <div className="flex justify-between items-center mb-2">
-        <h4 className="text-xs font-semibold text-slate-300">{title} ({unit})</h4>
-        <span className={`text-[11px] font-medium ${allVerified ? "text-emerald-400" : "text-amber-400"}`}>{verified} of {total} verified</span>
+        <h4 className="text-xs font-semibold text-slate-600">{title} ({unit})</h4>
+        <span className={`text-[11px] font-medium ${allVerified ? "text-emerald-600" : "text-amber-600"}`}>{verified} of {total} verified</span>
       </div>
       {items.length > 0 && (
         <div className="overflow-x-auto mb-2">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[11px] text-slate-500 border-b border-slate-700">
+              <tr className="text-[11px] text-slate-500 border-b border-slate-200">
                 <th className="text-left py-1.5 font-medium">Item</th>
                 <th className="text-right py-1.5 font-medium w-24">{unit}</th>
                 <th className="text-center py-1.5 font-medium w-16">Verified</th>
@@ -81,18 +81,18 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
             <tbody>
               {items.map((item) => {
                 const hasQty = item.quantity !== undefined && item.quantity !== null;
-                const qtyColor = item.verified ? "text-emerald-400" : hasQty ? "text-amber-400" : "text-slate-500";
+                const qtyColor = item.verified ? "text-emerald-600" : hasQty ? "text-amber-600" : "text-slate-500";
                 return (
-                  <tr key={item._id} className="border-b border-slate-700/50 group">
-                    <td className="py-1.5 text-slate-200 text-xs">{item.label}</td>
+                  <tr key={item._id} className="border-b border-slate-200 group">
+                    <td className="py-1.5 text-slate-700 text-xs">{item.label}</td>
                     <td className="py-1.5 text-right">
                       {editingQty === item._id ? (
                         <input type="number" value={qtyInput} onChange={(e) => setQtyInput(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter") { const val = qtyInput.trim() === "" ? undefined : parseFloat(qtyInput); onUpdateItem(item._id, { quantity: val !== undefined && !isNaN(val) ? val : undefined }); setEditingQty(null); } if (e.key === "Escape") setEditingQty(null); }}
                           onBlur={() => { const val = qtyInput.trim() === "" ? undefined : parseFloat(qtyInput); onUpdateItem(item._id, { quantity: val !== undefined && !isNaN(val) ? val : undefined }); setEditingQty(null); }}
-                          className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-white text-xs w-20 text-right focus:outline-none focus:border-amber-500" autoFocus />
+                          className="bg-slate-50 border border-slate-300 rounded px-2 py-0.5 text-slate-900 text-xs w-20 text-right focus:outline-none focus:border-amber-500" autoFocus />
                       ) : (
-                        <button onClick={() => { setEditingQty(item._id); setQtyInput(hasQty ? String(item.quantity) : ""); }} className={`text-xs tabular-nums ${qtyColor} hover:text-white transition-colors`}>
+                        <button onClick={() => { setEditingQty(item._id); setQtyInput(hasQty ? String(item.quantity) : ""); }} className={`text-xs tabular-nums ${qtyColor} hover:text-slate-900 transition-colors`}>
                           {hasQty ? item.quantity!.toLocaleString("en-US") : "—"}
                         </button>
                       )}
@@ -102,7 +102,7 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
                     <td className="py-1.5 text-right">
                       {item.itemType === "custom" && (
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => onDeleteItem(item._id)} className="text-[11px] text-red-400 hover:text-red-300">Del</button>
+                          <button onClick={() => onDeleteItem(item._id)} className="text-[11px] text-red-600 hover:text-red-300">Del</button>
                         </span>
                       )}
                     </td>
@@ -111,10 +111,10 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t border-slate-500 bg-slate-700">
-                <td className="py-2 text-white text-xs font-semibold">TOTAL</td>
-                <td className="py-2 text-right text-white text-xs font-semibold tabular-nums">{qtySum.toLocaleString("en-US")} {unitLabel}</td>
-                <td colSpan={3} className="py-2 text-center text-slate-400 text-[11px]">{verified} of {total} verified</td>
+              <tr className="border-t border-slate-500 bg-slate-100">
+                <td className="py-2 text-slate-900 text-xs font-semibold">TOTAL</td>
+                <td className="py-2 text-right text-slate-900 text-xs font-semibold tabular-nums">{qtySum.toLocaleString("en-US")} {unitLabel}</td>
+                <td colSpan={3} className="py-2 text-center text-slate-500 text-[11px]">{verified} of {total} verified</td>
               </tr>
             </tfoot>
           </table>
@@ -124,12 +124,12 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
         <div className="flex items-center gap-2 mt-1">
           <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && newLabel.trim()) { onAddItem(newLabel.trim()); setNewLabel(""); setShowAddForm(false); } if (e.key === "Escape") setShowAddForm(false); }}
-            placeholder="Item name" className="bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-white text-xs flex-1 focus:outline-none focus:border-amber-500" autoFocus />
-          <button onClick={() => { if (newLabel.trim()) { onAddItem(newLabel.trim()); setNewLabel(""); setShowAddForm(false); } }} className="text-[11px] text-emerald-400 hover:text-emerald-300">Add</button>
-          <button onClick={() => setShowAddForm(false)} className="text-[11px] text-slate-500 hover:text-slate-300">Cancel</button>
+            placeholder="Item name" className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs flex-1 focus:outline-none focus:border-amber-500" autoFocus />
+          <button onClick={() => { if (newLabel.trim()) { onAddItem(newLabel.trim()); setNewLabel(""); setShowAddForm(false); } }} className="text-[11px] text-emerald-600 hover:text-emerald-300">Add</button>
+          <button onClick={() => setShowAddForm(false)} className="text-[11px] text-slate-500 hover:text-slate-600">Cancel</button>
         </div>
       ) : (
-        <button onClick={() => setShowAddForm(true)} className="text-xs text-amber-400 hover:text-amber-300 font-medium transition-colors mt-1">+ Add {title.split(" ")[0]} Item</button>
+        <button onClick={() => setShowAddForm(true)} className="text-xs text-amber-600 hover:text-amber-300 font-medium transition-colors mt-1">+ Add {title.split(" ")[0]} Item</button>
       )}
     </div>
   );
@@ -184,10 +184,10 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const countUnverified = countTotal - countVerified;
 
   const getDeltaColor = () => {
-    if (deltaPct === null) return { text: "text-slate-500", bg: "bg-slate-700", bar: "bg-slate-600" };
-    if (deltaPct <= 2) return { text: "text-emerald-400", bg: "bg-emerald-500/20", bar: "bg-emerald-500" };
-    if (deltaPct <= 5) return { text: "text-amber-400", bg: "bg-amber-500/20", bar: "bg-amber-500" };
-    return { text: "text-red-400", bg: "bg-red-500/20", bar: "bg-red-500" };
+    if (deltaPct === null) return { text: "text-slate-500", bg: "bg-slate-100", bar: "bg-slate-200" };
+    if (deltaPct <= 2) return { text: "text-emerald-600", bg: "bg-emerald-50", bar: "bg-emerald-500" };
+    if (deltaPct <= 5) return { text: "text-amber-600", bg: "bg-amber-50", bar: "bg-amber-500" };
+    return { text: "text-red-600", bg: "bg-red-50", bar: "bg-red-500" };
   };
   const deltaColor = getDeltaColor();
 
@@ -281,38 +281,38 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   return (
-    <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+    <div className="bg-white rounded-xl p-5 border border-slate-200">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-semibold text-white">Takeoff Reconciliation</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Takeoff Reconciliation</h3>
         {controlNumber !== null && !editingControl && (
-          <button onClick={() => { setControlInput(String(controlNumber)); setEditingControl(true); }} className="text-xs text-slate-400 hover:text-slate-200 transition-colors">Edit Control #</button>
+          <button onClick={() => { setControlInput(String(controlNumber)); setEditingControl(true); }} className="text-xs text-slate-500 hover:text-slate-700 transition-colors">Edit Control #</button>
         )}
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
+        <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
           {editingControl ? (
             <div className="flex flex-col gap-1">
               <input type="number" value={controlInput} onChange={(e) => setControlInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSaveControl(); if (e.key === "Escape") setEditingControl(false); }}
-                className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-center text-white text-sm w-full focus:outline-none focus:border-amber-500" autoFocus placeholder="SF" />
+                className="bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" autoFocus placeholder="SF" />
               <div className="flex gap-1 justify-center">
-                <button onClick={handleSaveControl} className="text-[10px] text-emerald-400 hover:text-emerald-300">Save</button>
-                <button onClick={() => setEditingControl(false)} className="text-[10px] text-slate-500 hover:text-slate-300">Cancel</button>
+                <button onClick={handleSaveControl} className="text-[10px] text-emerald-600 hover:text-emerald-300">Save</button>
+                <button onClick={() => setEditingControl(false)} className="text-[10px] text-slate-500 hover:text-slate-600">Cancel</button>
               </div>
             </div>
           ) : controlNumber !== null ? (
-            <><div className="text-lg font-bold text-white">{fmt(controlNumber)} SF</div><div className="text-[10px] text-slate-500">Control # (Gross Area)</div></>
+            <><div className="text-lg font-bold text-slate-900">{fmt(controlNumber)} SF</div><div className="text-[10px] text-slate-500">Control # (Gross Area)</div></>
           ) : (
             <button onClick={() => { setControlInput(""); setEditingControl(true); }} className="w-full">
-              <div className="text-lg font-bold text-slate-500">Not set</div><div className="text-[10px] text-amber-400">Click to set control #</div>
+              <div className="text-lg font-bold text-slate-500">Not set</div><div className="text-[10px] text-amber-600">Click to set control #</div>
             </button>
           )}
         </div>
-        <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
-          <div className="text-lg font-bold text-white">{fmt(takenOff)} SF</div><div className="text-[10px] text-slate-500">Taken Off (Sum)</div>
+        <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+          <div className="text-lg font-bold text-slate-900">{fmt(takenOff)} SF</div><div className="text-[10px] text-slate-500">Taken Off (Sum)</div>
         </div>
-        <div className="bg-slate-900 rounded-lg p-3 text-center border border-slate-700">
+        <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
           {delta !== null ? (
             <><div className={`text-lg font-bold ${deltaColor.text}`}>{delta >= 0 ? "-" : "+"}{fmt(Math.abs(delta))} SF</div><div className="text-[10px] text-slate-500">Delta</div></>
           ) : (
@@ -327,55 +327,55 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
             <span className="text-[10px] text-slate-500">Area Reconciliation</span>
             <span className={`text-xs font-bold ${deltaColor.text}`}>{progressPct.toFixed(1)}%</span>
           </div>
-          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all ${deltaColor.bar}`} style={{ width: `${Math.min(100, progressPct)}%` }} />
           </div>
         </div>
       )}
 
       <div className="grid grid-cols-3 mb-0">
-        <button onClick={() => setActiveTab("areas")} className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${activeTab === "areas" ? "bg-slate-700 text-white border-amber-500" : "bg-slate-800 text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-750"} rounded-tl-lg`}>
+        <button onClick={() => setActiveTab("areas")} className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${activeTab === "areas" ? "bg-white border border-slate-300 text-slate-900 border-amber-500" : "bg-white text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50"} rounded-tl-lg`}>
           <div className="flex items-center justify-center">{getStatusDot(areaComplete, areaPartial)}<span className="hidden sm:inline">Areas (SF)</span><span className="sm:hidden">Areas</span></div>
           <div className="text-[10px] text-slate-500 mt-0.5">{displaySections.length} section{displaySections.length !== 1 ? "s" : ""}</div>
         </button>
-        <button onClick={() => setActiveTab("linear")} className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${activeTab === "linear" ? "bg-slate-700 text-white border-amber-500" : "bg-slate-800 text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-750"}`}>
+        <button onClick={() => setActiveTab("linear")} className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${activeTab === "linear" ? "bg-white border border-slate-300 text-slate-900 border-amber-500" : "bg-white text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50"}`}>
           <div className="flex items-center justify-center">{getStatusDot(linearComplete, linearPartial)}<span className="hidden sm:inline">Linear (LF)</span><span className="sm:hidden">Linear</span></div>
           <div className="text-[10px] text-slate-500 mt-0.5">{linearVerified} of {linearTotal} verified</div>
         </button>
-        <button onClick={() => setActiveTab("counts")} className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${activeTab === "counts" ? "bg-slate-700 text-white border-amber-500" : "bg-slate-800 text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-750"} rounded-tr-lg`}>
+        <button onClick={() => setActiveTab("counts")} className={`py-2.5 text-center text-xs font-medium transition-colors border-b-2 ${activeTab === "counts" ? "bg-white border border-slate-300 text-slate-900 border-amber-500" : "bg-white text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50"} rounded-tr-lg`}>
           <div className="flex items-center justify-center">{getStatusDot(countComplete, countPartial)}<span className="hidden sm:inline">Counts (EA)</span><span className="sm:hidden">Counts</span></div>
           <div className="text-[10px] text-slate-500 mt-0.5">{countVerified} of {countTotal} verified</div>
         </button>
       </div>
 
-      <div className="bg-slate-700/30 rounded-b-lg p-4 border border-slate-700 border-t-0">
+      <div className="bg-slate-100/30 rounded-b-lg p-4 border border-slate-200 border-t-0">
         {activeTab === "areas" && (
           <div>
             {displaySections.length > 0 && (
               <div className="overflow-x-auto mb-3">
                 <table className="w-full text-sm">
-                  <thead><tr className="text-[11px] text-slate-500 border-b border-slate-700"><th className="text-left py-2 font-medium">Section Name</th><th className="text-left py-2 font-medium hidden sm:table-cell">Assembly</th><th className="text-right py-2 font-medium">SF</th><th className="text-center py-2 font-medium w-10">Status</th><th className="text-right py-2 font-medium w-16"></th></tr></thead>
+                  <thead><tr className="text-[11px] text-slate-500 border-b border-slate-200"><th className="text-left py-2 font-medium">Section Name</th><th className="text-left py-2 font-medium hidden sm:table-cell">Assembly</th><th className="text-right py-2 font-medium">SF</th><th className="text-center py-2 font-medium w-10">Status</th><th className="text-right py-2 font-medium w-16"></th></tr></thead>
                   <tbody>
                     {displaySections.map((section) =>
                       editingId === section._id ? (
-                        <tr key={section._id} className="border-b border-slate-700/50">
-                          <td className="py-2 pr-2"><input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs w-full focus:outline-none focus:border-amber-500" /></td>
-                          <td className="py-2 pr-2 hidden sm:table-cell"><select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-1 py-1 text-white text-xs w-full focus:outline-none focus:border-amber-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></td>
-                          <td className="py-2 pr-2"><input type="number" value={editData.squareFeet} onChange={(e) => setEditData({ ...editData, squareFeet: e.target.value })} className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-xs w-20 text-right focus:outline-none focus:border-amber-500" /></td>
-                          <td colSpan={2} className="py-2 text-right"><button onClick={handleSaveEdit} className="text-[11px] text-emerald-400 hover:text-emerald-300 mr-2">Save</button><button onClick={() => setEditingId(null)} className="text-[11px] text-slate-500 hover:text-slate-300">Cancel</button></td>
+                        <tr key={section._id} className="border-b border-slate-200">
+                          <td className="py-2 pr-2"><input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-900 text-xs w-full focus:outline-none focus:border-amber-500" /></td>
+                          <td className="py-2 pr-2 hidden sm:table-cell"><select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-1 py-1 text-slate-900 text-xs w-full focus:outline-none focus:border-amber-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></td>
+                          <td className="py-2 pr-2"><input type="number" value={editData.squareFeet} onChange={(e) => setEditData({ ...editData, squareFeet: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-900 text-xs w-20 text-right focus:outline-none focus:border-amber-500" /></td>
+                          <td colSpan={2} className="py-2 text-right"><button onClick={handleSaveEdit} className="text-[11px] text-emerald-600 hover:text-emerald-300 mr-2">Save</button><button onClick={() => setEditingId(null)} className="text-[11px] text-slate-500 hover:text-slate-600">Cancel</button></td>
                         </tr>
                       ) : (
-                        <tr key={section._id} className="border-b border-slate-700/50 group">
-                          <td className="py-2 text-slate-200">{section.name}</td>
-                          <td className="py-2 text-slate-400 text-xs hidden sm:table-cell">{section.assemblyType}</td>
-                          <td className="py-2 text-right text-slate-200 tabular-nums">{fmt(section.squareFeet)}</td>
+                        <tr key={section._id} className="border-b border-slate-200 group">
+                          <td className="py-2 text-slate-700">{section.name}</td>
+                          <td className="py-2 text-slate-500 text-xs hidden sm:table-cell">{section.assemblyType}</td>
+                          <td className="py-2 text-right text-slate-700 tabular-nums">{fmt(section.squareFeet)}</td>
                           <td className="py-2 text-center"><button onClick={() => handleToggleComplete(section)} className="text-base">{section.completed ? "✅" : "⬜"}</button></td>
-                          <td className="py-2 text-right"><span className="opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleStartEdit(section)} className="text-[11px] text-slate-400 hover:text-slate-200 mr-2">Edit</button><button onClick={() => handleDeleteSection(section._id)} className="text-[11px] text-red-400 hover:text-red-300">Del</button></span></td>
+                          <td className="py-2 text-right"><span className="opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleStartEdit(section)} className="text-[11px] text-slate-500 hover:text-slate-700 mr-2">Edit</button><button onClick={() => handleDeleteSection(section._id)} className="text-[11px] text-red-600 hover:text-red-300">Del</button></span></td>
                         </tr>
                       )
                     )}
                   </tbody>
-                  <tfoot><tr className="border-t border-slate-500 bg-slate-700"><td className="py-2 text-white text-xs font-semibold">TOTAL</td><td className="py-2 text-slate-400 text-[11px] hidden sm:table-cell">{displaySections.length} section{displaySections.length !== 1 ? "s" : ""} &middot; {displaySections.filter((s) => s.completed).length} of {displaySections.length} verified</td><td className="py-2 text-right text-white text-xs font-semibold tabular-nums">{fmt(takenOff)} SF</td><td colSpan={2}></td></tr></tfoot>
+                  <tfoot><tr className="border-t border-slate-500 bg-slate-100"><td className="py-2 text-slate-900 text-xs font-semibold">TOTAL</td><td className="py-2 text-slate-500 text-[11px] hidden sm:table-cell">{displaySections.length} section{displaySections.length !== 1 ? "s" : ""} &middot; {displaySections.filter((s) => s.completed).length} of {displaySections.length} verified</td><td className="py-2 text-right text-slate-900 text-xs font-semibold tabular-nums">{fmt(takenOff)} SF</td><td colSpan={2}></td></tr></tfoot>
                 </table>
               </div>
             )}
@@ -383,17 +383,17 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
               <div className="text-center py-6 text-slate-500 text-sm mb-3">No sections yet. Add your first takeoff section to start reconciling.</div>
             )}
             {showAddForm ? (
-              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 mb-3">
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 mb-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                  <div><label className="text-[11px] text-slate-400 mb-1 block">Section Name *</label><input value={newSection.name} onChange={(e) => setNewSection({ ...newSection, name: e.target.value })} placeholder="e.g., Main Roof Area A" className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                  <div><label className="text-[11px] text-slate-400 mb-1 block">Assembly Type *</label><select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })} className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
-                  <div><label className="text-[11px] text-slate-400 mb-1 block">Square Feet *</label><input type="number" value={newSection.squareFeet} onChange={(e) => setNewSection({ ...newSection, squareFeet: e.target.value })} placeholder="e.g., 22000" className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                  <div><label className="text-[11px] text-slate-400 mb-1 block">Notes</label><input value={newSection.notes} onChange={(e) => setNewSection({ ...newSection, notes: e.target.value })} placeholder="Optional notes" className="bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Section Name *</label><input value={newSection.name} onChange={(e) => setNewSection({ ...newSection, name: e.target.value })} placeholder="e.g., Main Roof Area A" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Assembly Type *</label><select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })} className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Square Feet *</label><input type="number" value={newSection.squareFeet} onChange={(e) => setNewSection({ ...newSection, squareFeet: e.target.value })} placeholder="e.g., 22000" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Notes</label><input value={newSection.notes} onChange={(e) => setNewSection({ ...newSection, notes: e.target.value })} placeholder="Optional notes" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
                 </div>
-                <div className="flex gap-2"><button onClick={handleAddSection} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">Add Section</button><button onClick={() => setShowAddForm(false)} className="text-sm text-slate-400 hover:text-slate-200 px-4 py-2 transition-colors">Cancel</button></div>
+                <div className="flex gap-2"><button onClick={handleAddSection} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Add Section</button><button onClick={() => setShowAddForm(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button></div>
               </div>
             ) : (
-              <button onClick={() => setShowAddForm(true)} className="text-sm text-amber-400 hover:text-amber-300 font-medium transition-colors">+ Add Section</button>
+              <button onClick={() => setShowAddForm(true)} className="text-sm text-amber-600 hover:text-amber-300 font-medium transition-colors">+ Add Section</button>
             )}
           </div>
         )}
@@ -401,20 +401,20 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
         {activeTab === "counts" && <LineItemTable title="Count Items" unit="EA" items={countItems} isDemo={isDemo} onUpdateItem={handleUpdateLineItem} onDeleteItem={handleDeleteLineItem} onAddItem={handleAddCountItem} />}
       </div>
 
-      <div className="mt-3 p-3 bg-slate-900 rounded-lg border border-slate-700">
+      <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
         {allGood ? (
-          <div className="text-sm text-emerald-400 text-center">Takeoff fully reconciled and verified.</div>
+          <div className="text-sm text-emerald-600 text-center">Takeoff fully reconciled and verified.</div>
         ) : controlNumber === null ? (
-          <div className="text-sm text-slate-400 text-center">Enter your gross roof area from the site plan to enable area reconciliation.</div>
+          <div className="text-sm text-slate-500 text-center">Enter your gross roof area from the site plan to enable area reconciliation.</div>
         ) : (
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs">
-            {areaGood && <span className="text-emerald-400">Area: Reconciled</span>}
-            {areaHasIssue && !areaIsRed && <span className="text-amber-400">Area: {fmt(Math.abs(delta!))} SF off ({deltaPct!.toFixed(1)}%)</span>}
-            {areaIsRed && <span className="text-red-400">Area: {fmt(Math.abs(delta!))} SF off ({deltaPct!.toFixed(1)}%)</span>}
+            {areaGood && <span className="text-emerald-600">Area: Reconciled</span>}
+            {areaHasIssue && !areaIsRed && <span className="text-amber-600">Area: {fmt(Math.abs(delta!))} SF off ({deltaPct!.toFixed(1)}%)</span>}
+            {areaIsRed && <span className="text-red-600">Area: {fmt(Math.abs(delta!))} SF off ({deltaPct!.toFixed(1)}%)</span>}
             <span className="text-slate-600 hidden sm:inline">&bull;</span>
-            {linearUnverified === 0 ? <span className="text-emerald-400">Linear: All verified</span> : <span className="text-amber-400">Linear: {linearUnverified}/{linearTotal} unverified</span>}
+            {linearUnverified === 0 ? <span className="text-emerald-600">Linear: All verified</span> : <span className="text-amber-600">Linear: {linearUnverified}/{linearTotal} unverified</span>}
             <span className="text-slate-600 hidden sm:inline">&bull;</span>
-            {countUnverified === 0 ? <span className="text-emerald-400">Counts: All verified</span> : <span className="text-amber-400">Counts: {countUnverified}/{countTotal} unverified</span>}
+            {countUnverified === 0 ? <span className="text-emerald-600">Counts: All verified</span> : <span className="text-amber-600">Counts: {countUnverified}/{countTotal} unverified</span>}
           </div>
         )}
       </div>
