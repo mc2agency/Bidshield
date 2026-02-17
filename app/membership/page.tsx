@@ -391,7 +391,7 @@ export default function MembershipPage() {
             />
             <FAQItem
               question="Can I use this for my whole team?"
-              answer="Individual access is for single users. For teams of 3+ estimators, we offer volume licensing with team management features. Contact us at team@mc2estimating.com for custom pricing."
+              answer="Individual access is for single users. For teams of 3+ estimators, we offer volume licensing with team management features. Contact us at support@mc2estimating.com for custom pricing."
             />
           </div>
         </div>

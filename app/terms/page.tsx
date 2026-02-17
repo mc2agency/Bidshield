@@ -21,20 +21,20 @@ export default function TermsPage() {
           <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12 border border-gray-200">
             <div className="prose prose-lg max-w-none">
               <p className="text-lg text-gray-700 mb-8">
-                Please read these Terms of Service (&quot;Terms&quot;) carefully before using MC2 Estimating services.
+                Please read these Terms of Service (&quot;Terms&quot;) carefully before using BidShield services.
                 By accessing or using our website, products, or services, you agree to be bound by these Terms.
               </p>
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">1. Acceptance of Terms</h2>
               <p className="text-gray-700 mb-4">
-                By creating an account, making a purchase, or accessing any content on MC2 Estimating,
+                By creating an account, making a purchase, or accessing any content on BidShield,
                 you agree to comply with and be bound by these Terms of Service and our Privacy Policy.
                 If you do not agree to these Terms, please do not use our services.
               </p>
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">2. Description of Services</h2>
               <p className="text-gray-700 mb-4">
-                MC2 Estimating provides professional estimating tools for construction contractors,
+                BidShield provides professional estimating tools for construction contractors,
                 including but not limited to:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
@@ -92,8 +92,8 @@ export default function TermsPage() {
 
               <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">5.1 Our Content</h3>
               <p className="text-gray-700 mb-4">
-                All content on MC2 Estimating - including templates, guides, calculators,
-                text, graphics, logos, and software - is owned by MC2 Estimating and protected
+                All content on BidShield - including templates, guides, calculators,
+                text, graphics, logos, and software - is owned by MC2Agency LLC and protected
                 by copyright, trademark, and other intellectual property laws.
               </p>
 
@@ -168,7 +168,7 @@ export default function TermsPage() {
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">10. Indemnification</h2>
               <p className="text-gray-700 mb-4">
-                You agree to indemnify and hold harmless MC2 Estimating from any claims,
+                You agree to indemnify and hold harmless MC2Agency LLC from any claims,
                 damages, losses, liabilities, and expenses (including legal fees) arising from your
                 use of our services or violation of these Terms.
               </p>
@@ -204,7 +204,7 @@ export default function TermsPage() {
                 For questions about these Terms of Service, please contact us:
               </p>
               <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
-                <p className="text-gray-800 mb-2"><strong>MC2 Estimating</strong></p>
+                <p className="text-gray-800 mb-2"><strong>MC2Agency LLC (BidShield)</strong></p>
                 <p className="text-gray-700">Email: legal@mc2estimating.com</p>
                 <p className="text-gray-700">Phone: (800) 555-1234</p>
               </div>
@@ -212,7 +212,7 @@ export default function TermsPage() {
               <div className="mt-12 p-6 bg-gray-100 rounded-lg border-2 border-gray-300">
                 <p className="text-sm text-gray-600">
                   <strong>Legal Notice:</strong> These Terms of Service constitute a legally binding
-                  agreement between you and MC2 Estimating. Please read them carefully and
+                  agreement between you and MC2Agency LLC. Please read them carefully and
                   contact us if you have any questions before using our services.
                 </p>
               </div>

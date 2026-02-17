@@ -21,7 +21,7 @@ export default function PrivacyPage() {
           <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12 border border-gray-200">
             <div className="prose prose-lg max-w-none">
               <p className="text-lg text-gray-700 mb-8">
-                MC2 Estimating (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy.
+                MC2Agency LLC (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy.
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information
                 when you use our website and services.
               </p>
@@ -228,7 +228,7 @@ export default function PrivacyPage() {
                 For questions about this Privacy Policy or our data practices, contact us:
               </p>
               <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
-                <p className="text-gray-800 mb-2"><strong>MC2 Estimating</strong></p>
+                <p className="text-gray-800 mb-2"><strong>MC2Agency LLC (BidShield)</strong></p>
                 <p className="text-gray-700">Email: privacy@mc2estimating.com</p>
                 <p className="text-gray-700">Support: support@mc2estimating.com</p>
                 <p className="text-gray-700">Phone: (800) 555-1234</p>

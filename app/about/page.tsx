@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About Us',
-  description: 'MC2 Estimating sells professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, and workflow tools.',
+  description: 'BidShield is professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, and workflow tools.',
   keywords: 'about MC2, estimating tools, roofing templates, construction estimating tools',
 };
 
@@ -21,7 +21,7 @@ export default function AboutPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
               About
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">MC2 Estimating</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">BidShield</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 max-w-3xl mx-auto">
               Professional roofing estimating tools contractors use to build accurate bids faster.
@@ -57,7 +57,7 @@ export default function AboutPage() {
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Our Story</h2>
             <div className="prose prose-lg max-w-none">
               <p className="text-lg text-gray-700 mb-6">
-                MC2 Estimating was founded by experienced construction estimators and project managers
+                BidShield was founded by experienced construction estimators and project managers
                 who saw a critical gap in the industry: contractors were wasting hours building
                 estimation spreadsheets from scratch, making costly mistakes, and losing bids.
               </p>
@@ -67,7 +67,7 @@ export default function AboutPage() {
                 proposal systems that win more work.
               </p>
               <p className="text-lg text-gray-700 mb-6">
-                Today, MC2 Estimating provides ready-to-use tools to thousands of contractors across
+                Today, BidShield provides ready-to-use tools to thousands of contractors across
                 the country. Our products are designed to deliver value immediately - download,
                 customize with your pricing, and start bidding.
               </p>
@@ -201,7 +201,7 @@ export default function AboutPage() {
             Ready to Estimate Faster?
           </h2>
           <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
-            Join thousands of contractors who save hours every week with MC2 Estimating tools.
+            Join thousands of contractors who save hours every week with BidShield.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
