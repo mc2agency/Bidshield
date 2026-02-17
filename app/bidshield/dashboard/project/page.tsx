@@ -321,34 +321,21 @@ function ProjectDetail() {
                 </div>
               </div>
 
-              {/* System intelligence */}
+              {/* System details — what you need to know for this system */}
               {sys && (
                 <div className="px-4 py-3 flex flex-col gap-2.5 border-t border-slate-100">
-                  {/* Market pricing */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-medium">Market range (installed)</span>
-                    <span className="text-xs font-semibold text-slate-700">${sys.installedCostRange.low.toFixed(2)} – ${sys.installedCostRange.high.toFixed(2)} /SF</span>
-                  </div>
-                  {dpsf && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-400 font-medium">Your bid vs market</span>
-                      <span className={`text-xs font-bold ${dpsf < sys.installedCostRange.low ? "text-amber-600" : dpsf > sys.installedCostRange.high ? "text-red-600" : "text-emerald-600"}`}>
-                        {dpsf < sys.installedCostRange.low ? "⚠ Below market" : dpsf > sys.installedCostRange.high ? "⚠ Above market" : "✓ Within range"}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-medium">Lifespan</span>
-                    <span className="text-xs text-slate-700">{sys.lifespanYears.min}–{sys.lifespanYears.max} years</span>
-                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-400 font-medium">Seam method</span>
                     <span className="text-xs text-slate-700">{sys.seamMethod.split("(")[0].trim()}</span>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-medium">Thickness options</span>
+                    <span className="text-xs text-slate-700">{sys.thicknessOptions.join(" · ")}</span>
+                  </div>
 
                   {/* Manufacturers */}
                   <div>
-                    <div className="text-[10px] text-slate-400 font-medium mb-1">Approved manufacturers</div>
+                    <div className="text-[10px] text-slate-400 font-medium mb-1">Manufacturers</div>
                     <div className="flex flex-wrap gap-1">
                       {sys.manufacturers.slice(0, 5).map(m => (
                         <span key={m} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">{m}</span>
@@ -366,7 +353,7 @@ function ProjectDetail() {
                     </div>
                   </div>
 
-                  {/* Materials auto-populated */}
+                  {/* Materials for this system */}
                   <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                     <span className="text-[10px] text-slate-400 font-medium">{sys.requiredMaterials.length} materials for this system</span>
                     <button onClick={() => openTab("materials")} className="text-[10px] text-emerald-600 font-semibold">View materials →</button>
