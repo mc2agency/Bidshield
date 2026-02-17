@@ -225,46 +225,38 @@ function ProjectDetail() {
     <div className="flex flex-col gap-0">
       {/* ═══ Project Header with Readiness Score ═══ */}
       <div className="bg-white border-b border-slate-200">
-        <div className="px-4 sm:px-6 py-4 max-w-[1400px] mx-auto">
-          <div className="flex items-center gap-4 sm:gap-6">
-            {/* Readiness Gauge */}
-            <ReadinessGauge score={readinessScore} size={72} />
+        <div className="px-3 sm:px-6 py-3 max-w-[1400px] mx-auto">
+          <div className="flex items-center gap-3">
+            {/* Readiness Gauge — smaller on mobile */}
+            <ReadinessGauge score={readinessScore} size={56} />
 
             {/* Project Info */}
             <div className="flex-1 min-w-0">
               <Link
                 href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-                className="text-[11px] text-slate-400 hover:text-emerald-600 transition-colors inline-flex items-center gap-1"
+                className="text-[10px] text-slate-400 hover:text-emerald-600 transition-colors inline-flex items-center gap-0.5"
               >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
                 Dashboard
               </Link>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 truncate">{projectData?.name || "Project"}</h2>
-              <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                <span className="text-xs text-slate-500">{projectData?.location}</span>
-                {(projectData as any)?.gc && (
-                  <span className="text-xs text-slate-400">· {(projectData as any).gc}</span>
-                )}
-                {systemType && <span className="text-[10px] font-medium bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded uppercase ring-1 ring-violet-200">{systemType}</span>}
-                {deckType && <span className="text-[10px] font-medium bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded capitalize ring-1 ring-slate-200">{deckType}</span>}
+              <h2 className="text-sm sm:text-lg font-bold text-slate-900 truncate leading-tight">{projectData?.name || "Project"}</h2>
+              <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                <span className="text-[10px] text-slate-500">{projectData?.location}</span>
+                {systemType && <span className="text-[9px] font-medium bg-violet-50 text-violet-600 px-1 py-0.5 rounded uppercase ring-1 ring-violet-200">{systemType}</span>}
               </div>
             </div>
 
-            {/* Bid Date + Status */}
-            <div className="text-right flex-shrink-0 hidden sm:block">
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full uppercase ring-1 ${statusStyle.text} ${statusStyle.bg} ${statusStyle.ring}`}>
-                {(projectData?.status || "setup").replace("_", " ")}
-              </span>
+            {/* Bid countdown — always visible */}
+            <div className="text-right flex-shrink-0">
               {daysUntilBid !== null && (
-                <div className={`mt-1 text-xl font-bold ${
+                <div className={`text-lg sm:text-xl font-bold leading-tight ${
                   daysUntilBid <= 0 ? "text-red-600" : daysUntilBid <= 3 ? "text-amber-600" : daysUntilBid <= 7 ? "text-amber-500" : "text-emerald-600"
                 }`}>
                   {daysUntilBid > 0 ? `${daysUntilBid}d` : daysUntilBid === 0 ? "TODAY" : "LATE"}
                 </div>
               )}
-              <div className="text-[10px] text-slate-400">
-                {totalBlockers > 0 && <span className="text-red-500 font-semibold">{totalBlockers} blocker{totalBlockers > 1 ? "s" : ""} · </span>}
-                {projectData?.bidDate}
+              <div className="text-[9px] text-slate-400">
+                {totalBlockers > 0 && <span className="text-red-500 font-semibold">{totalBlockers} blocker{totalBlockers > 1 ? "s" : ""}</span>}
               </div>
             </div>
           </div>
