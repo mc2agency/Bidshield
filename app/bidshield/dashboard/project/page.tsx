@@ -8,6 +8,8 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
 
+import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
+
 import type { TabId } from "./tab-types";
 import {
   ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
@@ -283,35 +285,97 @@ function ProjectDetail() {
           );
         })()}
 
-        {/* Project info */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3">
-          {/* Primary Assembly — prominent */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Roof System</span>
-            <span className="text-sm font-semibold text-slate-900">{(projectData as any)?.primaryAssembly || (projectData as any)?.systemType?.toUpperCase() || "Not set"}</span>
-          </div>
-          <div className="h-px bg-slate-100" />
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {(projectData as any)?.grossRoofArea && (
-              <div>
-                <div className="text-sm font-bold text-slate-900">{(projectData as any).grossRoofArea.toLocaleString()}</div>
-                <div className="text-[10px] text-slate-400">SQ FT</div>
+        {/* Roof System Specs — research-backed */}
+        {(() => {
+          const sysId = (projectData as any)?.systemType;
+          const assembly = (projectData as any)?.primaryAssembly;
+          const sys = sysId ? getRoofSystem(sysId) : assembly ? getRoofSystemByAssembly(assembly) : undefined;
+          const grossArea = (projectData as any)?.grossRoofArea;
+          const bidAmt = (projectData as any)?.totalBidAmount;
+          const dpsf = grossArea && bidAmt ? bidAmt / grossArea : null;
+
+          return (
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              {/* System header */}
+              <div className="px-4 py-3 bg-slate-900 text-white flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Roof System</div>
+                  <div className="text-sm font-bold">{assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}</div>
+                </div>
+                {sys && <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-slate-300">CSI {sys.csiSection}</span>}
               </div>
-            )}
-            {(projectData as any)?.totalBidAmount && (
-              <div>
-                <div className="text-sm font-bold text-slate-900">${((projectData as any).totalBidAmount / 1000).toFixed(0)}K</div>
-                <div className="text-[10px] text-slate-400">BID AMT</div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-px bg-slate-100">
+                <div className="bg-white p-3 text-center">
+                  <div className="text-sm font-bold text-slate-900">{grossArea ? grossArea.toLocaleString() : "—"}</div>
+                  <div className="text-[10px] text-slate-400">SQ FT</div>
+                </div>
+                <div className="bg-white p-3 text-center">
+                  <div className="text-sm font-bold text-slate-900">{bidAmt ? `$${(bidAmt / 1000).toFixed(0)}K` : "—"}</div>
+                  <div className="text-[10px] text-slate-400">BID AMT</div>
+                </div>
+                <div className="bg-white p-3 text-center">
+                  <div className="text-sm font-bold text-slate-900">{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
+                  <div className="text-[10px] text-slate-400">$/SF</div>
+                </div>
               </div>
-            )}
-            {(projectData as any)?.grossRoofArea && (projectData as any)?.totalBidAmount && (
-              <div>
-                <div className="text-sm font-bold text-slate-900">${((projectData as any).totalBidAmount / (projectData as any).grossRoofArea).toFixed(2)}</div>
-                <div className="text-[10px] text-slate-400">$/SF</div>
-              </div>
-            )}
-          </div>
-        </div>
+
+              {/* System intelligence */}
+              {sys && (
+                <div className="px-4 py-3 flex flex-col gap-2.5 border-t border-slate-100">
+                  {/* Market pricing */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-medium">Market range (installed)</span>
+                    <span className="text-xs font-semibold text-slate-700">${sys.installedCostRange.low.toFixed(2)} – ${sys.installedCostRange.high.toFixed(2)} /SF</span>
+                  </div>
+                  {dpsf && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-slate-400 font-medium">Your bid vs market</span>
+                      <span className={`text-xs font-bold ${dpsf < sys.installedCostRange.low ? "text-amber-600" : dpsf > sys.installedCostRange.high ? "text-red-600" : "text-emerald-600"}`}>
+                        {dpsf < sys.installedCostRange.low ? "⚠ Below market" : dpsf > sys.installedCostRange.high ? "⚠ Above market" : "✓ Within range"}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-medium">Lifespan</span>
+                    <span className="text-xs text-slate-700">{sys.lifespanYears.min}–{sys.lifespanYears.max} years</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-medium">Seam method</span>
+                    <span className="text-xs text-slate-700">{sys.seamMethod.split("(")[0].trim()}</span>
+                  </div>
+
+                  {/* Manufacturers */}
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-medium mb-1">Approved manufacturers</div>
+                    <div className="flex flex-wrap gap-1">
+                      {sys.manufacturers.slice(0, 5).map(m => (
+                        <span key={m} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">{m}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Warranty options */}
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-medium mb-1">Warranty tiers</div>
+                    <div className="flex flex-wrap gap-1">
+                      {sys.warrantyOptions.map(w => (
+                        <span key={w} className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">{w}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Materials auto-populated */}
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                    <span className="text-[10px] text-slate-400 font-medium">{sys.requiredMaterials.length} materials for this system</span>
+                    <button onClick={() => openTab("materials")} className="text-[10px] text-emerald-600 font-semibold">View materials →</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {(projectData as any)?.notes && (
           <div className="bg-white rounded-lg p-3 border border-slate-100">
