@@ -49,7 +49,7 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
   });
 
   // Demo data with enhanced fields
-  const demoAddenda = [
+  const [demoAddendaState, setDemoAddendaState] = useState([
     {
       _id: "demo_add_1" as any, number: 1, title: "Revised mechanical equipment schedule",
       receivedDate: "2026-02-03", affectsScope: true, acknowledged: true, incorporated: true,
@@ -73,9 +73,9 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
       priceImpact: undefined, priority: "critical",
       notes: "",
     },
-  ];
+  ]);
 
-  const resolvedAddenda = isDemo ? demoAddenda : (addenda ?? []);
+  const resolvedAddenda = isDemo ? demoAddendaState : (addenda ?? []);
   const nextNumber = resolvedAddenda.length > 0 ? Math.max(...resolvedAddenda.map((a: any) => a.number)) + 1 : 1;
 
   // --- Stats ---
@@ -103,12 +103,18 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   const handleUpdate = useCallback(async (addendumId: Id<"bidshield_addenda">, updates: Record<string, any>) => {
-    if (isDemo) return;
+    if (isDemo) {
+      setDemoAddendaState(prev => prev.map(a => a._id === addendumId ? { ...a, ...updates } : a));
+      return;
+    }
     await updateAddendumMut({ addendumId, ...updates });
   }, [isDemo, updateAddendumMut]);
 
   const handleDelete = async (addendumId: Id<"bidshield_addenda">) => {
-    if (isDemo) return;
+    if (isDemo) {
+      setDemoAddendaState(prev => prev.filter(a => a._id !== addendumId));
+      return;
+    }
     await deleteAddendumMut({ addendumId });
   };
 
@@ -276,7 +282,7 @@ function AddendumCard({
           </div>
           <div className="text-sm text-slate-900 font-medium">{add.title}</div>
         </div>
-        {!isDemo && (
+        {(
           <button onClick={() => onDelete(add._id)} className="text-slate-600 hover:text-red-600 text-xs transition-colors shrink-0">Delete</button>
         )}
       </div>
@@ -288,7 +294,6 @@ function AddendumCard({
           <div className="flex gap-2">
             <button
               onClick={() => {
-                if (isDemo) return;
                 const newVal = add.affectsScope === true ? undefined : true;
                 onUpdate(add._id, { affectsScope: newVal });
               }}
@@ -302,7 +307,6 @@ function AddendumCard({
             </button>
             <button
               onClick={() => {
-                if (isDemo) return;
                 const newVal = add.affectsScope === false ? undefined : false;
                 onUpdate(add._id, { affectsScope: newVal });
               }}
@@ -368,7 +372,6 @@ function AddendumCard({
               <span className="text-[11px] text-slate-500">Re-priced?</span>
               <button
                 onClick={() => {
-                  if (isDemo) return;
                   const newVal = !add.repriced;
                   onUpdate(add._id, {
                     repriced: newVal,

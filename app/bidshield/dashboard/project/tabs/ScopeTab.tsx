@@ -88,12 +88,13 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
   const [isInitializing, setIsInitializing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedExclusions, setCopiedExclusions] = useState(false);
+  const [demoScopeState, setDemoScopeState] = useState(DEMO_SCOPE_ITEMS);
 
   // Debounced save refs (keyed by item ID to avoid cross-item cancellation)
   const costTimerRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const noteTimerRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
-  const items = isDemo ? DEMO_SCOPE_ITEMS : (scopeItems ?? []);
+  const items = isDemo ? demoScopeState : (scopeItems ?? []);
 
   // Summary stats
   const totalCount = items.length;
@@ -169,9 +170,11 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
 
   // Handle status change (instant save, toggle behavior)
   const handleStatusChange = async (item: any, newStatus: ScopeStatus) => {
-    if (isDemo) return;
     const status = item.status === newStatus ? "unaddressed" : newStatus;
-    // Clear cost when not included
+    if (isDemo) {
+      setDemoScopeState(prev => prev.map(i => i._id === item._id ? { ...i, status, cost: status !== "included" ? 0 : i.cost } : i));
+      return;
+    }
     const updates: any = { itemId: item._id, status };
     if (status !== "included") updates.cost = 0;
     await updateItem(updates);
@@ -179,12 +182,15 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
 
   // Debounced cost save
   const handleCostChange = (item: any, value: string) => {
-    if (isDemo) return;
+    const cost = value ? parseFloat(value) : 0;
+    if (isDemo) {
+      setDemoScopeState(prev => prev.map(i => i._id === item._id ? { ...i, cost } : i));
+      return;
+    }
     const id = item._id as string;
     const existing = costTimerRefs.current.get(id);
     if (existing) clearTimeout(existing);
     costTimerRefs.current.set(id, setTimeout(async () => {
-      const cost = value ? parseFloat(value) : 0;
       await updateItem({ itemId: item._id, cost });
       costTimerRefs.current.delete(id);
     }, 600));
@@ -192,7 +198,10 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
 
   // Debounced note save
   const handleNoteChange = (item: any, value: string) => {
-    if (isDemo) return;
+    if (isDemo) {
+      setDemoScopeState(prev => prev.map(i => i._id === item._id ? { ...i, note: value } : i));
+      return;
+    }
     const id = item._id as string;
     const existing = noteTimerRefs.current.get(id);
     if (existing) clearTimeout(existing);
