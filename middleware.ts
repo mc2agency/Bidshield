@@ -1,9 +1,7 @@
-// Middleware disabled during rebuild — no auth enforcement
-// Clerk provider still wraps the app client-side for useAuth() hooks
-// but middleware does nothing at the edge layer
+import { NextResponse } from 'next/server';
 
-export default function middleware() {
-  // no-op
+export function middleware() {
+  return NextResponse.next();
 }
 
 export const config = {

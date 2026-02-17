@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { LanguageToggle } from '@/lib/i18n';
 
 export default function Navigation() {
@@ -85,34 +84,18 @@ export default function Navigation() {
             {isClient && <LanguageToggle />}
 
             {isClient ? (
-              <>
-                <SignedOut>
-                  <Link
-                    href="/sign-in"
-                    className="px-3.5 py-2 text-sm text-slate-300 hover:text-white font-medium transition-colors"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/bidshield/dashboard"
-                    className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300"
-                  >
-                    Get Started
-                  </Link>
-                </SignedOut>
-
-                <SignedIn>
-                  <div className="ml-2">
-                    <UserButton afterSignOutUrl="/" />
-                  </div>
-                </SignedIn>
-              </>
+              <Link
+                href="/bidshield/dashboard?demo=true"
+                className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300"
+              >
+                Get Started
+              </Link>
             ) : (
               <Link
-                href="/sign-in"
+                href="/bidshield/dashboard?demo=true"
                 className="px-3.5 py-2 text-sm text-slate-300 hover:text-white font-medium transition-colors"
               >
-                Sign In
+                Get Started
               </Link>
             )}
           </div>
