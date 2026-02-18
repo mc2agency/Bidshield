@@ -55,7 +55,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="flex-1 p-6 max-w-[1400px] mx-auto w-full">{children}</main>
+      <main className="flex-1 p-6 max-w-lg mx-auto w-full">{children}</main>
 
       <footer className="flex justify-between px-6 py-4 border-t border-slate-200 text-xs text-slate-400 bg-white">
         <span>BidShield by MC2Agency</span>
