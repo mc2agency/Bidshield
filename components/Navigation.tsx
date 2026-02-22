@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { LanguageToggle } from '@/lib/i18n';
+
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -56,10 +56,7 @@ export default function Navigation() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <span className="text-2xl">🛡️</span>
-              <div className="flex flex-col leading-none">
-                <span className="text-lg font-bold text-white tracking-tight">BidShield</span>
-                <span className="text-[10px] text-slate-400">by MC2Agency</span>
-              </div>
+              <span className="text-lg font-bold text-white tracking-tight">BidShield</span>
             </Link>
           </div>
 
@@ -78,10 +75,6 @@ export default function Navigation() {
                 {label}
               </Link>
             ))}
-
-            <div className="w-px h-6 bg-slate-700 mx-2" />
-
-            {isClient && <LanguageToggle />}
 
             {isClient ? (
               <Link
@@ -124,9 +117,6 @@ export default function Navigation() {
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 px-4 py-4 space-y-1">
-          <div className="px-4 py-2 mb-2">
-            <LanguageToggle />
-          </div>
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
