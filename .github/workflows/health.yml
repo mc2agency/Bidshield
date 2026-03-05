@@ -1,0 +1,43 @@
+name: Health Check
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # 9am UTC daily
+  workflow_dispatch:       # manual trigger
+
+jobs:
+  health:
+    name: Check Production Health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check homepage
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://mc2estimating.com)
+          echo "Homepage: $status"
+          [ "$status" = "200" ] || exit 1
+
+      - name: Check BidShield pricing page
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://mc2estimating.com/bidshield/pricing)
+          echo "Pricing: $status"
+          [ "$status" = "200" ] || exit 1
+
+      - name: Check sign-in page
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://mc2estimating.com/sign-in)
+          echo "Sign-in: $status"
+          [ "$status" = "200" ] || exit 1
+
+      - name: Check checkout API is alive
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://mc2estimating.com/api/bidshield/create-checkout \
+            -H "Content-Type: application/json" \
+            -d '{"planId":"pro_monthly"}')
+          echo "Checkout API: $status"
+          # 401 = good (unauthenticated), 500 = bad
+          [ "$status" = "401" ] || [ "$status" = "200" ] || { echo "Checkout API unhealthy: $status"; exit 1; }
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Production health check failed — check https://mc2estimating.com"

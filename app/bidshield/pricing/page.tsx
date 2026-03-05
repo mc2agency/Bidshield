@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/lib/auth-shim";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 
 const plans = [
@@ -13,7 +13,7 @@ const plans = [
     description: "Try BidShield on one project",
     features: [
       "1 active project",
-      "16-phase bid checklist",
+      "18-phase bid checklist",
       "Takeoff reconciliation",
       "Bid readiness score",
       "Scope gap checker",
@@ -30,7 +30,7 @@ const plans = [
   {
     id: "pro_monthly",
     name: "Pro",
-    price: 49,
+    price: 149,
     interval: "/mo",
     description: "For active estimators bidding weekly",
     features: [
@@ -41,6 +41,7 @@ const plans = [
       "Material price book (saved prices)",
       "Quote expiration alerts",
       "GC relationship tracking",
+      "All 8 Excel estimating templates included",
       "Priority support",
     ],
     limitations: [],
@@ -50,9 +51,9 @@ const plans = [
   {
     id: "pro_annual",
     name: "Pro Annual",
-    price: 39,
+    price: 124,
     interval: "/mo",
-    annualNote: "Billed $468/year (save $120)",
+    annualNote: "Billed $1,490/year — save $298",
     description: "Best value for committed estimators",
     features: [
       "Everything in Pro Monthly",
@@ -73,6 +74,11 @@ export default function PricingPage() {
   const handleCheckout = async (planId: string) => {
     if (planId === "free") {
       window.location.href = isSignedIn ? "/bidshield/dashboard" : "/sign-up";
+      return;
+    }
+
+    if (!isSignedIn) {
+      window.location.href = `/sign-up?redirect=/bidshield/pricing`;
       return;
     }
 
@@ -104,8 +110,8 @@ export default function PricingPage() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
+            <span className="text-xl">🛡️</span>
             <span className="text-xl font-bold text-slate-900">BidShield</span>
-            <span className="text-xs text-slate-400">by MC2Agency</span>
           </Link>
           <Link
             href={isSignedIn ? "/bidshield/dashboard" : "/sign-in"}
@@ -119,15 +125,28 @@ export default function PricingPage() {
       {/* Hero */}
       <div className="max-w-6xl mx-auto px-6 py-16 text-center">
         <h1 className="text-4xl font-bold text-slate-900 mb-4">
-          Never submit a bad bid again
+          One prevented mistake pays for years of BidShield
         </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-2">
-          BidShield is the bid-day assistant for commercial roofing subcontractors.
-          It catches what your estimating software misses.
+          The 18-phase pre-submission review built for commercial roofing subcontractors.
+          Catches what estimating software can&apos;t — addenda scope changes, mechanical curb mismatches,
+          submittal risks, and missed sections.
         </p>
-        <p className="text-sm text-slate-400">
-          Works alongside The EDGE, STACK, Excel, or whatever you use today.
+        <p className="text-sm text-slate-400 mt-3">
+          Works alongside The EDGE, STACK, Excel, or whatever you use today. No replacement required.
         </p>
+      </div>
+
+      {/* Value callout */}
+      <div className="max-w-2xl mx-auto px-6 mb-12">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
+          <p className="text-sm font-semibold text-amber-800">
+            A single missed mechanical curb section on a $3M bid costs $30,000–$80,000.
+          </p>
+          <p className="text-sm text-amber-700 mt-1">
+            Pro at $149/month = $1,788/year. One prevented error pays for 16+ years of the tool.
+          </p>
+        </div>
       </div>
 
       {/* Plans */}
@@ -164,9 +183,9 @@ export default function PricingPage() {
                     <span className="text-slate-500">{plan.interval}</span>
                   )}
                 </div>
-                {plan.annualNote && (
+                {(plan as { annualNote?: string }).annualNote && (
                   <p className="text-xs text-emerald-600 font-medium mt-1">
-                    {plan.annualNote}
+                    {(plan as { annualNote?: string }).annualNote}
                   </p>
                 )}
               </div>
@@ -230,14 +249,14 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Social proof */}
+        {/* Trust signals */}
         <div className="mt-16 text-center">
           <p className="text-sm text-slate-500 mb-6">
-            Built by an estimator with 11 years of commercial roofing experience
+            Built by an estimator with 12 years of commercial roofing experience. 14-day free trial. Cancel anytime.
           </p>
           <div className="flex justify-center gap-12 text-center">
             <div>
-              <div className="text-2xl font-bold text-slate-900">16</div>
+              <div className="text-2xl font-bold text-slate-900">18</div>
               <div className="text-xs text-slate-500">Phase checklist</div>
             </div>
             <div>
@@ -249,9 +268,39 @@ export default function PricingPage() {
               <div className="text-xs text-slate-500">Scope gap items</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-slate-900">9</div>
-              <div className="text-xs text-slate-500">Readiness dimensions</div>
+              <div className="text-2xl font-bold text-slate-900">8</div>
+              <div className="text-xs text-slate-500">Excel templates included</div>
             </div>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="mt-16 max-w-2xl mx-auto">
+          <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">Common Questions</h2>
+          <div className="space-y-4">
+            {[
+              {
+                q: "Does this replace my estimating software?",
+                a: "No. BidShield is the last step before you submit — not a replacement for The EDGE, STACK, or your spreadsheets. It reviews your completed bid for things estimating software can't catch."
+              },
+              {
+                q: "What does the free trial include?",
+                a: "Full Pro access for 14 days. No credit card required to start. You can run a real bid through the complete 18-phase checklist before you decide."
+              },
+              {
+                q: "What are the 8 Excel templates?",
+                a: "System-specific estimating templates for TPO, EPDM, BUR, Metal, SBS, Spray Foam, Tile, and Asphalt — each with takeoff, material, labor, and proposal tabs. Included free with Pro."
+              },
+              {
+                q: "Can I cancel anytime?",
+                a: "Yes. Cancel from your account settings at any time. Your data stays accessible until the end of your billing period."
+              },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl border border-slate-200 p-5">
+                <p className="font-semibold text-slate-900 text-sm mb-2">{item.q}</p>
+                <p className="text-sm text-slate-600">{item.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

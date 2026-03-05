@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/auth-shim";
+import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 
