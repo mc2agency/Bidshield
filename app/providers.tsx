@@ -6,12 +6,20 @@ import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { ReactNode } from "react";
 import { LanguageProvider } from "@/lib/i18n";
 
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://placeholder.convex.cloud";
+const convex = new ConvexReactClient(convexUrl);
+
+const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 
 export function Providers({ children }: { children: ReactNode }) {
+  // During build/prerender without env vars, render without auth providers
+  if (!clerkKey) {
+    return <LanguageProvider>{children}</LanguageProvider>;
+  }
+
   return (
     <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+      publishableKey={clerkKey}
       afterSignInUrl="/bidshield/dashboard"
       afterSignUpUrl="/bidshield/dashboard"
     >
