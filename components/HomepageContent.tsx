@@ -73,19 +73,19 @@ export default function HomepageContent() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/bidshield/dashboard?demo=true"
+              href="/sign-up"
               className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
             >
-              See Demo
+              Start Free Trial
               <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
             <Link
-              href="/sign-up"
+              href="/bidshield/dashboard?demo=true"
               className="inline-flex items-center justify-center px-8 py-4 border border-slate-600 hover:border-slate-400 text-white rounded-xl font-semibold text-lg transition-all duration-300"
             >
-              Start Free
+              See Demo
             </Link>
           </div>
 
@@ -99,8 +99,8 @@ export default function HomepageContent() {
               <div className="text-slate-400 text-sm mt-1">Checklist Items</div>
             </div>
             <div className="group">
-              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">$0</div>
-              <div className="text-slate-400 text-sm mt-1">Costly Errors</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">0</div>
+              <div className="text-slate-400 text-sm mt-1">Missed Items</div>
             </div>
           </div>
         </div>
