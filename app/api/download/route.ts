@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       // Templates are included with BidShield Pro subscription
       const hasProAccess =
         user.membershipLevel === 'pro' ||
-        user.bidShieldSubscription?.status === 'active';
+        user.bidshieldSubscription?.status === 'active';
 
       if (!hasProAccess) {
         return NextResponse.json({ error: 'BidShield Pro subscription required' }, { status: 403 });
