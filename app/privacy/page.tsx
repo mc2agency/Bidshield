@@ -34,7 +34,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
                 <li><strong>Create an account:</strong> Name, email address, password, company name</li>
-                <li><strong>Make a purchase:</strong> Billing information (processed securely through Gumroad)</li>
+                <li><strong>Make a purchase:</strong> Billing information (processed securely through Stripe)</li>
                 <li><strong>Contact us:</strong> Contact form submissions, support requests, feedback</li>
                 <li><strong>Use our products:</strong> Usage tracking, preferences, access history</li>
                 <li><strong>Subscribe to our newsletter:</strong> Email address, preferences</li>
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
                 We may receive information from:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li><strong>Gumroad:</strong> Payment processing, order fulfillment data</li>
+                <li><strong>Stripe:</strong> Payment processing, order fulfillment data</li>
                 <li><strong>Analytics providers:</strong> Google Analytics, usage statistics</li>
                 <li><strong>Social media:</strong> If you choose to link social accounts</li>
               </ul>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
                 We may share your information with:
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
-                <li><strong>Service providers:</strong> Gumroad (payments), email providers, hosting services</li>
+                <li><strong>Service providers:</strong> Stripe (payments), email providers, hosting services</li>
                 <li><strong>Analytics partners:</strong> Google Analytics (anonymized data)</li>
                 <li><strong>Legal requirements:</strong> When required by law or to protect our rights</li>
                 <li><strong>Business transfers:</strong> In connection with merger, sale, or acquisition</li>
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-disc pl-6 mb-4 text-gray-700">
                 <li>SSL/TLS encryption for data transmission</li>
-                <li>Secure payment processing through Gumroad (PCI-DSS compliant)</li>
+                <li>Secure payment processing through Stripe (PCI-DSS compliant)</li>
                 <li>Regular security audits and updates</li>
                 <li>Access controls and authentication</li>
                 <li>Data backup and disaster recovery procedures</li>
@@ -205,7 +205,7 @@ export default function PrivacyPage() {
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">11. Third-Party Links</h2>
               <p className="text-gray-700 mb-4">
-                Our website may contain links to third-party websites (Gumroad, social media, etc.).
+                Our website may contain links to third-party websites (social media, etc.).
                 We are not responsible for the privacy practices of these external sites. Please review
                 their privacy policies.
               </p>

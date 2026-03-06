@@ -667,25 +667,26 @@ export default function AutoCADSubmittalsPage() {
               </div>
             </div>
 
-            {/* Gumroad Button Placeholder */}
             <div className="text-center">
-              <div className="inline-block bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8 mb-6">
-                <p className="text-gray-600 mb-2">Gumroad Buy Button Integration</p>
-                <p className="text-sm text-gray-500">Connect to Gumroad product link here</p>
-              </div>
+              <Link
+                href="/bidshield/pricing"
+                className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-lg transition-all"
+              >
+                Get Access with BidShield Pro
+              </Link>
 
-              <div className="flex flex-col items-center gap-4 mb-6">
+              <div className="flex flex-col items-center gap-4 mt-6 mb-6">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
-                  <span>Secure payment via Gumroad</span>
+                  <span>Included with BidShield Pro — $149/month</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
-                  <span>Instant access after purchase</span>
+                  <span>14-day free trial</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
-                  <span>30-day money-back guarantee</span>
+                  <span>Cancel anytime</span>
                 </div>
               </div>
             </div>

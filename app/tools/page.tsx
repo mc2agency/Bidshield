@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
-import { GumroadProductKey } from '@/lib/gumroad-products';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -629,11 +627,10 @@ interface ToolCardProps {
   whatYoullGet: string[];
   includes: string[];
   href: string;
-  productKey?: GumroadProductKey;
   featured?: boolean;
 }
 
-function ToolCard({ title, price, level, duration, icon, whatYoullGet, includes, href, productKey, featured = false }: ToolCardProps) {
+function ToolCard({ title, price, level, duration, icon, whatYoullGet, includes, href, featured = false }: ToolCardProps) {
   return (
     <div className={`group relative bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all border-2 ${featured ? 'border-blue-500' : 'border-transparent hover:border-blue-300'}`}>
       {featured && (
@@ -681,21 +678,12 @@ function ToolCard({ title, price, level, duration, icon, whatYoullGet, includes,
         </div>
 
         {/* CTA Button */}
-        {productKey ? (
-          <GumroadCheckoutButton
-            productKey={productKey}
-            text="Get Access"
-            variant="primary"
-            className="w-full"
-          />
-        ) : (
-          <Link
-            href={href}
-            className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Get Access
-          </Link>
-        )}
+        <Link
+          href="/bidshield/pricing"
+          className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Get Access with BidShield Pro
+        </Link>
 
         <Link
           href={href}

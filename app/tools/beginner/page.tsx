@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 
 export default function BeginnerToolsPage() {
   return (
@@ -229,21 +228,12 @@ function ToolCard({ title, price, level, duration, icon, whatYoullGet, includes,
         </div>
 
         {/* CTA Button */}
-        {productKey ? (
-          <GumroadCheckoutButton
-            productKey={productKey as any}
-            text="Get Access"
-            variant="primary"
-            className="w-full"
-          />
-        ) : (
-          <Link
-            href={href}
-            className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Get Access
-          </Link>
-        )}
+        <Link
+          href="/bidshield/pricing"
+          className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Get Access with BidShield Pro
+        </Link>
 
         <Link
           href={href}

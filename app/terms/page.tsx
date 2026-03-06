@@ -68,13 +68,13 @@ export default function TermsPage() {
 
               <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">4.2 Payment Processing</h3>
               <p className="text-gray-700 mb-4">
-                Payments are processed securely through Gumroad. By making a purchase, you agree to
-                Gumroad&apos;s terms of service and authorize us to charge your payment method.
+                Payments are processed securely through Stripe. By making a purchase, you agree to
+                Stripe&apos;s terms of service and authorize us to charge your payment method.
               </p>
 
-              <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">4.3 Subscriptions (MC2 Pro Access)</h3>
+              <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">4.3 Subscriptions (BidShield Pro)</h3>
               <p className="text-gray-700 mb-4">
-                MC2 Pro access is billed monthly at $197/month. Subscriptions automatically renew
+                BidShield Pro is billed monthly at $149/month or annually at $1,490/year. Subscriptions automatically renew
                 unless canceled. You can cancel anytime - cancellation takes effect at the end of the
                 current billing period.
               </p>

@@ -297,7 +297,7 @@ function ContactPageContent() {
               />
               <FAQItem
                 question="How do I access my purchases?"
-                answer="After purchase through Gumroad, you'll receive immediate access to download your files. You'll also receive a confirmation email with your download links."
+                answer="After subscribing to BidShield Pro, you'll have immediate access to all templates and tools from your dashboard. You'll also receive a confirmation email."
               />
               <FAQItem
                 question="Do you offer volume discounts?"

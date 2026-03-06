@@ -74,13 +74,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'File not part of purchase' }, { status: 403 });
       }
     } else {
-      // Mode 2: Verify via Clerk auth + Convex purchase records (Gumroad flow)
+      // Mode 2: Verify via Clerk auth + BidShield Pro subscription
       const { userId } = await auth();
       if (!userId) {
         return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
       }
 
-      // Query Convex to check if user owns a product that includes this file
       const { ConvexHttpClient } = await import('convex/browser');
       const { api } = await import('@/convex/_generated/api');
 
@@ -90,29 +89,18 @@ export async function GET(request: NextRequest) {
       }
 
       const convex = new ConvexHttpClient(convexUrl);
-
-      // Get user from Convex to find their email
       const user = await convex.query(api.users.getCurrentUser, { clerkId: userId });
       if (!user) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
 
-      // Get user's purchases
-      const purchases = await convex.query(api.gumroad.getPurchasedProductIds, {
-        email: user.email,
-      });
+      // Templates are included with BidShield Pro subscription
+      const hasProAccess =
+        user.membershipLevel === 'pro' ||
+        user.bidShieldSubscription?.status === 'active';
 
-      // Check if any purchased product grants access to this file
-      const hasAccess = purchases.some((p: { productId: string }) => {
-        const files = PRODUCT_FILES[p.productId];
-        return files && files.includes(fileName);
-      });
-
-      // Also check if user has pro membership (full access)
-      const hasProAccess = user.membershipLevel === 'pro';
-
-      if (!hasAccess && !hasProAccess) {
-        return NextResponse.json({ error: 'File not part of your purchases' }, { status: 403 });
+      if (!hasProAccess) {
+        return NextResponse.json({ error: 'BidShield Pro subscription required' }, { status: 403 });
       }
     }
 

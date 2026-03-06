@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
-import GumroadCheckoutButton from '@/components/GumroadCheckoutButton';
 
 export const metadata: Metadata = {
   title: 'Roof Measurement & Technology Tool - Drones, Apps & Digital Tools',
@@ -630,24 +629,25 @@ export default function MeasurementTechnologyPage() {
             </div>
 
             <div className="text-center">
-              <GumroadCheckoutButton
-                productKey="measurementTechnology"
-                text="Get Access - $197"
-                variant="large"
-              />
+              <Link
+                href="/bidshield/pricing"
+                className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-lg transition-all"
+              >
+                Get Access with BidShield Pro
+              </Link>
 
               <div className="flex flex-col items-center gap-4 mt-6">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
-                  <span>Secure payment via Gumroad</span>
+                  <span>Included with BidShield Pro — $149/month</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
-                  <span>Instant access after purchase</span>
+                  <span>14-day free trial</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
-                  <span>30-day money-back guarantee</span>
+                  <span>Cancel anytime</span>
                 </div>
               </div>
             </div>
