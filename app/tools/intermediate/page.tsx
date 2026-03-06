@@ -54,7 +54,6 @@ export default function IntermediateToolsPage() {
               level="Intermediate"
               duration="6 parts • 8 hours"
               icon="📐"
-              productKey="autocadSubmittals"
               whatYoullGet={[
                 "AutoCAD basics for contractors",
                 "Reading CAD drawings",
@@ -78,7 +77,6 @@ export default function IntermediateToolsPage() {
               level="Intermediate"
               duration="8 parts • 6 hours"
               icon="📊"
-              productKey="constructionSubmittals"
               whatYoullGet={[
                 "Reading submittal requirements in specs",
                 "Organizing submittal packages",
@@ -102,7 +100,6 @@ export default function IntermediateToolsPage() {
               level="Intermediate to Advanced"
               duration="6 parts • 7 hours"
               icon="💻"
-              productKey="estimatingSoftware"
               whatYoullGet={[
                 "The Edge (Estimating Edge) complete tutorial",
                 "Kreo AI estimating platform",
@@ -127,7 +124,6 @@ export default function IntermediateToolsPage() {
               duration="8 parts • 12+ hours"
               icon="🧮"
               featured={true}
-              productKey="estimatingEssentials"
               whatYoullGet={[
                 "Reading construction specifications",
                 "Multi-discipline plan coordination",

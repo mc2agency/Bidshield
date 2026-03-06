@@ -55,7 +55,6 @@ export default function BeginnerToolsPage() {
               duration="8 parts • 12+ hours"
               icon="🧮"
               featured={true}
-              productKey="estimatingEssentials"
               whatYoullGet={[
                 "Reading construction specifications",
                 "Multi-discipline plan coordination",
@@ -80,7 +79,6 @@ export default function BeginnerToolsPage() {
               level="Beginner to Advanced"
               duration="8 parts • 6 hours"
               icon="⚡"
-              productKey="bluebeamMastery"
               whatYoullGet={[
                 "Complete Bluebeam interface mastery",
                 "Digital takeoff calibration and scale",
@@ -104,7 +102,6 @@ export default function BeginnerToolsPage() {
               level="Beginner"
               duration="5 parts • 4 hours"
               icon="🎨"
-              productKey="sketchupVisualization"
               whatYoullGet={[
                 "SketchUp basics (Free vs Pro)",
                 "3D roof modeling techniques",
@@ -128,7 +125,6 @@ export default function BeginnerToolsPage() {
               level="Beginner"
               duration="4 parts • 3 hours"
               icon="📏"
-              productKey="measurementTechnology"
               whatYoullGet={[
                 "Pictometry detailed tutorial",
                 "EagleView platform mastery",

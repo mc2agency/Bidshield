@@ -148,7 +148,6 @@ export default function ToolsPage() {
               duration="8 parts • 12+ hours"
               icon="🧮"
               featured={true}
-              productKey="estimatingEssentials"
               whatYoullGet={[
                 "Reading construction specifications",
                 "Multi-discipline plan coordination",
@@ -173,7 +172,6 @@ export default function ToolsPage() {
               level="Beginner to Advanced"
               duration="8 parts • 6 hours"
               icon="⚡"
-              productKey="bluebeamMastery"
               whatYoullGet={[
                 "Complete Bluebeam interface mastery",
                 "Digital takeoff calibration and scale",
@@ -197,7 +195,6 @@ export default function ToolsPage() {
               level="Intermediate"
               duration="6 parts • 8 hours"
               icon="📐"
-              productKey="autocadSubmittals"
               whatYoullGet={[
                 "AutoCAD basics for contractors",
                 "Reading CAD drawings",
@@ -221,7 +218,6 @@ export default function ToolsPage() {
               level="Beginner"
               duration="5 parts • 4 hours"
               icon="🎨"
-              productKey="sketchupVisualization"
               whatYoullGet={[
                 "SketchUp basics (Free vs Pro)",
                 "3D roof modeling techniques",
@@ -245,7 +241,6 @@ export default function ToolsPage() {
               level="Beginner"
               duration="4 parts • 3 hours"
               icon="📏"
-              productKey="measurementTechnology"
               whatYoullGet={[
                 "Pictometry detailed tutorial",
                 "EagleView platform mastery",
@@ -269,7 +264,6 @@ export default function ToolsPage() {
               level="Intermediate"
               duration="8 parts • 6 hours"
               icon="📊"
-              productKey="constructionSubmittals"
               whatYoullGet={[
                 "Reading submittal requirements in specs",
                 "Organizing submittal packages",
@@ -293,7 +287,6 @@ export default function ToolsPage() {
               level="Intermediate to Advanced"
               duration="6 parts • 7 hours"
               icon="💻"
-              productKey="estimatingSoftware"
               whatYoullGet={[
                 "The Edge (Estimating Edge) complete tutorial",
                 "Kreo AI estimating platform",

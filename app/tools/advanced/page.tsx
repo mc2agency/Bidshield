@@ -55,7 +55,6 @@ export default function AdvancedToolsPage() {
               duration="8 parts • 6 hours"
               icon="⚡"
               featured={true}
-              productKey="bluebeamMastery"
               whatYoullGet={[
                 "Complete Bluebeam interface mastery",
                 "Digital takeoff calibration and scale",
@@ -79,7 +78,6 @@ export default function AdvancedToolsPage() {
               level="Intermediate to Advanced"
               duration="6 parts • 7 hours"
               icon="💻"
-              productKey="estimatingSoftware"
               whatYoullGet={[
                 "The Edge (Estimating Edge) complete tutorial",
                 "Kreo AI estimating platform",
