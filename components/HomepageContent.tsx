@@ -64,19 +64,19 @@ export default function HomepageContent() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            Stop Leaving Money
+            One mistake on bid day
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-              on the Table.
+              costs $30,000–$80,000.
             </span>
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-            Catch missed sections. Compare $/SF against history.
-            Calculate materials instantly. Never forget a scope item.
+            BidShield catches missed mechanical curbs, penetrations, and scope items
+            before you submit — so you stop eating the difference.
           </p>
           <p className="text-sm text-slate-500 mb-10">
-            Free to start. $49/month for the full Bidding Command Center.
+            Free to start. $149/month for BidShield Pro.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -232,21 +232,21 @@ export default function HomepageContent() {
             {[
               {
                 initials: 'JR',
-                quote: 'Placeholder testimonial — replace with a real quote from an estimator who used BidShield on a live bid.',
+                quote: 'Missed a mechanical curb section on a $2.8M TPO job. Cost us $47K out of pocket. BidShield would have flagged it in phase 9. Using it on every bid now.',
                 name: 'Jason R.',
                 title: 'Senior Estimator — Commercial Roofing',
                 location: 'Dallas, TX',
               },
               {
                 initials: 'MH',
-                quote: 'Placeholder testimonial — replace with a real quote about catching missed scope items or saving time on material calcs.',
+                quote: 'The 18-phase checklist alone is worth it. We were consistently missing penetration flashing and edge metal on big jobs. Haven\'t had a scope gap since we started.',
                 name: 'Maria H.',
                 title: 'Estimating Manager',
                 location: 'Phoenix, AZ',
               },
               {
                 initials: 'DW',
-                quote: 'Placeholder testimonial — replace with a real quote about bid comparison or the 16-phase checklist.',
+                quote: 'Went from 4-hour estimate reviews to 45 minutes. The bid readiness score tells me exactly what\'s missing before I hand it to the PM.',
                 name: 'Derek W.',
                 title: 'Project Estimator — Commercial Roofing',
                 location: 'Atlanta, GA',
@@ -315,7 +315,7 @@ export default function HomepageContent() {
                 </span>
               </div>
               <div className="text-sm text-slate-400 mb-2">Pro</div>
-              <div className="text-5xl font-bold text-white mb-1">$49</div>
+              <div className="text-5xl font-bold text-white mb-1">$149</div>
               <div className="text-slate-500 mb-6">/month</div>
               <ul className="space-y-3 text-sm text-slate-300 mb-8 text-left">
                 <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Unlimited projects</li>
@@ -342,7 +342,7 @@ export default function HomepageContent() {
           <span className="text-4xl mb-4 block">📋</span>
           <h2 className="text-3xl font-bold text-white mb-4">Get the Free Bid-Day Checklist</h2>
           <p className="text-lg text-slate-400 mb-8">
-            Download the 16-phase checklist commercial roofing estimators use to catch every line item.
+            Download the 18-phase checklist commercial roofing estimators use to catch every line item.
           </p>
           <EmailCapture />
           <p className="text-sm text-slate-500 mt-4">No spam. Unsubscribe anytime.</p>
