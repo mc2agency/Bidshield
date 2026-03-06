@@ -180,7 +180,7 @@ Example: $25 × 1.45 = $36.25/hr actual cost`}
               The best estimators I know aren't necessarily the smartest — they're the most systematic. They use checklists. They have templates that force them to consider every line item. They don't trust their memory.
             </p>
             <p>
-              That's why we built BidShield by MC2 Estimating with these systems baked in:
+              That's why we built BidShield with these systems baked in:
             </p>
             <ul>
               <li>Labor burden calculator built into every template</li>

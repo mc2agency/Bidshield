@@ -3,21 +3,20 @@ import Link from 'next/link';
 export default function Footer() {
   const footerSections = [
     {
-      title: 'Products',
+      title: 'BidShield',
       links: [
-        { href: '/bidshield/dashboard', label: 'BidShield Dashboard' },
-        { href: '/products', label: 'Templates' },
-        { href: '/products/template-bundle', label: 'Template Bundle' },
+        { href: '/bidshield/dashboard', label: 'Dashboard' },
+        { href: '/bidshield/pricing', label: 'Pricing' },
+        { href: '/bidshield/dashboard?demo=true', label: 'Try Demo' },
         { href: '/blog', label: 'Blog' },
       ],
     },
     {
       title: 'Resources',
       links: [
-        { href: '/products', label: 'All Products' },
+        { href: '/products', label: 'Templates' },
         { href: '/updates', label: 'Product Updates' },
         { href: '/support', label: 'Support' },
-        { href: '/bidshield/dashboard?demo=true', label: 'Try Demo' },
       ],
     },
     {
@@ -47,7 +46,6 @@ export default function Footer() {
               <span className="text-2xl">🛡️</span>
               <div className="flex flex-col leading-none">
                 <span className="text-xl font-bold text-white">BidShield</span>
-                <span className="text-[10px] text-slate-400">by MC2Agency</span>
               </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">

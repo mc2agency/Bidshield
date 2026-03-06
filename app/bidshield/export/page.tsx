@@ -205,7 +205,7 @@ function ExportContent() {
 
         {/* Footer */}
         <div className="mt-12 pt-4 border-t border-slate-300 flex justify-between text-[10px] text-slate-400">
-          <span>BidShield by MC2Agency • bidshield.com</span>
+          <span>BidShield • mc2estimating.com</span>
           <span>Confidential — {(project as any).name} — {today}</span>
         </div>
       </div>
