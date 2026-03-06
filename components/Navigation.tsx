@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 
 
 export default function Navigation() {
@@ -11,6 +12,7 @@ export default function Navigation() {
   const [isClient, setIsClient] = useState(false);
   const ticking = useRef(false);
   const pathname = usePathname();
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
@@ -33,7 +35,7 @@ export default function Navigation() {
   }, [updateScrollState]);
 
   const navLinks = [
-    { href: '/bidshield/dashboard', label: 'Dashboard' },
+    ...(isSignedIn ? [{ href: '/bidshield/dashboard', label: 'Dashboard' }] : []),
     { href: '/bidshield/pricing', label: 'Pricing' },
     { href: '/blog', label: 'Blog' },
   ];

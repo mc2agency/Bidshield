@@ -3,36 +3,27 @@
 import Link from 'next/link';
 import EmailCapture from '@/components/EmailCapture';
 
-const features = [
+const mistakeScenarios = [
   {
-    icon: '📐',
-    title: 'Takeoff Verification',
-    description: 'Catch missed roof sections before they cost you. Reconcile your takeoff against the control number — no other tool does this.',
+    icon: '🔩',
+    cost: '$47,000',
+    title: 'Missed Mechanical Curbs',
+    scenario: 'TPO job, 2.8M SF. Estimator skipped the mechanical plan. 14 curbs not in scope. GC back-charges the sub after installation.',
+    phase: 'Caught in Phase 9 — Mechanical Review',
   },
   {
-    icon: '📊',
-    title: 'Bid Comparison',
-    description: 'See your $/SF vs. every past bid. Compare assembly costs, track trends, and price with confidence.',
+    icon: '📋',
+    cost: '$31,000',
+    title: 'Missed Addendum',
+    scenario: 'Addendum 3 added 18,000 SF of coverboard. Estimator missed it. Won the bid, now eating the material cost.',
+    phase: 'Caught in Phase 10 — Addenda Review',
   },
   {
-    icon: '📦',
-    title: 'Material Calculator',
-    description: 'Enter SF, get roll counts and costs. Automatic waste factors, coverage rates, and vendor pricing in seconds.',
-  },
-  {
-    icon: '🔍',
-    title: 'Scope Gap Checker',
-    description: '40 items to include or exclude. Demolition, access, protection, schedule — no surprises on bid day.',
-  },
-  {
-    icon: '📄',
-    title: 'Addenda Tracker',
-    description: 'Track which addenda hit your scope. Review, re-price, and confirm before you submit. Never miss an addendum again.',
-  },
-  {
-    icon: '📈',
-    title: 'Win/Loss Intelligence',
-    description: 'Win rate by GC, loss reasons, estimating accuracy. Know where you win and where to adjust your strategy.',
+    icon: '📁',
+    cost: '$22,000',
+    title: 'Wrong Submittal Requirements',
+    scenario: 'Spec required 3rd-party submittal package. Estimator excluded it. Owner deducts the full package cost from final payment.',
+    phase: 'Caught in Phase 9 — Specification Review',
   },
 ];
 
@@ -73,7 +64,7 @@ export default function HomepageContent() {
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-            BidShield catches missed mechanical curbs, penetrations, and scope items
+            BidShield catches missed mechanical curbs, addenda, and scope items
             before you submit — so you stop eating the difference.
           </p>
           <p className="text-sm text-slate-500 mb-10">
@@ -91,7 +82,7 @@ export default function HomepageContent() {
               </svg>
             </Link>
             <Link
-              href="/bidshield/dashboard"
+              href="/sign-up"
               className="inline-flex items-center justify-center px-8 py-4 border border-slate-600 hover:border-slate-400 text-white rounded-xl font-semibold text-lg transition-all duration-300"
             >
               Start Free
@@ -115,30 +106,36 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Mistake Scenarios */}
       <section className="py-24 bg-slate-950 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Six Tools.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                Zero Missed Items.
+              These mistakes happen{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-400">
+                every week.
               </span>
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              Every tool a commercial roofing estimator needs to submit a complete, validated bid.
+              BidShield runs each one through 18 phases before you submit.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
+          <div className="grid md:grid-cols-3 gap-6">
+            {mistakeScenarios.map((m) => (
               <div
-                key={feature.title}
-                className="bg-slate-900 rounded-2xl p-6 border border-slate-800 hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
+                key={m.title}
+                className="bg-slate-900 rounded-2xl p-6 border border-slate-800 hover:border-red-500/20 transition-all duration-300"
               >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl">{m.icon}</span>
+                  <span className="text-red-400 font-bold text-lg">{m.cost}</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3">{m.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed mb-4">{m.scenario}</p>
+                <div className="text-xs text-emerald-400 font-medium bg-emerald-500/10 rounded-lg px-3 py-2">
+                  ✓ {m.phase}
+                </div>
               </div>
             ))}
           </div>
@@ -159,36 +156,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* Social proof */}
-      <section className="py-20 bg-slate-950 border-t border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-10">
-            Built by estimators,{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-              for estimators.
-            </span>
-          </h2>
-          <div className="grid sm:grid-cols-2 gap-6 text-left max-w-2xl mx-auto">
-            {[
-              '40-point scope checklist catches what you forget',
-              'Takeoff reconciliation — no other tool does this',
-              '$/SF comparison across every past bid',
-              'Material quantities calculated in seconds',
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-3 text-slate-300">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 16-Phase Checklist */}
+      {/* 18-Phase Checklist */}
       <section className="py-24 bg-slate-950 border-t border-slate-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -203,73 +171,14 @@ export default function HomepageContent() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {checklistPhases.map((phase, idx) => (
               <div
                 key={phase}
                 className="bg-slate-900 rounded-lg p-4 border border-slate-800 hover:border-emerald-500/30 transition-colors"
               >
                 <div className="text-xs text-emerald-500 font-semibold mb-1">Phase {idx + 1}</div>
-                <div className="text-sm font-medium text-slate-200">{phase}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 bg-slate-900 border-t border-slate-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              What Estimators Are{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                Saying
-              </span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                initials: 'JR',
-                quote: 'Missed a mechanical curb section on a $2.8M TPO job. Cost us $47K out of pocket. BidShield would have flagged it in phase 9. Using it on every bid now.',
-                name: 'Jason R.',
-                title: 'Senior Estimator — Commercial Roofing',
-                location: 'Dallas, TX',
-              },
-              {
-                initials: 'MH',
-                quote: 'The 18-phase checklist alone is worth it. We were consistently missing penetration flashing and edge metal on big jobs. Haven\'t had a scope gap since we started.',
-                name: 'Maria H.',
-                title: 'Estimating Manager',
-                location: 'Phoenix, AZ',
-              },
-              {
-                initials: 'DW',
-                quote: 'Went from 4-hour estimate reviews to 45 minutes. The bid readiness score tells me exactly what\'s missing before I hand it to the PM.',
-                name: 'Derek W.',
-                title: 'Project Estimator — Commercial Roofing',
-                location: 'Atlanta, GA',
-              },
-            ].map((t) => (
-              <div
-                key={t.initials}
-                className="bg-slate-950 rounded-2xl p-6 border border-slate-800"
-              >
-                <p className="text-slate-300 text-sm leading-relaxed mb-6">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm font-bold">
-                    {t.initials}
-                  </div>
-                  <div>
-                    <div className="text-white text-sm font-semibold">{t.name}</div>
-                    <div className="text-slate-500 text-xs">{t.title}</div>
-                    <div className="text-slate-600 text-xs">{t.location}</div>
-                  </div>
-                </div>
+                <div className="text-xs font-medium text-slate-200">{phase}</div>
               </div>
             ))}
           </div>
@@ -301,7 +210,7 @@ export default function HomepageContent() {
                 <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Takeoff tracking</li>
               </ul>
               <Link
-                href="/bidshield/dashboard"
+                href="/sign-up"
                 className="block w-full text-center px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-semibold transition-colors"
               >
                 Start Free
@@ -364,7 +273,7 @@ export default function HomepageContent() {
             BidShield catches what you miss.
           </p>
           <Link
-            href="/bidshield/dashboard"
+            href="/sign-up"
             className="inline-flex items-center justify-center px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
           >
             Start Your Free Trial
