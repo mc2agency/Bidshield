@@ -82,7 +82,7 @@ export default function HomepageContent() {
               </svg>
             </Link>
             <Link
-              href="/bidshield/dashboard?demo=true"
+              href="/bidshield/demo"
               className="inline-flex items-center justify-center px-8 py-4 border border-slate-600 hover:border-slate-400 text-white rounded-xl font-semibold text-lg transition-all duration-300"
             >
               See Demo
