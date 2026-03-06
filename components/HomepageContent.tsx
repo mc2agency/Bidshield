@@ -39,8 +39,9 @@ const features = [
 const checklistPhases = [
   'Project Setup', 'Document Receipt', 'Architectural Review', 'Structural Review',
   'Mechanical Review', 'Plumbing Review', 'Electrical Review', 'Civil/Site/DOT Review',
-  'Specification Review', 'Takeoff — Areas', 'Takeoff — Linear', 'Takeoff — Counts',
-  'Pricing — Materials', 'Pricing — Labor', 'Pre-Submission', 'Bid Submission',
+  'Specification Review', 'Addenda Review', 'Takeoff — Areas', 'Takeoff — Linear',
+  'Takeoff — Counts', 'Pricing — Materials', 'Pricing — Labor', 'Subcontractor Scope',
+  'Pre-Submission', 'Bid Submission',
 ];
 
 export default function HomepageContent() {
@@ -99,7 +100,7 @@ export default function HomepageContent() {
 
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             <div className="group">
-              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">16</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">18</div>
               <div className="text-slate-400 text-sm mt-1">Bid Phases Covered</div>
             </div>
             <div className="group">
@@ -192,7 +193,7 @@ export default function HomepageContent() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              The 16-Phase{' '}
+              The 18-Phase{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
                 Bid Checklist
               </span>
@@ -326,7 +327,7 @@ export default function HomepageContent() {
                 <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Priority support</li>
               </ul>
               <Link
-                href="/bidshield/dashboard"
+                href="/bidshield/pricing"
                 className="block w-full text-center px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all"
               >
                 Start Pro Trial

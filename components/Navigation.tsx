@@ -34,8 +34,7 @@ export default function Navigation() {
 
   const navLinks = [
     { href: '/bidshield/dashboard', label: 'Dashboard' },
-    { href: '/bidshield/dashboard/analytics', label: 'Analytics' },
-    { href: '/products', label: 'Templates' },
+    { href: '/bidshield/pricing', label: 'Pricing' },
     { href: '/blog', label: 'Blog' },
   ];
 
