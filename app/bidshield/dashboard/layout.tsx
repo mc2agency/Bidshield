@@ -3,37 +3,23 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isDemo, setIsDemo] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  // Read isDemo synchronously so it's available on the first render —
+  // using useState+useEffect caused a race where the auth redirect fired
+  // before isDemo could be set to true.
+  const isDemo = searchParams.get("demo") === "true";
 
   useEffect(() => {
-    setMounted(true);
-    const demoParam = searchParams.get("demo");
-    if (demoParam === "true") {
-      setIsDemo(true);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (mounted && isLoaded && !isSignedIn && !isDemo) {
+    if (isLoaded && !isSignedIn && !isDemo) {
       router.push("/sign-in");
     }
-  }, [mounted, isLoaded, isSignedIn, isDemo, router]);
-
-  if (!mounted) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
-        <div className="text-slate-500 text-lg">Loading BidShield...</div>
-      </div>
-    );
-  }
+  }, [isLoaded, isSignedIn, isDemo, router]);
 
   if (!isLoaded && !isDemo) {
     return (
