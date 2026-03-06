@@ -87,7 +87,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="pt-8 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
-            &copy; {new Date().getFullYear()} MC2Agency LLC. All rights reserved.
+            &copy; {new Date().getFullYear()} MC2 Estimating. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-slate-500">
             <Link href="/terms" className="hover:text-emerald-400 transition-colors">Terms</Link>

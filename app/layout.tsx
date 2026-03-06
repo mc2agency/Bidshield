@@ -1,5 +1,5 @@
 /**
- * BIDSHIELD — A product of MC2Agency LLC
+ * BIDSHIELD — A product of MC2 Estimating
  * =======================================
  * BidShield is a bid quality-assurance platform for commercial subcontractors.
  * It helps estimators catch mistakes before they cost money.
@@ -30,9 +30,9 @@ export const metadata: Metadata = {
   },
   description: "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker. Built by estimators, for estimators.",
   keywords: ["roofing estimation", "construction estimating", "roofing templates", "estimating tools", "roofing calculators", "contractor tools", "bid templates", "bidshield", "bid management"],
-  authors: [{ name: "MC2Agency LLC" }],
-  creator: "MC2Agency LLC",
-  publisher: "MC2Agency LLC",
+  authors: [{ name: "MC2 Estimating" }],
+  creator: "MC2 Estimating",
+  publisher: "MC2 Estimating",
   metadataBase: new URL("https://mc2estimating.com"),
   openGraph: {
     type: "website",

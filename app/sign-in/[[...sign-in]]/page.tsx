@@ -15,10 +15,10 @@ export default function SignInPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-slate-900">
-            Welcome Back
+            Sign in to BidShield
           </h2>
           <p className="mt-2 text-slate-600">
-            Sign in to access your tools and continue learning
+            A product of MC2 Estimating
           </p>
         </div>
         {isClient ? (
