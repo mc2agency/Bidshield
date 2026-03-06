@@ -9,6 +9,38 @@ import type { Id } from "@/convex/_generated/dataModel";
 import OnboardingWizard from "./OnboardingWizard";
 import NewBidWizard from "./NewBidWizard";
 
+// ============================================================
+// UPGRADE MODAL
+// ============================================================
+function UpgradeModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        <div className="text-center">
+          <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached the free plan limit</h2>
+          <p className="text-slate-500 text-sm mb-6">The free plan includes 1 active project. Upgrade to Pro for unlimited projects and all features.</p>
+          <div className="bg-slate-50 rounded-xl p-4 mb-6 text-left space-y-2">
+            {["Unlimited projects", "Full 18-phase checklist", "Materials database & takeoffs", "RFI tracking", "Subcontractor quotes", "Analytics dashboard"].map((f) => (
+              <div key={f} className="flex items-center gap-2 text-sm text-slate-700">
+                <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                {f}
+              </div>
+            ))}
+          </div>
+          <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm">
+            Upgrade to Pro &mdash; $149/month
+          </a>
+          <button onClick={onClose} className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors">Maybe later</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface BidProject {
   _id: Id<"bidshield_projects">;
   name: string;
@@ -172,9 +204,11 @@ function DashboardContent() {
 
   const convexProjects = useQuery(api.bidshield.getProjects, !isDemo && userId ? { userId } : "skip");
   const convexStats = useQuery(api.bidshield.getStats, !isDemo && userId ? { userId } : "skip");
+  const subscription = useQuery(api.users.getUserSubscription, !isDemo && userId ? { clerkId: userId } : "skip");
   const createProjectMut = useMutation(api.bidshield.createProject);
   const updateProjectMut = useMutation(api.bidshield.updateProject);
 
+  const isPro = isDemo || (subscription?.isPro ?? false);
   const projects: BidProject[] = isDemo ? demoProjects : (convexProjects ?? []);
   const stats = isDemo ? demoStats : (convexStats ?? {
     activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0,
@@ -183,6 +217,7 @@ function DashboardContent() {
 
   const [showNewProject, setShowNewProject] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
 
   // Show onboarding for new users with zero projects
@@ -192,6 +227,14 @@ function DashboardContent() {
     }
   }, [isDemo, convexProjects, userId]);
   const isLoading = !isDemo && convexProjects === undefined;
+
+  const handleNewBidClick = () => {
+    if (!isDemo && !isPro && activeProjects.length >= 1) {
+      setShowUpgradeModal(true);
+    } else {
+      setShowNewProject(true);
+    }
+  };
 
   const handleCreateProject = async (np: any) => {
     if (!np.name || !np.location || !np.bidDate) return;
@@ -262,7 +305,7 @@ function DashboardContent() {
             {activeProjects.length === 0 ? "No active bids. Create one to get started." : `${activeProjects.length} active bid${activeProjects.length !== 1 ? "s" : ""} in your pipeline`}
           </p>
         </div>
-        <button onClick={() => setShowNewProject(true)} className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm shrink-0">
+        <button onClick={handleNewBidClick} className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm shrink-0">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
           New Bid
         </button>
@@ -312,7 +355,7 @@ function DashboardContent() {
         </div>
         <div className="flex gap-3 shrink-0">
           <a href={isDemo ? "/bidshield/dashboard/datasheets?demo=true" : "/bidshield/dashboard/datasheets"} className="px-4 py-2 border border-white/30 text-white hover:bg-white/10 font-medium rounded-lg text-sm whitespace-nowrap transition-colors">Material Database</a>
-          <a href="/products" className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">View Templates &rarr;</a>
+          <a href={isDemo ? "/bidshield/dashboard/templates?demo=true" : "/bidshield/dashboard/templates"} className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">View Templates &rarr;</a>
         </div>
       </div>
 
@@ -323,7 +366,7 @@ function DashboardContent() {
           {activeProjects.map((project: BidProject) => (
             <ProjectCard key={project._id} project={project} isDemo={isDemo} onStatusChange={handleStatusChange} router={router} />
           ))}
-          <div onClick={() => setShowNewProject(true)} className="rounded-xl p-5 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer text-slate-400 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all min-h-[200px] group">
+          <div onClick={handleNewBidClick} className="rounded-xl p-5 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer text-slate-400 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all min-h-[200px] group">
             <div className="w-12 h-12 rounded-full bg-slate-100 group-hover:bg-emerald-100 flex items-center justify-center mb-3 transition-colors">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
             </div>
@@ -358,7 +401,23 @@ function DashboardContent() {
         </div>
       )}
 
+      {/* Free tier banner */}
+      {!isDemo && !isPro && (
+        <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <div className="flex items-center gap-3">
+            <span className="text-amber-500 text-lg">⚡</span>
+            <p className="text-sm text-amber-800 font-medium">
+              You&apos;re on the free plan &mdash; {activeProjects.length} of 1 project{activeProjects.length !== 1 ? "s" : ""} used
+            </p>
+          </div>
+          <a href="/bidshield/pricing" className="shrink-0 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors">
+            Upgrade to Pro
+          </a>
+        </div>
+      )}
+
       {showNewProject && <NewBidWizard isDemo={isDemo} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
+      {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </div>
   );
 }
