@@ -355,7 +355,7 @@ function DashboardContent() {
         </div>
         <div className="flex gap-3 shrink-0">
           <a href={isDemo ? "/bidshield/dashboard/datasheets?demo=true" : "/bidshield/dashboard/datasheets"} className="px-4 py-2 border border-white/30 text-white hover:bg-white/10 font-medium rounded-lg text-sm whitespace-nowrap transition-colors">Material Database</a>
-          <a href="/products" className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">View Templates &rarr;</a>
+          <a href={isDemo ? "/bidshield/dashboard/templates?demo=true" : "/bidshield/dashboard/templates"} className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">View Templates &rarr;</a>
         </div>
       </div>
 
