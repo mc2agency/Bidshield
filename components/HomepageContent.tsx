@@ -146,12 +146,11 @@ export default function HomepageContent() {
       <section className="py-20 bg-slate-900 border-t border-slate-800">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-lg sm:text-xl text-slate-300 leading-relaxed">
-            I spent 11 years estimating commercial roofing jobs. I got tired of losing bids because
-            of missed scope items and spreadsheet chaos. So I built the tool I always needed.{' '}
-            <span className="text-white font-semibold">This is it.</span>
+            After 12 years estimating commercial roofing, I built the review process I always wished existed.
+            Every phase, every discipline, every item that costs you money when you miss it.
           </p>
           <p className="mt-6 text-sm text-slate-500">
-            — Carlos Maldonado, Founder
+            — Founder, MC2 Estimating
           </p>
         </div>
       </section>
