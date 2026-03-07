@@ -79,14 +79,14 @@ export default function Navigation() {
 
             {isClient ? (
               <Link
-                href="/bidshield/dashboard?demo=true"
+                href="/bidshield/demo"
                 className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300"
               >
                 Get Started
               </Link>
             ) : (
               <Link
-                href="/bidshield/dashboard?demo=true"
+                href="/bidshield/demo"
                 className="px-3.5 py-2 text-sm text-slate-300 hover:text-white font-medium transition-colors"
               >
                 Get Started
