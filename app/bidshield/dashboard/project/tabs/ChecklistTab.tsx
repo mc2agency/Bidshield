@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -43,6 +43,8 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
   const [demoChecklistState, setDemoChecklistState] = useState(demoItems);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [filter, setFilter] = useState<FilterMode>("incomplete");
+  const touchStartX = useRef<number>(0);
+  const [swipeActive, setSwipeActive] = useState<string | null>(null);
 
   const trade = project?.trade || "roofing";
   const systemType = project?.systemType || undefined;
@@ -54,6 +56,18 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
     : (overallProgress ?? 0);
 
   const toggleExpand = (key: string) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const setStatus = async (phaseKey: string, itemId: string, target: ChecklistStatus) => {
+    if (isDemo) {
+      setDemoChecklistState((prev) =>
+        prev.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: target } : i)
+      );
+    } else {
+      const current = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
+      const convexId = (current as any)?._id;
+      if (convexId) await updateChecklistItemMut({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: target });
+    }
+  };
 
   const cycleStatus = async (phaseKey: string, itemId: string) => {
     const order: ChecklistStatus[] = ["pending", "done", "rfi", "na"];
@@ -111,7 +125,7 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
           <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all ${overall >= 80 ? "bg-emerald-500" : "bg-amber-500"}`} style={{ width: `${overall}%` }} />
           </div>
-          <p className="text-xs text-amber-700 mt-2">Tap any item to cycle: pending → done → RFI → N/A</p>
+          <p className="text-xs text-amber-700 mt-2">Tap to cycle · Swipe right = Done · Swipe left = N/A</p>
         </div>
       )}
       {overall >= 100 && (
@@ -169,11 +183,27 @@ export default function ChecklistTab({ projectId, isDemo, project }: TabProps) {
                   {phase.items.map((item) => {
                     const status = getItemStatus(phaseKey, item.id);
                     const config = statusConfig[status];
+                    const rowKey = `${phaseKey}-${item.id}`;
+                    const isSwipingThis = swipeActive === rowKey;
                     return (
                       <div
                         key={item.id}
                         onClick={() => cycleStatus(phaseKey, item.id)}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors active:bg-slate-100"
+                        onTouchStart={(e) => {
+                          touchStartX.current = e.touches[0].clientX;
+                          setSwipeActive(rowKey);
+                        }}
+                        onTouchEnd={(e) => {
+                          const dx = e.changedTouches[0].clientX - touchStartX.current;
+                          setSwipeActive(null);
+                          if (Math.abs(dx) > 60) {
+                            // right swipe = done, left swipe = na
+                            setStatus(phaseKey, item.id, dx > 0 ? "done" : "na");
+                          }
+                        }}
+                        className={`flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-slate-50 last:border-0 transition-colors select-none ${
+                          isSwipingThis ? "bg-slate-100" : "hover:bg-slate-50 active:bg-slate-100"
+                        }`}
                       >
                         <span className={`w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold ring-1 flex-shrink-0 ${config.color} ${config.bg} ${config.ring}`}>
                           {config.icon}

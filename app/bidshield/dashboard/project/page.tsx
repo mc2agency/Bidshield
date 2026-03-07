@@ -226,7 +226,10 @@ function ProjectDetail() {
         </div>
       </div>
 
-      <div className="flex-1 px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full flex flex-col gap-4">
+      <div className="flex-1 px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* LEFT — blockers + unflagged sections */}
+        <div className="lg:col-span-3 flex flex-col gap-4">
         {actionItems.length === 0 ? (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
             <div className="text-3xl mb-2">✅</div>
@@ -284,6 +287,11 @@ function ProjectDetail() {
             </div>
           );
         })()}
+
+        </div>{/* end left column */}
+
+        {/* RIGHT — roof system card + notes + submit */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
 
         {/* Roof System Specs — research-backed */}
         {(() => {
@@ -379,6 +387,9 @@ function ProjectDetail() {
             {blockerCount > 0 ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} to submit` : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
           </button>
         </div>
+
+        </div>{/* end right column */}
+        </div>{/* end grid */}
       </div>
     </div>
   );
