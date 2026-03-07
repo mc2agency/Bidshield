@@ -181,7 +181,7 @@ function ProjectDetail() {
           <span className="text-sm font-semibold text-slate-900">{tabLabel}</span>
           <div className="w-12" />
         </div>
-        <div className="flex-1 p-4 max-w-lg mx-auto w-full">
+        <div className="flex-1 p-4 max-w-7xl mx-auto w-full">
           {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
           {activeTab === "takeoff" && <TakeoffTab {...tabProps} />}
           {activeTab === "pricing" && <PricingTab {...tabProps} />}
@@ -201,7 +201,7 @@ function ProjectDetail() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="bg-white border-b border-slate-200">
-        <div className="px-4 sm:px-6 py-3 max-w-lg mx-auto flex items-center gap-3">
+        <div className="px-4 sm:px-6 py-3 max-w-7xl mx-auto flex items-center gap-3">
           <ReadinessGauge score={readinessScore} />
           <div className="flex-1 min-w-0">
             <Link href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
@@ -226,7 +226,7 @@ function ProjectDetail() {
         </div>
       </div>
 
-      <div className="flex-1 px-4 sm:px-6 py-4 max-w-lg mx-auto w-full flex flex-col gap-4">
+      <div className="flex-1 px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full flex flex-col gap-4">
         {actionItems.length === 0 ? (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
             <div className="text-3xl mb-2">✅</div>

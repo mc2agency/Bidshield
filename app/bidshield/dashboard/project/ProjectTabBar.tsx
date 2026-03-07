@@ -29,7 +29,7 @@ export default function ProjectTabBar({
 
   return (
     <div className="sticky top-16 z-40 bg-white border-b border-slate-200 shadow-sm">
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Single row: phase tabs */}
         <div className="flex overflow-x-auto scrollbar-none">
           {PHASES.map((phase, idx) => {
