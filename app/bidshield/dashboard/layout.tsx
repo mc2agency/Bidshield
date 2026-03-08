@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -151,8 +151,7 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
 }
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn } = useAuth();
-  const { user } = useUser();
+  const { isLoaded, isSignedIn, userId } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -165,15 +164,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }, [isLoaded, isSignedIn, isDemo, router]);
 
   useEffect(() => {
-    if (!user) return;
-    const key = "bs_signup_tracked";
-    if (sessionStorage.getItem(key)) return;
-    const age = Date.now() - new Date(user.createdAt).getTime();
-    if (age < 5 * 60 * 1000) {
-      gtagEvent("sign_up");
-      sessionStorage.setItem(key, "1");
-    }
-  }, [user]);
+    if (!userId || !isSignedIn) return;
+    const key = `bs_signup_tracked_${userId}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+    gtagEvent("sign_up");
+  }, [userId, isSignedIn]);
 
   if (!isLoaded && !isDemo) {
     return (
