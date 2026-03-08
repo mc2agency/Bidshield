@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { gtagEvent } from "@/lib/gtag";
 
 const NAV_ITEMS = [
   {
@@ -151,6 +152,7 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -161,6 +163,17 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       router.push("/sign-in");
     }
   }, [isLoaded, isSignedIn, isDemo, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    const key = "bs_signup_tracked";
+    if (sessionStorage.getItem(key)) return;
+    const age = Date.now() - new Date(user.createdAt).getTime();
+    if (age < 5 * 60 * 1000) {
+      gtagEvent("sign_up");
+      sessionStorage.setItem(key, "1");
+    }
+  }, [user]);
 
   if (!isLoaded && !isDemo) {
     return (
@@ -184,7 +197,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             🎯 Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
           </div>
         )}
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full">{children}</main>
+        <main className="flex-1 min-w-0 overflow-auto p-6">{children}</main>
       </div>
     </div>
   );

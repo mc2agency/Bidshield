@@ -7,7 +7,7 @@ export default function Footer() {
       links: [
         { href: '/bidshield/dashboard', label: 'Dashboard' },
         { href: '/bidshield/pricing', label: 'Pricing' },
-        { href: '/bidshield/dashboard?demo=true', label: 'Try Demo' },
+        { href: '/bidshield/demo', label: 'Try Demo' },
         { href: '/blog', label: 'Blog' },
       ],
     },
