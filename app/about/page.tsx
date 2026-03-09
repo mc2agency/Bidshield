@@ -2,219 +2,164 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us',
-  description: 'MC2 Estimating sells professional roofing estimating tools contractors use to build accurate bids faster. Templates, calculators, and workflow tools.',
-  keywords: 'about MC2, estimating tools, roofing templates, construction estimating tools',
+  title: 'About BidShield',
+  description: 'BidShield is the pre-submission bid review platform built for commercial roofing estimators. Built by a 12-year estimator to catch what The EDGE, STACK, and Excel miss.',
+  keywords: 'about BidShield, commercial roofing estimating, bid QA, pre-submission review, MC2 Estimating',
 };
 
 export default function AboutPage() {
   return (
     <main className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-block mb-4 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full text-sm font-semibold">
-              About Us
+              About BidShield
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
-              About
+              Built by an estimator
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">MC2 Estimating</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">for estimators</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 max-w-3xl mx-auto">
-              Professional roofing estimating tools contractors use to build accurate bids faster.
+              BidShield is the pre-submission review platform that catches what The EDGE, STACK, and Excel can&apos;t — built after 12 years of commercial roofing estimation.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-12 text-center text-slate-900">Our Mission</h2>
-            <div className="bg-white border-2 border-slate-200 rounded-2xl p-8 md:p-12 shadow-xl">
-              <p className="text-xl text-slate-800 leading-relaxed mb-6">
-                To provide construction professionals with ready-to-use tools that make roofing estimation
-                faster, more accurate, and more profitable - without the steep curve of building
-                systems from scratch.
+      {/* The Problem */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Why BidShield exists</h2>
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 md:p-12">
+            <p className="text-xl text-slate-800 leading-relaxed mb-6">
+              Estimating software tells you what&apos;s in your bid. Nobody tells you what&apos;s missing from it.
+            </p>
+            <p className="text-lg text-slate-600 mb-6">
+              A missed mechanical curb section on a $3M job costs $47,000. A missed addendum costs $31,000.
+              Wrong submittal requirements: $22,000. These aren&apos;t edge cases — they happen every week,
+              on bids that looked complete before submission.
+            </p>
+            <p className="text-lg text-slate-600">
+              BidShield is the last line of defense before you submit. It runs every bid through 18 phases
+              and 100+ check items — the same review a veteran estimator runs in their head, systematized
+              so nothing gets missed when you&apos;re busy.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-20 bg-slate-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">What BidShield does</h2>
+          <p className="text-lg text-slate-500 text-center mb-12 max-w-2xl mx-auto">
+            Works alongside your existing estimating software — not instead of it.
+          </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="text-3xl mb-4">🛡️</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">18-Phase Pre-Submission Review</h3>
+              <p className="text-slate-600">
+                Every bid runs through 18 phases covering scope verification, mechanical systems, addenda,
+                submittal requirements, takeoff reconciliation, and bid form completeness. Each phase has
+                5–8 specific check items.
               </p>
-              <p className="text-lg text-slate-600">
-                We believe estimators shouldn&apos;t have to reinvent the wheel. Our templates, calculators,
-                and checklists give you a professional foundation you can customize for your business.
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="text-3xl mb-4">📊</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Bid Readiness Score</h3>
+              <p className="text-slate-600">
+                Each bid gets a 0–100 readiness score that updates as you complete phases. Know exactly
+                where you stand before you submit — not after you win and discover what was missing.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="text-3xl mb-4">📐</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Takeoff Reconciliation</h3>
+              <p className="text-slate-600">
+                Cross-reference your SF quantities against drawings automatically. Flags area discrepancies
+                before your bid goes out — not during a GC back-charge conversation.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="text-3xl mb-4">🔍</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">40-Item Scope Gap Checker</h3>
+              <p className="text-slate-600">
+                Runs 40 common scope gap items against your bid — mechanical curbs, edge metal systems,
+                drain compatibility, expansion joints, warranty scope, liquidated damages clauses.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Story Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Our Story</h2>
-            <div className="prose prose-lg max-w-none">
-              <p className="text-lg text-gray-700 mb-6">
-                MC2 Estimating was founded by experienced construction estimators and project managers
-                who saw a critical gap in the industry: contractors were wasting hours building
-                estimation spreadsheets from scratch, making costly mistakes, and losing bids.
-              </p>
-              <p className="text-lg text-gray-700 mb-6">
-                We built the tools we wished we had when we started - professional templates with
-                built-in formulas, comprehensive checklists that prevent missed costs, and
-                proposal systems that win more work.
-              </p>
-              <p className="text-lg text-gray-700 mb-6">
-                Today, MC2 Estimating provides ready-to-use tools to thousands of contractors across
-                the country. Our products are designed to deliver value immediately - download,
-                customize with your pricing, and start bidding.
-              </p>
-              <div className="bg-emerald-50 rounded-lg p-6 border-l-4 border-emerald-600 mb-6">
-                <p className="text-lg font-semibold text-emerald-900 mb-2">What We Provide:</p>
-                <ol className="space-y-2 text-gray-800">
-                  <li><strong>1. Estimating Templates</strong> - Pre-built spreadsheets for every major roofing system</li>
-                  <li><strong>2. Checklists</strong> - Comprehensive cost item lists to prevent missed expenses</li>
-                  <li><strong>3. Calculators</strong> - Material and labor calculators with waste factors</li>
-                  <li><strong>4. Proposal Templates</strong> - Professional documents that win more bids</li>
-                  <li><strong>5. Business Guides</strong> - Reference materials for compliance and operations</li>
-                </ol>
-              </div>
+      {/* Positioning */}
+      <section className="py-20 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8">
+            <p className="text-lg font-semibold text-emerald-900 mb-2">
+              The EDGE tells you what&apos;s in your bid.
+            </p>
+            <p className="text-2xl font-bold text-slate-900">
+              BidShield tells you what&apos;s missing from it.
+            </p>
+            <p className="text-slate-600 mt-4">
+              No replacement required. Use it on any bid, with any estimating software you already use today.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* By the numbers */}
+      <section className="py-20 bg-slate-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">By the numbers</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="bg-white rounded-xl p-6 border border-slate-200">
+              <div className="text-4xl font-bold text-emerald-600 mb-2">18</div>
+              <p className="text-slate-600 font-medium text-sm">Bid phases covered</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-slate-200">
+              <div className="text-4xl font-bold text-emerald-600 mb-2">100+</div>
+              <p className="text-slate-600 font-medium text-sm">Checklist items</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-slate-200">
+              <div className="text-4xl font-bold text-emerald-600 mb-2">40</div>
+              <p className="text-slate-600 font-medium text-sm">Scope gap checks</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-slate-200">
+              <div className="text-4xl font-bold text-emerald-600 mb-2">12yr</div>
+              <p className="text-slate-600 font-medium text-sm">Estimating experience</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What Makes Us Different */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
-              What Makes Us Different
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-8 border-2 border-emerald-300">
-                <div className="text-4xl mb-4">🛠️</div>
-                <h3 className="text-2xl font-bold mb-4 text-emerald-900">Tools, Not Sections</h3>
-                <p className="text-gray-800">
-                  We sell ready-to-use tools, not explanations. Every product provides immediate
-                  value - download and start using the same day.
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-8 border-2 border-teal-300">
-                <div className="text-4xl mb-4">🏗️</div>
-                <h3 className="text-2xl font-bold mb-4 text-teal-900">Roofing-Specific</h3>
-                <p className="text-gray-800">
-                  Every template and calculator is tailored specifically for roofing and restoration
-                  contractors. No generic construction tools here.
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl p-8 border-2 border-cyan-300">
-                <div className="text-4xl mb-4">💻</div>
-                <h3 className="text-2xl font-bold mb-4 text-cyan-900">Industry Standard Formats</h3>
-                <p className="text-gray-800">
-                  Excel-based templates work with the software you already use. No proprietary
-                  systems or expensive subscriptions required.
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-8 border-2 border-slate-300">
-                <div className="text-4xl mb-4">📦</div>
-                <h3 className="text-2xl font-bold mb-4 text-slate-900">Immediate Value</h3>
-                <p className="text-gray-800">
-                  Every product is designed to save you time on your very first use. Built-in
-                  formulas and checklists work right out of the box.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Expertise Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Built By Experts</h2>
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <p className="text-lg text-gray-700 mb-6">
-                Our tools are built by professionals with decades of combined experience:
-              </p>
-              <ul className="space-y-3 text-gray-800">
-                <li className="flex items-start">
-                  <span className="text-emerald-600 font-bold mr-3">✓</span>
-                  <span>Built by professional estimators with years of commercial roofing experience</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-emerald-600 font-bold mr-3">✓</span>
-                  <span>Licensed contractors and construction project managers</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-emerald-600 font-bold mr-3">✓</span>
-                  <span>Expertise across all major roofing systems (TPO, EPDM, PVC, SBS, shingle, metal, tile)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-emerald-600 font-bold mr-3">✓</span>
-                  <span>Experience with commercial, residential, industrial, and restoration projects</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-emerald-600 font-bold mr-3">✓</span>
-                  <span>Proficiency with industry tools like Bluebeam, AutoCAD, EagleView, and more</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Impact Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">By the Numbers</h2>
-            <div className="grid md:grid-cols-4 gap-8 text-center">
-              <div className="bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
-                <div className="text-4xl font-bold text-emerald-600 mb-2">3h→10m</div>
-                <p className="text-gray-700 font-semibold">Estimate Time Saved</p>
-              </div>
-              <div className="bg-teal-50 rounded-xl p-6 border-2 border-teal-200">
-                <div className="text-4xl font-bold text-teal-600 mb-2">17+</div>
-                <p className="text-gray-700 font-semibold">Professional Tools</p>
-              </div>
-              <div className="bg-cyan-50 rounded-xl p-6 border-2 border-cyan-200">
-                <div className="text-4xl font-bold text-cyan-600 mb-2">8</div>
-                <p className="text-gray-700 font-semibold">Roofing Systems</p>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-6 border-2 border-slate-200">
-                <div className="text-4xl font-bold text-slate-600 mb-2">30-Day</div>
-                <p className="text-gray-700 font-semibold">Money-Back Guarantee</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-20 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Estimate Faster?
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold mb-6">
+            Run your next bid through BidShield
           </h2>
-          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
-            Join thousands of contractors who save hours every week with MC2 Estimating tools.
+          <p className="text-xl text-slate-300 mb-8">
+            Free to start. One prevented scope gap pays for years of Pro.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/products"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-slate-100 transition-colors text-lg"
+              href="/sign-up"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg hover:shadow-lg transition-all"
             >
-              Browse Tools
+              Start 14-Day Free Trial — No Card Required
             </Link>
             <Link
-              href="/products/template-bundle"
-              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all text-lg"
+              href="/bidshield/demo"
+              className="inline-flex items-center justify-center px-8 py-4 border border-slate-600 hover:border-slate-400 text-white rounded-xl font-semibold text-lg transition-all"
             >
-              Get Template Bundle - $129
+              See Live Demo
             </Link>
           </div>
         </div>
