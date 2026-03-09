@@ -12,6 +12,13 @@ export default function Footer() {
       ],
     },
     {
+      title: 'Compare',
+      links: [
+        { href: '/compare/bidshield-vs-the-edge', label: 'BidShield vs The EDGE' },
+        { href: '/compare/bidshield-vs-stack', label: 'BidShield vs STACK' },
+      ],
+    },
+    {
       title: 'Resources',
       links: [
         { href: '/products', label: 'Templates' },
@@ -39,7 +46,7 @@ export default function Footer() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">

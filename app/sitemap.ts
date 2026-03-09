@@ -35,6 +35,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/bidshield',
   ];
 
+  // Compare pages
+  const comparePages = [
+    '/compare/bidshield-vs-the-edge',
+    '/compare/bidshield-vs-stack',
+  ];
+
   // Blog pages
   const blogPages = [
     '/blog/what-is-a-roof-square',
@@ -54,6 +60,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...staticPages,
     ...productPages,
     ...bidshieldPages,
+    ...comparePages,
     ...blogPages,
   ];
 
