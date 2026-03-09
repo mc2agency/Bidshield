@@ -3,7 +3,7 @@ import { AuthConfig } from "convex/server";
 export default {
   providers: [
     {
-      domain: "https://helpful-jackal-16.clerk.accounts.dev",
+      domain: "https://clerk.mc2estimating.com",
       applicationID: "convex",
     },
   ]
