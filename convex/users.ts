@@ -144,6 +144,20 @@ export const getUserSubscription = query({
   },
 });
 
+// Admin: get all users + all projects
+export const adminGetAllData = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== "user_3Aid1uIjrlbv2KrZsADW4SkYKlp") {
+      throw new Error("Unauthorized");
+    }
+    const users = await ctx.db.query("users").order("desc").collect();
+    const projects = await ctx.db.query("bidshield_projects").order("desc").collect();
+    return { users, projects };
+  },
+});
+
 // Count user's active projects (for free tier limit)
 export const countActiveProjects = query({
   args: { userId: v.string() },
