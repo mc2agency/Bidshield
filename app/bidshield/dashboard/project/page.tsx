@@ -270,17 +270,15 @@ function ProjectDetail() {
           </div>
         )}
 
-        {/* Sections not flagged — compact access */}
+        {/* All sections — always visible */}
         {(() => {
           const flaggedTabs = new Set(actionItems.map(a => a.tab));
-          const unflagged = BROWSE_ITEMS.filter(item => !flaggedTabs.has(item.id));
-          if (unflagged.length === 0) return null;
           return (
             <div className="flex flex-wrap gap-2">
-              {unflagged.map((item) => (
+              {BROWSE_ITEMS.map((item) => (
                 <button key={item.id} onClick={() => openTab(item.id)}
                   className="bg-white rounded-lg px-3 py-2.5 text-left hover:shadow-sm active:scale-[0.98] border border-slate-100 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${flaggedTabs.has(item.id) ? "bg-amber-400" : "bg-emerald-400"}`} />
                   <span className="text-xs font-medium text-slate-500">{item.label}</span>
                 </button>
               ))}
