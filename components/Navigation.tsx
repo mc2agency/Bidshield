@@ -35,15 +35,11 @@ export default function Navigation() {
   }, [updateScrollState]);
 
   const navLinks = [
-    ...(isSignedIn ? [{ href: '/bidshield/dashboard', label: 'Dashboard' }] : []),
     { href: '/bidshield/pricing', label: 'Pricing' },
     { href: '/blog', label: 'Blog' },
   ];
 
-  const checkActive = (href: string) => {
-    if (href === '/bidshield/dashboard') return pathname === '/bidshield/dashboard';
-    return pathname.startsWith(href);
-  };
+  const checkActive = (href: string) => pathname.startsWith(href);
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
@@ -63,6 +59,14 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
+            {!isSignedIn && (
+              <Link
+                href="/sign-in"
+                className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
@@ -79,17 +83,17 @@ export default function Navigation() {
 
             {isClient ? (
               <Link
-                href="/bidshield/demo"
+                href="/sign-up"
                 className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300"
               >
-                Get Started
+                Get Started →
               </Link>
             ) : (
               <Link
-                href="/bidshield/demo"
+                href="/sign-up"
                 className="px-3.5 py-2 text-sm text-slate-300 hover:text-white font-medium transition-colors"
               >
-                Get Started
+                Get Started →
               </Link>
             )}
           </div>
@@ -118,6 +122,15 @@ export default function Navigation() {
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 px-4 py-4 space-y-1">
+          {!isSignedIn && (
+            <Link
+              href="/sign-in"
+              className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sign In
+            </Link>
+          )}
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
@@ -133,11 +146,11 @@ export default function Navigation() {
             </Link>
           ))}
           <Link
-            href="/bidshield/dashboard"
+            href="/sign-up"
             className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg text-center font-semibold text-sm shadow-lg shadow-emerald-500/20"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Get Started
+            Get Started →
           </Link>
         </div>
       </div>
