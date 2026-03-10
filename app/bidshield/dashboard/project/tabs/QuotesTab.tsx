@@ -1,52 +1,94 @@
 "use client";
-import { DEMO_QUOTES as IMPORTED_QUOTES } from "@/lib/bidshield/demo-data";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 
-const DEMO_QUOTES = [
+// ─── Line item + meta encoding ──────────────────────────────────────────────
+// products[] stores JSON-encoded line items: {m, u, p, n}
+// notes stores: "__META__" + JSON.stringify({rep, quoteNum, notes})
+
+interface LineItem { m: string; u: string; p: number; n: string; }
+interface QuoteMeta { rep: string; quoteNum: string; notes: string; }
+
+function decodeLineItems(products: string[]): LineItem[] {
+  return products.map(s => { try { return JSON.parse(s); } catch { return { m: s, u: "", p: 0, n: "" }; } });
+}
+function encodeLineItems(items: LineItem[]): string[] {
+  return items.map(i => JSON.stringify(i));
+}
+function decodeMeta(raw: string | undefined): QuoteMeta {
+  if (!raw) return { rep: "", quoteNum: "", notes: "" };
+  if (raw.startsWith("__META__")) { try { return JSON.parse(raw.slice(8)); } catch {} }
+  return { rep: "", quoteNum: "", notes: raw };
+}
+function encodeMeta(m: QuoteMeta): string {
+  return `__META__${JSON.stringify(m)}`;
+}
+
+// ─── Demo data ───────────────────────────────────────────────────────────────
+const DEMO_QUOTES_RAW = [
   {
-    _id: "demo_q1", vendorName: "ABC Roofing Supply", vendorEmail: "sales@abcsupply.com",
-    category: "membrane", products: ["TPO 60mil White", "TPO Membrane Adhesive"],
-    quoteAmount: 28500, quoteDate: "2026-01-20", expirationDate: "2026-03-20",
-    status: "received", notes: "Bulk pricing for 45k SF",
+    _id: "demo_q1", vendorName: "Siplast", vendorEmail: "jmartinez@siplast.com", vendorPhone: "214-555-0192",
+    category: "system", quoteDate: "2026-03-08", expirationDate: "2026-06-08", status: "valid", quoteAmount: 187420,
+    products: [
+      '{"m":"SBS Cap Sheet","u":"RL","p":95,"n":"180 SF/sq"}',
+      '{"m":"SBS Base Sheet","u":"RL","p":65,"n":"180 SF/sq"}',
+      '{"m":"Cold Adhesive","u":"GAL","p":42,"n":""}',
+      '{"m":"Primer","u":"GAL","p":28,"n":""}',
+    ],
+    notes: '__META__{"rep":"John Martinez","quoteNum":"24-889","notes":""}',
   },
   {
-    _id: "demo_q2", vendorName: "Midwest Insulation", vendorEmail: "quotes@midwestins.com",
-    category: "insulation", products: ["Polyiso 2.6\"", "Polyiso 1.5\" Cover Board"],
-    quoteAmount: 34200, quoteDate: "2026-01-22", expirationDate: "2026-02-22",
-    status: "received", notes: "Includes delivery to site",
+    _id: "demo_q2", vendorName: "GAF", vendorEmail: "estimating@gaf.com", vendorPhone: "973-555-0140",
+    category: "system", quoteDate: "2026-03-06", expirationDate: "2026-06-06", status: "received", quoteAmount: 171340,
+    products: [
+      '{"m":"SBS Cap Sheet","u":"RL","p":89,"n":""}',
+      '{"m":"SBS Base Sheet","u":"RL","p":61,"n":""}',
+      '{"m":"Cold Adhesive","u":"GAL","p":38,"n":""}',
+      '{"m":"Primer","u":"GAL","p":24,"n":""}',
+    ],
+    notes: '__META__{"rep":"Sarah Chen","quoteNum":"GAF-2026-4421","notes":"NDL warranty included"}',
   },
   {
-    _id: "demo_q3", vendorName: "FastenMaster Pro", category: "fasteners",
-    products: ["FM Approved Fasteners", "Plates 3\""],
-    quoteAmount: 6800, quoteDate: "2026-01-25", expirationDate: "2026-04-25",
-    status: "received",
-  },
-  {
-    _id: "demo_q4", vendorName: "Metro Sheet Metal", vendorEmail: "estimating@metrosheetmetal.com",
-    category: "sheet_metal", products: ["Edge Metal", "Coping Cap", "Scupper Boxes"],
-    quoteAmount: 12400, quoteDate: "2026-01-18", expirationDate: "2026-02-18",
-    status: "received", notes: "Custom coping profile per detail 5/A-501",
-  },
-  {
-    _id: "demo_q5", vendorName: "Crane Rentals Inc", category: "equipment",
-    quoteAmount: 0, status: "requested",
+    _id: "demo_q3", vendorName: "Polyglass", vendorEmail: "quotes@polyglass.us", vendorPhone: "",
+    category: "system", quoteDate: "2026-03-10", expirationDate: "2026-06-10", status: "received", quoteAmount: 176850,
+    products: [
+      '{"m":"SBS Cap Sheet","u":"RL","p":92,"n":""}',
+      '{"m":"SBS Base Sheet","u":"RL","p":63,"n":""}',
+      '{"m":"Cold Adhesive","u":"GAL","p":40,"n":""}',
+      '{"m":"Primer","u":"GAL","p":26,"n":""}',
+    ],
+    notes: '__META__{"rep":"Mike Thompson","quoteNum":"PG-2026-0087","notes":""}',
   },
 ];
 
-const VENDOR_CATEGORIES = [
-  { key: "insulation", name: "Insulation", icon: "🧱" },
-  { key: "membrane", name: "Membrane", icon: "🛡️" },
-  { key: "sheet_metal", name: "Sheet Metal", icon: "🔩" },
-  { key: "fasteners", name: "Fasteners & Adhesives", icon: "🔧" },
-  { key: "accessories", name: "Accessories", icon: "📦" },
-  { key: "equipment", name: "Equipment Rental", icon: "🏗️" },
-];
+// ─── Status helpers ───────────────────────────────────────────────────────────
+function getEffectiveStatus(quote: any): "valid" | "expiring" | "expired" | "received" | "requested" | "none" {
+  if (!quote.expirationDate) return quote.status || "none";
+  const days = Math.ceil((new Date(quote.expirationDate).getTime() - Date.now()) / 86400000);
+  if (days < 0) return "expired";
+  if (days <= 14) return "expiring";
+  if (quote.quoteAmount) return "valid";
+  return quote.status || "received";
+}
 
+function formatDate(d: string) {
+  try { return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); }
+  catch { return d; }
+}
+
+// ─── Blank quote form ─────────────────────────────────────────────────────────
+const BLANK_FORM = {
+  vendorName: "", rep: "", email: "", phone: "",
+  quoteNum: "", quoteDate: "", expirationDate: "", notes: "",
+};
+const BLANK_LINE: LineItem = { m: "", u: "RL", p: 0, n: "" };
+const UNITS = ["RL", "SQ", "SF", "LF", "EA", "GAL", "BG", "TON", "LS"];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function QuotesTab({ projectId, isDemo, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
@@ -58,284 +100,571 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
         : { userId }
       : "skip"
   );
-
   const createQuoteMut = useMutation(api.bidshield.createQuote);
   const updateQuoteMut = useMutation(api.bidshield.updateQuote);
   const deleteQuoteMut = useMutation(api.bidshield.deleteQuote);
 
-  const [demoQuotes, setDemoQuotes] = useState(DEMO_QUOTES as any[]);
+  const [demoQuotes, setDemoQuotes] = useState<any[]>(DEMO_QUOTES_RAW);
   const resolvedQuotes = isDemo ? demoQuotes : (quotes ?? []);
 
-  const [showModal, setShowModal] = useState(false);
+  // Modal state
+  const [modalOpen, setModalOpen]     = useState(false);
+  const [step, setStep]               = useState<1 | 2 | 3>(1);
+  const [form, setForm]               = useState(BLANK_FORM);
+  const [lineItems, setLineItems]     = useState<LineItem[]>([{ ...BLANK_LINE }]);
+  const [saving, setSaving]           = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
-  const [newQuote, setNewQuote] = useState({
-    vendorName: "", vendorEmail: "", vendorPhone: "", category: "insulation",
-    products: "", quoteAmount: "", quoteDate: "", expirationDate: "", notes: "",
-  });
+  const [showCompare, setShowCompare] = useState(false);
 
-  const showNotification = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(null), 3000);
+  const notify = (msg: string) => { setNotification(msg); setTimeout(() => setNotification(null), 3000); };
+
+  const openModal = () => {
+    setForm(BLANK_FORM);
+    setLineItems([{ ...BLANK_LINE }]);
+    setStep(1);
+    setModalOpen(true);
   };
 
-  const handleCreateQuote = async () => {
-    if (!newQuote.vendorName || !newQuote.category || !userId) return;
+  const handleSave = async () => {
+    if (!form.vendorName || (!isDemo && !userId)) return;
+    setSaving(true);
+    try {
+      const products = encodeLineItems(lineItems.filter(l => l.m.trim()));
+      const notes    = encodeMeta({ rep: form.rep, quoteNum: form.quoteNum, notes: form.notes });
+      const total    = lineItems.reduce((s, l) => s + (l.p || 0), 0); // rough sum; real total from quoteAmount
 
-    await createQuoteMut({
-      userId,
-      projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
-      vendorName: newQuote.vendorName,
-      vendorEmail: newQuote.vendorEmail || undefined,
-      vendorPhone: newQuote.vendorPhone || undefined,
-      category: newQuote.category,
-      products: newQuote.products.split(",").map((p) => p.trim()).filter(Boolean),
-      quoteAmount: newQuote.quoteAmount ? parseFloat(newQuote.quoteAmount) : undefined,
-      quoteDate: newQuote.quoteDate || undefined,
-      expirationDate: newQuote.expirationDate || undefined,
-      notes: newQuote.notes || undefined,
-    });
-
-    setNewQuote({
-      vendorName: "", vendorEmail: "", vendorPhone: "", category: "insulation",
-      products: "", quoteAmount: "", quoteDate: "", expirationDate: "", notes: "",
-    });
-    setShowModal(false);
-    showNotification("Quote added!");
+      if (isDemo) {
+        const newQ = {
+          _id: `demo_q${Date.now()}`, vendorName: form.vendorName,
+          vendorEmail: form.email, vendorPhone: form.phone,
+          category: "system", quoteDate: form.quoteDate, expirationDate: form.expirationDate,
+          status: "received", quoteAmount: undefined, products, notes,
+        };
+        setDemoQuotes(p => [...p, newQ]);
+      } else {
+        await createQuoteMut({
+          userId: userId!,
+          projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
+          vendorName: form.vendorName,
+          vendorEmail: form.email || undefined,
+          vendorPhone: form.phone || undefined,
+          category: "system",
+          products,
+          quoteDate: form.quoteDate || undefined,
+          expirationDate: form.expirationDate || undefined,
+          notes,
+        });
+      }
+      notify("Quote saved!");
+      setModalOpen(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleUpdateStatus = async (quoteId: Id<"bidshield_quotes">, status: string) => {
-    await updateQuoteMut({ quoteId, status: status as any });
-    showNotification("Quote updated!");
-  };
-
-  const handleDelete = async (quoteId: Id<"bidshield_quotes">, vendorName: string) => {
-    if (!confirm(`Delete quote from "${vendorName}"?`)) return;
-    if (isDemo) { setDemoQuotes(p => p.filter(q => q._id !== quoteId)); showNotification("Quote deleted."); return; }
+  const handleDelete = async (quote: any) => {
+    if (!confirm(`Delete quote from ${quote.vendorName}?`)) return;
+    if (isDemo) { setDemoQuotes(p => p.filter(q => q._id !== quote._id)); notify("Deleted."); return; }
     if (!userId) return;
-    await deleteQuoteMut({ quoteId, userId });
-    showNotification("Quote deleted.");
+    await deleteQuoteMut({ quoteId: quote._id, userId });
+    notify("Deleted.");
   };
 
-  const getQuoteStatus = (quote: any): string => {
-    if (!quote.expirationDate) return quote.status;
-    const expDate = new Date(quote.expirationDate);
-    const now = new Date();
-    const daysUntilExpiry = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysUntilExpiry < 0) return "expired";
-    if (daysUntilExpiry <= 14) return "expiring";
-    if (quote.quoteAmount) return "valid";
-    return quote.status;
-  };
+  // Stats
+  const stats = useMemo(() => {
+    const all = resolvedQuotes;
+    const statuses = all.map(getEffectiveStatus);
+    const expiring = statuses.filter(s => s === "expiring").length;
+    const expired  = statuses.filter(s => s === "expired").length;
+    const bestDpsf = all
+      .filter((q: any) => q.quoteAmount && project?.grossRoofArea)
+      .reduce((best: number | null, q: any) => {
+        const v = q.quoteAmount / (project as any).grossRoofArea;
+        return best === null || v < best ? v : best;
+      }, null);
+    return { total: all.length, expiring, expired, bestDpsf };
+  }, [resolvedQuotes, project]);
 
-  const statusBadge = (status: string) => {
-    const map: Record<string, { bg: string; text: string; label: string }> = {
-      valid: { bg: "bg-emerald-50", text: "text-emerald-600", label: "✓ Valid" },
-      received: { bg: "bg-blue-50", text: "text-blue-600", label: "📥 Received" },
-      requested: { bg: "bg-violet-50", text: "text-violet-600", label: "📧 Requested" },
-      expiring: { bg: "bg-amber-50", text: "text-amber-600", label: "⚠ Expiring" },
-      expired: { bg: "bg-red-50", text: "text-red-600", label: "✗ Expired" },
-      none: { bg: "bg-slate-100", text: "text-slate-500", label: "○ No Quote" },
-    };
-    const s = map[status] || map.none;
-    return (
-      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded ${s.bg} ${s.text}`}>
-        {s.label}
-      </span>
-    );
-  };
-
-  const groupedByCategory = VENDOR_CATEGORIES.map((cat) => ({
-    ...cat,
-    quotes: resolvedQuotes.filter((q: any) => q.category === cat.key),
-  }));
+  // Comparison table — materials found in all quotes
+  const comparison = useMemo(() => {
+    if (resolvedQuotes.length < 2) return null;
+    // Collect all unique material names
+    const allMaterials = new Set<string>();
+    for (const q of resolvedQuotes) {
+      for (const item of decodeLineItems(q.products || [])) {
+        if (item.m.trim()) allMaterials.add(item.m.trim());
+      }
+    }
+    if (allMaterials.size === 0) return null;
+    const materials = Array.from(allMaterials);
+    // Build price map: material → [vendor price, ...]
+    const rows = materials.map(mat => {
+      const prices = resolvedQuotes.map((q: any) => {
+        const found = decodeLineItems(q.products || []).find(l => l.m.trim() === mat);
+        return found ? found.p : null;
+      });
+      const validPrices = prices.filter((p): p is number => p !== null);
+      const minPrice    = validPrices.length > 0 ? Math.min(...validPrices) : null;
+      return { mat, prices, minPrice };
+    });
+    // System totals per vendor
+    const totals = resolvedQuotes.map((q: any) => q.quoteAmount ?? null);
+    const minTotal = totals.filter((t): t is number => t !== null).reduce((a, b) => (b < a ? b : a), Infinity);
+    return { vendors: resolvedQuotes.map((q: any) => q.vendorName), rows, totals, minTotal };
+  }, [resolvedQuotes]);
 
   if (!isDemo && quotes === undefined) {
-    return <div className="text-slate-500">Loading quotes...</div>;
+    return <div className="text-slate-500 text-sm py-8 text-center">Loading quotes...</div>;
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
+
+      {/* Toast */}
       {notification && (
-        <div className="fixed top-20 right-6 bg-emerald-500 text-slate-900 px-5 py-3 rounded-lg text-sm font-medium z-50 animate-pulse">
+        <div className="fixed top-20 right-6 bg-emerald-600 text-white px-5 py-3 rounded-lg text-sm font-medium z-50 shadow-lg">
           {notification}
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">💰 Vendor Quotes</h2>
-          {project && <p className="text-sm text-slate-500">{project.name}</p>}
+      {/* Stats bar */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-1.5">
+          <span className="text-2xl font-bold text-slate-900">{stats.total}</span>
+          <span className="text-[13px] text-slate-500">quote{stats.total !== 1 ? "s" : ""}</span>
         </div>
-        {!isDemo && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors"
-          >
-            + Add Quote
-          </button>
+        {stats.bestDpsf && (
+          <>
+            <span className="text-slate-200">·</span>
+            <span className="text-[13px] text-slate-500">Best <span className="font-semibold text-emerald-600">${stats.bestDpsf.toFixed(2)}/SF</span></span>
+          </>
         )}
+        {stats.expiring > 0 && (
+          <>
+            <span className="text-slate-200">·</span>
+            <span className="text-[13px] text-amber-600 font-medium">{stats.expiring} expiring soon</span>
+          </>
+        )}
+        {stats.expired > 0 && (
+          <>
+            <span className="text-slate-200">·</span>
+            <span className="text-[13px] text-red-500 font-medium">{stats.expired} expired</span>
+          </>
+        )}
+        <div className="ml-auto flex gap-2">
+          {comparison && (
+            <button
+              onClick={() => setShowCompare(!showCompare)}
+              className="text-[13px] font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              {showCompare ? "Hide Compare" : "Compare →"}
+            </button>
+          )}
+          {!isDemo && (
+            <button
+              onClick={openModal}
+              className="text-[13px] font-semibold px-4 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+            >
+              + Add Quote
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Quote Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total Quotes", value: resolvedQuotes.length, color: "text-slate-900" },
-          { label: "Valid", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "valid").length, color: "text-emerald-600" },
-          { label: "Expiring Soon", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "expiring").length, color: "text-amber-600" },
-          { label: "Expired", value: resolvedQuotes.filter((q: any) => getQuoteStatus(q) === "expired").length, color: "text-red-500" },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-lg p-4 border border-slate-200">
-            <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-            <div className="text-xs text-slate-500">{stat.label}</div>
+      {/* Comparison table */}
+      {showCompare && comparison && (
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
+          <div className="px-4 py-2.5" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Price Comparison</span>
           </div>
-        ))}
-      </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                  <th className="text-left px-4 py-2.5 font-semibold text-slate-600 text-[12px]">Material</th>
+                  {comparison.vendors.map((v, i) => (
+                    <th key={i} className="text-right px-4 py-2.5 font-semibold text-slate-600 text-[12px] whitespace-nowrap">{v}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.rows.map(({ mat, prices, minPrice }) => (
+                  <tr key={mat} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                    <td className="px-4 py-2.5 text-slate-700">{mat}</td>
+                    {prices.map((p, i) => (
+                      <td key={i} className="text-right px-4 py-2.5 tabular-nums font-medium" style={{
+                        color: p === minPrice ? "#10b981" : p !== null ? "#374151" : "#9ca3af",
+                      }}>
+                        {p !== null ? `$${p.toFixed(2)}` : "—"}
+                        {p === minPrice && <span className="ml-1 text-[10px]">✓</span>}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* System total row */}
+                <tr style={{ background: "#f8fafc", borderTop: "2px solid #e2e8f0" }}>
+                  <td className="px-4 py-3 font-bold text-slate-800 text-[12px] uppercase tracking-wider">System Total</td>
+                  {comparison.totals.map((t, i) => {
+                    const isBest = t !== null && t === comparison.minTotal;
+                    const dpsf = t && (project as any)?.grossRoofArea ? t / (project as any).grossRoofArea : null;
+                    return (
+                      <td key={i} className="text-right px-4 py-3 tabular-nums" style={{ color: isBest ? "#10b981" : "#374151" }}>
+                        {t ? (
+                          <>
+                            <div className="font-bold text-[13px]">${(t / 1000).toFixed(0)}K</div>
+                            <div className="text-[11px] font-medium">{dpsf ? `$${dpsf.toFixed(2)}/SF` : ""}</div>
+                            {isBest && <div className="text-[10px] font-bold mt-0.5">🏆 Best value</div>}
+                          </>
+                        ) : "—"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-      {/* Quotes by Category */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {groupedByCategory.map((cat) => (
-          <div key={cat.key} className="bg-white rounded-xl p-5 border border-slate-200">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">{cat.icon}</span>
-              <h3 className="text-[15px] font-semibold text-slate-900">{cat.name}</h3>
-              <span className="text-xs text-slate-500 ml-auto">
-                {cat.quotes.length} vendor{cat.quotes.length !== 1 ? "s" : ""}
-              </span>
-            </div>
+      {/* Quote cards */}
+      {resolvedQuotes.length === 0 ? (
+        <div className="text-center py-16 rounded-xl border border-dashed border-slate-200">
+          <div className="text-3xl mb-3">📄</div>
+          <div className="text-sm font-semibold text-slate-700 mb-1">No quotes yet</div>
+          <div className="text-xs text-slate-400 mb-4">Add vendor quotes to compare pricing across manufacturers</div>
+          {!isDemo && (
+            <button onClick={openModal} className="px-5 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition-colors">
+              + Add First Quote
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {resolvedQuotes.map((quote: any) => {
+            const status    = getEffectiveStatus(quote);
+            const meta      = decodeMeta(quote.notes);
+            const items     = decodeLineItems(quote.products || []);
+            const dpsf      = quote.quoteAmount && (project as any)?.grossRoofArea
+              ? (quote.quoteAmount / (project as any).grossRoofArea).toFixed(2)
+              : null;
 
-            {cat.quotes.length === 0 ? (
-              <div className="text-center py-6 text-slate-500 text-sm">
-                No quotes yet.{" "}
-                {!isDemo && (
-                  <button
-                    onClick={() => { setNewQuote({ ...newQuote, category: cat.key }); setShowModal(true); }}
-                    className="text-emerald-600 hover:text-emerald-300"
-                  >
-                    Add one →
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {cat.quotes.map((quote: any) => (
-                  <div key={quote._id} className="p-3 bg-slate-50 rounded-lg hover:bg-slate-850 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="text-sm font-medium text-slate-900">{quote.vendorName}</div>
-                        {quote.vendorEmail && <div className="text-xs text-slate-500">{quote.vendorEmail}</div>}
-                      </div>
-                      {statusBadge(getQuoteStatus(quote))}
-                    </div>
-                    {quote.quoteAmount && (
-                      <div className="text-lg font-bold text-emerald-600 mb-1">
-                        ${quote.quoteAmount.toLocaleString()}
-                      </div>
-                    )}
-                    {quote.products && quote.products.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {quote.products.slice(0, 3).map((product: string, idx: number) => (
-                          <span key={idx} className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
-                            {product}
-                          </span>
-                        ))}
-                        {quote.products.length > 3 && (
-                          <span className="text-[10px] text-slate-500">+{quote.products.length - 3}</span>
+            const statusStyle: Record<string, { bg: string; text: string; label: string }> = {
+              valid:     { bg: "#f0fdf4", text: "#16a34a", label: "✓ Active" },
+              received:  { bg: "#eff6ff", text: "#2563eb", label: "📥 Received" },
+              requested: { bg: "#f5f3ff", text: "#7c3aed", label: "📧 Requested" },
+              expiring:  { bg: "#fffbeb", text: "#d97706", label: "⚠ Expiring" },
+              expired:   { bg: "#fef2f2", text: "#dc2626", label: "✗ Expired" },
+              none:      { bg: "#f8fafc", text: "#94a3b8", label: "○ None" },
+            };
+            const ss = statusStyle[status] || statusStyle.none;
+
+            return (
+              <div
+                key={quote._id}
+                className="rounded-xl overflow-hidden"
+                style={{ border: "1px solid #e2e8f0" }}
+              >
+                {/* Card header */}
+                <div className="px-5 py-4" style={{ background: "#0f1117" }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-[15px] font-bold text-white">{quote.vendorName}</span>
+                        {meta.quoteNum && (
+                          <span className="text-[11px] text-slate-400 font-mono">Quote #{meta.quoteNum}</span>
                         )}
                       </div>
-                    )}
-                    <div className="flex gap-2 text-[11px]">
-                      {quote.quoteDate && <span className="text-slate-500">Quoted: {quote.quoteDate}</span>}
-                      {quote.expirationDate && (
-                        <span className={`${
-                          getQuoteStatus(quote) === "expired" ? "text-red-600" :
-                          getQuoteStatus(quote) === "expiring" ? "text-amber-600" : "text-slate-500"
-                        }`}>Exp: {quote.expirationDate}</span>
+                      {meta.rep && (
+                        <div className="text-[12px] text-slate-400 mt-0.5">
+                          Rep: {meta.rep}
+                          {quote.vendorEmail && <span> · <a href={`mailto:${quote.vendorEmail}`} className="hover:text-slate-200 transition-colors">{quote.vendorEmail}</a></span>}
+                          {quote.vendorPhone && <span> · {quote.vendorPhone}</span>}
+                        </div>
+                      )}
+                      {!meta.rep && quote.vendorEmail && (
+                        <div className="text-[12px] text-slate-400 mt-0.5">{quote.vendorEmail}</div>
                       )}
                     </div>
-                    {!isDemo && (
-                      <div className="flex gap-2 mt-3">
-                        {getQuoteStatus(quote) !== "valid" && quote.quoteAmount && (
-                          <button
-                            onClick={() => handleUpdateStatus(quote._id, "valid")}
-                            className="text-[11px] px-2 py-1 bg-emerald-600/20 text-emerald-600 rounded hover:bg-emerald-600/30"
-                          >
-                            Mark Valid
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleUpdateStatus(quote._id, "requested")}
-                          className="text-[11px] px-2 py-1 bg-blue-600/20 text-blue-600 rounded hover:bg-blue-600/30"
+                    <span
+                      className="text-[11px] font-semibold px-2.5 py-1 rounded shrink-0"
+                      style={{ background: ss.bg, color: ss.text }}
+                    >
+                      {ss.label}
+                    </span>
+                  </div>
+                  <div className="flex gap-4 mt-2.5 text-[11px] text-slate-500">
+                    {quote.quoteDate     && <span>Quoted: {formatDate(quote.quoteDate)}</span>}
+                    {quote.expirationDate && <span style={{ color: status === "expired" ? "#ef4444" : status === "expiring" ? "#f59e0b" : "#94a3b8" }}>Expires: {formatDate(quote.expirationDate)}</span>}
+                  </div>
+                </div>
+
+                {/* Line items */}
+                {items.length > 0 && (
+                  <div style={{ borderBottom: "1px solid #e2e8f0" }}>
+                    <div className="px-5 py-2" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Materials Covered</span>
+                    </div>
+                    {items.map((li, i) => (
+                      li.m.trim() ? (
+                        <div
+                          key={i}
+                          className="flex items-center px-5 py-2.5"
+                          style={{ borderBottom: i < items.length - 1 ? "1px solid #f1f5f9" : undefined }}
                         >
-                          📧 Request Update
-                        </button>
-                        <button
-                          onClick={() => handleDelete(quote._id, quote.vendorName)}
-                          className="text-[11px] px-2 py-1 bg-red-600/20 text-red-600 rounded hover:bg-red-600/30 ml-auto"
+                          <span className="flex-1 text-[13px] text-slate-700">{li.m}</span>
+                          {li.n && <span className="text-[11px] text-slate-400 mr-4 hidden sm:block">{li.n}</span>}
+                          <span className="text-[13px] font-semibold text-slate-900 tabular-nums">
+                            ${li.p.toFixed(2)}/{li.u.toLowerCase()}
+                          </span>
+                        </div>
+                      ) : null
+                    ))}
+                  </div>
+                )}
+
+                {/* Totals + notes */}
+                <div className="px-5 py-3 flex items-center justify-between gap-4" style={{ background: "#fafafa" }}>
+                  <div>
+                    {meta.notes && (
+                      <p className="text-[11px] text-slate-500 mb-1">{meta.notes}</p>
+                    )}
+                    {quote.quoteAmount ? (
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-[15px] font-bold text-slate-900">${quote.quoteAmount.toLocaleString()}</span>
+                        {dpsf && <span className="text-[13px] text-slate-500 font-medium">${dpsf}/SF</span>}
+                      </div>
+                    ) : (
+                      <span className="text-[12px] text-slate-400">Total not set</span>
+                    )}
+                  </div>
+                  {!isDemo && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDelete(quote)}
+                        className="text-[12px] text-slate-400 hover:text-red-600 transition-colors px-2 py-1"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add Quote Modal */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-[15px] font-bold text-slate-900">Add Quote</h2>
+              <div className="flex items-center gap-4">
+                {/* Step indicator */}
+                <div className="flex items-center gap-1.5">
+                  {([1, 2, 3] as const).map(s => (
+                    <div
+                      key={s}
+                      className="flex items-center justify-center rounded-full text-[11px] font-bold transition-all"
+                      style={{
+                        width: 22, height: 22,
+                        background: step >= s ? "#0f1117" : "#f1f5f9",
+                        color: step >= s ? "#ffffff" : "#94a3b8",
+                      }}
+                    >
+                      {s}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+              </div>
+            </div>
+
+            <div className="px-6 py-5">
+              {/* Step 1 — Vendor Info */}
+              {step === 1 && (
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider">Vendor Info</h3>
+                  <div>
+                    <label className="block text-[12px] font-medium text-slate-500 mb-1">Manufacturer / Vendor *</label>
+                    <input
+                      autoFocus
+                      type="text"
+                      value={form.vendorName}
+                      onChange={e => setForm(f => ({ ...f, vendorName: e.target.value }))}
+                      placeholder="e.g. Siplast, GAF, Carlisle"
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Rep Name</label>
+                      <input type="text" value={form.rep} onChange={e => setForm(f => ({ ...f, rep: e.target.value }))} placeholder="John Martinez" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Quote Number</label>
+                      <input type="text" value={form.quoteNum} onChange={e => setForm(f => ({ ...f, quoteNum: e.target.value }))} placeholder="24-889" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Rep Email</label>
+                      <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="rep@vendor.com" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Rep Phone</label>
+                      <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="(555) 123-4567" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Quote Date</label>
+                      <input type="date" value={form.quoteDate} onChange={e => setForm(f => ({ ...f, quoteDate: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Expiration Date</label>
+                      <input type="date" value={form.expirationDate} onChange={e => setForm(f => ({ ...f, expirationDate: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-slate-500 mb-1">Notes</label>
+                    <input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Bulk pricing for 45k SF, includes delivery..." className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2 — Line Items */}
+              {step === 2 && (
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider">Materials Covered</h3>
+                  <p className="text-[12px] text-slate-500">Enter each material with its unit price. Quantities come from the Materials tab.</p>
+
+                  {/* Table header */}
+                  <div className="grid grid-cols-[1fr_64px_88px_24px] gap-2">
+                    <div className="text-[11px] font-bold text-slate-400 uppercase">Material</div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase">Unit</div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase">Unit Price</div>
+                    <div />
+                  </div>
+
+                  {lineItems.map((li, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_64px_88px_24px] gap-2 items-center">
+                      <input
+                        type="text"
+                        value={li.m}
+                        onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, m: e.target.value } : x))}
+                        placeholder="SBS Cap Sheet"
+                        className="border border-slate-200 rounded-md px-2 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400"
+                      />
+                      <select
+                        value={li.u}
+                        onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, u: e.target.value } : x))}
+                        className="border border-slate-200 rounded-md px-2 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400"
+                      >
+                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[12px] text-slate-400">$</span>
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={li.p || ""}
+                          onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, p: parseFloat(e.target.value) || 0 } : x))}
+                          placeholder="0.00"
+                          className="w-full border border-slate-200 rounded-md pl-5 pr-2 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setLineItems(items => items.filter((_, i) => i !== idx))}
+                        className="text-slate-300 hover:text-red-400 transition-colors text-[16px]"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={() => setLineItems(items => [...items, { ...BLANK_LINE }])}
+                    className="text-[13px] text-emerald-600 hover:text-emerald-700 font-medium text-left transition-colors"
+                  >
+                    + Add line item
+                  </button>
+                </div>
+              )}
+
+              {/* Step 3 — Summary */}
+              {step === 3 && (
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider">Summary</h3>
+                  <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
+                    <div className="px-4 py-3" style={{ background: "#0f1117" }}>
+                      <div className="text-[15px] font-bold text-white">{form.vendorName}</div>
+                      {form.rep && <div className="text-[12px] text-slate-400">Rep: {form.rep}{form.email ? ` · ${form.email}` : ""}</div>}
+                      {(form.quoteDate || form.expirationDate) && (
+                        <div className="text-[11px] text-slate-500 mt-1">
+                          {form.quoteDate && `Quoted: ${formatDate(form.quoteDate)}`}
+                          {form.quoteDate && form.expirationDate && " · "}
+                          {form.expirationDate && `Expires: ${formatDate(form.expirationDate)}`}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      {lineItems.filter(l => l.m.trim()).map((li, i, arr) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between px-4 py-2.5"
+                          style={{ borderBottom: i < arr.length - 1 ? "1px solid #f1f5f9" : undefined }}
                         >
-                          🗑 Delete
-                        </button>
+                          <span className="text-[13px] text-slate-700">{li.m}</span>
+                          <span className="text-[13px] font-semibold text-slate-900 tabular-nums">${li.p.toFixed(2)}/{li.u.toLowerCase()}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {form.notes && (
+                      <div className="px-4 py-2.5 border-t border-slate-100">
+                        <p className="text-[11px] text-slate-500">{form.notes}</p>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Add Quote Modal */}
-      {showModal && (
-        <div onClick={() => setShowModal(false)} className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-lg border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6">Add Vendor Quote</h2>
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="block text-xs text-slate-500 mb-1">Vendor Name *</label>
-                <input type="text" value={newQuote.vendorName} onChange={(e) => setNewQuote({ ...newQuote, vendorName: e.target.value })} placeholder="ABC Roofing Supply" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Email</label>
-                  <input type="email" value={newQuote.vendorEmail} onChange={(e) => setNewQuote({ ...newQuote, vendorEmail: e.target.value })} placeholder="sales@vendor.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                  <p className="text-[12px] text-slate-400">Quantities will be auto-calculated using data from the Materials tab once saved.</p>
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Phone</label>
-                  <input type="tel" value={newQuote.vendorPhone} onChange={(e) => setNewQuote({ ...newQuote, vendorPhone: e.target.value })} placeholder="(555) 123-4567" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-slate-500 mb-1">Category *</label>
-                <select value={newQuote.category} onChange={(e) => setNewQuote({ ...newQuote, category: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
-                  {VENDOR_CATEGORIES.map((cat) => <option key={cat.key} value={cat.key}>{cat.icon} {cat.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-slate-500 mb-1">Products (comma-separated)</label>
-                <input type="text" value={newQuote.products} onChange={(e) => setNewQuote({ ...newQuote, products: e.target.value })} placeholder="TPO 60mil, Cover Board, Fasteners" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Quote Amount ($)</label>
-                  <input type="number" value={newQuote.quoteAmount} onChange={(e) => setNewQuote({ ...newQuote, quoteAmount: e.target.value })} placeholder="15000" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Quote Date</label>
-                  <input type="date" value={newQuote.quoteDate} onChange={(e) => setNewQuote({ ...newQuote, quoteDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">Expiration</label>
-                  <input type="date" value={newQuote.expirationDate} onChange={(e) => setNewQuote({ ...newQuote, expirationDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-slate-500 mb-1">Notes</label>
-                <textarea value={newQuote.notes} onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })} placeholder="Contact John for bulk pricing..." rows={2} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none" />
-              </div>
+              )}
             </div>
-            <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setShowModal(false)} className="px-5 py-2.5 border border-slate-300 text-slate-500 rounded-md text-sm hover:bg-slate-100">Cancel</button>
-              <button onClick={handleCreateQuote} disabled={!newQuote.vendorName} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:cursor-not-allowed text-slate-900 font-semibold rounded-md text-sm">Add Quote</button>
+
+            {/* Modal footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+              <button
+                onClick={() => step > 1 ? setStep(s => (s - 1) as 1 | 2 | 3) : setModalOpen(false)}
+                className="text-[13px] text-slate-500 hover:text-slate-800 font-medium transition-colors"
+              >
+                {step === 1 ? "Cancel" : "← Back"}
+              </button>
+              {step < 3 ? (
+                <button
+                  onClick={() => setStep(s => (s + 1) as 1 | 2 | 3)}
+                  disabled={step === 1 && !form.vendorName.trim()}
+                  className="px-5 py-2 bg-slate-900 text-white text-[13px] font-semibold rounded-lg hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next →
+                </button>
+              ) : (
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-5 py-2 bg-emerald-600 text-white text-[13px] font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                >
+                  {saving ? "Saving..." : "Save Quote"}
+                </button>
+              )}
             </div>
           </div>
         </div>
