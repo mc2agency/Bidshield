@@ -21,20 +21,12 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         </button>
         <div className="text-center">
           <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached the free plan limit</h2>
-          <p className="text-slate-500 text-sm mb-6">The free plan includes 1 active project. Upgrade to Pro for unlimited projects and all features.</p>
-          <div className="bg-slate-50 rounded-xl p-4 mb-6 text-left space-y-2">
-            {["Unlimited projects", "Full 18-phase checklist", "Materials database & takeoffs", "RFI tracking", "Subcontractor quotes", "Analytics dashboard"].map((f) => (
-              <div key={f} className="flex items-center gap-2 text-sm text-slate-700">
-                <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                {f}
-              </div>
-            ))}
-          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached your free plan limit</h2>
+          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $149/month</p>
           <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm">
-            Upgrade to Pro &mdash; $149/month
+            Upgrade to Pro &rarr;
           </a>
-          <button onClick={onClose} className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors">Maybe later</button>
+          <button onClick={onClose} className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
         </div>
       </div>
     </div>
@@ -332,14 +324,6 @@ function DashboardContent() {
   }, [isDemo, convexProjects, userId]);
   const isLoading = !isDemo && convexProjects === undefined;
 
-  const handleNewBidClick = () => {
-    if (!isDemo && !isPro && activeProjects.length >= 1) {
-      setShowUpgradeModal(true);
-    } else {
-      setShowNewProject(true);
-    }
-  };
-
   const handleCreateProject = async (np: any) => {
     if (!np.name || !np.location || !np.bidDate) return;
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
@@ -370,6 +354,14 @@ function DashboardContent() {
 
   const activeProjects = projects.filter((p) => { const s = getProjectStatus(p); return s === "setup" || s === "in_progress"; });
   const completedProjects = projects.filter((p) => { const s = getProjectStatus(p); return s === "won" || s === "lost"; });
+
+  const handleNewBidClick = () => {
+    if (!isDemo && !isPro && activeProjects.length >= 1) {
+      setShowUpgradeModal(true);
+    } else {
+      setShowNewProject(true);
+    }
+  };
 
   if (isLoading) {
     return (
