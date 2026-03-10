@@ -45,6 +45,22 @@ export const createProject = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+
+    // Enforce free tier: 1 active project max
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.userId))
+      .first();
+    const isPro = user?.membershipLevel === "bidshield" || user?.membershipLevel === "pro";
+    if (!isPro) {
+      const existing = await ctx.db
+        .query("bidshield_projects")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .collect();
+      const active = existing.filter((p) => p.status !== "won" && p.status !== "lost" && p.status !== "no_bid");
+      if (active.length >= 1) throw new Error("Free plan limit: upgrade to Pro for unlimited projects");
+    }
+
     const now = Date.now();
     const trade = args.trade || "roofing";
 
