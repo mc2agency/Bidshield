@@ -197,9 +197,11 @@ function ProjectDetail() {
               <button
                 key={id}
                 onClick={() => setActiveTab(isActive ? null : id)}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-colors ${
-                  isActive ? "bg-white/12 text-white" : "text-slate-400 hover:text-white hover:bg-white/6"
-                }`}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-all"
+                style={isActive
+                  ? { background: "rgba(255,255,255,0.08)", color: "#ffffff", boxShadow: "inset 2px 0 0 #10b981" }
+                  : { color: "#94a3b8" }
+                }
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
