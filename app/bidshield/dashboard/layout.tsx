@@ -102,8 +102,8 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
         })}
       </nav>
 
-      {/* Upgrade nudge — free users only */}
-      {!isDemo && !isPro && isSignedIn && (
+      {/* Upgrade nudge — free users only, hidden inside project pages */}
+      {!isDemo && !isPro && isSignedIn && !pathname.startsWith("/bidshield/dashboard/project") && (
         <div className="px-3 pb-3">
           <div className="bg-slate-800 rounded-xl p-3">
             <p className="text-xs text-slate-300 font-semibold mb-0.5">Free plan</p>
