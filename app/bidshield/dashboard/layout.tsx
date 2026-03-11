@@ -105,16 +105,13 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
         })}
       </nav>
 
-      {/* Upgrade nudge — free users only, hidden inside project pages */}
-      {!isDemo && !isPro && isSignedIn && !pathname.startsWith("/bidshield/dashboard/project") && (
-        <div className="px-3 pb-3">
-          <div className="bg-slate-800 rounded-xl p-3">
-            <p className="text-xs text-slate-300 font-semibold mb-0.5">Free plan</p>
-            <p className="text-[10px] text-slate-500 mb-2">1 project limit. Upgrade for unlimited bids.</p>
-            <Link href="/bidshield/pricing" className="block text-center py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors">
-              Upgrade to Pro
-            </Link>
-          </div>
+      {/* Free plan — subtle single-line at sidebar bottom */}
+      {!isDemo && !isPro && isSignedIn && (
+        <div className="px-4 pb-2">
+          <span className="text-[12px] text-slate-500">Free plan · </span>
+          <Link href="/bidshield/pricing" className="text-[12px] text-emerald-500 hover:text-emerald-400 transition-colors font-medium">
+            Upgrade →
+          </Link>
         </div>
       )}
 
@@ -187,7 +184,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex bg-slate-50" style={{ minHeight: "calc(100vh - 4rem)" }}>
+    <div className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "#f8fafc" }}>
       <Sidebar isDemo={isDemo} pathname={pathname} />
 
       <div className="flex-1 flex flex-col min-w-0">

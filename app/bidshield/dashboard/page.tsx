@@ -131,7 +131,7 @@ function ProjectRow({ project, isDemo, onStatusChange, router }: {
       </td>
       <td className="px-4 py-3">
         {systemType ? (
-          <span className="text-[10px] font-semibold bg-violet-50 text-violet-600 px-2 py-0.5 rounded-md uppercase">{systemType}</span>
+          <span style={{ fontSize: 12, fontWeight: 500, background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: 4 }}>{systemType.toUpperCase()}</span>
         ) : project.assemblies && project.assemblies.length > 0 ? (
           <span className="text-xs text-slate-500 truncate max-w-[100px] block">{project.assemblies[0]}</span>
         ) : <span className="text-xs text-slate-400">—</span>}
@@ -430,21 +430,6 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Templates Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl shrink-0">📊</div>
-          <div>
-            <p className="font-semibold text-white">Speed up your estimates with BidShield Templates</p>
-            <p className="text-sm text-emerald-100">Material takeoffs, labor calcs &amp; professional proposals &mdash; all pre-built</p>
-          </div>
-        </div>
-        <div className="flex gap-3 shrink-0">
-          <a href={isDemo ? "/bidshield/dashboard/datasheets?demo=true" : "/bidshield/dashboard/datasheets"} className="px-4 py-2 border border-white/30 text-white hover:bg-white/10 font-medium rounded-lg text-sm whitespace-nowrap transition-colors">Material Database</a>
-          <a href="/bidshield/pricing" className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">Upgrade to Pro &rarr;</a>
-        </div>
-      </div>
-
       {/* Active Bids — table on desktop, cards on mobile */}
       <div>
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Active Bids</h2>
@@ -494,17 +479,14 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Free tier banner */}
+      {/* Free tier — subtle bottom notice */}
       {!isDemo && !isPro && (
-        <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
-          <div className="flex items-center gap-3">
-            <span className="text-amber-500 text-lg">⚡</span>
-            <p className="text-sm text-amber-800 font-medium">
-              You&apos;re on the free plan &mdash; {activeProjects.length} of 1 project{activeProjects.length !== 1 ? "s" : ""} used
-            </p>
-          </div>
-          <a href="/bidshield/pricing" className="shrink-0 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors">
-            Upgrade to Pro
+        <div style={{ textAlign: "center", paddingBottom: 8 }}>
+          <span style={{ fontSize: 13, color: "#9ca3af" }}>
+            Free plan · {activeProjects.length} of 1 project used ·{" "}
+          </span>
+          <a href="/bidshield/pricing" style={{ fontSize: 13, color: "#10b981", fontWeight: 500 }} className="hover:opacity-80 transition-opacity">
+            Upgrade to Pro →
           </a>
         </div>
       )}
