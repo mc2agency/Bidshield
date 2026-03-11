@@ -185,21 +185,23 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
       {/* ── LEFT: Checklist ── */}
       <div className="flex flex-col gap-3 min-w-0">
 
-        {/* Filter tabs — 32px, 13px, 6px radius */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Filter tabs — segmented control (Linear/Vercel pattern) */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f3f4f6", padding: 4, borderRadius: 8 }}>
           {FILTERS.map(({ id, label }) => (
             <button
               key={id}
               onClick={() => setFilter(id)}
-              className="transition-colors font-medium"
               style={{
-                height: 32,
+                height: 30,
                 padding: "0 12px",
                 borderRadius: 6,
                 fontSize: 13,
-                background: filter === id ? "#0f1117" : "transparent",
-                color: filter === id ? "#ffffff" : "#64748b",
-                border: filter === id ? "none" : "1px solid #e2e8f0",
+                fontWeight: filter === id ? 500 : 400,
+                background: filter === id ? "#ffffff" : "transparent",
+                color: filter === id ? "#111827" : "#6b7280",
+                boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+                transition: "all 0.15s",
+                whiteSpace: "nowrap",
               }}
             >
               {label}
@@ -222,7 +224,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             const isOpen         = expanded[phaseKey] ?? (filter !== "done" && stats.pct < 100);
             const isHighRisk     = !!phase.critical;
             const allItemsInPhase = (phase as any).items;
-            const pctColor       = stats.pct >= 80 ? "#10b981" : stats.pct > 0 ? "#f59e0b" : "#94a3b8";
+            const pctColor       = stats.pct === 0 ? "#6b7280" : stats.pct < 50 ? "#f59e0b" : stats.pct < 100 ? "#3b82f6" : "#10b981";
 
             return (
               <div
@@ -380,9 +382,9 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
       <div className="hidden lg:flex flex-col gap-3 sticky top-4">
 
         {/* Bid readiness — progress bar, no donut */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
+        <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Bid Readiness</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Bid Readiness</div>
             <span className="text-2xl font-bold text-slate-900">{overall}%</span>
           </div>
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -406,7 +408,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         </div>
 
         {/* Compact stats — single inline row, no boxes */}
-        <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
+        <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: "12px 16px" }}>
           <div className="text-[14px]" style={{ color: "#64748b" }}>
             <span>{filterCounts.incomplete} incomplete</span>
             {rfiCount > 0 && <span> · <span className="text-amber-600 font-medium">{rfiCount} RFI{rfiCount !== 1 ? "s" : ""}</span></span>}
@@ -417,8 +419,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
         {/* Quick actions — clean text links, no colored boxes */}
         {quickActions.length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Actions</div>
+          <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Quick Actions</div>
             <div className="flex flex-col gap-2.5">
               {quickActions.map((action, i) => (
                 <button

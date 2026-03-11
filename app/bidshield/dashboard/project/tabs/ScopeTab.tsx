@@ -231,22 +231,23 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
         </div>
       </div>
 
-      {/* Filter tabs — 32px, 13px, 6px radius */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Filter tabs — segmented control (Linear/Vercel pattern) */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f3f4f6", padding: 4, borderRadius: 8 }}>
         {FILTERS.map(({ id, label, count }) => (
           <button
             key={id}
             onClick={() => setFilter(id)}
-            className="transition-colors"
             style={{
-              height: 32,
+              height: 30,
               padding: "0 12px",
               borderRadius: 6,
               fontSize: 13,
-              fontWeight: filter === id ? 600 : 400,
-              background: filter === id ? "#0f1117" : "transparent",
-              color: filter === id ? "#ffffff" : "#64748b",
-              border: filter === id ? "none" : "1px solid #e2e8f0",
+              fontWeight: filter === id ? 500 : 400,
+              background: filter === id ? "#ffffff" : "transparent",
+              color: filter === id ? "#111827" : "#6b7280",
+              boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+              transition: "all 0.15s",
+              whiteSpace: "nowrap",
             }}
           >
             {label} ({count})

@@ -7,6 +7,11 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
+import {
+  LayoutList, AlignLeft, Ruler, Package,
+  DollarSign, Users, Quote, FileText,
+  HelpCircle, CheckSquare,
+} from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
 
@@ -16,18 +21,26 @@ import {
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, ValidatorTab,
 } from "./tabs";
 
-const BROWSE_ITEMS: { id: TabId; label: string }[] = [
-  { id: "checklist", label: "Checklist" },
-  { id: "scope", label: "Scope" },
-  { id: "takeoff", label: "Takeoff" },
-  { id: "materials", label: "Materials" },
-  { id: "pricing", label: "Pricing" },
-  { id: "labor", label: "Labor" },
-  { id: "quotes", label: "Quotes" },
-  { id: "addenda", label: "Addenda" },
-  { id: "rfis", label: "RFIs" },
-  { id: "validator", label: "Validate" },
+const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
+  { id: "checklist", label: "Checklist", Icon: LayoutList },
+  { id: "scope",     label: "Scope",     Icon: AlignLeft },
+  { id: "takeoff",   label: "Takeoff",   Icon: Ruler },
+  { id: "materials", label: "Materials", Icon: Package },
+  { id: "pricing",   label: "Pricing",   Icon: DollarSign },
+  { id: "labor",     label: "Labor",     Icon: Users },
+  { id: "quotes",    label: "Quotes",    Icon: Quote },
+  { id: "addenda",   label: "Addenda",   Icon: FileText },
+  { id: "rfis",      label: "RFIs",      Icon: HelpCircle },
+  { id: "validator", label: "Validate",  Icon: CheckSquare },
 ];
+
+// 6-point dot color system: 0=gray, 1-49=amber, 50-99=blue, 100=green
+function scoreDot(s: number): string {
+  if (s === 0)   return "#6b7280";
+  if (s < 50)    return "#f59e0b";
+  if (s < 100)   return "#3b82f6";
+  return "#10b981";
+}
 
 type ActionLevel = "blocker" | "warning" | "info";
 interface ActionItem { level: ActionLevel; title: string; detail?: string; tab: TabId; }
@@ -122,7 +135,6 @@ function ProjectDetail() {
 
     items.sort((a, b) => ({ blocker: 0, warning: 1, info: 2 }[a.level]) - ({ blocker: 0, warning: 1, info: 2 }[b.level]));
 
-    // All scores Math.rounded — no floats displayed
     const scores = {
       checklist: clPct,
       scope: scPct,
@@ -157,174 +169,195 @@ function ProjectDetail() {
   const bidAmt = (projectData as any)?.totalBidAmount;
   const dpsf = grossArea && bidAmt ? Math.round((bidAmt / grossArea) * 100) / 100 : null;
 
-  const scoreColor = (s: number) => s >= 80 ? "#10b981" : s >= 50 ? "#f59e0b" : "#ef4444";
-
   return (
     <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
 
-      {/* Panel A — dark left project sidebar (full height) */}
+      {/* Panel A — premium dark sidebar */}
       <aside
-        className="hidden lg:flex flex-col shrink-0 border-r border-white/10 overflow-y-auto"
-        style={{ width: 220, background: "#0f1117", minHeight: "calc(100vh - 4rem)" }}
+        className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
+        style={{
+          width: 220,
+          minHeight: "calc(100vh - 4rem)",
+          background: "linear-gradient(180deg, #0f1117 0%, #141820 100%)",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+        }}
       >
         {/* Project info */}
-        <div className="px-4 pt-4 pb-3 border-b border-white/8">
-          <div className="text-white font-semibold text-[13px] leading-snug">{projectData?.name}</div>
-          <div className="text-slate-400 text-[11px] mt-0.5">{projectData?.location}</div>
-          {(projectData as any)?.gc && (
-            <div className="text-slate-500 text-[11px]">{(projectData as any).gc}</div>
-          )}
-          {/* Readiness bar — always green */}
-          <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${readinessScore}%`, background: "#10b981" }}
-            />
+        <div className="px-4 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "#ffffff", lineHeight: 1.3 }}>
+            {projectData?.name}
           </div>
-          <div className="text-[10px] text-slate-500 mt-1">{readinessScore}% bid ready</div>
+          <div style={{ fontSize: 12, color: "#6b7280", marginTop: 3 }}>
+            {projectData?.location}
+          </div>
+          {(projectData as any)?.gc && (
+            <div style={{ fontSize: 11, color: "#4b5563", marginTop: 2 }}>{(projectData as any).gc}</div>
+          )}
+          {/* Progress bar — 4px, #10b981 fill */}
+          <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 9999, overflow: "hidden" }}>
+            <div style={{ height: "100%", borderRadius: 9999, width: `${readinessScore}%`, background: "#10b981", transition: "width 0.5s" }} />
+          </div>
+          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 5 }}>{readinessScore}% bid ready</div>
         </div>
 
-        {/* Section nav — no truncation, Math.rounded % */}
+        {/* Section nav — icons + label + status dot */}
         <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5">
-          {BROWSE_ITEMS.map(({ id, label }) => {
+          {BROWSE_ITEMS.map(({ id, label, Icon }) => {
+            const sectionScore = scores[id as keyof typeof scores];
             const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
             const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
-            const dotColor = hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#10b981";
-            const sectionScore = scores[id as keyof typeof scores];
+            const dot = sectionScore !== undefined
+              ? scoreDot(sectionScore)
+              : (hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#6b7280");
             const isActive = activeTab === id;
 
             return (
               <button
                 key={id}
                 onClick={() => setActiveTab(isActive ? null : id)}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-all"
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-all group/item"
                 style={isActive
-                  ? { background: "rgba(255,255,255,0.08)", color: "#ffffff", boxShadow: "inset 2px 0 0 #10b981" }
-                  : { color: "#94a3b8" }
+                  ? { background: "rgba(16,185,129,0.1)", color: "#ffffff", borderLeft: "2px solid #10b981" }
+                  : { color: "#6b7280" }
                 }
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.color = "#d1d5db";
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.color = "#6b7280";
+                    (e.currentTarget as HTMLElement).style.background = "transparent";
+                  }
+                }}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
-                  {/* No truncate — sidebar is wide enough */}
-                  <span className="text-[13px] font-medium">{label}</span>
+                  <Icon size={14} strokeWidth={1.75} />
+                  <span style={{ fontSize: 13, fontWeight: isActive ? 500 : 400 }}>{label}</span>
                 </div>
-                {sectionScore !== undefined && (
-                  <span className="text-[10px] font-bold shrink-0" style={{ color: scoreColor(sectionScore) }}>
-                    {sectionScore}%
-                  </span>
-                )}
+                {/* Status dot only — no colored % */}
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
               </button>
             );
           })}
         </nav>
 
         {/* Status pills */}
-        <div className="px-3 pb-4 pt-2 border-t border-white/8 flex flex-wrap gap-1.5">
+        <div className="px-3 pb-4 pt-2 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           {blockerCount > 0 && (
-            <span className="text-[10px] font-bold bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">
+            <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(239,68,68,0.15)", color: "#f87171", padding: "2px 8px", borderRadius: 9999 }}>
               {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
             </span>
           )}
           {warnCount > 0 && (
-            <span className="text-[10px] font-bold bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full">
+            <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "2px 8px", borderRadius: 9999 }}>
               {warnCount} warning{warnCount > 1 ? "s" : ""}
             </span>
           )}
           {passCount > 0 && (
-            <span className="text-[10px] font-bold bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full">
+            <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.15)", color: "#34d399", padding: "2px 8px", borderRadius: 9999 }}>
               {passCount} passing
             </span>
           )}
         </div>
       </aside>
 
-      {/* Right side: breadcrumb + panels B + C stacked */}
+      {/* Right side: breadcrumb + panels B + C */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* Breadcrumb bar — only spans panels B + C, no dark sidebar overlap */}
-        <div className="bg-white border-b border-slate-200 px-5 py-2.5 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-1.5 text-sm min-w-0">
+        {/* Breadcrumb bar — unified dark bg, 48px */}
+        <div
+          className="flex items-center justify-between shrink-0 px-5"
+          style={{ background: "#0f1117", height: 48, borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div className="flex items-center gap-1.5 min-w-0">
             <Link
               href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-              className="text-slate-400 hover:text-slate-700 transition-colors flex items-center gap-1 shrink-0"
+              className="hover:opacity-80 transition-opacity shrink-0 flex items-center gap-1"
+              style={{ fontSize: 13, color: "#6b7280" }}
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
               All projects
             </Link>
-            <span className="text-slate-200 shrink-0">/</span>
+            <span style={{ fontSize: 13, color: "#374151" }}>/</span>
             <span
-              className={`font-medium truncate max-w-[200px] ${activeTab ? "text-slate-500 cursor-pointer hover:text-slate-700" : "text-slate-800"}`}
+              style={{
+                fontSize: 13,
+                color: activeTab ? "#6b7280" : "#e5e7eb",
+                cursor: activeTab ? "pointer" : undefined,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: 200,
+              }}
               onClick={activeTab ? () => setActiveTab(null) : undefined}
             >
               {projectData?.name ?? "Project"}
             </span>
             {activeTab && (
               <>
-                <span className="text-slate-200 shrink-0">/</span>
-                <span className="text-slate-900 font-semibold shrink-0">{activeTabLabel}</span>
+                <span style={{ fontSize: 13, color: "#374151" }}>/</span>
+                <span style={{ fontSize: 13, color: "#e5e7eb", fontWeight: 500, flexShrink: 0 }}>{activeTabLabel}</span>
               </>
             )}
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
             {daysUntilBid !== null && (
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                daysUntilBid <= 0 ? "bg-red-100 text-red-600"
-                  : daysUntilBid <= 3 ? "bg-amber-100 text-amber-700"
-                  : "bg-emerald-100 text-emerald-700"
-              }`}>
+              <span style={{
+                fontSize: 12, fontWeight: 600,
+                padding: "3px 10px",
+                borderRadius: 8,
+                background: daysUntilBid <= 0 ? "rgba(239,68,68,0.15)" : "#1a2332",
+                color: daysUntilBid <= 0 ? "#f87171" : "#10b981",
+                border: `1px solid ${daysUntilBid <= 0 ? "rgba(239,68,68,0.4)" : "#10b981"}`,
+              }}>
                 {daysUntilBid > 0 ? `${daysUntilBid}d to bid` : daysUntilBid === 0 ? "Due today" : "Past due"}
               </span>
             )}
-            <div className="flex items-center gap-1.5">
-              <svg width="24" height="24" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="#e2e8f0" strokeWidth="3"/>
-                <circle cx="12" cy="12" r="9" fill="none"
-                  stroke={readinessScore >= 90 ? "#059669" : readinessScore >= 70 ? "#f59e0b" : "#dc2626"}
-                  strokeWidth="3"
-                  strokeDasharray={`${2 * Math.PI * 9}`}
-                  strokeDashoffset={`${2 * Math.PI * 9 * (1 - readinessScore / 100)}`}
-                  strokeLinecap="round"
-                  transform="rotate(-90 12 12)"
-                />
-              </svg>
-              <span className="text-xs text-slate-500 font-medium">{readinessScore}%</span>
-            </div>
+            {/* Static readiness — no spinner */}
+            <span style={{ fontSize: 13, color: "#6b7280" }}>{readinessScore}% ready</span>
           </div>
         </div>
 
-        {/* Panels B + C side by side */}
+        {/* Panels B + C */}
         <div className="flex-1 flex overflow-hidden">
 
-          {/* Panel B — main white content */}
-          <main className="flex-1 bg-white overflow-auto min-w-0">
+          {/* Panel B — main content, #f8fafc bg */}
+          <main className="flex-1 overflow-auto min-w-0" style={{ background: "#f8fafc" }}>
             {activeTab ? (
               <>
-                {/* Tab sticky header */}
-                <div className="px-6 py-3 border-b border-slate-100 flex items-center gap-3 sticky top-0 bg-white z-10">
+                {/* Tab header */}
+                <div
+                  className="px-6 py-3 border-b flex items-center gap-3 sticky top-0 z-10"
+                  style={{ background: "#ffffff", borderColor: "#e5e7eb" }}
+                >
                   <button
                     onClick={() => setActiveTab(null)}
-                    className="text-sm text-slate-400 hover:text-slate-700 flex items-center gap-1 lg:hidden"
+                    className="flex items-center gap-1 lg:hidden"
+                    style={{ fontSize: 13, color: "#9ca3af" }}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                     </svg>
                     Back
                   </button>
-                  <h2 className="text-[15px] font-semibold text-slate-900">{activeTabLabel}</h2>
+                  <h2 style={{ fontSize: 20, fontWeight: 600, color: "#0f172a" }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
                   {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
-                  {activeTab === "takeoff" && <TakeoffTab {...tabProps} />}
-                  {activeTab === "pricing" && <PricingTab {...tabProps} />}
+                  {activeTab === "takeoff"   && <TakeoffTab   {...tabProps} />}
+                  {activeTab === "pricing"   && <PricingTab   {...tabProps} />}
                   {activeTab === "materials" && <MaterialsTab {...tabProps} />}
-                  {activeTab === "scope" && <ScopeTab {...tabProps} />}
-                  {activeTab === "quotes" && <QuotesTab {...tabProps} />}
-                  {activeTab === "rfis" && <RFIsTab {...tabProps} />}
-                  {activeTab === "addenda" && <AddendaTab {...tabProps} />}
-                  {activeTab === "labor" && <LaborTab {...tabProps} />}
+                  {activeTab === "scope"     && <ScopeTab     {...tabProps} />}
+                  {activeTab === "quotes"    && <QuotesTab    {...tabProps} />}
+                  {activeTab === "rfis"      && <RFIsTab      {...tabProps} />}
+                  {activeTab === "addenda"   && <AddendaTab   {...tabProps} />}
+                  {activeTab === "labor"     && <LaborTab     {...tabProps} />}
                   {activeTab === "validator" && <ValidatorTab {...tabProps} />}
                 </div>
               </>
@@ -333,17 +366,19 @@ function ProjectDetail() {
               <div className="p-6 max-w-2xl">
                 {/* Mobile section nav */}
                 <div className="lg:hidden flex flex-wrap gap-2 mb-6">
-                  {BROWSE_ITEMS.map(({ id, label }) => {
+                  {BROWSE_ITEMS.map(({ id, label, Icon }) => {
                     const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
                     const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
+                    const dot = hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#10b981";
                     return (
                       <button
                         key={id}
                         onClick={() => openTab(id)}
-                        className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-1.5 hover:bg-slate-100 active:scale-95 transition-all"
+                        className="flex items-center gap-1.5 transition-all active:scale-95"
+                        style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: "8px 12px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${hasBlocker ? "bg-red-400" : hasWarning ? "bg-amber-400" : "bg-emerald-400"}`} />
-                        <span className="text-xs font-medium text-slate-600">{label}</span>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
+                        <span style={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>{label}</span>
                       </button>
                     );
                   })}
@@ -351,52 +386,55 @@ function ProjectDetail() {
 
                 {/* Action items */}
                 {actionItems.length === 0 ? (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-8 text-center">
+                  <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: "2rem", textAlign: "center" }}>
                     <div className="text-3xl mb-3">✅</div>
-                    <div className="text-sm font-bold text-emerald-700 mb-1">Bid ready to submit</div>
-                    <div className="text-xs text-emerald-600 mb-4">All sections are complete and passing.</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#059669", marginBottom: 4 }}>Bid ready to submit</div>
+                    <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>All sections are complete and passing.</div>
                     <button
                       onClick={() => openTab("validator")}
-                      className="px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+                      style={{ padding: "10px 24px", background: "#10b981", color: "white", fontSize: 14, fontWeight: 500, borderRadius: 8 }}
                     >
                       Review & Export →
                     </button>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex items-center justify-between mb-1">
+                      <h2 style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                         {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""} · ` : ""}
                         {actionItems.length} need attention
                       </h2>
                       {passCount > 0 && (
-                        <span className="text-[10px] text-emerald-600 font-medium">{passCount} passing ✓</span>
+                        <span style={{ fontSize: 12, color: "#6b7280" }}>{passCount} passing ✓</span>
                       )}
                     </div>
                     {actionItems.map((item, i) => (
                       <button
                         key={`${item.tab}-${i}`}
                         onClick={() => openTab(item.tab)}
-                        className={`w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] border-l-4 border border-slate-100 ${
-                          item.level === "blocker" ? "border-l-red-500 shadow-sm"
-                            : item.level === "warning" ? "border-l-amber-400"
-                            : "border-l-blue-300"
-                        }`}
+                        className="w-full text-left transition-all active:scale-[0.98]"
+                        style={{
+                          background: "white",
+                          borderRadius: 10,
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                          padding: 16,
+                          borderLeft: `3px solid ${item.level === "blocker" ? "#ef4444" : item.level === "warning" ? "#f59e0b" : "#3b82f6"}`,
+                        }}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <div className="text-[13px] font-semibold text-slate-900">{item.title}</div>
-                            {item.detail && <div className="text-xs text-slate-500 mt-0.5">{item.detail}</div>}
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{item.title}</div>
+                            {item.detail && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{item.detail}</div>}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              item.level === "blocker" ? "bg-red-100 text-red-600"
-                                : item.level === "warning" ? "bg-amber-100 text-amber-600"
-                                : "bg-blue-100 text-blue-600"
-                            }`}>
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999,
+                              background: item.level === "blocker" ? "#fef2f2" : item.level === "warning" ? "#fffbeb" : "#eff6ff",
+                              color: item.level === "blocker" ? "#dc2626" : item.level === "warning" ? "#d97706" : "#2563eb",
+                            }}>
                               {item.level === "blocker" ? "Fix" : item.level === "warning" ? "Review" : "Info"}
                             </span>
-                            <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#d1d5db">
                               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                             </svg>
                           </div>
@@ -406,32 +444,31 @@ function ProjectDetail() {
                   </div>
                 )}
 
-                {/* Section Progress — fills the empty space below alerts */}
-                <div className="mt-8">
-                  <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Section Progress</h3>
+                {/* Section Progress */}
+                <div style={{ marginTop: 32 }}>
+                  <h3 style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 12 }}>
+                    Section Progress
+                  </h3>
                   <div className="flex flex-col gap-2.5">
                     {BROWSE_ITEMS.map(({ id, label }) => {
                       const score = scores[id as keyof typeof scores];
                       if (score === undefined) return null;
+                      const dot = scoreDot(score);
                       return (
-                        <button
-                          key={id}
-                          onClick={() => openTab(id)}
-                          className="flex items-center gap-3 group"
-                        >
-                          <span className="text-[12px] text-slate-500 group-hover:text-slate-900 font-medium w-20 text-left shrink-0 transition-colors">
+                        <button key={id} onClick={() => openTab(id)} className="flex items-center gap-3 group">
+                          <span
+                            className="group-hover:text-slate-900 transition-colors"
+                            style={{ fontSize: 12, color: "#6b7280", width: 72, textAlign: "left", flexShrink: 0 }}
+                          >
                             {label}
                           </span>
-                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{ width: `${score}%`, background: scoreColor(score) }}
-                            />
+                          <div style={{ flex: 1, height: 4, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${score}%`, background: dot, borderRadius: 9999, transition: "width 0.5s" }} />
                           </div>
-                          <span
-                            className="text-[11px] font-bold w-8 text-right shrink-0"
-                            style={{ color: scoreColor(score) }}
-                          >
+                          {/* Dot indicator */}
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
+                          {/* % in gray, no color */}
+                          <span style={{ fontSize: 12, color: "#6b7280", width: 32, textAlign: "right", flexShrink: 0 }}>
                             {score}%
                           </span>
                         </button>
@@ -439,107 +476,124 @@ function ProjectDetail() {
                     })}
                   </div>
                 </div>
-
               </div>
             )}
           </main>
 
-          {/* Panel C — light right rail, fixed 280px, overflow-hidden */}
+          {/* Panel C — right info card */}
           <aside
-            className="hidden lg:flex flex-col shrink-0 border-l border-slate-200 overflow-y-auto"
-            style={{ width: 280, background: "#f8fafc", overflowX: "hidden" }}
+            className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
+            style={{ width: 280, background: "#ffffff", borderLeft: "1px solid #e5e7eb", overflowX: "hidden" }}
           >
-            {/* Roof system header */}
-            <div className="px-4 pt-4 pb-3 border-b border-slate-200">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Roof System</div>
-              <div
-                className="text-[13px] font-semibold text-slate-800 leading-snug"
-                style={{ wordBreak: "break-word" }}
-              >
+            {/* Roof System */}
+            <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
+              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
+                Roof System
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word", lineHeight: 1.4 }}>
                 {assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}
               </div>
-              {sys && <div className="text-[11px] text-slate-500 mt-0.5">CSI {sys.csiSection}</div>}
+              {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
             </div>
 
-            {/* Bid stats */}
-            <div className="grid grid-cols-3 border-b border-slate-200">
-              <div className="px-3 py-2.5 border-r border-slate-200">
-                <div className="text-[12px] font-bold text-slate-800">{grossArea ? grossArea.toLocaleString() : "—"}</div>
-                <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">SF</div>
-              </div>
-              <div className="px-3 py-2.5 border-r border-slate-200">
-                <div className="text-[12px] font-bold text-slate-800">{bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—"}</div>
-                <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">Bid</div>
-              </div>
-              <div className="px-3 py-2.5">
-                <div className="text-[12px] font-bold text-slate-800">{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
-                <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">$/SF</div>
-              </div>
+            {/* SF / BID / $/SF — 3 columns, 18px bold */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderBottom: "1px solid #f3f4f6" }}>
+              {[
+                { value: grossArea ? grossArea.toLocaleString() : "—", label: "SF" },
+                { value: bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—", label: "Bid" },
+                { value: dpsf ? `$${dpsf.toFixed(2)}` : "—", label: "$/SF" },
+              ].map(({ value, label }, i) => (
+                <div key={label} style={{ padding: "14px", borderLeft: i > 0 ? "1px solid #f3f4f6" : "none" }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>{value}</div>
+                  <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{label}</div>
+                </div>
+              ))}
             </div>
 
             {/* System details */}
             {sys && (
-              <div className="px-4 py-3 flex flex-col gap-3 border-b border-slate-200">
-                <div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Seam Method</div>
-                  <div className="text-[12px] text-slate-700" style={{ wordBreak: "break-word" }}>
+              <>
+                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
+                    Seam Method
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
                     {sys.seamMethod.split("(")[0].trim()}
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Manufacturers</div>
-                  <div className="flex flex-wrap gap-1">
+
+                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
+                    Manufacturers
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                     {sys.manufacturers.slice(0, 4).map(m => (
-                      <span key={m} className="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full" style={{ wordBreak: "break-word" }}>{m}</span>
+                      <span key={m} style={{ fontSize: 11, background: "#f3f4f6", color: "#374151", padding: "2px 8px", borderRadius: 6 }}>{m}</span>
                     ))}
                   </div>
+                  <button
+                    onClick={() => openTab("materials")}
+                    style={{ fontSize: 12, color: "#10b981", marginTop: 8, fontWeight: 500 }}
+                    className="hover:opacity-80 transition-opacity"
+                  >
+                    {sys.requiredMaterials.length} materials →
+                  </button>
                 </div>
-                <div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Warranty Tiers</div>
-                  <div className="flex flex-wrap gap-1">
+
+                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
+                    Warranty
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                     {sys.warrantyOptions.map(w => (
-                      <span key={w} className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full">{w}</span>
+                      <span key={w} style={{ fontSize: 11, background: "#f3f4f6", color: "#374151", padding: "2px 8px", borderRadius: 6 }}>{w}</span>
                     ))}
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Thickness</div>
-                  <div className="text-[12px] text-slate-700" style={{ wordBreak: "break-word" }}>
+
+                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
+                    Thickness
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
                     {sys.thicknessOptions.join(" · ")}
                   </div>
                 </div>
-                <button
-                  onClick={() => openTab("materials")}
-                  className="text-[11px] text-emerald-600 hover:text-emerald-700 font-semibold text-left transition-colors"
-                >
-                  {sys.requiredMaterials.length} materials for this system →
-                </button>
-              </div>
+              </>
             )}
 
             {/* Notes */}
             {(projectData as any)?.notes && (
-              <div className="px-4 py-3 border-b border-slate-200">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Notes</div>
-                <p className="text-[11px] text-slate-600 leading-relaxed" style={{ wordBreak: "break-word" }}>
+              <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
+                <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 6 }}>
+                  Notes
+                </div>
+                <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, wordBreak: "break-word" }}>
                   {(projectData as any).notes}
                 </p>
               </div>
             )}
 
-            {/* Submit CTA */}
-            <div className="p-4 mt-auto">
+            {/* CTA — #10b981, full width minus margins */}
+            <div style={{ padding: "0 16px 16px", marginTop: "auto" }}>
               <button
                 onClick={() => openTab("validator")}
                 disabled={blockerCount > 0}
-                className={`w-full py-3 rounded-lg text-[13px] font-bold transition-all ${
-                  blockerCount > 0
-                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                    : "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]"
-                }`}
+                style={{
+                  width: "100%",
+                  padding: "12px 0",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  background: blockerCount > 0 ? "#f3f4f6" : "#10b981",
+                  color: blockerCount > 0 ? "#9ca3af" : "#ffffff",
+                  cursor: blockerCount > 0 ? "not-allowed" : "pointer",
+                  transition: "opacity 0.15s",
+                }}
+                className={blockerCount === 0 ? "hover:opacity-90" : ""}
               >
                 {blockerCount > 0
-                  ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} first`
+                  ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} →`
                   : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
               </button>
             </div>
