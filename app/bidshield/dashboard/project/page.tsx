@@ -480,101 +480,127 @@ function ProjectDetail() {
             )}
           </main>
 
-          {/* Panel C — right info card */}
+          {/* Panel C — right info card, no dividers */}
           <aside
             className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
             style={{ width: 280, background: "#ffffff", borderLeft: "1px solid #e5e7eb", overflowX: "hidden" }}
           >
-            {/* Roof System */}
-            <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
-              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
-                Roof System
+            <div style={{ padding: "20px 16px 0" }}>
+
+              {/* Roof System */}
+              <div style={{ paddingBottom: 20 }}>
+                <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
+                  Roof System
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word", lineHeight: 1.4 }}>
+                  {assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}
+                </div>
+                {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
               </div>
-              <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word", lineHeight: 1.4 }}>
-                {assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}
+
+              {/* SF / BID / $/SF — card with no internal borders */}
+              <div style={{ paddingBottom: 20 }}>
+                <div style={{ background: "#f8fafc", borderRadius: 8, padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                  {[
+                    { value: grossArea ? grossArea.toLocaleString() : "—", label: "SF" },
+                    { value: bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—", label: "Bid" },
+                    { value: dpsf ? `$${dpsf.toFixed(2)}` : "—", label: "$/SF" },
+                  ].map(({ value, label }) => (
+                    <div key={label} style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>{value}</div>
+                      <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
+
+              {/* System details */}
+              {sys && (
+                <>
+                  <div style={{ paddingBottom: 20 }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
+                      Seam Method
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
+                      {sys.seamMethod.split("(")[0].trim()}
+                    </div>
+                  </div>
+
+                  <div style={{ paddingBottom: 20 }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
+                      Manufacturers
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                      {sys.manufacturers.slice(0, 4).map(m => (
+                        <span key={m} style={{ fontSize: 12, background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: 4 }}>{m}</span>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => openTab("materials")}
+                      style={{ fontSize: 12, color: "#10b981", marginTop: 8, fontWeight: 500 }}
+                      className="hover:opacity-80 transition-opacity"
+                    >
+                      {sys.requiredMaterials.length} materials →
+                    </button>
+                  </div>
+
+                  <div style={{ paddingBottom: 20 }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
+                      Warranty
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                      {sys.warrantyOptions.map(w => (
+                        <span key={w} style={{ fontSize: 12, background: "#f0fdf4", color: "#166534", padding: "2px 8px", borderRadius: 4 }}>{w}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ paddingBottom: 20 }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
+                      Thickness
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
+                      {sys.thicknessOptions.join(" · ")}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Notes */}
+              {(projectData as any)?.notes && (
+                <div style={{ paddingBottom: 20 }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 6 }}>
+                    Notes
+                  </div>
+                  <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, wordBreak: "break-word" }}>
+                    {(projectData as any).notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Bid Readiness card — fills dead space before CTA */}
+              <div style={{ paddingBottom: 20 }}>
+                <div style={{ background: "#f8fafc", borderRadius: 8, padding: 14 }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 6 }}>
+                    Bid Readiness
+                  </div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: 1, marginBottom: 10 }}>
+                    {readinessScore}%
+                  </div>
+                  <div style={{ height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden", marginBottom: 8 }}>
+                    <div style={{ height: "100%", width: `${readinessScore}%`, background: "#10b981", borderRadius: 9999, transition: "width 0.5s" }} />
+                  </div>
+                  {daysUntilBid !== null && (
+                    <div style={{ fontSize: 12, color: "#6b7280" }}>
+                      {daysUntilBid > 0 ? `${daysUntilBid} days until bid` : daysUntilBid === 0 ? "Due today" : "Past due"}
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
 
-            {/* SF / BID / $/SF — 3 columns, 18px bold */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderBottom: "1px solid #f3f4f6" }}>
-              {[
-                { value: grossArea ? grossArea.toLocaleString() : "—", label: "SF" },
-                { value: bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—", label: "Bid" },
-                { value: dpsf ? `$${dpsf.toFixed(2)}` : "—", label: "$/SF" },
-              ].map(({ value, label }, i) => (
-                <div key={label} style={{ padding: "14px", borderLeft: i > 0 ? "1px solid #f3f4f6" : "none" }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>{value}</div>
-                  <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* System details */}
-            {sys && (
-              <>
-                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
-                    Seam Method
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
-                    {sys.seamMethod.split("(")[0].trim()}
-                  </div>
-                </div>
-
-                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
-                    Manufacturers
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {sys.manufacturers.slice(0, 4).map(m => (
-                      <span key={m} style={{ fontSize: 11, background: "#f3f4f6", color: "#374151", padding: "2px 8px", borderRadius: 6 }}>{m}</span>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => openTab("materials")}
-                    style={{ fontSize: 12, color: "#10b981", marginTop: 8, fontWeight: 500 }}
-                    className="hover:opacity-80 transition-opacity"
-                  >
-                    {sys.requiredMaterials.length} materials →
-                  </button>
-                </div>
-
-                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
-                    Warranty
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {sys.warrantyOptions.map(w => (
-                      <span key={w} style={{ fontSize: 11, background: "#f3f4f6", color: "#374151", padding: "2px 8px", borderRadius: 6 }}>{w}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
-                    Thickness
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
-                    {sys.thicknessOptions.join(" · ")}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Notes */}
-            {(projectData as any)?.notes && (
-              <div style={{ padding: 16, borderBottom: "1px solid #f3f4f6" }}>
-                <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 6 }}>
-                  Notes
-                </div>
-                <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, wordBreak: "break-word" }}>
-                  {(projectData as any).notes}
-                </p>
-              </div>
-            )}
-
-            {/* CTA — #10b981, full width minus margins */}
+            {/* CTA — pinned to bottom */}
             <div style={{ padding: "0 16px 16px", marginTop: "auto" }}>
               <button
                 onClick={() => openTab("validator")}

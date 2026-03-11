@@ -53,6 +53,9 @@ const NAV_ITEMS = [
 ];
 
 function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
+  // Project pages have their own sidebar — hide the outer one entirely
+  if (pathname.startsWith("/bidshield/dashboard/project")) return null;
+
   const { userId, isSignedIn } = useAuth();
   const subscription = useQuery(
     api.users.getUserSubscription,
