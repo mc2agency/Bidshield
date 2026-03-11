@@ -263,7 +263,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           {!isDemo && (
             <button
               onClick={openModal}
-              className="text-[13px] font-semibold px-4 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+              style={{ background: "#10b981" }} className="text-[13px] font-semibold px-4 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors"
             >
               + Add Quote
             </button>
@@ -333,7 +333,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           <div className="text-sm font-semibold text-slate-700 mb-1">No quotes yet</div>
           <div className="text-xs text-slate-400 mb-4">Add vendor quotes to compare pricing across manufacturers</div>
           {!isDemo && (
-            <button onClick={openModal} className="px-5 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition-colors">
+            <button onClick={openModal} style={{ background: "#10b981" }} className="px-5 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">
               + Add First Quote
             </button>
           )}

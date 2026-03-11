@@ -78,9 +78,13 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
   const startEdit = () => {
     setForm({
-      totalBidAmount: pricing.totalBidAmount?.toString() ?? "", materialCost: pricing.materialCost?.toString() ?? "",
-      laborCost: pricing.laborCost?.toString() ?? "", otherCost: pricing.otherCost?.toString() ?? "",
-      primaryAssembly: pricing.primaryAssembly ?? "", lossReason: pricing.lossReason ?? "",
+      totalBidAmount: pricing.totalBidAmount?.toString() ?? "",
+      // Auto-fill from Materials tab if no manual value set
+      materialCost: pricing.materialCost?.toString() ?? (computedMaterialTotal > 0 ? computedMaterialTotal.toString() : ""),
+      laborCost: pricing.laborCost?.toString() ?? "",
+      otherCost: pricing.otherCost?.toString() ?? "",
+      primaryAssembly: pricing.primaryAssembly ?? "",
+      lossReason: pricing.lossReason ?? "",
       lossReasonNote: pricing.lossReasonNote ?? "",
     });
     setEditing(true);
@@ -190,7 +194,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
                   </button>
                 )}
               </>
-            ) : <div className="text-lg font-bold text-blue-600">{pricing.materialCost ? fmtDollar(pricing.materialCost) : "—"}</div>}
+            ) : <div className="text-lg font-bold text-blue-600">{pricing.materialCost ? fmtDollar(pricing.materialCost) : computedMaterialTotal > 0 ? <span title="Computed from Materials tab">{fmtDollar(computedMaterialTotal)} <span className="text-[10px] text-blue-400">(auto)</span></span> : "—"}</div>}
             <div className="text-[10px] text-slate-500">Material</div>
           </div>
           <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
@@ -258,7 +262,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
         {editing && (
           <div className="mt-4 flex gap-2">
-            <button onClick={handleSave} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Changes</button>
+            <button onClick={handleSave} style={{ background: "#10b981" }} className="text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors hover:opacity-90">Save Changes</button>
             <button onClick={() => setEditing(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
           </div>
         )}
@@ -312,7 +316,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
                 <textarea value={actualsForm.postJobNotes} onChange={(e) => setActualsForm({ ...actualsForm, postJobNotes: e.target.value })} placeholder="What caused variances? Lessons for future bids..." rows={2} className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm resize-none focus:outline-none focus:border-amber-500" />
               </div>
               <div className="flex gap-2">
-                <button onClick={handleSaveActuals} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Actuals</button>
+                <button onClick={handleSaveActuals} style={{ background: "#10b981" }} className="text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors hover:opacity-90">Save Actuals</button>
                 <button onClick={() => setEditingActuals(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
               </div>
             </div>

@@ -116,7 +116,7 @@ export default function LaborTab({ isDemo, userId, projectId }: TabProps) {
         {(
           <div className="flex gap-2">
             <button onClick={handleSeedDefaults} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Load Defaults</button>
-            <button onClick={() => { setNewRate({ ...newRate, category: activeCategory }); setShowAdd(true); }} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">+ Add Rate</button>
+            <button onClick={() => { setNewRate({ ...newRate, category: activeCategory }); setShowAdd(true); }} style={{ background: "#10b981" }} className="px-4 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">+ Add Rate</button>
           </div>
         )}
       </div>
@@ -163,7 +163,7 @@ export default function LaborTab({ isDemo, userId, projectId }: TabProps) {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={handleAdd} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">Save Rate</button>
+            <button onClick={handleAdd} style={{ background: "#10b981" }} className="px-4 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">Save Rate</button>
             <button onClick={() => setShowAdd(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Cancel</button>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function LaborTab({ isDemo, userId, projectId }: TabProps) {
           {(
             <div className="flex gap-3 justify-center">
               <button onClick={handleSeedDefaults} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Load Industry Defaults</button>
-              <button onClick={() => { setNewRate({ ...newRate, category: activeCategory }); setShowAdd(true); }} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm rounded-lg transition-colors">Add Custom Rate</button>
+              <button onClick={() => { setNewRate({ ...newRate, category: activeCategory }); setShowAdd(true); }} style={{ background: "#10b981" }} className="px-4 py-2 text-white text-sm rounded-lg hover:opacity-90 transition-colors">Add Custom Rate</button>
             </div>
           )}
         </div>
@@ -277,7 +277,7 @@ export default function LaborTab({ isDemo, userId, projectId }: TabProps) {
                 {!isDemo && isValidProjectId && (
                   <button
                     onClick={handleApplyLaborCost}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-900 text-sm font-semibold rounded-lg transition-colors"
+                    style={{ background: "#10b981" }} className="px-4 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors"
                   >
                     Apply to Pricing
                   </button>

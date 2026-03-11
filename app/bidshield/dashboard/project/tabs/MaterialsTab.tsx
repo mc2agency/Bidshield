@@ -380,7 +380,7 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
               Recalculate
             </button>
           )}
-          <button onClick={() => setShowAddModal(true)} className="px-3 py-1.5 bg-emerald-600 text-slate-900 rounded-lg text-xs font-medium hover:bg-emerald-500 transition-colors">
+          <button onClick={() => setShowAddModal(true)} style={{ background: "#10b981" }} className="px-3 py-1.5 text-white rounded-lg text-xs font-medium hover:opacity-90 transition-colors">
             + Add Material
           </button>
         </div>
