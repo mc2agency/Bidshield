@@ -483,7 +483,7 @@ function ProjectDetail() {
           {/* Panel C — right info card, no dividers */}
           <aside
             className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
-            style={{ width: 280, background: "#ffffff", borderLeft: "1px solid #e5e7eb", overflowX: "hidden" }}
+            style={{ width: 320, background: "#ffffff", borderLeft: "1px solid #e5e7eb", overflowX: "hidden" }}
           >
             <div style={{ padding: "20px 16px 0" }}>
 
@@ -492,9 +492,18 @@ function ProjectDetail() {
                 <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
                   Roof System
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word", lineHeight: 1.4 }}>
-                  {assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}
-                </div>
+                {(() => {
+                  const raw = assembly || sys?.fullName || sysId?.toUpperCase() || "Not set";
+                  const m = raw.match(/^([^(]+?)(?:\s*\(([^)]+)\))?$/);
+                  const main = m?.[1]?.trim() ?? raw;
+                  const sub = m?.[2]?.trim() ?? null;
+                  return (
+                    <>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", lineHeight: 1.4 }}>{main}</div>
+                      {sub && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 1 }}>{sub}</div>}
+                    </>
+                  );
+                })()}
                 {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
               </div>
 
@@ -521,7 +530,7 @@ function ProjectDetail() {
                     <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
                       Seam Method
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>
                       {sys.seamMethod.split("(")[0].trim()}
                     </div>
                   </div>
