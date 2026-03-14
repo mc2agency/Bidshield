@@ -98,8 +98,8 @@ export default function HomepageContent() {
               <div className="text-slate-400 text-sm mt-1">Checklist Items</div>
             </div>
             <div className="group">
-              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">0</div>
-              <div className="text-slate-400 text-sm mt-1">Missed Items</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">12yr</div>
+              <div className="text-slate-400 text-sm mt-1">Built by Estimators</div>
             </div>
           </div>
         </div>

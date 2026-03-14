@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
@@ -51,6 +51,11 @@ function ProjectDetail() {
   const isDemo = searchParams.get("demo") === "true";
   const { userId } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const updateProject = useMutation(api.bidshield.updateProject);
+  const [editingBidInline, setEditingBidInline] = useState(false);
+  const [bidInlineValue, setBidInlineValue] = useState("");
+  const [editProjectOpen, setEditProjectOpen] = useState(false);
+  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "" });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -73,6 +78,42 @@ function ProjectDetail() {
     : project;
 
   const openTab = useCallback((tab: TabId) => setActiveTab(tab), []);
+
+  const saveBidInline = async () => {
+    const val = parseFloat(bidInlineValue.replace(/[^0-9.]/g, ""));
+    if (!isNaN(val) && isValidConvexId) {
+      await updateProject({ projectId: projectIdParam as Id<"bidshield_projects">, totalBidAmount: val });
+    }
+    setEditingBidInline(false);
+  };
+
+  const openEditProject = () => {
+    setEditProjectForm({
+      name: projectData?.name ?? "",
+      gc: (projectData as any)?.gc ?? "",
+      location: projectData?.location ?? "",
+      bidDate: projectData?.bidDate ?? "",
+      sqft: ((projectData as any)?.grossRoofArea ?? (projectData as any)?.sqft ?? "").toString(),
+      totalBidAmount: ((projectData as any)?.totalBidAmount ?? "").toString(),
+    });
+    setEditProjectOpen(true);
+  };
+
+  const saveEditProject = async () => {
+    if (!isValidConvexId) { setEditProjectOpen(false); return; }
+    const parseNum = (s: string) => { const n = parseFloat(s); return isNaN(n) ? undefined : n; };
+    await updateProject({
+      projectId: projectIdParam as Id<"bidshield_projects">,
+      name: editProjectForm.name || undefined,
+      gc: editProjectForm.gc || undefined,
+      location: editProjectForm.location || undefined,
+      bidDate: editProjectForm.bidDate || undefined,
+      grossRoofArea: parseNum(editProjectForm.sqft),
+      sqft: parseNum(editProjectForm.sqft),
+      totalBidAmount: parseNum(editProjectForm.totalBidAmount),
+    });
+    setEditProjectOpen(false);
+  };
 
   const { actionItems, readinessScore, passCount, scores } = useMemo(() => {
     const items: ActionItem[] = [];
@@ -170,6 +211,7 @@ function ProjectDetail() {
   const dpsf = grossArea && bidAmt ? Math.round((bidAmt / grossArea) * 100) / 100 : null;
 
   return (
+    <>
     <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
 
       {/* Panel A — premium dark sidebar */}
@@ -184,8 +226,23 @@ function ProjectDetail() {
       >
         {/* Project info */}
         <div className="px-4 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "#ffffff", lineHeight: 1.3 }}>
-            {projectData?.name}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#ffffff", lineHeight: 1.3 }}>
+              {projectData?.name}
+            </div>
+            {!isDemo && (
+              <button
+                onClick={openEditProject}
+                style={{ color: "#4b5563", flexShrink: 0, marginTop: 2, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#4b5563"}
+                title="Edit project"
+              >
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
+                </svg>
+              </button>
+            )}
           </div>
           <div style={{ fontSize: 12, color: "#6b7280", marginTop: 3 }}>
             {projectData?.location}
@@ -510,16 +567,36 @@ function ProjectDetail() {
               {/* SF / BID / $/SF — card with no internal borders */}
               <div style={{ paddingBottom: 20 }}>
                 <div style={{ background: "#f8fafc", borderRadius: 8, padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                  {[
-                    { value: grossArea ? grossArea.toLocaleString() : "—", label: "SF" },
-                    { value: bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—", label: "Bid" },
-                    { value: dpsf ? `$${dpsf.toFixed(2)}` : "—", label: "$/SF" },
-                  ].map(({ value, label }) => (
-                    <div key={label} style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>{value}</div>
-                      <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{label}</div>
-                    </div>
-                  ))}
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>{grossArea ? grossArea.toLocaleString() : "—"}</div>
+                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>SF</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    {editingBidInline && !isDemo ? (
+                      <input
+                        autoFocus
+                        type="number"
+                        value={bidInlineValue}
+                        onChange={e => setBidInlineValue(e.target.value)}
+                        onBlur={saveBidInline}
+                        onKeyDown={e => { if (e.key === "Enter") saveBidInline(); if (e.key === "Escape") setEditingBidInline(false); }}
+                        style={{ width: "100%", textAlign: "center", fontSize: 13, fontWeight: 600, border: "1px solid #10b981", borderRadius: 4, padding: "2px 4px", outline: "none", background: "white" }}
+                      />
+                    ) : (
+                      <div
+                        onClick={() => { if (!isDemo) { setBidInlineValue(bidAmt?.toString() ?? ""); setEditingBidInline(true); } }}
+                        style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2, cursor: isDemo ? undefined : "pointer" }}
+                        title={isDemo ? undefined : "Click to edit"}
+                      >
+                        {bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—"}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Bid</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
+                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>$/SF</div>
+                  </div>
                 </div>
               </div>
 
@@ -637,6 +714,60 @@ function ProjectDetail() {
         </div>
       </div>
     </div>
+
+    {/* Edit Project Modal */}
+    {editProjectOpen && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{ background: "rgba(0,0,0,0.5)" }}
+        onClick={() => setEditProjectOpen(false)}
+      >
+        <div
+          className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4"
+          style={{ padding: 24 }}
+          onClick={e => e.stopPropagation()}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginBottom: 20 }}>Edit Project</h3>
+          <div className="flex flex-col gap-3">
+            {([
+              { label: "Project Name", key: "name", type: "text" },
+              { label: "General Contractor", key: "gc", type: "text" },
+              { label: "Location", key: "location", type: "text" },
+              { label: "Bid Date", key: "bidDate", type: "date" },
+              { label: "Gross Roof Area (SF)", key: "sqft", type: "number" },
+              { label: "Bid Amount ($)", key: "totalBidAmount", type: "number" },
+            ] as { label: string; key: keyof typeof editProjectForm; type: string }[]).map(({ label, key, type }) => (
+              <div key={key}>
+                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>{label}</label>
+                <input
+                  type={type}
+                  value={editProjectForm[key]}
+                  onChange={e => setEditProjectForm(f => ({ ...f, [key]: e.target.value }))}
+                  style={{ width: "100%", border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box" }}
+                  onFocus={e => (e.target.style.borderColor = "#10b981")}
+                  onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-3" style={{ marginTop: 20 }}>
+            <button
+              onClick={saveEditProject}
+              style={{ flex: 1, background: "#10b981", color: "white", padding: "10px 0", borderRadius: 8, fontSize: 14, fontWeight: 500, border: "none", cursor: "pointer" }}
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setEditProjectOpen(false)}
+              style={{ flex: 1, background: "#f3f4f6", color: "#6b7280", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "none", cursor: "pointer" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 

@@ -193,6 +193,22 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       }
     }
 
+    // 9. PRICING
+    if (isDemo) {
+      items.push({ label: "Pricing", status: "pass", message: "Bid amount and cost breakdown complete" });
+    } else if (projectData) {
+      const bidAmt = (projectData as any)?.totalBidAmount;
+      const matCost = (projectData as any)?.materialCost;
+      const labCost = (projectData as any)?.laborCost;
+      if (!bidAmt) {
+        items.push({ label: "Pricing", status: "fail", message: "No bid amount entered — complete pricing before submitting", tabLink: "pricing" });
+      } else if (!matCost || !labCost) {
+        items.push({ label: "Pricing", status: "warn", message: "Bid amount set but missing material or labor breakdown", tabLink: "pricing" });
+      } else {
+        items.push({ label: "Pricing", status: "pass", message: `Total bid $${bidAmt.toLocaleString()} with full cost breakdown` });
+      }
+    }
+
     // Calculate score
     const total = items.length;
     const passCount = items.filter(i => i.status === "pass").length;
@@ -210,14 +226,6 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
   }
 
   const scoreData = (hasRun && (isDemo || projectData)) ? buildScore() : null;
-
-  const gradeColors: Record<string, string> = {
-    A: "text-emerald-600 border-emerald-500",
-    B: "text-blue-600 border-blue-500",
-    C: "text-amber-600 border-amber-500",
-    D: "text-orange-400 border-orange-500",
-    F: "text-red-600 border-red-500",
-  };
 
   return (
     <div className="flex flex-col gap-6">
