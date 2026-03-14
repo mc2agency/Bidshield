@@ -63,6 +63,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const prevPhasePcts = useRef<Record<string, number>>({});
   const touchStartX = useRef<number>(0);
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
+  const [expandedHelp, setExpandedHelp] = useState<string | null>(null);
 
   const trade             = project?.trade || "roofing";
   const systemType        = project?.systemType;
@@ -388,6 +389,22 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 >
                                   ASHRAE 90.1 Climate Zone Table ↗
                                 </a>
+                              )}
+                              {item.helpText && !isDone && (
+                                <div style={{ marginTop: 3 }}>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); setExpandedHelp(prev => prev === rowKey ? null : rowKey); }}
+                                    style={{ fontSize: 11, color: "#f59e0b", fontWeight: 500, background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
+                                  >
+                                    <span>{expandedHelp === rowKey ? "▲" : "▼"}</span>
+                                    <span>Why this matters</span>
+                                  </button>
+                                  {expandedHelp === rowKey && (
+                                    <p style={{ fontSize: 12, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, padding: "8px 10px", marginTop: 5, lineHeight: 1.5 }}>
+                                      {item.helpText}
+                                    </p>
+                                  )}
+                                </div>
                               )}
                             </div>
 

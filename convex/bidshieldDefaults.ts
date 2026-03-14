@@ -12,6 +12,7 @@ export interface ChecklistItemDef {
   energyCode?: boolean; // Only show when project triggers energy code (>50% or >2,000 SF replaced).
   critical?: boolean;   // Item-level critical flag (red border + bold text).
   helpUrl?: string;     // Optional reference link shown next to the item.
+  helpText?: string;    // Expandable "why this matters" explanation shown under item text.
 }
 
 export interface ChecklistPhaseDef {
@@ -145,6 +146,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
     criticalRule: "Mechanical curb misses cost $30K–$80K on average — verify every RTU curb height and dimensions against structural drawings",
     items: [
       { id: "p5-1", text: "RTU locations & curb sizes from schedule" },
+      { id: "p5-7", text: "Mechanical curb heights confirmed (min 8\" above finished roof)", critical: true, helpText: "RTU curbs must be minimum 8 inches above finished roof surface per NRCA standards. Under-height curbs require costly field modifications averaging $800–$2,400 per unit. On a 20-RTU building that's $16K–$48K in change orders — absorbed by the contractor." },
       { id: "p5-2", text: "Exhaust fans counted & curb sizes noted" },
       { id: "p5-3", text: "Kitchen hoods & grease exhaust identified" },
       { id: "p5-4", text: "Ductwork penetrations noted" },
