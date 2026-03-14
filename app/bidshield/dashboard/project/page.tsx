@@ -115,7 +115,7 @@ function ProjectDetail() {
     setEditProjectOpen(false);
   };
 
-  const { actionItems, readinessScore, passCount, scores } = useMemo(() => {
+  const { actionItems, readinessScore, passCount, scores, remaining } = useMemo(() => {
     const items: ActionItem[] = [];
     const cl = isDemo ? [] : (checklist ?? []);
     const clTotal = isDemo ? 95 : cl.length;
@@ -190,7 +190,18 @@ function ProjectDetail() {
     const readiness = Math.round(Object.entries(w).reduce((s, [k, v]) => s + (scores[k as keyof typeof scores] ?? 0) * v, 0));
     const passes = [scPct >= 100, adCount === 0 || (adNotRepriced === 0 && adNotReviewed === 0), expired === 0 && expiring === 0, rPending === 0, clPct >= 80, mats.length > 0 && matUnpriced === 0, pricingDone].filter(Boolean).length;
 
-    return { actionItems: items, readinessScore: readiness, passCount: passes, scores };
+    const remaining = {
+      checklist: clPending,
+      scope: scUnaddressed,
+      takeoff: deltaPct !== null && deltaPct > 2 ? Math.round(deltaSF / 1000) + 1 : 0,
+      materials: mats.length === 0 ? 1 : matUnpriced,
+      pricing: pricingDone ? 0 : 1,
+      quotes: expired + expiring,
+      addenda: adNotReviewed + adNotRepriced,
+      rfis: rPending,
+    };
+
+    return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining };
   }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis]);
 
   if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
@@ -267,6 +278,8 @@ function ProjectDetail() {
               ? scoreDot(sectionScore)
               : (hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#6b7280");
             const isActive = activeTab === id;
+            const remainingCount = remaining[id as keyof typeof remaining] ?? 0;
+            const showCount = sectionScore !== undefined && sectionScore > 0 && sectionScore < 100 && remainingCount > 0;
 
             return (
               <button
@@ -294,8 +307,12 @@ function ProjectDetail() {
                   <Icon size={14} strokeWidth={1.75} />
                   <span style={{ fontSize: 13, fontWeight: isActive ? 500 : 400 }}>{label}</span>
                 </div>
-                {/* Status dot only — no colored % */}
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, display: "inline-block" }} />
+                  {showCount && (
+                    <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 400 }}>{remainingCount}</span>
+                  )}
+                </div>
               </button>
             );
           })}
@@ -385,7 +402,7 @@ function ProjectDetail() {
         <div className="flex-1 flex overflow-hidden">
 
           {/* Panel B — main content, #f8fafc bg */}
-          <main className="flex-1 overflow-auto min-w-0" style={{ background: "#f8fafc" }}>
+          <main className="flex-1 overflow-auto min-w-0" style={{ background: "#f1f5f9" }}>
             {activeTab ? (
               <>
                 {/* Tab header */}
@@ -403,7 +420,7 @@ function ProjectDetail() {
                     </svg>
                     Back
                   </button>
-                  <h2 style={{ fontSize: 20, fontWeight: 600, color: "#0f172a" }}>{activeTabLabel}</h2>
+                  <h2 style={{ fontSize: 22, fontWeight: 700, color: "#0f172a" }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
                   {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
@@ -544,31 +561,31 @@ function ProjectDetail() {
           >
             <div style={{ padding: "20px 16px 0" }}>
 
-              {/* Roof System */}
+              {/* 1. BID READINESS — top priority */}
               <div style={{ paddingBottom: 20 }}>
-                <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
-                  Roof System
+                <div style={{ background: "#f8fafc", borderRadius: 8, padding: 14 }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
+                    Bid Readiness
+                  </div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: 1, marginBottom: 10, transition: "all 0.3s" }}>
+                    {readinessScore}%
+                  </div>
+                  <div style={{ height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden", marginBottom: 8 }}>
+                    <div style={{ height: "100%", width: `${readinessScore}%`, background: "#10b981", borderRadius: 9999, transition: "width 0.5s" }} />
+                  </div>
+                  {daysUntilBid !== null && (
+                    <div style={{ fontSize: 12, color: daysUntilBid <= 3 ? "#d97706" : "#6b7280", fontWeight: daysUntilBid <= 3 ? 600 : 400 }}>
+                      {daysUntilBid > 0 ? `${daysUntilBid} days until bid` : daysUntilBid === 0 ? "Due today" : "Past due"}
+                    </div>
+                  )}
                 </div>
-                {(() => {
-                  const raw = assembly || sys?.fullName || sysId?.toUpperCase() || "Not set";
-                  const m = raw.match(/^([^(]+?)(?:\s*\(([^)]+)\))?$/);
-                  const main = m?.[1]?.trim() ?? raw;
-                  const sub = m?.[2]?.trim() ?? null;
-                  return (
-                    <>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", lineHeight: 1.4 }}>{main}</div>
-                      {sub && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 1 }}>{sub}</div>}
-                    </>
-                  );
-                })()}
-                {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
               </div>
 
-              {/* SF / BID / $/SF — card with no internal borders */}
+              {/* 2. SF / BID / $/SF stat card */}
               <div style={{ paddingBottom: 20 }}>
                 <div style={{ background: "#f8fafc", borderRadius: 8, padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>{grossArea ? grossArea.toLocaleString() : "—"}</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>{grossArea ? grossArea.toLocaleString() : "—"}</div>
                     <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>SF</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
@@ -585,7 +602,7 @@ function ProjectDetail() {
                     ) : (
                       <div
                         onClick={() => { if (!isDemo) { setBidInlineValue(bidAmt?.toString() ?? ""); setEditingBidInline(true); } }}
-                        style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2, cursor: isDemo ? undefined : "pointer" }}
+                        style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2, cursor: isDemo ? undefined : "pointer" }}
                         title={isDemo ? undefined : "Click to edit"}
                       >
                         {bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—"}
@@ -594,68 +611,86 @@ function ProjectDetail() {
                     <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Bid</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 20, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
                     <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>$/SF</div>
                   </div>
                 </div>
               </div>
 
-              {/* System details */}
+              {/* 3. Roof system name + seam method */}
+              <div style={{ paddingBottom: 20 }}>
+                <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
+                  Roof System
+                </div>
+                {(() => {
+                  const raw = assembly || sys?.fullName || sysId?.toUpperCase() || "Not set";
+                  const m = raw.match(/^([^(]+?)(?:\s*\(([^)]+)\))?$/);
+                  const main = m?.[1]?.trim() ?? raw;
+                  const sub = m?.[2]?.trim() ?? null;
+                  return (
+                    <>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#111827", lineHeight: 1.4 }}>{main}</div>
+                      {sub && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 1 }}>{sub}</div>}
+                    </>
+                  );
+                })()}
+                {sys && (
+                  <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+                    {sys.seamMethod.split("(")[0].trim()}
+                  </div>
+                )}
+                {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
+              </div>
+
+              {/* 4. Manufacturers */}
               {sys && (
-                <>
-                  <div style={{ paddingBottom: 20 }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
-                      Seam Method
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>
-                      {sys.seamMethod.split("(")[0].trim()}
-                    </div>
+                <div style={{ paddingBottom: 20 }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 8 }}>
+                    Manufacturers
                   </div>
-
-                  <div style={{ paddingBottom: 20 }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
-                      Manufacturers
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                      {sys.manufacturers.slice(0, 4).map(m => (
-                        <span key={m} style={{ fontSize: 12, background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: 4 }}>{m}</span>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => openTab("materials")}
-                      style={{ fontSize: 12, color: "#10b981", marginTop: 8, fontWeight: 500 }}
-                      className="hover:opacity-80 transition-opacity"
-                    >
-                      {sys.requiredMaterials.length} materials →
-                    </button>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {sys.manufacturers.slice(0, 4).map(m => (
+                      <span key={m} style={{ fontSize: 12, background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: 4 }}>{m}</span>
+                    ))}
                   </div>
+                  <button
+                    onClick={() => openTab("materials")}
+                    style={{ fontSize: 12, color: "#10b981", marginTop: 8, fontWeight: 500 }}
+                    className="hover:opacity-80 transition-opacity"
+                  >
+                    {sys.requiredMaterials.length} materials →
+                  </button>
+                </div>
+              )}
 
-                  <div style={{ paddingBottom: 20 }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 8 }}>
+              {/* 5. Warranty + Thickness (smaller) */}
+              {sys && (
+                <div style={{ paddingBottom: 20, display: "flex", gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
                       Warranty
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                       {sys.warrantyOptions.map(w => (
-                        <span key={w} style={{ fontSize: 12, background: "#f0fdf4", color: "#166534", padding: "2px 8px", borderRadius: 4 }}>{w}</span>
+                        <span key={w} style={{ fontSize: 11, background: "#f0fdf4", color: "#166534", padding: "2px 6px", borderRadius: 4 }}>{w}</span>
                       ))}
                     </div>
                   </div>
-
-                  <div style={{ paddingBottom: 20 }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 4 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
                       Thickness
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", wordBreak: "break-word" }}>
+                    <div style={{ fontSize: 12, color: "#374151", wordBreak: "break-word" }}>
                       {sys.thicknessOptions.join(" · ")}
                     </div>
                   </div>
-                </>
+                </div>
               )}
 
-              {/* Notes */}
+              {/* 6. Notes */}
               {(projectData as any)?.notes && (
                 <div style={{ paddingBottom: 20 }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 6 }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
                     Notes
                   </div>
                   <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, wordBreak: "break-word" }}>
@@ -663,26 +698,6 @@ function ProjectDetail() {
                   </p>
                 </div>
               )}
-
-              {/* Bid Readiness card — fills dead space before CTA */}
-              <div style={{ paddingBottom: 20 }}>
-                <div style={{ background: "#f8fafc", borderRadius: 8, padding: 14 }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginBottom: 6 }}>
-                    Bid Readiness
-                  </div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: 1, marginBottom: 10 }}>
-                    {readinessScore}%
-                  </div>
-                  <div style={{ height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden", marginBottom: 8 }}>
-                    <div style={{ height: "100%", width: `${readinessScore}%`, background: "#10b981", borderRadius: 9999, transition: "width 0.5s" }} />
-                  </div>
-                  {daysUntilBid !== null && (
-                    <div style={{ fontSize: 12, color: "#6b7280" }}>
-                      {daysUntilBid > 0 ? `${daysUntilBid} days until bid` : daysUntilBid === 0 ? "Due today" : "Past due"}
-                    </div>
-                  )}
-                </div>
-              </div>
 
             </div>
 

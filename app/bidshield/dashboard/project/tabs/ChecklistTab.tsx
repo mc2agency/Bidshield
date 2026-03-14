@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -58,6 +58,9 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const [savedNoteFlash, setSavedNoteFlash] = useState<string | null>(null);
   const [rfiDrawerKey, setRfiDrawerKey] = useState<string | null>(null);
   const [rfiQuestion, setRfiQuestion]   = useState("");
+  const [flashedItem, setFlashedItem]   = useState<string | null>(null);
+  const [completedPhaseFlash, setCompletedPhaseFlash] = useState<string | null>(null);
+  const prevPhasePcts = useRef<Record<string, number>>({});
   const touchStartX = useRef<number>(0);
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
 
@@ -91,7 +94,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const cycleStatus = useCallback(async (phaseKey: string, itemId: string) => {
     const order: ChecklistStatus[] = ["pending", "done", "rfi", "na"];
     const current = getItemStatus(phaseKey, itemId);
-    await setStatus(phaseKey, itemId, order[(order.indexOf(current) + 1) % order.length]);
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    await setStatus(phaseKey, itemId, next);
+    if (next === "done" || next === "na") {
+      const rk = `${phaseKey}-${itemId}`;
+      setFlashedItem(rk);
+      setTimeout(() => setFlashedItem(f => f === rk ? null : f), 500);
+    }
   }, [getItemStatus, setStatus]);
 
   const saveNote = useCallback(async (phaseKey: string, itemId: string, note: string) => {
@@ -181,6 +190,19 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     return actions;
   }, [checklistTemplate, resolvedItems, getItemStatus, rfiCount, onNavigateTab]);
 
+  // Detect when a phase just reached 100% → flash "✓ Complete" in header
+  useEffect(() => {
+    for (const [phaseKey] of Object.entries(checklistTemplate)) {
+      const stats = getPhaseStats(phaseKey);
+      const prev = prevPhasePcts.current[phaseKey] ?? 0;
+      if (stats.total > 0 && stats.pct === 100 && prev < 100) {
+        setCompletedPhaseFlash(phaseKey);
+        setTimeout(() => setCompletedPhaseFlash(f => f === phaseKey ? null : f), 2000);
+      }
+      prevPhasePcts.current[phaseKey] = stats.pct;
+    }
+  }, [resolvedItems]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const dpsf = (project as any)?.totalBidAmount && (project as any)?.grossRoofArea
     ? Math.round(((project as any).totalBidAmount / (project as any).grossRoofArea) * 100) / 100
     : null;
@@ -245,35 +267,41 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 key={phaseKey}
                 className="overflow-hidden"
                 style={{
-                  background: "#fafafa",
-                  border: `1px solid ${isHighRisk ? "#fca5a5" : "#e2e8f0"}`,
-                  borderRadius: 8,
-                  borderLeft: isHighRisk ? "3px solid #f87171" : undefined,
+                  background: "white",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 10,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                  borderLeft: `3px solid ${pctColor}`,
                 }}
               >
                 {/* Phase header */}
                 <button
                   onClick={() => setExpanded(p => ({ ...p, [phaseKey]: !isOpen }))}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-100/60 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-left"
+                  style={{ background: "#f8fafc" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f1f5f9"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#f8fafc"}
                 >
                   <span className="text-base shrink-0">{phase.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13px] font-semibold text-slate-800">{phase.title}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{phase.title}</span>
                       {isHighRisk && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CRITICAL</span>}
                       {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
                       {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
+                      {completedPhaseFlash === phaseKey && (
+                        <span style={{ fontSize: 11, color: "#059669", fontWeight: 600 }}>✓ Complete</span>
+                      )}
                     </div>
-                    {/* Mini inline progress bar — replaces dot strip */}
+                    {/* Mini inline progress bar */}
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[11px] text-slate-400 shrink-0">{allItemsInPhase.length} items</span>
+                      <span style={{ fontSize: 12, color: "#9ca3af" }} className="shrink-0">{allItemsInPhase.length} items · {stats.pct}%</span>
                       <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{ width: `${stats.pct}%`, background: pctColor }}
                         />
                       </div>
-                      <span className="text-[11px] font-bold shrink-0" style={{ color: pctColor }}>{stats.pct}%</span>
                     </div>
                   </div>
                   <svg className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -315,9 +343,16 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                         >
                           {/* Main row */}
                           <div
-                            className="flex items-center gap-3 cursor-pointer select-none hover:bg-[#f8fafc]"
-                            style={{ padding: "10px 16px" }}
+                            className="flex items-center gap-3 cursor-pointer select-none"
+                            style={{
+                              padding: "10px 16px",
+                              background: flashedItem === rowKey ? "#f0fdf4" : undefined,
+                              transition: "background 0.5s",
+                              borderLeft: isHighRisk && !isDone ? "2px solid #fca5a5" : "2px solid transparent",
+                            }}
                             onClick={() => cycleStatus(phaseKey, item.id)}
+                            onMouseEnter={e => { if (flashedItem !== rowKey) (e.currentTarget as HTMLElement).style.background = isHighRisk ? "#fef2f2" : "#f8fafc"; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = flashedItem === rowKey ? "#f0fdf4" : ""; }}
                             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; setSwipeActive(rowKey); }}
                             onTouchEnd={(e) => {
                               const dx = e.changedTouches[0].clientX - touchStartX.current;
@@ -332,7 +367,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
                             {/* Item text */}
                             <div className="flex-1 min-w-0">
-                              <span className={`text-[13px] leading-snug ${isDone ? "text-slate-400 line-through" : isHighRisk ? "font-medium text-slate-900" : "text-slate-700"}`}>
+                              <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : isHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : isHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
                                 {item.text}
                               </span>
                             </div>
