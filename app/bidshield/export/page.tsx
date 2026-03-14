@@ -88,7 +88,7 @@ function ExportContent() {
   const unaddressedScope = scopeData.filter((s: any) => s.status === "unaddressed");
 
   const bidAmt = (project as any)?.totalBidAmount;
-  const grossArea = (project as any)?.sqft || (project as any)?.grossRoofArea;
+  const grossArea = (project as any)?.grossRoofArea || (project as any)?.sqft;
   const dpsf = bidAmt && grossArea ? (bidAmt / grossArea).toFixed(2) : null;
 
   // Readiness score (mirrors page.tsx logic)
