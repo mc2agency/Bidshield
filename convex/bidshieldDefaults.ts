@@ -209,6 +209,23 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-11", text: "SPF density, thickness & coating requirements", systems: ["spf"] },
       { id: "p9-12", text: "EPDM adhesive & seam tape requirements", systems: ["epdm"] },
       { id: "p9-13", text: "Mock-up / test area required per spec?" },
+      // TPO-specific
+      { id: "p9-tpo1", text: "Membrane thickness confirmed (45, 60, or 80 mil)", systems: ["tpo"] },
+      { id: "p9-tpo2", text: "Seam width minimum 1.5\" per spec confirmed", systems: ["tpo"] },
+      { id: "p9-tpo3", text: "Ambient temp limitations for welding noted", systems: ["tpo"] },
+      { id: "p9-tpo4", text: "Attachment method confirmed (mech attached, fully adhered, or induction)", systems: ["tpo"] },
+      // EPDM-specific
+      { id: "p9-epdm1", text: "Attachment method confirmed (ballasted adds 10+ psf — verify structural)", systems: ["epdm"] },
+      { id: "p9-epdm2", text: "Chemical incompatibility with bitumen noted", systems: ["epdm"] },
+      { id: "p9-epdm3", text: "Shrinkage allowance in flashing details confirmed", systems: ["epdm"] },
+      // PVC-specific
+      { id: "p9-pvc1", text: "Grease exhaust proximity confirmed (restaurant/kitchen hoods)", systems: ["pvc"] },
+      { id: "p9-pvc2", text: "Asphalt-impregnated material separation noted", systems: ["pvc"] },
+      { id: "p9-pvc3", text: "Cold-weather brittleness for climate zone reviewed", systems: ["pvc"] },
+      // SBS-specific
+      { id: "p9-sbs1", text: "Torch application fire code restrictions checked", systems: ["sbs"] },
+      { id: "p9-sbs2", text: "Hot work permit required?", systems: ["sbs"] },
+      { id: "p9-sbs3", text: "Interply mopping temp range confirmed", systems: ["sbs"] },
       { id: "p9-fm1", text: "System verified via RoofNav before specifying", fmGlobal: true },
       { id: "p9-fm2", text: "FM rating confirmed (1-60, 1-90, or 1-120)", fmGlobal: true },
       { id: "p9-fm3", text: "No mixing components between FM-approved assemblies", fmGlobal: true },
