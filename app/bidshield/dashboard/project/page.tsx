@@ -56,6 +56,13 @@ function ProjectDetail() {
   const [bidInlineValue, setBidInlineValue] = useState("");
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null, pre1990: null as boolean | null, energyCode: null as boolean | null, climateZone: "" });
+  const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
+  const [outcomeForm, setOutcomeForm] = useState<{
+    result: "won" | "lost" | "no_award" | "pending" | null;
+    competitorName: string;
+    competitorPrice: string;
+    lossReason: string;
+  }>({ result: null, competitorName: "", competitorPrice: "", lossReason: "" });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -121,6 +128,26 @@ function ProjectDetail() {
       climateZone: editProjectForm.climateZone || undefined,
     });
     setEditProjectOpen(false);
+  };
+
+  const saveOutcome = async () => {
+    if (!isValidConvexId || !outcomeForm.result || outcomeForm.result === "pending") {
+      setOutcomeModalOpen(false);
+      return;
+    }
+    const today = new Date().toISOString().split("T")[0];
+    const parseNum = (s: string) => { const n = parseFloat(s); return isNaN(n) ? undefined : n; };
+    await updateProject({
+      projectId: projectIdParam as Id<"bidshield_projects">,
+      status: outcomeForm.result,
+      completedDate: today,
+      ...(outcomeForm.result === "lost" ? {
+        competitorName: outcomeForm.competitorName || undefined,
+        competitorPrice: parseNum(outcomeForm.competitorPrice),
+        lossReason: outcomeForm.lossReason || undefined,
+      } : {}),
+    });
+    setOutcomeModalOpen(false);
   };
 
   const { actionItems, readinessScore, passCount, scores, remaining } = useMemo(() => {
@@ -732,32 +759,171 @@ function ProjectDetail() {
 
             {/* CTA — pinned to bottom */}
             <div style={{ padding: "0 16px 16px", marginTop: "auto" }}>
-              <button
-                onClick={() => openTab("validator")}
-                disabled={blockerCount > 0}
-                style={{
-                  width: "100%",
-                  padding: "12px 0",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  background: blockerCount > 0 ? "#f3f4f6" : "#10b981",
-                  color: blockerCount > 0 ? "#9ca3af" : "#ffffff",
-                  cursor: blockerCount > 0 ? "not-allowed" : "pointer",
-                  transition: "opacity 0.15s",
-                }}
-                className={blockerCount === 0 ? "hover:opacity-90" : ""}
-              >
-                {blockerCount > 0
-                  ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} →`
-                  : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
-              </button>
+              {(projectData as any)?.status === "submitted" ? (
+                <button
+                  onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
+                  style={{ width: "100%", padding: "12px 0", borderRadius: 8, fontSize: 14, fontWeight: 500, background: "#6366f1", color: "#ffffff", cursor: "pointer", transition: "opacity 0.15s" }}
+                  className="hover:opacity-90"
+                >
+                  Record Outcome →
+                </button>
+              ) : (projectData as any)?.status === "won" ? (
+                <div style={{ textAlign: "center", padding: "10px 0" }}>
+                  <span style={{ fontSize: 13, color: "#059669", fontWeight: 600 }}>✓ Won</span>
+                </div>
+              ) : (projectData as any)?.status === "lost" ? (
+                <div style={{ textAlign: "center", padding: "10px 0" }}>
+                  <span style={{ fontSize: 13, color: "#dc2626", fontWeight: 600 }}>✗ Lost{(projectData as any)?.competitorName ? ` — ${(projectData as any).competitorName} won` : ""}</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => openTab("validator")}
+                  disabled={blockerCount > 0}
+                  style={{
+                    width: "100%",
+                    padding: "12px 0",
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    background: blockerCount > 0 ? "#f3f4f6" : "#10b981",
+                    color: blockerCount > 0 ? "#9ca3af" : "#ffffff",
+                    cursor: blockerCount > 0 ? "not-allowed" : "pointer",
+                    transition: "opacity 0.15s",
+                  }}
+                  className={blockerCount === 0 ? "hover:opacity-90" : ""}
+                >
+                  {blockerCount > 0
+                    ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} →`
+                    : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
+                </button>
+              )}
             </div>
           </aside>
 
         </div>
       </div>
     </div>
+
+    {/* Outcome Modal */}
+    {outcomeModalOpen && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{ background: "rgba(0,0,0,0.5)" }}
+        onClick={() => setOutcomeModalOpen(false)}
+      >
+        <div
+          className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4"
+          style={{ padding: 24 }}
+          onClick={e => e.stopPropagation()}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginBottom: 6 }}>Did you win this bid?</h3>
+          <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 20 }}>{(projectData as any)?.name}</p>
+
+          {/* Outcome buttons */}
+          <div className="grid grid-cols-2 gap-3" style={{ marginBottom: 20 }}>
+            {([
+              { label: "🏆 Won", value: "won" as const, bg: "#ecfdf5", border: "#10b981", color: "#065f46" },
+              { label: "✗ Lost", value: "lost" as const, bg: "#fef2f2", border: "#ef4444", color: "#991b1b" },
+              { label: "No Award", value: "no_award" as const, bg: "#f8fafc", border: "#94a3b8", color: "#475569" },
+              { label: "Still Pending", value: "pending" as const, bg: "#fffbeb", border: "#f59e0b", color: "#92400e" },
+            ] as const).map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setOutcomeForm(f => ({ ...f, result: opt.value }))}
+                style={{
+                  padding: "14px 0",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: outcomeForm.result === opt.value ? 700 : 500,
+                  border: outcomeForm.result === opt.value ? `2px solid ${opt.border}` : "1px solid #e5e7eb",
+                  background: outcomeForm.result === opt.value ? opt.bg : "white",
+                  color: outcomeForm.result === opt.value ? opt.color : "#6b7280",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Lost — competitor fields */}
+          {outcomeForm.result === "lost" && (
+            <div className="flex flex-col gap-3" style={{ marginBottom: 20, padding: 14, background: "#fef2f2", borderRadius: 8 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "#991b1b", marginBottom: 2 }}>Loss details (optional but valuable)</p>
+              <div>
+                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Who won? (competitor name)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Apex Roofing"
+                  value={outcomeForm.competitorName}
+                  onChange={e => setOutcomeForm(f => ({ ...f, competitorName: e.target.value }))}
+                  style={{ width: "100%", border: "1px solid #fca5a5", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box", background: "white" }}
+                  onFocus={e => (e.target.style.borderColor = "#ef4444")}
+                  onBlur={e => (e.target.style.borderColor = "#fca5a5")}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Their bid price ($)</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 480000"
+                  value={outcomeForm.competitorPrice}
+                  onChange={e => setOutcomeForm(f => ({ ...f, competitorPrice: e.target.value }))}
+                  style={{ width: "100%", border: "1px solid #fca5a5", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box", background: "white" }}
+                  onFocus={e => (e.target.style.borderColor = "#ef4444")}
+                  onBlur={e => (e.target.style.borderColor = "#fca5a5")}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Loss reason</label>
+                <select
+                  value={outcomeForm.lossReason}
+                  onChange={e => setOutcomeForm(f => ({ ...f, lossReason: e.target.value }))}
+                  style={{ width: "100%", border: "1px solid #fca5a5", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", background: "white", boxSizing: "border-box" }}
+                >
+                  <option value="">Select reason...</option>
+                  <option value="Price too high">Price too high</option>
+                  <option value="GC preference">GC preference</option>
+                  <option value="Scope issue">Scope issue</option>
+                  <option value="Relationship">Relationship</option>
+                  <option value="No bid bond">No bid bond</option>
+                  <option value="Timeline conflict">Timeline conflict</option>
+                  <option value="Unknown">Unknown</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={saveOutcome}
+              disabled={!outcomeForm.result}
+              style={{
+                flex: 1,
+                padding: "10px 0",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 500,
+                background: outcomeForm.result ? "#111827" : "#f3f4f6",
+                color: outcomeForm.result ? "white" : "#9ca3af",
+                border: "none",
+                cursor: outcomeForm.result ? "pointer" : "not-allowed",
+              }}
+            >
+              Save Outcome
+            </button>
+            <button
+              onClick={() => setOutcomeModalOpen(false)}
+              style={{ flex: 1, background: "#f3f4f6", color: "#6b7280", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "none", cursor: "pointer" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Edit Project Modal */}
     {editProjectOpen && (

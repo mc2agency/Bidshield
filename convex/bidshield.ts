@@ -114,6 +114,7 @@ export const updateProject = mutation({
       v.literal("submitted"),
       v.literal("won"),
       v.literal("lost"),
+      v.literal("no_award"),
       v.literal("no_bid")
     )),
     gc: v.optional(v.string()),
@@ -139,6 +140,8 @@ export const updateProject = mutation({
     postJobNotes: v.optional(v.string()),
     fmGlobal: v.optional(v.boolean()),
     pre1990: v.optional(v.boolean()),
+    competitorName: v.optional(v.string()),
+    competitorPrice: v.optional(v.number()),
     energyCode: v.optional(v.boolean()),
     climateZone: v.optional(v.string()),
   },
@@ -604,7 +607,46 @@ export const getComparisonData = query({
       }
     }
 
-    return { projects, assemblyStats, gcStats, lossReasons };
+    // Win rate by system type
+    const systemStats: Record<string, { won: number; lost: number; total: number }> = {};
+    for (const p of projects) {
+      const sys = p.systemType || "other";
+      if (p.status === "won" || p.status === "lost") {
+        if (!systemStats[sys]) systemStats[sys] = { won: 0, lost: 0, total: 0 };
+        systemStats[sys].total += 1;
+        if (p.status === "won") systemStats[sys].won += 1;
+        if (p.status === "lost") systemStats[sys].lost += 1;
+      }
+    }
+
+    // Win rate by project size
+    const sizeStats = { small: { won: 0, lost: 0 }, medium: { won: 0, lost: 0 }, large: { won: 0, lost: 0 } };
+    for (const p of projects) {
+      if (p.status !== "won" && p.status !== "lost") continue;
+      const sf = p.sqft || p.grossRoofArea || 0;
+      const bucket = sf < 5000 ? "small" : sf <= 25000 ? "medium" : "large";
+      if (p.status === "won") sizeStats[bucket].won += 1;
+      if (p.status === "lost") sizeStats[bucket].lost += 1;
+    }
+
+    // Competitor intelligence
+    const competitorData: { name: string; count: number; avgPrice: number; avgDpsf: number }[] = [];
+    const compMap: Record<string, { count: number; totalPrice: number; totalDpsf: number }> = {};
+    for (const p of projects) {
+      if (p.status === "lost" && p.competitorName) {
+        const n = p.competitorName;
+        if (!compMap[n]) compMap[n] = { count: 0, totalPrice: 0, totalDpsf: 0 };
+        compMap[n].count += 1;
+        if (p.competitorPrice) compMap[n].totalPrice += p.competitorPrice;
+        if (p.competitorPrice && p.sqft && p.sqft > 0) compMap[n].totalDpsf += p.competitorPrice / p.sqft;
+      }
+    }
+    for (const [name, d] of Object.entries(compMap)) {
+      competitorData.push({ name, count: d.count, avgPrice: d.count > 0 ? d.totalPrice / d.count : 0, avgDpsf: d.count > 0 ? d.totalDpsf / d.count : 0 });
+    }
+    competitorData.sort((a, b) => b.count - a.count);
+
+    return { projects, assemblyStats, gcStats, lossReasons, systemStats, sizeStats, competitorData };
   },
 });
 
