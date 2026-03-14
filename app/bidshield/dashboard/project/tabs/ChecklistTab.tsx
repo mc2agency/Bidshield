@@ -14,7 +14,7 @@ const statusConfig: Record<ChecklistStatus, { icon: string; color: string; bg: s
   done:    { icon: "✓", color: "text-emerald-600", bg: "bg-emerald-50",  ring: "ring-emerald-200" },
   pending: { icon: "○", color: "text-slate-400",   bg: "bg-slate-50",    ring: "ring-slate-200"   },
   rfi:     { icon: "?", color: "text-amber-600",   bg: "bg-amber-50",    ring: "ring-amber-200"   },
-  warning: { icon: "⚠", color: "text-red-600",     bg: "bg-red-50",      ring: "ring-red-200"     },
+  warning: { icon: "⚑", color: "text-orange-500",  bg: "bg-orange-50",   ring: "ring-orange-200"  },
   na:      { icon: "—", color: "text-slate-400",   bg: "bg-slate-50",    ring: "ring-slate-200"   },
 };
 
@@ -55,6 +55,9 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const [filter, setFilter]           = useState<FilterMode>("incomplete");
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText]       = useState("");
+  const [savedNoteFlash, setSavedNoteFlash] = useState<string | null>(null);
+  const [rfiDrawerKey, setRfiDrawerKey] = useState<string | null>(null);
+  const [rfiQuestion, setRfiQuestion]   = useState("");
   const touchStartX = useRef<number>(0);
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
 
@@ -92,6 +95,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   }, [getItemStatus, setStatus]);
 
   const saveNote = useCallback(async (phaseKey: string, itemId: string, note: string) => {
+    const rk = `${phaseKey}-${itemId}`;
     if (isDemo) {
       setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, notes: note } : i));
     } else {
@@ -99,6 +103,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
       await updateChecklist({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: (current as any)?.status || "pending", notes: note });
     }
     setEditingNote(null);
+    if (note.trim()) {
+      setSavedNoteFlash(rk);
+      setTimeout(() => setSavedNoteFlash(f => f === rk ? null : f), 1500);
+    }
   }, [isDemo, resolvedItems, projectId, updateChecklist]);
 
   const getPhaseStats = useCallback((phaseKey: string) => {
@@ -125,11 +133,17 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   }, [checklistTemplate, resolvedItems, getItemStatus]);
 
   const visiblePhases = useMemo(() => {
-    return Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
+    const phases = Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
       const p = phase as any;
       const items = p.items.filter((item: any) => matchesFilter(getItemStatus(phaseKey, item.id), filter));
       return { phaseKey, phase: p, items };
     }).filter(({ items }) => items.length > 0);
+    // Always anchor Phase 1 (Project Setup) at top in filtered views even if fully complete
+    if (filter !== "all" && !phases.some(p => p.phaseKey === "phase1") && checklistTemplate["phase1"]) {
+      const p1 = checklistTemplate["phase1"] as any;
+      phases.unshift({ phaseKey: "phase1", phase: p1, items: [] });
+    }
+    return phases;
   }, [checklistTemplate, filter, resolvedItems, getItemStatus]);
 
   const bidDate  = project?.bidDate ? new Date(project.bidDate) : null;
@@ -275,26 +289,33 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 )}
 
                 {/* Items — 40px rows, note hover-only */}
-                {isOpen && (
+                {isOpen && items.length === 0 && (
+                  <div className="px-4 py-2.5 border-t border-[#e2e8f0] text-xs text-emerald-600 font-medium flex items-center gap-1.5">
+                    <span>✓</span> All items complete
+                  </div>
+                )}
+                {isOpen && items.length > 0 && (
                   <div className="border-t border-[#e2e8f0] divide-y divide-[#f1f5f9]">
                     {items.map((item: any) => {
-                      const status           = getItemStatus(phaseKey, item.id);
-                      const note             = getItemNote(phaseKey, item.id);
-                      const config           = statusConfig[status];
-                      const rowKey           = `${phaseKey}-${item.id}`;
-                      const isDone           = status === "done" || status === "na";
-                      const isSwipe          = swipeActive === rowKey;
+                      const status            = getItemStatus(phaseKey, item.id);
+                      const note              = getItemNote(phaseKey, item.id);
+                      const config            = statusConfig[status];
+                      const rowKey            = `${phaseKey}-${item.id}`;
+                      const isDone            = status === "done" || status === "na";
+                      const isFlagged         = status === "warning";
+                      const isSwipe           = swipeActive === rowKey;
                       const isEditingThisNote = editingNote === rowKey;
+                      const isRfiDrawerOpen   = rfiDrawerKey === rowKey;
+                      const noteSaved         = savedNoteFlash === rowKey;
 
                       return (
                         <div
                           key={item.id}
                           className={`group transition-colors ${isSwipe ? "bg-slate-100" : ""}`}
-                          style={{ background: isSwipe ? undefined : undefined }}
                         >
                           {/* Main row */}
                           <div
-                            className="flex items-center gap-3 px-4 cursor-pointer select-none hover:bg-[#f8fafc]"
+                            className="flex items-center gap-3 cursor-pointer select-none hover:bg-[#f8fafc]"
                             style={{ padding: "10px 16px" }}
                             onClick={() => cycleStatus(phaseKey, item.id)}
                             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; setSwipeActive(rowKey); }}
@@ -314,31 +335,60 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               <span className={`text-[13px] leading-snug ${isDone ? "text-slate-400 line-through" : isHighRisk ? "font-medium text-slate-900" : "text-slate-700"}`}>
                                 {item.text}
                               </span>
-                              {note && !isEditingThisNote && (
-                                <p className="text-[11px] text-slate-400 mt-0.5 truncate">📝 {note.slice(0, 60)}{note.length > 60 ? "…" : ""}</p>
-                              )}
                             </div>
 
-                            {/* RFI badge */}
+                            {/* RFI badge — opens inline drawer, no navigate */}
                             {status === "rfi" && (
                               <button
-                                onClick={(e) => { e.stopPropagation(); onNavigateTab?.("rfis"); }}
-                                className="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-semibold shrink-0 transition-colors"
+                                onClick={(e) => { e.stopPropagation(); setRfiDrawerKey(prev => prev === rowKey ? null : rowKey); setRfiQuestion(item.text); }}
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 transition-colors ${isRfiDrawerOpen ? "bg-amber-200 text-amber-800" : "bg-amber-100 hover:bg-amber-200 text-amber-700"}`}
                               >
-                                RFI →
+                                RFI {isRfiDrawerOpen ? "▲" : "▼"}
                               </button>
                             )}
 
-                            {/* + Note button — hover only, fades in on right */}
+                            {/* Flag button — hover only */}
+                            {!isEditingThisNote && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, isFlagged ? "pending" : "warning"); }}
+                                className={`transition-all shrink-0 text-sm ${isFlagged ? "text-orange-500" : "opacity-0 group-hover:opacity-100 text-slate-300 hover:text-orange-400"}`}
+                                title={isFlagged ? "Unflag" : "Flag for review"}
+                              >
+                                ⚑
+                              </button>
+                            )}
+
+                            {/* + Note button — hover only */}
                             {!isEditingThisNote && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] text-slate-400 hover:text-emerald-600 shrink-0 ml-1"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] text-slate-400 hover:text-emerald-600 shrink-0"
                               >
-                                {note ? "Edit note" : "+ Note"}
+                                {note ? "Edit" : "+ Note"}
                               </button>
                             )}
                           </div>
+
+                          {/* Persistent note display */}
+                          {note && !isEditingThisNote && (
+                            <div
+                              className="mx-4 mb-2 group/note flex items-start gap-2 cursor-pointer"
+                              style={{ background: "#f8fafc", borderRadius: 6, padding: "6px 10px" }}
+                              onClick={e => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
+                            >
+                              <p className="text-[12px] text-slate-500 flex-1" style={{ lineHeight: 1.4 }}>{note}</p>
+                              <svg className="w-3 h-3 text-slate-300 group-hover/note:text-slate-500 transition-colors shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
+                              </svg>
+                              {noteSaved && (
+                                <span className="text-[10px] text-emerald-600 font-semibold shrink-0">Saved ✓</span>
+                              )}
+                            </div>
+                          )}
+                          {/* Saved flash when no note was there before */}
+                          {noteSaved && !note && (
+                            <div className="mx-4 mb-2 text-[11px] text-emerald-600 font-medium px-2">Saved ✓</div>
+                          )}
 
                           {/* Note editing textarea */}
                           {isEditingThisNote && (
@@ -354,6 +404,34 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
                               />
                               <p className="text-[10px] text-slate-400 mt-0.5">Blur or ⌘↵ to save · Esc to cancel</p>
+                            </div>
+                          )}
+
+                          {/* RFI inline drawer */}
+                          {isRfiDrawerOpen && (
+                            <div className="mx-4 mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg" onClick={e => e.stopPropagation()}>
+                              <div className="text-[11px] font-semibold text-amber-800 mb-2">RFI Details</div>
+                              <textarea
+                                value={rfiQuestion}
+                                onChange={e => setRfiQuestion(e.target.value)}
+                                placeholder="Describe your question or clarification needed..."
+                                rows={2}
+                                className="w-full text-xs text-slate-700 bg-white border border-amber-200 rounded px-3 py-2 resize-none focus:outline-none focus:border-amber-400"
+                              />
+                              <div className="flex items-center gap-2 mt-2">
+                                <button
+                                  onClick={() => { setRfiDrawerKey(null); onNavigateTab?.("rfis"); }}
+                                  className="text-[11px] bg-amber-600 text-white px-3 py-1.5 rounded font-medium hover:bg-amber-700 transition-colors"
+                                >
+                                  + Create RFI
+                                </button>
+                                <button
+                                  onClick={() => setRfiDrawerKey(null)}
+                                  className="text-[11px] text-slate-500 hover:text-slate-700 transition-colors"
+                                >
+                                  Close
+                                </button>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -372,7 +450,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           {Object.entries(statusConfig).map(([status, config]) => (
             <div key={status} className="flex items-center gap-1">
               <span className={`w-4 h-4 flex items-center justify-center rounded ring-1 text-[8px] font-bold ${config.color} ${config.bg} ${config.ring}`}>{config.icon}</span>
-              <span className="text-[10px] text-slate-500 capitalize">{status}</span>
+              <span className="text-[10px] text-slate-500 capitalize">{status === "warning" ? "flagged" : status}</span>
             </div>
           ))}
         </div>
