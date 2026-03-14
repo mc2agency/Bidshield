@@ -87,7 +87,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p2-1", text: "All addenda received" },
       { id: "p2-2", text: "Drawing set complete (A, S, M, P, E)" },
       { id: "p2-3", text: "Specifications received" },
-      { id: "p2-4", text: "Geotechnical report (if applicable)" },
+      { id: "p2-4", text: "Owner's Project Requirements (OPR) received" },
       { id: "p2-5", text: "Bid form received" },
       { id: "p2-6", text: "Number of addenda confirmed with GC" },
       { id: "p2-7", text: "All addenda acknowledged on bid form" },
@@ -109,6 +109,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p3-8", text: "Roof slope direction confirmed" },
       { id: "p3-9", text: "Green roof areas identified (if applicable)" },
       { id: "p3-10", text: "Paver/walking pad areas identified" },
+      { id: "p3-11", text: "Skylight locations and curb details identified" },
+      { id: "p3-12", text: "Existing roof assembly confirmed (recover vs full tearoff)" },
     ],
   },
   phase4: {
@@ -134,7 +136,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
     title: "Mechanical Review",
     icon: "⚙️",
     critical: true,
-    criticalRule: "ALWAYS trust the equipment schedule over plan graphics for curb sizes!",
+    criticalRule: "Mechanical curb misses cost $30K–$80K on average — verify every RTU curb height and dimensions against structural drawings",
     items: [
       { id: "p5-1", text: "RTU locations & curb sizes from schedule" },
       { id: "p5-2", text: "Exhaust fans counted & curb sizes noted" },
@@ -166,6 +168,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p7-3", text: "Lightning protection requirements noted" },
       { id: "p7-4", text: "Photovoltaic provisions identified" },
       { id: "p7-5", text: "Emergency power equipment noted" },
+      { id: "p7-6", text: "Data, comm, and low-voltage penetrations counted" },
     ],
   },
   phase8: {
@@ -178,6 +181,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p8-3", text: "Crane/equipment placement noted" },
       { id: "p8-4", text: "DOT requirements checked (if applicable)" },
       { id: "p8-5", text: "Adjacent property constraints noted" },
+      { id: "p8-6", text: "Working hours restrictions confirmed" },
+      { id: "p8-7", text: "Delivery access and loading dock availability confirmed" },
     ],
   },
   phase9: {
@@ -199,6 +204,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-10", text: "Metal panel gauge, profile & finish specified", systems: ["metal"] },
       { id: "p9-11", text: "SPF density, thickness & coating requirements", systems: ["spf"] },
       { id: "p9-12", text: "EPDM adhesive & seam tape requirements", systems: ["epdm"] },
+      { id: "p9-13", text: "Mock-up / test area required per spec?" },
     ],
   },
   phase10: {
@@ -274,6 +280,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p13-7", text: "Asphalt/bitumen quantities calculated", systems: ["sbs", "app", "bur"] },
       { id: "p13-8", text: "Metal panel clips & fastener quantities", systems: ["metal"] },
       { id: "p13-9", text: "SPF foam & coating quantities calculated", systems: ["spf"] },
+      { id: "p13-10", text: "Material lead times checked (note if >3 weeks)" },
     ],
   },
   phase14: {
@@ -336,6 +343,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p16-2", text: "Bid submitted before deadline" },
       { id: "p16-3", text: "Confirmation of receipt obtained" },
       { id: "p16-4", text: "Copy saved to project file" },
+      { id: "p16-5", text: "Sub-bid deadline confirmed (if using subcontractors)" },
     ],
   },
 };
@@ -457,6 +465,7 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p16-2", text: "Bid submitted before deadline" },
       { id: "p16-3", text: "Confirmation of receipt obtained" },
       { id: "p16-4", text: "Copy saved to project file" },
+      { id: "p16-5", text: "Sub-bid deadline confirmed (if using subcontractors)" },
     ],
   },
 };
