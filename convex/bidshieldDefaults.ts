@@ -8,6 +8,8 @@ export interface ChecklistItemDef {
   systems?: string[]; // Only show for these system types. Omit = show for all.
   decks?: string[];   // Only show for these deck types. Omit = show for all.
   fmGlobal?: boolean; // Only show when building is FM Global insured.
+  pre1990?: boolean;  // Only show when building was constructed before 1990.
+  critical?: boolean; // Item-level critical flag (red border + bold text).
 }
 
 export interface ChecklistPhaseDef {
@@ -112,6 +114,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p3-10", text: "Paver/walking pad areas identified" },
       { id: "p3-11", text: "Skylight locations and curb details identified" },
       { id: "p3-12", text: "Existing roof assembly confirmed (recover vs full tearoff)" },
+      { id: "p3-pre90", text: "Designated Substance Survey required before pricing any tear-off scope", pre1990: true, critical: true },
     ],
   },
   phase4: {
@@ -381,6 +384,7 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p2-6", text: "Number of addenda confirmed with GC" },
       { id: "p2-7", text: "All addenda acknowledged on bid form" },
       { id: "p2-8", text: "Addenda changes incorporated into estimate" },
+      { id: "p2-pre90", text: "Designated Substance Survey required before pricing any tear-off scope", pre1990: true, critical: true },
     ],
   },
   phase9: {
@@ -483,7 +487,8 @@ function filterItems(
   items: ChecklistItemDef[],
   systemType?: string,
   deckType?: string,
-  fmGlobal?: boolean
+  fmGlobal?: boolean,
+  pre1990?: boolean
 ): ChecklistItemDef[] {
   return items.filter(item => {
     // If item is system-specific, only include when matching system is selected
@@ -498,6 +503,10 @@ function filterItems(
     if (item.fmGlobal) {
       if (!fmGlobal) return false;
     }
+    // Pre-1990 items only shown when building was constructed before 1990
+    if (item.pre1990) {
+      if (!pre1990) return false;
+    }
     return true;
   });
 }
@@ -506,7 +515,8 @@ export function getChecklistForTrade(
   trade: string,
   systemType?: string,
   deckType?: string,
-  fmGlobal?: boolean
+  fmGlobal?: boolean,
+  pre1990?: boolean
 ): Record<string, ChecklistPhaseDef> {
   let sourcePhases: Record<string, ChecklistPhaseDef>;
 
@@ -521,7 +531,7 @@ export function getChecklistForTrade(
 
   const result: Record<string, ChecklistPhaseDef> = {};
   for (const [key, phase] of Object.entries(sourcePhases)) {
-    const filteredItems = filterItems(phase.items, systemType, deckType, fmGlobal);
+    const filteredItems = filterItems(phase.items, systemType, deckType, fmGlobal, pre1990);
     if (filteredItems.length > 0) {
       result[key] = { ...phase, items: filteredItems };
     }

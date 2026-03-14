@@ -96,6 +96,7 @@ export default defineSchema({
     postJobStatus: v.optional(v.string()), // "in_progress", "completed", "actuals_entered"
     postJobNotes: v.optional(v.string()), // Lessons learned, variance explanations
     fmGlobal: v.optional(v.boolean()), // Is this building FM Global insured?
+    pre1990: v.optional(v.boolean()), // Was this building constructed before 1990?
     createdAt: v.number(),
     updatedAt: v.number(),
   })

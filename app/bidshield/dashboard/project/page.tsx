@@ -55,7 +55,7 @@ function ProjectDetail() {
   const [editingBidInline, setEditingBidInline] = useState(false);
   const [bidInlineValue, setBidInlineValue] = useState("");
   const [editProjectOpen, setEditProjectOpen] = useState(false);
-  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null });
+  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null, pre1990: null as boolean | null });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -96,6 +96,7 @@ function ProjectDetail() {
       sqft: ((projectData as any)?.grossRoofArea ?? (projectData as any)?.sqft ?? "").toString(),
       totalBidAmount: ((projectData as any)?.totalBidAmount ?? "").toString(),
       fmGlobal: (projectData as any)?.fmGlobal ?? null,
+      pre1990: (projectData as any)?.pre1990 ?? null,
     });
     setEditProjectOpen(true);
   };
@@ -113,6 +114,7 @@ function ProjectDetail() {
       sqft: parseNum(editProjectForm.sqft),
       totalBidAmount: parseNum(editProjectForm.totalBidAmount),
       fmGlobal: editProjectForm.fmGlobal === null ? undefined : editProjectForm.fmGlobal,
+      pre1990: editProjectForm.pre1990 === null ? undefined : editProjectForm.pre1990,
     });
     setEditProjectOpen(false);
   };
@@ -644,12 +646,19 @@ function ProjectDetail() {
                 {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
               </div>
 
-              {/* 3b. FM Global badge */}
-              {(projectData as any)?.fmGlobal === true && (
-                <div style={{ marginBottom: 16 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#1d4ed8", background: "#eff6ff", border: "1px solid #bfdbfe", padding: "3px 8px", borderRadius: 4 }}>
-                    FM Global Insured
-                  </span>
+              {/* 3b. Project flags (FM Global, Pre-1990) */}
+              {((projectData as any)?.fmGlobal === true || (projectData as any)?.pre1990 === true) && (
+                <div style={{ marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {(projectData as any)?.fmGlobal === true && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#1d4ed8", background: "#eff6ff", border: "1px solid #bfdbfe", padding: "3px 8px", borderRadius: 4 }}>
+                      FM Global Insured
+                    </span>
+                  )}
+                  {(projectData as any)?.pre1990 === true && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", padding: "3px 8px", borderRadius: 4 }}>
+                      ⚠ Pre-1990 — DSS Required
+                    </span>
+                  )}
                 </div>
               )}
 
@@ -808,6 +817,41 @@ function ProjectDetail() {
               </div>
               {editProjectForm.fmGlobal === true && (
                 <p style={{ fontSize: 11, color: "#059669", marginTop: 5 }}>3 FM Global checklist items will appear in Specification Review</p>
+              )}
+            </div>
+            {/* Pre-1990 toggle */}
+            <div>
+              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, display: "block" }}>Building constructed before 1990?</label>
+              <div className="flex gap-2">
+                {([{ label: "Unknown", value: null }, { label: "No", value: false }, { label: "Yes", value: true }] as { label: string; value: boolean | null }[]).map(opt => (
+                  <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => setEditProjectForm(f => ({ ...f, pre1990: opt.value }))}
+                    style={{
+                      flex: 1,
+                      padding: "7px 0",
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: editProjectForm.pre1990 === opt.value ? 600 : 400,
+                      border: editProjectForm.pre1990 === opt.value
+                        ? (opt.value === true ? "2px solid #f59e0b" : opt.value === false ? "2px solid #6b7280" : "2px solid #d1d5db")
+                        : "1px solid #e5e7eb",
+                      background: editProjectForm.pre1990 === opt.value
+                        ? (opt.value === true ? "#fffbeb" : opt.value === false ? "#f3f4f6" : "#f9fafb")
+                        : "white",
+                      color: editProjectForm.pre1990 === opt.value
+                        ? (opt.value === true ? "#b45309" : "#374151")
+                        : "#9ca3af",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {editProjectForm.pre1990 === true && (
+                <p style={{ fontSize: 11, color: "#b45309", marginTop: 5 }}>⚠ DSS warning item will appear in Architectural Review checklist</p>
               )}
             </div>
           </div>

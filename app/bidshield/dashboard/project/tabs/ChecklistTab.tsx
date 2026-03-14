@@ -68,7 +68,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const systemType        = project?.systemType;
   const deckType          = project?.deckType;
   const fmGlobal          = project?.fmGlobal ?? false;
-  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal);
+  const pre1990           = project?.pre1990 ?? false;
+  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal, pre1990);
   const resolvedItems     = isDemo ? demoState : (checklistItems ?? []);
 
   const overall = isDemo
@@ -336,6 +337,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                       const isEditingThisNote = editingNote === rowKey;
                       const isRfiDrawerOpen   = rfiDrawerKey === rowKey;
                       const noteSaved         = savedNoteFlash === rowKey;
+                      const itemIsHighRisk    = isHighRisk || !!item.critical;
 
                       return (
                         <div
@@ -349,10 +351,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               padding: "10px 16px",
                               background: flashedItem === rowKey ? "#f0fdf4" : undefined,
                               transition: "background 0.5s",
-                              borderLeft: isHighRisk && !isDone ? "2px solid #fca5a5" : "2px solid transparent",
+                              borderLeft: itemIsHighRisk && !isDone ? "2px solid #fca5a5" : "2px solid transparent",
                             }}
                             onClick={() => cycleStatus(phaseKey, item.id)}
-                            onMouseEnter={e => { if (flashedItem !== rowKey) (e.currentTarget as HTMLElement).style.background = isHighRisk ? "#fef2f2" : "#f8fafc"; }}
+                            onMouseEnter={e => { if (flashedItem !== rowKey) (e.currentTarget as HTMLElement).style.background = itemIsHighRisk ? "#fef2f2" : "#f8fafc"; }}
                             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = flashedItem === rowKey ? "#f0fdf4" : ""; }}
                             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; setSwipeActive(rowKey); }}
                             onTouchEnd={(e) => {
@@ -368,7 +370,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
                             {/* Item text */}
                             <div className="flex-1 min-w-0">
-                              <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : isHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : isHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
+                              <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : itemIsHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : itemIsHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
                                 {item.text}
                               </span>
                             </div>
