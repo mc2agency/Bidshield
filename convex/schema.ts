@@ -95,6 +95,7 @@ export default defineSchema({
     actualOtherCost: v.optional(v.number()),
     postJobStatus: v.optional(v.string()), // "in_progress", "completed", "actuals_entered"
     postJobNotes: v.optional(v.string()), // Lessons learned, variance explanations
+    fmGlobal: v.optional(v.boolean()), // Is this building FM Global insured?
     createdAt: v.number(),
     updatedAt: v.number(),
   })

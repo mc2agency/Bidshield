@@ -55,7 +55,7 @@ function ProjectDetail() {
   const [editingBidInline, setEditingBidInline] = useState(false);
   const [bidInlineValue, setBidInlineValue] = useState("");
   const [editProjectOpen, setEditProjectOpen] = useState(false);
-  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "" });
+  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -95,6 +95,7 @@ function ProjectDetail() {
       bidDate: projectData?.bidDate ?? "",
       sqft: ((projectData as any)?.grossRoofArea ?? (projectData as any)?.sqft ?? "").toString(),
       totalBidAmount: ((projectData as any)?.totalBidAmount ?? "").toString(),
+      fmGlobal: (projectData as any)?.fmGlobal ?? null,
     });
     setEditProjectOpen(true);
   };
@@ -111,6 +112,7 @@ function ProjectDetail() {
       grossRoofArea: parseNum(editProjectForm.sqft),
       sqft: parseNum(editProjectForm.sqft),
       totalBidAmount: parseNum(editProjectForm.totalBidAmount),
+      fmGlobal: editProjectForm.fmGlobal === null ? undefined : editProjectForm.fmGlobal,
     });
     setEditProjectOpen(false);
   };
@@ -642,6 +644,15 @@ function ProjectDetail() {
                 {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
               </div>
 
+              {/* 3b. FM Global badge */}
+              {(projectData as any)?.fmGlobal === true && (
+                <div style={{ marginBottom: 16 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#1d4ed8", background: "#eff6ff", border: "1px solid #bfdbfe", padding: "3px 8px", borderRadius: 4 }}>
+                    FM Global Insured
+                  </span>
+                </div>
+              )}
+
               {/* 4. Manufacturers */}
               {sys && (
                 <div style={{ paddingBottom: 20 }}>
@@ -756,7 +767,7 @@ function ProjectDetail() {
                 <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>{label}</label>
                 <input
                   type={type}
-                  value={editProjectForm[key]}
+                  value={editProjectForm[key] as string}
                   onChange={e => setEditProjectForm(f => ({ ...f, [key]: e.target.value }))}
                   style={{ width: "100%", border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box" }}
                   onFocus={e => (e.target.style.borderColor = "#10b981")}
@@ -764,6 +775,41 @@ function ProjectDetail() {
                 />
               </div>
             ))}
+            {/* FM Global toggle */}
+            <div>
+              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, display: "block" }}>FM Global Insured?</label>
+              <div className="flex gap-2">
+                {([{ label: "Unknown", value: null }, { label: "No", value: false }, { label: "Yes", value: true }] as { label: string; value: boolean | null }[]).map(opt => (
+                  <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => setEditProjectForm(f => ({ ...f, fmGlobal: opt.value }))}
+                    style={{
+                      flex: 1,
+                      padding: "7px 0",
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: editProjectForm.fmGlobal === opt.value ? 600 : 400,
+                      border: editProjectForm.fmGlobal === opt.value
+                        ? (opt.value === true ? "2px solid #10b981" : opt.value === false ? "2px solid #6b7280" : "2px solid #d1d5db")
+                        : "1px solid #e5e7eb",
+                      background: editProjectForm.fmGlobal === opt.value
+                        ? (opt.value === true ? "#ecfdf5" : opt.value === false ? "#f3f4f6" : "#f9fafb")
+                        : "white",
+                      color: editProjectForm.fmGlobal === opt.value
+                        ? (opt.value === true ? "#059669" : "#374151")
+                        : "#9ca3af",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {editProjectForm.fmGlobal === true && (
+                <p style={{ fontSize: 11, color: "#059669", marginTop: 5 }}>3 FM Global checklist items will appear in Specification Review</p>
+              )}
+            </div>
           </div>
           <div className="flex gap-3" style={{ marginTop: 20 }}>
             <button

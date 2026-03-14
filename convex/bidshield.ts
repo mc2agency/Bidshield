@@ -137,6 +137,7 @@ export const updateProject = mutation({
     actualOtherCost: v.optional(v.number()),
     postJobStatus: v.optional(v.string()),
     postJobNotes: v.optional(v.string()),
+    fmGlobal: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { projectId, ...updates } = args;

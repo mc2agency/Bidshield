@@ -67,7 +67,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const trade             = project?.trade || "roofing";
   const systemType        = project?.systemType;
   const deckType          = project?.deckType;
-  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType);
+  const fmGlobal          = project?.fmGlobal ?? false;
+  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal);
   const resolvedItems     = isDemo ? demoState : (checklistItems ?? []);
 
   const overall = isDemo

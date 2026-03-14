@@ -7,6 +7,7 @@ export interface ChecklistItemDef {
   text: string;
   systems?: string[]; // Only show for these system types. Omit = show for all.
   decks?: string[];   // Only show for these deck types. Omit = show for all.
+  fmGlobal?: boolean; // Only show when building is FM Global insured.
 }
 
 export interface ChecklistPhaseDef {
@@ -205,6 +206,9 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-11", text: "SPF density, thickness & coating requirements", systems: ["spf"] },
       { id: "p9-12", text: "EPDM adhesive & seam tape requirements", systems: ["epdm"] },
       { id: "p9-13", text: "Mock-up / test area required per spec?" },
+      { id: "p9-fm1", text: "System verified via RoofNav before specifying", fmGlobal: true },
+      { id: "p9-fm2", text: "FM rating confirmed (1-60, 1-90, or 1-120)", fmGlobal: true },
+      { id: "p9-fm3", text: "No mixing components between FM-approved assemblies", fmGlobal: true },
     ],
   },
   phase10: {
@@ -393,6 +397,9 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-5", text: "Installation requirements noted" },
       { id: "p9-6", text: "Testing requirements noted" },
       { id: "p9-7", text: "Special inspections required?" },
+      { id: "p9-fm1", text: "System verified via RoofNav before specifying", fmGlobal: true },
+      { id: "p9-fm2", text: "FM rating confirmed (1-60, 1-90, or 1-120)", fmGlobal: true },
+      { id: "p9-fm3", text: "No mixing components between FM-approved assemblies", fmGlobal: true },
     ],
   },
   phase17: {
@@ -475,7 +482,8 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
 function filterItems(
   items: ChecklistItemDef[],
   systemType?: string,
-  deckType?: string
+  deckType?: string,
+  fmGlobal?: boolean
 ): ChecklistItemDef[] {
   return items.filter(item => {
     // If item is system-specific, only include when matching system is selected
@@ -486,6 +494,10 @@ function filterItems(
     if (item.decks) {
       if (!deckType || !item.decks.includes(deckType)) return false;
     }
+    // FM Global items only shown when building is FM Global insured
+    if (item.fmGlobal) {
+      if (!fmGlobal) return false;
+    }
     return true;
   });
 }
@@ -493,7 +505,8 @@ function filterItems(
 export function getChecklistForTrade(
   trade: string,
   systemType?: string,
-  deckType?: string
+  deckType?: string,
+  fmGlobal?: boolean
 ): Record<string, ChecklistPhaseDef> {
   let sourcePhases: Record<string, ChecklistPhaseDef>;
 
@@ -508,7 +521,7 @@ export function getChecklistForTrade(
 
   const result: Record<string, ChecklistPhaseDef> = {};
   for (const [key, phase] of Object.entries(sourcePhases)) {
-    const filteredItems = filterItems(phase.items, systemType, deckType);
+    const filteredItems = filterItems(phase.items, systemType, deckType, fmGlobal);
     if (filteredItems.length > 0) {
       result[key] = { ...phase, items: filteredItems };
     }
