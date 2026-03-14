@@ -69,7 +69,9 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const deckType          = project?.deckType;
   const fmGlobal          = project?.fmGlobal ?? false;
   const pre1990           = project?.pre1990 ?? false;
-  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal, pre1990);
+  const energyCode        = project?.energyCode ?? false;
+  const climateZone       = project?.climateZone ?? "";
+  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal, pre1990, energyCode);
   const resolvedItems     = isDemo ? demoState : (checklistItems ?? []);
 
   const overall = isDemo
@@ -371,8 +373,22 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                             {/* Item text */}
                             <div className="flex-1 min-w-0">
                               <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : itemIsHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : itemIsHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
-                                {item.text}
+                                {item.id === "p9-ec1" && climateZone
+                                  ? `${item.text} ${climateZone}`
+                                  : item.text}
                               </span>
+                              {item.helpUrl && !isDone && (
+                                <a
+                                  href={item.helpUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
+                                  style={{ fontSize: 11, color: "#6366f1", marginTop: 2, display: "block", textDecoration: "none" }}
+                                  className="hover:underline"
+                                >
+                                  ASHRAE 90.1 Climate Zone Table ↗
+                                </a>
+                              )}
                             </div>
 
                             {/* RFI badge — opens inline drawer, no navigate */}

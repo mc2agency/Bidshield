@@ -97,6 +97,8 @@ export default defineSchema({
     postJobNotes: v.optional(v.string()), // Lessons learned, variance explanations
     fmGlobal: v.optional(v.boolean()), // Is this building FM Global insured?
     pre1990: v.optional(v.boolean()), // Was this building constructed before 1990?
+    energyCode: v.optional(v.boolean()), // Does project replace >50% roof area or >2,000 SF?
+    climateZone: v.optional(v.string()), // ASHRAE climate zone (1-8)
     createdAt: v.number(),
     updatedAt: v.number(),
   })

@@ -55,7 +55,7 @@ function ProjectDetail() {
   const [editingBidInline, setEditingBidInline] = useState(false);
   const [bidInlineValue, setBidInlineValue] = useState("");
   const [editProjectOpen, setEditProjectOpen] = useState(false);
-  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null, pre1990: null as boolean | null });
+  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null, pre1990: null as boolean | null, energyCode: null as boolean | null, climateZone: "" });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -97,6 +97,8 @@ function ProjectDetail() {
       totalBidAmount: ((projectData as any)?.totalBidAmount ?? "").toString(),
       fmGlobal: (projectData as any)?.fmGlobal ?? null,
       pre1990: (projectData as any)?.pre1990 ?? null,
+      energyCode: (projectData as any)?.energyCode ?? null,
+      climateZone: (projectData as any)?.climateZone ?? "",
     });
     setEditProjectOpen(true);
   };
@@ -115,6 +117,8 @@ function ProjectDetail() {
       totalBidAmount: parseNum(editProjectForm.totalBidAmount),
       fmGlobal: editProjectForm.fmGlobal === null ? undefined : editProjectForm.fmGlobal,
       pre1990: editProjectForm.pre1990 === null ? undefined : editProjectForm.pre1990,
+      energyCode: editProjectForm.energyCode === null ? undefined : editProjectForm.energyCode,
+      climateZone: editProjectForm.climateZone || undefined,
     });
     setEditProjectOpen(false);
   };
@@ -646,8 +650,8 @@ function ProjectDetail() {
                 {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
               </div>
 
-              {/* 3b. Project flags (FM Global, Pre-1990) */}
-              {((projectData as any)?.fmGlobal === true || (projectData as any)?.pre1990 === true) && (
+              {/* 3b. Project flags (FM Global, Pre-1990, Energy Code) */}
+              {((projectData as any)?.fmGlobal === true || (projectData as any)?.pre1990 === true || (projectData as any)?.energyCode === true) && (
                 <div style={{ marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {(projectData as any)?.fmGlobal === true && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#1d4ed8", background: "#eff6ff", border: "1px solid #bfdbfe", padding: "3px 8px", borderRadius: 4 }}>
@@ -657,6 +661,11 @@ function ProjectDetail() {
                   {(projectData as any)?.pre1990 === true && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", padding: "3px 8px", borderRadius: 4 }}>
                       ⚠ Pre-1990 — DSS Required
+                    </span>
+                  )}
+                  {(projectData as any)?.energyCode === true && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#4338ca", background: "#eef2ff", border: "1px solid #c7d2fe", padding: "3px 8px", borderRadius: 4 }}>
+                      ⚡ Energy Code{(projectData as any)?.climateZone ? ` CZ${(projectData as any).climateZone}` : ""}
                     </span>
                   )}
                 </div>
@@ -852,6 +861,67 @@ function ProjectDetail() {
               </div>
               {editProjectForm.pre1990 === true && (
                 <p style={{ fontSize: 11, color: "#b45309", marginTop: 5 }}>⚠ DSS warning item will appear in Architectural Review checklist</p>
+              )}
+            </div>
+            {/* Energy code toggle */}
+            <div>
+              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Replaces &gt;50% of roof area or &gt;2,000 SF?</label>
+              <p style={{ fontSize: 11, color: "#9ca3af", marginBottom: 6 }}>Triggers energy code compliance requirement (ASHRAE 90.1)</p>
+              <div className="flex gap-2">
+                {([{ label: "Unknown", value: null }, { label: "No", value: false }, { label: "Yes", value: true }] as { label: string; value: boolean | null }[]).map(opt => (
+                  <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => setEditProjectForm(f => ({ ...f, energyCode: opt.value }))}
+                    style={{
+                      flex: 1,
+                      padding: "7px 0",
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: editProjectForm.energyCode === opt.value ? 600 : 400,
+                      border: editProjectForm.energyCode === opt.value
+                        ? (opt.value === true ? "2px solid #6366f1" : opt.value === false ? "2px solid #6b7280" : "2px solid #d1d5db")
+                        : "1px solid #e5e7eb",
+                      background: editProjectForm.energyCode === opt.value
+                        ? (opt.value === true ? "#eef2ff" : opt.value === false ? "#f3f4f6" : "#f9fafb")
+                        : "white",
+                      color: editProjectForm.energyCode === opt.value
+                        ? (opt.value === true ? "#4338ca" : "#374151")
+                        : "#9ca3af",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {editProjectForm.energyCode === true && (
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, display: "block" }}>ASHRAE Climate Zone</label>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {["1", "2", "3", "4", "5", "6", "7", "8"].map(z => (
+                      <button
+                        key={z}
+                        type="button"
+                        onClick={() => setEditProjectForm(f => ({ ...f, climateZone: f.climateZone === z ? "" : z }))}
+                        style={{
+                          width: 36,
+                          height: 32,
+                          borderRadius: 6,
+                          fontSize: 13,
+                          fontWeight: editProjectForm.climateZone === z ? 700 : 400,
+                          border: editProjectForm.climateZone === z ? "2px solid #6366f1" : "1px solid #e5e7eb",
+                          background: editProjectForm.climateZone === z ? "#eef2ff" : "white",
+                          color: editProjectForm.climateZone === z ? "#4338ca" : "#6b7280",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {z}
+                      </button>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: 11, color: "#6366f1", marginTop: 5 }}>Energy code item will appear in Specification Review</p>
+                </div>
               )}
             </div>
           </div>

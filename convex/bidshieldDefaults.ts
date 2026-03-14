@@ -7,9 +7,11 @@ export interface ChecklistItemDef {
   text: string;
   systems?: string[]; // Only show for these system types. Omit = show for all.
   decks?: string[];   // Only show for these deck types. Omit = show for all.
-  fmGlobal?: boolean; // Only show when building is FM Global insured.
-  pre1990?: boolean;  // Only show when building was constructed before 1990.
-  critical?: boolean; // Item-level critical flag (red border + bold text).
+  fmGlobal?: boolean;   // Only show when building is FM Global insured.
+  pre1990?: boolean;    // Only show when building was constructed before 1990.
+  energyCode?: boolean; // Only show when project triggers energy code (>50% or >2,000 SF replaced).
+  critical?: boolean;   // Item-level critical flag (red border + bold text).
+  helpUrl?: string;     // Optional reference link shown next to the item.
 }
 
 export interface ChecklistPhaseDef {
@@ -226,6 +228,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-sbs1", text: "Torch application fire code restrictions checked", systems: ["sbs"] },
       { id: "p9-sbs2", text: "Hot work permit required?", systems: ["sbs"] },
       { id: "p9-sbs3", text: "Interply mopping temp range confirmed", systems: ["sbs"] },
+      // Energy code
+      { id: "p9-ec1", text: "Energy code compliance required — verify minimum R-value for Climate Zone", energyCode: true, critical: true, helpUrl: "https://www.energycodes.gov/climate-zones" },
       { id: "p9-fm1", text: "System verified via RoofNav before specifying", fmGlobal: true },
       { id: "p9-fm2", text: "FM rating confirmed (1-60, 1-90, or 1-120)", fmGlobal: true },
       { id: "p9-fm3", text: "No mixing components between FM-approved assemblies", fmGlobal: true },
@@ -505,7 +509,8 @@ function filterItems(
   systemType?: string,
   deckType?: string,
   fmGlobal?: boolean,
-  pre1990?: boolean
+  pre1990?: boolean,
+  energyCode?: boolean
 ): ChecklistItemDef[] {
   return items.filter(item => {
     // If item is system-specific, only include when matching system is selected
@@ -524,6 +529,10 @@ function filterItems(
     if (item.pre1990) {
       if (!pre1990) return false;
     }
+    // Energy code items only shown when project triggers energy code compliance
+    if (item.energyCode) {
+      if (!energyCode) return false;
+    }
     return true;
   });
 }
@@ -533,7 +542,8 @@ export function getChecklistForTrade(
   systemType?: string,
   deckType?: string,
   fmGlobal?: boolean,
-  pre1990?: boolean
+  pre1990?: boolean,
+  energyCode?: boolean
 ): Record<string, ChecklistPhaseDef> {
   let sourcePhases: Record<string, ChecklistPhaseDef>;
 
@@ -548,7 +558,7 @@ export function getChecklistForTrade(
 
   const result: Record<string, ChecklistPhaseDef> = {};
   for (const [key, phase] of Object.entries(sourcePhases)) {
-    const filteredItems = filterItems(phase.items, systemType, deckType, fmGlobal, pre1990);
+    const filteredItems = filterItems(phase.items, systemType, deckType, fmGlobal, pre1990, energyCode);
     if (filteredItems.length > 0) {
       result[key] = { ...phase, items: filteredItems };
     }
