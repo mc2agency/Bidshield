@@ -48,9 +48,12 @@ export default function Navigation() {
   }, [updateScrollState]);
 
   const navLinks = [
+    { href: '/bidshield/demo', label: 'Demo' },
     { href: '/bidshield/pricing', label: 'Pricing' },
     { href: '/blog', label: 'Blog' },
   ];
+
+  const isDashboard = pathname.startsWith('/bidshield/dashboard');
 
   const checkActive = (href: string) => pathname.startsWith(href);
   const initials = userId ? userId.slice(5, 7).toUpperCase() : '??';
@@ -78,7 +81,21 @@ export default function Navigation() {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {isClient && isSignedIn ? (
-              /* Authenticated: avatar + dropdown only */
+              /* Authenticated: nav links on marketing pages + avatar dropdown */
+              <>
+              {!isDashboard && navLinks.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    checkActive(href)
+                      ? 'bg-slate-700/80 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  {label}
+                </Link>
+              ))}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -121,6 +138,7 @@ export default function Navigation() {
                   </div>
                 )}
               </div>
+              </>
             ) : (
               /* Unauthenticated: marketing nav */
               <>
@@ -197,13 +215,21 @@ export default function Navigation() {
               >
                 Dashboard
               </Link>
-              <Link
-                href="/bidshield/pricing"
-                className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Billing
-              </Link>
+              {navLinks.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    checkActive(href)
+                      ? 'bg-slate-700/80 text-white'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+              <div className="my-1 border-t border-slate-800" />
               <button
                 onClick={() => { setMobileMenuOpen(false); signOut(() => router.push('/')); }}
                 className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-slate-800 transition-colors"
