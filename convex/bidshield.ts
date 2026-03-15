@@ -1310,6 +1310,42 @@ export const updateScopeItem = mutation({
   },
 });
 
+// ─── Scope Clarifications & Assumptions ──────────────────────────────────────
+
+export const getScopeClarifications = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("bidshield_scope_clarifications")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    return rows.sort((a, b) => a.createdAt - b.createdAt);
+  },
+});
+
+export const addScopeClarification = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    text: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("bidshield_scope_clarifications", {
+      projectId: args.projectId,
+      userId: args.userId,
+      text: args.text,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const deleteScopeClarification = mutation({
+  args: { id: v.id("bidshield_scope_clarifications") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});
+
 export const addCustomScopeItem = mutation({
   args: {
     projectId: v.id("bidshield_projects"),

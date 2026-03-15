@@ -310,6 +310,15 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Scope clarifications & assumptions per project
+  bidshield_scope_clarifications: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    text: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_project", ["projectId"]),
+
   // User-saved material prices (personal price book)
   bidshield_user_material_prices: defineTable({
     userId: v.string(),

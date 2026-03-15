@@ -69,14 +69,24 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
     api.bidshield.getScopeItems,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const initScope  = useMutation(api.bidshield.initScopeItems);
-  const updateItem = useMutation(api.bidshield.updateScopeItem);
+  const clarifications = useQuery(
+    api.bidshield.getScopeClarifications,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const initScope        = useMutation(api.bidshield.initScopeItems);
+  const updateItem       = useMutation(api.bidshield.updateScopeItem);
+  const addClarification = useMutation(api.bidshield.addScopeClarification);
+  const deleteClarification = useMutation(api.bidshield.deleteScopeClarification);
 
   const [demoState, setDemoState]         = useState<any[]>(DEMO_SCOPE_ITEMS);
   const [filter, setFilter]               = useState<FilterMode>("all");
   const [expandedId, setExpandedId]       = useState<string | null>(null);
   const [copiedExclusions, setCopied]     = useState(false);
+  const [demoClarifications, setDemoClarifications] = useState<{ _id: string; text: string; createdAt: number }[]>([]);
+  const [newClarText, setNewClarText]     = useState("");
   const debounceRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const resolvedClarifications = isDemo ? demoClarifications : (clarifications ?? []);
 
   const items = isDemo ? demoState : (scopeItems ?? []);
 
@@ -168,10 +178,34 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
       lines.push("BY OTHERS:");
       others.forEach((i: any) => lines.push(`• ${i.name}${i.note ? ` — ${i.note}` : ""}`));
     }
+    if (resolvedClarifications.length > 0) {
+      if (lines.length) lines.push("");
+      lines.push("CLARIFICATIONS & ASSUMPTIONS:");
+      resolvedClarifications.forEach((c: any) => lines.push(`• ${c.text}`));
+    }
     navigator.clipboard.writeText(lines.join("\n"));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleAddClarification = useCallback(async () => {
+    const text = newClarText.trim();
+    if (!text) return;
+    if (isDemo) {
+      setDemoClarifications(prev => [...prev, { _id: `demo_c_${Date.now()}`, text, createdAt: Date.now() }]);
+    } else if (isValidConvexId && userId) {
+      await addClarification({ projectId: projectId as Id<"bidshield_projects">, userId, text });
+    }
+    setNewClarText("");
+  }, [newClarText, isDemo, isValidConvexId, userId, projectId, addClarification]);
+
+  const handleDeleteClarification = useCallback(async (id: string) => {
+    if (isDemo) {
+      setDemoClarifications(prev => prev.filter(c => c._id !== id));
+    } else {
+      await deleteClarification({ id: id as Id<"bidshield_scope_clarifications"> });
+    }
+  }, [isDemo, deleteClarification]);
 
   const handleInitialize = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
@@ -366,8 +400,59 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
         </div>
       )}
 
+      {/* Clarifications & Assumptions */}
+      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
+        <div className="px-4 py-3 flex items-center justify-between" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+          <div>
+            <span className="text-[13px] font-semibold text-slate-700">Clarifications &amp; Assumptions</span>
+            <span className="ml-2 text-[11px] text-slate-400">{resolvedClarifications.length} entries</span>
+          </div>
+        </div>
+
+        <div className="p-4 flex flex-col gap-2">
+          {resolvedClarifications.length === 0 && (
+            <p className="text-xs text-slate-400 py-2">No clarifications yet. Assumptions that aren&apos;t documented become change orders.</p>
+          )}
+          {resolvedClarifications.map((c: any) => (
+            <div key={c._id} className="flex items-start gap-2 group">
+              <span className="mt-0.5 text-slate-300 text-[11px] shrink-0">•</span>
+              <span className="flex-1 text-[13px] text-slate-700 leading-snug">{c.text}</span>
+              <span className="text-[10px] text-slate-300 shrink-0 mt-0.5">
+                {new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              </span>
+              <button
+                onClick={() => handleDeleteClarification(c._id)}
+                className="text-slate-300 hover:text-red-400 transition-colors text-[12px] shrink-0 opacity-0 group-hover:opacity-100"
+                title="Delete"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+
+          <div className="flex gap-2 mt-1">
+            <input
+              type="text"
+              value={newClarText}
+              onChange={e => setNewClarText(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleAddClarification(); }}
+              placeholder="e.g., Assume single-layer tear-off"
+              className="flex-1 text-[13px] rounded-lg px-3 py-2 border border-slate-200 focus:border-slate-400 focus:outline-none"
+              style={{ background: "white" }}
+            />
+            <button
+              onClick={handleAddClarification}
+              disabled={!newClarText.trim()}
+              className="px-3 py-2 text-[12px] font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+            >
+              + Add
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Copy exclusions */}
-      {(excludedCount > 0 || byOthersCount > 0) && (
+      {(excludedCount > 0 || byOthersCount > 0 || resolvedClarifications.length > 0) && (
         <button
           onClick={handleCopyExclusions}
           className="w-full py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition-all"
