@@ -285,8 +285,19 @@ function ProjectDetail() {
           borderRight: "1px solid rgba(255,255,255,0.06)",
         }}
       >
+        {/* Back to dashboard */}
+        <Link
+          href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
+          className="flex items-center gap-1.5 px-4 py-2.5 text-xs transition-colors"
+          style={{ color: "#6b7280", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#ffffff"}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#6b7280"}
+        >
+          ← Dashboard
+        </Link>
+
         {/* Project info */}
-        <div className="px-4 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="px-4 pt-4 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: "#ffffff", lineHeight: 1.3 }}>
               {projectData?.name}
@@ -410,8 +421,10 @@ function ProjectDetail() {
           <div className="flex items-center gap-1.5 min-w-0">
             <Link
               href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-              className="hover:opacity-80 transition-opacity shrink-0 flex items-center gap-1"
-              style={{ fontSize: 13, color: "#6b7280" }}
+              className="shrink-0 flex items-center gap-1 transition-colors"
+              style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none", cursor: "pointer" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#10b981"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
