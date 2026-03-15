@@ -287,7 +287,7 @@ function ProjectDetail() {
         {/* Project info */}
         <div className="px-4 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#ffffff", lineHeight: 1.3 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#ffffff", lineHeight: 1.3 }}>
               {projectData?.name}
             </div>
             {!isDemo && (
@@ -304,17 +304,17 @@ function ProjectDetail() {
               </button>
             )}
           </div>
-          <div style={{ fontSize: 12, color: "#6b7280", marginTop: 3 }}>
+          <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>
             {projectData?.location}
           </div>
           {(projectData as any)?.gc && (
-            <div style={{ fontSize: 11, color: "#4b5563", marginTop: 2 }}>{(projectData as any).gc}</div>
+            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{(projectData as any).gc}</div>
           )}
           {/* Progress bar — 4px, #10b981 fill */}
           <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 9999, overflow: "hidden" }}>
             <div style={{ height: "100%", borderRadius: 9999, width: `${readinessScore}%`, background: "#10b981", transition: "width 0.5s" }} />
           </div>
-          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 5 }}>{readinessScore}% bid ready</div>
+          <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 6 }}>{readinessScore}% bid ready</div>
         </div>
 
         {/* Section nav — icons + label + status dot */}
@@ -339,7 +339,7 @@ function ProjectDetail() {
               <button
                 key={id}
                 onClick={() => setActiveTab(isActive ? null : id)}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-all group/item"
+                className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-all group/item"
                 style={isActive
                   ? { background: "rgba(16,185,129,0.1)", color: "#ffffff", borderLeft: "2px solid #10b981" }
                   : { color: "#6b7280" }
@@ -358,13 +358,19 @@ function ProjectDetail() {
                 }}
               >
                 <div className="flex items-center gap-2.5">
-                  <Icon size={14} strokeWidth={1.75} />
-                  <span style={{ fontSize: 13, fontWeight: isActive ? 500 : 400 }}>{label}</span>
+                  <Icon size={16} strokeWidth={1.75} />
+                  <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 400 }}>{label}</span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span title={dotLabel} style={{ width: 6, height: 6, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default" }} />
+                  <span title={dotLabel} style={{ width: 8, height: 8, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default", flexShrink: 0 }} />
                   {showCount && (
-                    <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 400 }}>{remainingCount}</span>
+                    <span style={{
+                      fontSize: 11, fontWeight: 600, lineHeight: 1,
+                      minWidth: 18, height: 18, borderRadius: 9999,
+                      background: "rgba(255,255,255,0.1)", color: "#d1d5db",
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      padding: "0 5px",
+                    }}>{remainingCount}</span>
                   )}
                 </div>
               </button>
@@ -375,17 +381,17 @@ function ProjectDetail() {
         {/* Status pills */}
         <div className="px-3 pb-4 pt-2 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           {blockerCount > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(239,68,68,0.15)", color: "#f87171", padding: "2px 8px", borderRadius: 9999 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, background: "rgba(239,68,68,0.15)", color: "#f87171", padding: "3px 10px", borderRadius: 9999 }}>
               {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
             </span>
           )}
           {warnCount > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "2px 8px", borderRadius: 9999 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "3px 10px", borderRadius: 9999 }}>
               {warnCount} warning{warnCount > 1 ? "s" : ""}
             </span>
           )}
           {passCount > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.15)", color: "#34d399", padding: "2px 8px", borderRadius: 9999 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, background: "rgba(16,185,129,0.15)", color: "#34d399", padding: "3px 10px", borderRadius: 9999 }}>
               {passCount} passing
             </span>
           )}
