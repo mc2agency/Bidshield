@@ -8,12 +8,12 @@ import type { TabProps } from "../tab-types";
 import { Plus, Trash2, ChevronDown, ChevronUp, Briefcase } from "lucide-react";
 
 const GC_CATEGORIES = [
-  { id: "bidding", label: "Bidding & Preconstruction", icon: "📋" },
-  { id: "site", label: "Site Setup & Logistics", icon: "🚧" },
-  { id: "safety", label: "Safety & Compliance", icon: "⚠️" },
-  { id: "supervision", label: "Supervision & Management", icon: "👷" },
-  { id: "insurance", label: "Insurance, Bonding & Fees", icon: "🛡️" },
-  { id: "markup", label: "Markups", icon: "📈" },
+  { id: "bidding",    label: "Bidding & Preconstruction",    icon: "📋" },
+  { id: "site",       label: "Site Setup & Logistics",       icon: "🚧" },
+  { id: "safety",     label: "Safety & Compliance",          icon: "⚠️" },
+  { id: "supervision",label: "Supervision & Management",     icon: "👷" },
+  { id: "insurance",  label: "Insurance, Bonding & Fees",    icon: "🛡️" },
+  { id: "markup",     label: "Markups",                      icon: "📈" },
 ];
 
 function fmt(n: number | undefined | null) {
@@ -28,18 +28,17 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
     api.bidshield.getGCItems,
     isValidProjectId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const seedGCMut = useMutation(api.bidshield.seedGCItems);
-  const upsertGCMut = useMutation(api.bidshield.upsertGCItem);
-  const deleteGCMut = useMutation(api.bidshield.deleteGCItem);
+  const seedGCMut    = useMutation(api.bidshield.seedGCItems);
+  const upsertGCMut  = useMutation(api.bidshield.upsertGCItem);
+  const deleteGCMut  = useMutation(api.bidshield.deleteGCItem);
   const updateProjectMut = useMutation(api.bidshield.updateProject);
 
-  const [activeCategory, setActiveCategory] = useState("bidding");
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [collapsed,     setCollapsed]     = useState<Record<string, boolean>>({});
+  const [editingId,     setEditingId]     = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState<Record<string, any>>({});
-  const [showAddRow, setShowAddRow] = useState<string | null>(null);
-  const [newRow, setNewRow] = useState({ description: "", quantity: "", unit: "EA", unitCost: "", notes: "" });
-  const [seeded, setSeeded] = useState(false);
+  const [showAddRow,    setShowAddRow]    = useState<string | null>(null);
+  const [newRow,        setNewRow]        = useState({ description: "", quantity: "", unit: "EA", unitCost: "", notes: "" });
+  const [seeded,        setSeeded]        = useState(false);
 
   // Seed on first load
   const items = gcItems ?? [];
@@ -48,48 +47,44 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
     seedGCMut({ projectId: projectId as Id<"bidshield_projects">, userId: userId ?? "" });
   }
 
-  // Demo data
   const demoItems = useMemo(() => [
-    { _id: "d1", category: "bidding", description: "Bid bond premium", quantity: 1, unit: "LS", unitCost: 500, total: 500, isMarkup: false, sortOrder: 1 },
-    { _id: "d2", category: "site", description: "Dumpster / debris disposal", quantity: 2, unit: "EA", unitCost: 650, total: 1300, isMarkup: false, sortOrder: 10 },
-    { _id: "d3", category: "site", description: "Crane / hoist rental", quantity: 3, unit: "day", unitCost: 1200, total: 3600, isMarkup: false, sortOrder: 11 },
-    { _id: "d4", category: "site", description: "Mobilization / demobilization", quantity: 1, unit: "LS", unitCost: 1500, total: 1500, isMarkup: false, sortOrder: 13 },
-    { _id: "d5", category: "safety", description: "OSHA fall protection", quantity: 1, unit: "LS", unitCost: 800, total: 800, isMarkup: false, sortOrder: 20 },
-    { _id: "d6", category: "supervision", description: "Project manager time", quantity: 40, unit: "hr", unitCost: 95, total: 3800, isMarkup: false, sortOrder: 30 },
-    { _id: "d7", category: "insurance", description: "Permits", quantity: 1, unit: "LS", unitCost: 600, total: 600, isMarkup: false, sortOrder: 40 },
-    { _id: "d8", category: "insurance", description: "Performance / payment bond", quantity: 1, unit: "LS", unitCost: 1200, total: 1200, isMarkup: false, sortOrder: 41 },
-    { _id: "d9", category: "markup", description: "Overhead", isMarkup: true, markupPct: 10, sortOrder: 50 },
-    { _id: "d10", category: "markup", description: "Profit", isMarkup: true, markupPct: 8, sortOrder: 51 },
-    { _id: "d11", category: "markup", description: "Contingency", isMarkup: true, markupPct: 3, sortOrder: 52 },
+    { _id: "d1",  category: "bidding",     description: "Bid bond premium",            quantity: 1,  unit: "LS",  unitCost: 500,  total: 500,  isMarkup: false, sortOrder: 1  },
+    { _id: "d2",  category: "site",        description: "Dumpster / debris disposal",  quantity: 2,  unit: "EA",  unitCost: 650,  total: 1300, isMarkup: false, sortOrder: 10 },
+    { _id: "d3",  category: "site",        description: "Crane / hoist rental",        quantity: 3,  unit: "day", unitCost: 1200, total: 3600, isMarkup: false, sortOrder: 11 },
+    { _id: "d4",  category: "site",        description: "Mobilization / demobilization",quantity:1,  unit: "LS",  unitCost: 1500, total: 1500, isMarkup: false, sortOrder: 13 },
+    { _id: "d5",  category: "safety",      description: "OSHA fall protection",        quantity: 1,  unit: "LS",  unitCost: 800,  total: 800,  isMarkup: false, sortOrder: 20 },
+    { _id: "d6",  category: "supervision", description: "Project manager time",        quantity: 40, unit: "hr",  unitCost: 95,   total: 3800, isMarkup: false, sortOrder: 30 },
+    { _id: "d7",  category: "insurance",   description: "Permits",                     quantity: 1,  unit: "LS",  unitCost: 600,  total: 600,  isMarkup: false, sortOrder: 40 },
+    { _id: "d8",  category: "insurance",   description: "Performance / payment bond",  quantity: 1,  unit: "LS",  unitCost: 1200, total: 1200, isMarkup: false, sortOrder: 41 },
+    { _id: "d9",  category: "markup",      description: "Overhead",   isMarkup: true, markupPct: 10, sortOrder: 50 },
+    { _id: "d10", category: "markup",      description: "Profit",     isMarkup: true, markupPct: 8,  sortOrder: 51 },
+    { _id: "d11", category: "markup",      description: "Contingency",isMarkup: true, markupPct: 3,  sortOrder: 52 },
   ] as any[], []);
 
   const resolvedItems = isDemo ? demoItems : items;
 
-  // Compute subtotals
-  const materialCost = project?.materialCost ?? 0;
-  const laborCost = project?.laborCost ?? 0;
-  const base = materialCost + laborCost;
+  const materialCost  = project?.materialCost ?? (isDemo ? 612000 : 0);
+  const laborCost     = project?.laborCost    ?? (isDemo ? 488000 : 0);
+  const base          = materialCost + laborCost;
 
   const lineItemsTotal = resolvedItems
     .filter((i: any) => !i.isMarkup)
     .reduce((sum: number, i: any) => sum + (i.total ?? 0), 0);
 
-  const markupBase = base + lineItemsTotal;
-
+  const markupBase  = base + lineItemsTotal;
   const markupItems = resolvedItems.filter((i: any) => i.isMarkup && i.category === "markup");
-  const markupTotal = markupItems.reduce((sum: number, item: any) => {
-    return sum + (markupBase * ((item.markupPct ?? 0) / 100));
-  }, 0);
-
+  const markupTotal = markupItems.reduce((sum: number, item: any) =>
+    sum + markupBase * ((item.markupPct ?? 0) / 100), 0);
   const gcTotal = lineItemsTotal + markupTotal;
 
   const categoryItems = (catId: string) =>
-    resolvedItems.filter((i: any) => i.category === catId).sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    resolvedItems.filter((i: any) => i.category === catId)
+      .sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
-  const categoryTotal = (catId: string) => {
-    if (catId === "markup") return markupTotal;
-    return categoryItems(catId).reduce((sum: number, i: any) => sum + (i.total ?? 0), 0);
-  };
+  const categoryTotal = (catId: string) =>
+    catId === "markup"
+      ? markupTotal
+      : categoryItems(catId).reduce((sum: number, i: any) => sum + (i.total ?? 0), 0);
 
   function startEdit(item: any) {
     setEditingId(item._id);
@@ -107,9 +102,9 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
 
   async function saveEdit(item: any) {
     if (isDemo) { setEditingId(null); return; }
-    const ev = editingValues;
+    const ev  = editingValues;
     const qty = parseFloat(ev.quantity) || undefined;
-    const uc = parseFloat(ev.unitCost) || undefined;
+    const uc  = parseFloat(ev.unitCost) || undefined;
     const computed = qty && uc ? qty * uc : (parseFloat(ev.total) || undefined);
     await upsertGCMut({
       id: item._id as Id<"bidshield_gc_items">,
@@ -123,7 +118,7 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
       total: computed,
       notes: ev.notes || undefined,
       isMarkup: item.isMarkup,
-      markupPct: ev.isMarkup ? (parseFloat(ev.markupPct) || undefined) : undefined,
+      markupPct: item.isMarkup ? (parseFloat(ev.markupPct) || undefined) : undefined,
     });
     setEditingId(null);
   }
@@ -131,8 +126,7 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
   async function addRow(catId: string) {
     if (isDemo) { setShowAddRow(null); return; }
     const qty = parseFloat(newRow.quantity) || undefined;
-    const uc = parseFloat(newRow.unitCost) || undefined;
-    const computed = qty && uc ? qty * uc : undefined;
+    const uc  = parseFloat(newRow.unitCost) || undefined;
     await upsertGCMut({
       projectId: projectId as Id<"bidshield_projects">,
       userId: userId ?? "",
@@ -141,7 +135,7 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
       quantity: qty,
       unit: newRow.unit || undefined,
       unitCost: uc,
-      total: computed,
+      total: qty && uc ? qty * uc : undefined,
       notes: newRow.notes || undefined,
     });
     setNewRow({ description: "", quantity: "", unit: "EA", unitCost: "", notes: "" });
@@ -157,148 +151,111 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
   }
 
   return (
-    <div style={{ padding: "24px 28px", maxWidth: 920 }}>
+    <div className="p-6 max-w-4xl">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <Briefcase size={20} color="#10b981" strokeWidth={1.75} />
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f9fafb" }}>General Conditions</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <Briefcase size={20} className="text-emerald-600" strokeWidth={1.75} />
+            <h2 className="text-xl font-bold text-slate-900 m-0">General Conditions</h2>
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: "#9ca3af" }}>
+          <p className="text-sm text-slate-500 m-0">
             Track all indirect costs — site logistics, safety, fees, and markups.
           </p>
         </div>
         <button
           onClick={pullGCTotal}
-          style={{
-            background: "rgba(16,185,129,0.12)",
-            border: "1px solid rgba(16,185,129,0.3)",
-            borderRadius: 8,
-            color: "#10b981",
-            fontSize: 13,
-            fontWeight: 600,
-            padding: "8px 16px",
-            cursor: "pointer",
-          }}
+          className="text-sm font-semibold px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer border-0"
         >
           Push to Pricing →
         </button>
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 28 }}>
-        {[
-          { label: "Line Items", value: fmt(lineItemsTotal), sub: "direct GC costs" },
-          { label: "Markups", value: fmt(markupTotal), sub: `on ${fmt(markupBase)} base` },
-          { label: "GC Total", value: fmt(gcTotal), sub: "all-in GC", accent: true },
-        ].map((card) => (
-          <div
-            key={card.label}
-            style={{
-              background: card.accent ? "rgba(16,185,129,0.08)" : "#161b22",
-              border: `1px solid ${card.accent ? "rgba(16,185,129,0.3)" : "#21262d"}`,
-              borderRadius: 10,
-              padding: "14px 18px",
-            }}
-          >
-            <div style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{card.label}</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: card.accent ? "#10b981" : "#f9fafb" }}>{card.value}</div>
-            <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>{card.sub}</div>
-          </div>
-        ))}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <div className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">Line Items</div>
+          <div className="text-2xl font-bold text-slate-800">{fmt(lineItemsTotal)}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">direct GC costs</div>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <div className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">Markups</div>
+          <div className="text-2xl font-bold text-slate-800">{fmt(markupTotal)}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">on {fmt(markupBase)} base</div>
+        </div>
+        <div className="bg-white rounded-xl border-l-4 border-l-emerald-500 border-t border-r border-b border-slate-200 shadow-sm p-4">
+          <div className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">GC Total</div>
+          <div className="text-2xl font-bold text-emerald-600">{fmt(gcTotal)}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">all-in GC</div>
+        </div>
       </div>
 
       {/* Category sections */}
       {GC_CATEGORIES.map((cat) => {
-        const catItems = categoryItems(cat.id);
-        const catTotal = categoryTotal(cat.id);
+        const catItems   = categoryItems(cat.id);
+        const catTotal   = categoryTotal(cat.id);
         const isCollapsed = collapsed[cat.id];
 
         return (
-          <div
-            key={cat.id}
-            style={{
-              background: "#161b22",
-              border: "1px solid #21262d",
-              borderRadius: 10,
-              marginBottom: 12,
-              overflow: "hidden",
-            }}
-          >
+          <div key={cat.id} className="bg-white rounded-xl border border-slate-200 shadow-sm mb-3 overflow-hidden">
             {/* Category header */}
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 16px",
-                cursor: "pointer",
-                userSelect: "none",
-              }}
+              className="flex items-center justify-between px-4 py-3 bg-slate-50 cursor-pointer select-none"
               onClick={() => setCollapsed((c) => ({ ...c, [cat.id]: !c[cat.id] }))}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 16 }}>{cat.icon}</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#e5e7eb" }}>{cat.label}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-base">{cat.icon}</span>
+                <span className="text-sm font-semibold text-slate-800">{cat.label}</span>
                 {catTotal > 0 && (
-                  <span style={{
-                    fontSize: 12, color: "#10b981", fontWeight: 600,
-                    background: "rgba(16,185,129,0.1)", borderRadius: 4, padding: "1px 7px",
-                  }}>{fmt(catTotal)}</span>
+                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5">
+                    {fmt(catTotal)}
+                  </span>
                 )}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div className="flex items-center gap-3">
                 {!isCollapsed && cat.id !== "markup" && (
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowAddRow(cat.id === showAddRow ? null : cat.id); }}
-                    style={{
-                      background: "transparent", border: "none", cursor: "pointer",
-                      color: "#6b7280", display: "flex", alignItems: "center", gap: 4, fontSize: 12,
-                    }}
+                    className="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 bg-transparent border-0 cursor-pointer p-0"
                   >
                     <Plus size={13} />
                     Add
                   </button>
                 )}
-                {isCollapsed ? <ChevronDown size={15} color="#6b7280" /> : <ChevronUp size={15} color="#6b7280" />}
+                {isCollapsed
+                  ? <ChevronDown size={15} className="text-slate-400" />
+                  : <ChevronUp   size={15} className="text-slate-400" />}
               </div>
             </div>
 
             {!isCollapsed && (
-              <div style={{ borderTop: "1px solid #21262d" }}>
+              <div className="border-t border-slate-100">
                 {/* Column headers */}
                 {catItems.length > 0 && (
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns: cat.id === "markup" ? "1fr 80px 80px 32px" : "1fr 70px 70px 90px 80px 32px",
-                    gap: 8, padding: "6px 16px",
-                    fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em",
-                    borderBottom: "1px solid #21262d",
-                  }}>
+                  <div
+                    className="grid gap-2 px-4 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wide border-b border-slate-100 bg-white"
+                    style={{ gridTemplateColumns: cat.id === "markup" ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px" }}
+                  >
                     <span>Description</span>
-                    {cat.id !== "markup" && <span style={{ textAlign: "right" }}>Qty</span>}
+                    {cat.id !== "markup" && <span className="text-right">Qty</span>}
                     {cat.id !== "markup" && <span>Unit</span>}
-                    <span style={{ textAlign: "right" }}>{cat.id === "markup" ? "Base" : "Unit Cost"}</span>
-                    <span style={{ textAlign: "right" }}>{cat.id === "markup" ? "Amount" : "Total"}</span>
+                    <span className="text-right">{cat.id === "markup" ? "Rate" : "Unit $"}</span>
+                    <span className="text-right">{cat.id === "markup" ? "Amount" : "Total"}</span>
                     <span />
                   </div>
                 )}
 
-                {catItems.map((item: any) => (
+                {catItems.map((item: any, idx: number) => (
                   <div key={item._id}>
                     {editingId === item._id ? (
-                      // Edit row
-                      <div style={{
-                        display: "grid",
-                        gridTemplateColumns: item.isMarkup ? "1fr 80px 80px 32px" : "1fr 70px 70px 90px 80px 32px",
-                        gap: 8, padding: "8px 16px", alignItems: "center",
-                        borderBottom: "1px solid #21262d",
-                      }}>
+                      <div
+                        className="grid gap-2 px-4 py-2 items-center bg-blue-50 border-b border-slate-100"
+                        style={{ gridTemplateColumns: item.isMarkup ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px" }}
+                      >
                         <input
                           value={editingValues.description}
                           onChange={(e) => setEditingValues((v) => ({ ...v, description: e.target.value }))}
-                          style={inputStyle}
+                          className={editInputCls}
                         />
                         {!item.isMarkup && (
                           <>
@@ -306,13 +263,13 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
                               value={editingValues.quantity}
                               onChange={(e) => setEditingValues((v) => ({ ...v, quantity: e.target.value }))}
                               placeholder="Qty"
-                              style={{ ...inputStyle, textAlign: "right" }}
+                              className={`${editInputCls} text-right`}
                             />
                             <input
                               value={editingValues.unit}
                               onChange={(e) => setEditingValues((v) => ({ ...v, unit: e.target.value }))}
                               placeholder="Unit"
-                              style={inputStyle}
+                              className={editInputCls}
                             />
                           </>
                         )}
@@ -323,48 +280,42 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
                             : { ...v, unitCost: e.target.value }
                           )}
                           placeholder={item.isMarkup ? "%" : "$"}
-                          style={{ ...inputStyle, textAlign: "right" }}
+                          className={`${editInputCls} text-right`}
                         />
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button onClick={() => saveEdit(item)} style={saveBtnStyle}>Save</button>
-                          <button onClick={() => setEditingId(null)} style={cancelBtnStyle}>✕</button>
+                        <div className="flex gap-1.5">
+                          <button onClick={() => saveEdit(item)} className={saveBtnCls}>Save</button>
+                          <button onClick={() => setEditingId(null)} className={cancelBtnCls}>✕</button>
                         </div>
                       </div>
                     ) : (
-                      // Display row
                       <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: item.isMarkup ? "1fr 80px 80px 32px" : "1fr 70px 70px 90px 80px 32px",
-                          gap: 8, padding: "8px 16px", alignItems: "center",
-                          borderBottom: "1px solid #1a1f27",
-                          cursor: "pointer",
-                        }}
+                        className={`grid gap-2 px-4 py-2 items-center border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 1 ? "bg-slate-50/50" : "bg-white"}`}
+                        style={{ gridTemplateColumns: item.isMarkup ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px" }}
                         onClick={() => startEdit(item)}
                       >
-                        <span style={{ fontSize: 13, color: "#e5e7eb" }}>{item.description}</span>
+                        <span className="text-sm text-slate-800">{item.description}</span>
                         {!item.isMarkup && (
                           <>
-                            <span style={{ fontSize: 13, color: "#9ca3af", textAlign: "right" }}>{item.quantity ?? "—"}</span>
-                            <span style={{ fontSize: 13, color: "#9ca3af" }}>{item.unit ?? "—"}</span>
+                            <span className="text-sm text-right text-slate-500">{item.quantity ?? <span className="text-slate-300">—</span>}</span>
+                            <span className="text-sm text-slate-500">{item.unit ?? <span className="text-slate-300">—</span>}</span>
                           </>
                         )}
-                        <span style={{ fontSize: 13, color: "#9ca3af", textAlign: "right" }}>
+                        <span className="text-sm text-right text-slate-500">
                           {item.isMarkup
-                            ? `${item.markupPct ?? 0}%`
-                            : (item.unitCost ? fmt(item.unitCost) : "—")}
+                            ? <span className="font-medium">{item.markupPct ?? 0}%</span>
+                            : (item.unitCost ? fmt(item.unitCost) : <span className="text-slate-300">—</span>)}
                         </span>
-                        <span style={{ fontSize: 13, color: "#f9fafb", fontWeight: 600, textAlign: "right" }}>
+                        <span className="text-sm font-semibold text-right text-slate-800">
                           {item.isMarkup
                             ? fmt(markupBase * ((item.markupPct ?? 0) / 100))
-                            : fmt(item.total)}
+                            : (item.total ? fmt(item.total) : <span className="text-slate-300 font-normal">—</span>)}
                         </span>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isDemo) deleteGCMut({ id: item._id as Id<"bidshield_gc_items"> });
                           }}
-                          style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0, color: "#4b5563" }}
+                          className="bg-transparent border-0 cursor-pointer p-0 text-slate-300 hover:text-red-400 transition-colors"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -374,47 +325,45 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
                 ))}
 
                 {catItems.length === 0 && showAddRow !== cat.id && (
-                  <div style={{ padding: "12px 16px", fontSize: 13, color: "#4b5563", textAlign: "center" }}>
-                    No items — click Add to get started
+                  <div className="px-4 py-3 text-sm text-slate-400 text-center bg-white">
+                    No items — click <span className="text-emerald-600 font-medium">Add</span> to get started
                   </div>
                 )}
 
                 {/* Add new row */}
                 {showAddRow === cat.id && (
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 70px 70px 90px 80px auto",
-                    gap: 8, padding: "8px 16px", alignItems: "center",
-                    borderTop: "1px solid #21262d", background: "#0d1117",
-                  }}>
+                  <div
+                    className="grid gap-2 px-4 py-2 items-center bg-emerald-50 border-t border-emerald-100"
+                    style={{ gridTemplateColumns: "1fr 60px 60px 90px 80px auto" }}
+                  >
                     <input
                       autoFocus
                       placeholder="Description"
                       value={newRow.description}
                       onChange={(e) => setNewRow((r) => ({ ...r, description: e.target.value }))}
-                      style={inputStyle}
+                      className={editInputCls}
                     />
                     <input
                       placeholder="Qty"
                       value={newRow.quantity}
                       onChange={(e) => setNewRow((r) => ({ ...r, quantity: e.target.value }))}
-                      style={{ ...inputStyle, textAlign: "right" }}
+                      className={`${editInputCls} text-right`}
                     />
                     <input
                       placeholder="Unit"
                       value={newRow.unit}
                       onChange={(e) => setNewRow((r) => ({ ...r, unit: e.target.value }))}
-                      style={inputStyle}
+                      className={editInputCls}
                     />
                     <input
                       placeholder="Unit $"
                       value={newRow.unitCost}
                       onChange={(e) => setNewRow((r) => ({ ...r, unitCost: e.target.value }))}
-                      style={{ ...inputStyle, textAlign: "right" }}
+                      className={`${editInputCls} text-right`}
                     />
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={() => addRow(cat.id)} style={saveBtnStyle}>Add</button>
-                      <button onClick={() => setShowAddRow(null)} style={cancelBtnStyle}>✕</button>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => addRow(cat.id)} className={saveBtnCls}>Add</button>
+                      <button onClick={() => setShowAddRow(null)} className={cancelBtnCls}>✕</button>
                     </div>
                   </div>
                 )}
@@ -424,43 +373,13 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
         );
       })}
 
-      {/* Footer note */}
-      <p style={{ marginTop: 16, fontSize: 12, color: "#4b5563", textAlign: "center" }}>
+      <p className="mt-4 text-xs text-slate-400 text-center">
         Click any row to edit · Markups apply to Materials + Labor + GC line items
       </p>
     </div>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  background: "#0d1117",
-  border: "1px solid #30363d",
-  borderRadius: 6,
-  color: "#f9fafb",
-  fontSize: 13,
-  padding: "5px 8px",
-  width: "100%",
-  outline: "none",
-};
-
-const saveBtnStyle: React.CSSProperties = {
-  background: "rgba(16,185,129,0.15)",
-  border: "1px solid rgba(16,185,129,0.3)",
-  borderRadius: 6,
-  color: "#10b981",
-  fontSize: 12,
-  fontWeight: 600,
-  padding: "4px 10px",
-  cursor: "pointer",
-  whiteSpace: "nowrap",
-};
-
-const cancelBtnStyle: React.CSSProperties = {
-  background: "transparent",
-  border: "1px solid #30363d",
-  borderRadius: 6,
-  color: "#6b7280",
-  fontSize: 12,
-  padding: "4px 8px",
-  cursor: "pointer",
-};
+const editInputCls = "bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500";
+const saveBtnCls   = "bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded cursor-pointer border-0 hover:bg-emerald-700 whitespace-nowrap";
+const cancelBtnCls = "bg-white border border-slate-300 text-slate-500 text-xs px-2 py-1 rounded cursor-pointer hover:bg-slate-50";
