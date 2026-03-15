@@ -129,6 +129,10 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
     api.bidshield.getGCItems,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const projectMaterials = useQuery(
+    api.bidshield.getProjectMaterials,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const [hasRun] = useState(true);
   const projectData = project;
@@ -532,7 +536,116 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
         </div>
       )}
 
-      {/* ── ZONE 4: Submit gate ── */}
+      {/* ── ZONE 4: Bid Summary ── */}
+      {(() => {
+        const pd = project as any;
+        // Materials: prefer computed from projectMaterials, fall back to project field
+        const computedMat = (projectMaterials ?? []).reduce((s: number, m: any) => s + (m.totalCost || 0), 0);
+        const sumMaterial: number | null = isDemo ? 612000 : (computedMat > 0 ? Math.round(computedMat) : (pd?.materialCost ?? null));
+        const sumLabor: number | null    = isDemo ? 488000 : (pd?.laborCost ?? null);
+
+        // GC breakdown from gcItems
+        const gcLineItems   = isDemo ? [] : (gcItems ?? []);
+        const gcNonMarkup   = gcLineItems.filter((i: any) => !i.isMarkup);
+        const gcMarkupRows  = gcLineItems.filter((i: any) => i.isMarkup);
+        const gcLineTotal   = gcNonMarkup.reduce((s: number, i: any) => s + (i.total ?? 0), 0);
+        const gcMarkupBase  = (sumMaterial ?? 0) + (sumLabor ?? 0) + gcLineTotal;
+        const gcMarkupTotal = gcMarkupRows.reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0);
+
+        // Demo GC constants
+        const demoGCLine    = 13600;
+        const demoMBase     = 612000 + 488000 + demoGCLine;
+        const demoMarkup    = Math.round(demoMBase * 0.21);
+
+        const sumGCLine: number | null    = isDemo ? demoGCLine : (gcLineTotal  > 0 ? gcLineTotal  : null);
+        const sumMarkup: number | null    = isDemo ? demoMarkup : (gcMarkupTotal > 0 ? gcMarkupTotal : null);
+        const sumSubtotal: number | null  = sumMaterial !== null || sumLabor !== null
+          ? (sumMaterial ?? 0) + (sumLabor ?? 0) + (isDemo ? demoGCLine : gcLineTotal)
+          : null;
+        const sumTotalBid: number | null  = isDemo ? 1250000 : (pd?.totalBidAmount ?? null);
+        const sumSqft: number | null      = isDemo ? 68000   : (pd?.grossRoofArea ?? pd?.sqft ?? null);
+        const sumDpSF: number | null      = sumTotalBid && sumSqft && sumSqft > 0 ? sumTotalBid / sumSqft : null;
+
+        // Overhead + Profit line items
+        const overheadRow = isDemo ? { description: "Overhead",    markupPct: 10 } : gcMarkupRows.find((i: any) => i.description?.toLowerCase().includes("overhead"));
+        const profitRow   = isDemo ? { description: "Profit",      markupPct: 8  } : gcMarkupRows.find((i: any) => i.description?.toLowerCase().includes("profit"));
+        const overheadAmt = overheadRow ? (isDemo ? demoMBase : gcMarkupBase) * ((overheadRow.markupPct ?? 0) / 100) : null;
+        const profitAmt   = profitRow   ? (isDemo ? demoMBase : gcMarkupBase) * ((profitRow.markupPct   ?? 0) / 100) : null;
+
+        // Right column — project facts
+        const bidDateStr  = pd?.bidDate   ?? (isDemo ? "2026-03-07" : null);
+        const daysLeft    = bidDateStr ? Math.ceil((new Date(bidDateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+        const laborMap: Record<string, string> = { open_shop: "Open Shop", prevailing_wage: "Prevailing Wage", union: "Union" };
+        const laborKey   = isDemo ? "open_shop" : (bidQuals?.laborType ?? "");
+        const laborLabel = laborKey ? (laborMap[laborKey] ?? null) : null;
+        const planDate    = isDemo ? "02/10/2026" : (bidQuals?.plansDated ?? null);
+        const addendaThru = isDemo ? 2 : (bidQuals?.addendaThrough ?? (addenda ? addenda.length : null));
+        const systemLabel = pd?.systemType ? pd.systemType.toUpperCase() : null;
+
+        const $ = (n: number | null, warn = false) => {
+          if (n == null) return <span style={{ color: warn ? "#f59e0b" : "#d1d5db" }}>—</span>;
+          return "$" + Math.round(n).toLocaleString("en-US");
+        };
+        const row = (label: string, value: React.ReactNode, bold = false, large = false) => (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "5px 0", borderBottom: "1px solid #f3f4f6" }}>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>{label}</span>
+            <span style={{ fontSize: large ? 20 : bold ? 14 : 13, fontWeight: large ? 800 : bold ? 700 : 500, color: large ? "#111827" : bold ? "#1f2937" : "#374151" }}>{value}</span>
+          </div>
+        );
+        const fact = (label: string, value: React.ReactNode) => (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "5px 0", borderBottom: "1px solid #f3f4f6" }}>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>{label}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "#374151", maxWidth: "60%", textAlign: "right" }}>{value}</span>
+          </div>
+        );
+
+        return (
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+            <div style={{ background: "#f8fafc", borderBottom: "1px solid #e5e7eb", padding: "10px 20px", display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", letterSpacing: "0.08em", textTransform: "uppercase" }}>Bid Summary</span>
+              <span style={{ fontSize: 11, color: "#d1d5db" }}>· Final review before submission</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+              {/* LEFT: Cost breakdown */}
+              <div style={{ padding: "16px 20px", borderRight: "1px solid #f3f4f6" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>Cost Breakdown</div>
+                {row("Materials",  $(sumMaterial,  sumMaterial  == null))}
+                {row("Labor",      $(sumLabor,     sumLabor     == null))}
+                {row("GC Line Items", $(sumGCLine, sumGCLine    == null))}
+                <div style={{ borderTop: "1px solid #e5e7eb", margin: "6px 0" }} />
+                {row("Subtotal",   $(sumSubtotal), true)}
+                {overheadRow && row(`Overhead (${overheadRow.markupPct}%)`, $(overheadAmt))}
+                {profitRow   && row(`Profit (${profitRow.markupPct}%)`,     $(profitAmt))}
+                {sumMarkup != null && !overheadRow && !profitRow && row("Markups", $(sumMarkup))}
+                <div style={{ borderTop: "2px solid #111827", marginTop: 8, paddingTop: 10 }}>
+                  {row("TOTAL BID", $(sumTotalBid, sumTotalBid == null), false, true)}
+                </div>
+                <div style={{ marginTop: 4 }}>
+                  {row("$/SF", sumDpSF != null ? `$${sumDpSF.toFixed(2)}` : <span style={{ color: "#d1d5db" }}>—</span>, true)}
+                </div>
+              </div>
+
+              {/* RIGHT: Project quick facts */}
+              <div style={{ padding: "16px 20px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>Project Quick Facts</div>
+                {fact("Project", pd?.name ?? <span style={{ color: "#d1d5db" }}>—</span>)}
+                {fact("Location", pd?.location ?? <span style={{ color: "#d1d5db" }}>—</span>)}
+                {fact("GC / Owner", (pd?.gc ?? pd?.owner) ? `${pd?.gc ?? ""}${pd?.gc && pd?.owner ? " / " : ""}${pd?.owner ?? ""}` : <span style={{ color: "#f59e0b" }}>Not set</span>)}
+                {fact("Roof system", systemLabel ?? <span style={{ color: "#d1d5db" }}>—</span>)}
+                {fact("Square footage", sumSqft != null ? sumSqft.toLocaleString() + " SF" : <span style={{ color: "#f59e0b" }}>Not set</span>)}
+                {fact("Bid date", bidDateStr
+                  ? <span>{new Date(bidDateStr + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}{daysLeft != null && <span style={{ color: daysLeft <= 2 ? "#ef4444" : daysLeft <= 7 ? "#f59e0b" : "#6b7280", marginLeft: 6 }}>({daysLeft}d)</span>}</span>
+                  : <span style={{ color: "#f59e0b" }}>Not set</span>)}
+                {fact("Plans dated", planDate ?? <span style={{ color: "#d1d5db" }}>—</span>)}
+                {fact("Addenda through", addendaThru != null ? `#${addendaThru}` : <span style={{ color: "#d1d5db" }}>None</span>)}
+                {fact("Labor type", laborLabel ?? <span style={{ color: "#d1d5db" }}>—</span>)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── ZONE 5: Submit gate ── */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
         {fails.length > 0 ? (
           <>
