@@ -10,3 +10,4 @@ export { default as AddendaTab } from "./AddendaTab";
 export { default as LaborTab } from "./LaborTab";
 export { default as ValidatorTab } from "./ValidatorTab";
 export { default as BidQualsTab } from "./BidQualsTab";
+export { default as DecisionLogTab } from "./DecisionLogTab";

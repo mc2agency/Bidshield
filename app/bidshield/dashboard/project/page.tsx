@@ -10,7 +10,7 @@ import Link from "next/link";
 import {
   LayoutList, AlignLeft, Ruler, Package,
   DollarSign, Users, Quote, FileText,
-  HelpCircle, CheckSquare, ClipboardList,
+  HelpCircle, CheckSquare, ClipboardList, History,
 } from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
@@ -18,7 +18,7 @@ import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-sys
 import type { TabId } from "./tab-types";
 import {
   ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
-  ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, ValidatorTab, BidQualsTab,
+  ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, ValidatorTab, BidQualsTab, DecisionLogTab,
 } from "./tabs";
 
 const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
@@ -33,6 +33,7 @@ const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size
   { id: "rfis",      label: "RFIs",      Icon: HelpCircle },
   { id: "validator", label: "Validate",  Icon: CheckSquare },
   { id: "bidquals",  label: "Bid Quals", Icon: ClipboardList },
+  { id: "decisions", label: "Decision Log", Icon: History },
 ];
 
 function scoreDot(s: number): string {
@@ -65,6 +66,9 @@ function ProjectDetail() {
   }>({ result: null, competitorName: "", competitorPrice: "", lossReason: "" });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
   const [panelOverrides, setPanelOverrides] = useState<Record<string, boolean>>({});
+  const [decisionModalOpen, setDecisionModalOpen] = useState(false);
+  const [decisionText, setDecisionText] = useState("");
+  const [decisionWho, setDecisionWho] = useState("");
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const checklist = useQuery(api.bidshield.getChecklist, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -75,6 +79,8 @@ function ProjectDetail() {
   const scopeItems = useQuery(api.bidshield.getScopeItems, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const bidQuals = useQuery(api.bidshield.getBidQuals, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const decisions = useQuery(api.bidshield.getDecisions, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const addDecision = useMutation(api.bidshield.addDecision);
 
   const projectData = isDemo
     ? { name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
@@ -482,6 +488,7 @@ function ProjectDetail() {
                   {activeTab === "labor"     && <LaborTab     {...tabProps} />}
                   {activeTab === "validator" && <ValidatorTab {...tabProps} />}
                   {activeTab === "bidquals"  && <BidQualsTab  {...tabProps} />}
+                  {activeTab === "decisions" && <DecisionLogTab {...tabProps} />}
                 </div>
               </>
             ) : (
@@ -865,6 +872,149 @@ function ProjectDetail() {
         </div>
       </div>
     </div>
+
+    {/* Floating Log Decision button — shown on any section tab except decisions itself */}
+    {activeTab && activeTab !== "decisions" && (
+      (() => {
+        const sectionLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label ?? activeTab;
+        const sectionCount = isDemo ? 0 : (decisions ?? []).filter((d: any) => d.section === sectionLabel).length;
+        return (
+          <button
+            onClick={() => setDecisionModalOpen(true)}
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: 10,
+              padding: "8px 14px",
+              fontSize: 12,
+              fontWeight: 500,
+              color: "#475569",
+              cursor: "pointer",
+            }}
+          >
+            <svg width={13} height={13} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+            </svg>
+            Log Decision{sectionCount > 0 ? ` (${sectionCount})` : ""}
+          </button>
+        );
+      })()
+    )}
+
+    {/* Decision Modal */}
+    {decisionModalOpen && (
+      <div
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+        style={{ background: "rgba(0,0,0,0.4)" }}
+        onClick={() => setDecisionModalOpen(false)}
+      >
+        <div
+          className="bg-white w-full sm:max-w-md mx-0 sm:mx-4 sm:rounded-xl shadow-2xl"
+          style={{ borderRadius: "12px 12px 0 0", padding: 24 }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>Log a Decision</h3>
+            <button
+              onClick={() => setDecisionModalOpen(false)}
+              style={{ color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 4 }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#374151"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
+            >
+              <svg width={16} height={16} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {/* Section (auto-filled, read-only) */}
+            <div>
+              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Section</label>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "#374151", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 10px" }}>
+                {BROWSE_ITEMS.find(b => b.id === activeTab)?.label ?? activeTab}
+              </div>
+            </div>
+
+            {/* What was decided */}
+            <div>
+              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>What was decided <span style={{ color: "#ef4444" }}>*</span></label>
+              <textarea
+                autoFocus
+                rows={3}
+                placeholder="e.g. Changed mech flashing labor from LF to EA per field team discussion"
+                value={decisionText}
+                onChange={e => setDecisionText(e.target.value)}
+                style={{
+                  width: "100%", fontSize: 13, border: "1px solid #e2e8f0", borderRadius: 6,
+                  padding: "8px 10px", color: "#111827", outline: "none", resize: "none",
+                  boxSizing: "border-box", lineHeight: 1.5,
+                }}
+                onFocus={e => (e.target.style.borderColor = "#94a3b8")}
+                onBlur={e => (e.target.style.borderColor = "#e2e8f0")}
+                onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) e.currentTarget.form?.requestSubmit(); }}
+              />
+            </div>
+
+            {/* Who */}
+            <div>
+              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Who <span style={{ color: "#9ca3af", fontWeight: 400 }}>(optional)</span></label>
+              <input
+                type="text"
+                placeholder="e.g. Per John / PM, Per pre-bid meeting"
+                value={decisionWho}
+                onChange={e => setDecisionWho(e.target.value)}
+                style={{
+                  width: "100%", fontSize: 13, border: "1px solid #e2e8f0", borderRadius: 6,
+                  padding: "8px 10px", color: "#111827", outline: "none", boxSizing: "border-box",
+                }}
+                onFocus={e => (e.target.style.borderColor = "#94a3b8")}
+                onBlur={e => (e.target.style.borderColor = "#e2e8f0")}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-5">
+            <button
+              disabled={!decisionText.trim()}
+              onClick={async () => {
+                if (!decisionText.trim()) return;
+                const sectionLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label ?? (activeTab ?? "General");
+                if (isDemo) {
+                  // demo: just close
+                } else if (isValidConvexId && userId) {
+                  await addDecision({
+                    projectId: projectIdParam as Id<"bidshield_projects">,
+                    userId,
+                    text: decisionText.trim(),
+                    who: decisionWho.trim() || undefined,
+                    section: sectionLabel,
+                  });
+                }
+                setDecisionText("");
+                setDecisionWho("");
+                setDecisionModalOpen(false);
+              }}
+              style={{
+                flex: 1, padding: "10px 0", borderRadius: 8, fontSize: 14, fontWeight: 500,
+                background: decisionText.trim() ? "#1e293b" : "#f3f4f6",
+                color: decisionText.trim() ? "#ffffff" : "#9ca3af",
+                border: "none", cursor: decisionText.trim() ? "pointer" : "not-allowed",
+              }}
+            >
+              Save Decision
+            </button>
+            <button
+              onClick={() => setDecisionModalOpen(false)}
+              style={{ flex: 1, background: "#f3f4f6", color: "#6b7280", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "none", cursor: "pointer" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Outcome Modal */}
     {outcomeModalOpen && (

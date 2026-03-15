@@ -310,6 +310,43 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Bid Qualifications tracker per project (one document per project)
+  bidshield_bid_quals: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    plansDated: v.optional(v.string()),
+    planRevision: v.optional(v.string()),
+    specSections: v.optional(v.string()),
+    addendaThrough: v.optional(v.number()),
+    drawingSheets: v.optional(v.string()),
+    laborType: v.optional(v.union(v.literal("open_shop"), v.literal("prevailing_wage"), v.literal("union"))),
+    wageDeterminationNum: v.optional(v.string()),
+    wageDeterminationDate: v.optional(v.string()),
+    unionLocal: v.optional(v.string()),
+    laborBurdenRate: v.optional(v.string()),
+    estimatedDuration: v.optional(v.string()),
+    earliestStart: v.optional(v.string()),
+    materialLeadTime: v.optional(v.string()),
+    submittalTurnaround: v.optional(v.string()),
+    bidGoodFor: v.optional(v.string()),
+    insuranceProgram: v.optional(v.union(v.literal("own"), v.literal("ccip"), v.literal("ocip"))),
+    wrapUpNotes: v.optional(v.string()),
+    additionalInsuredRequired: v.optional(v.boolean()),
+    buildersRiskBy: v.optional(v.union(v.literal("owner"), v.literal("gc"), v.literal("included"))),
+    bondRequired: v.optional(v.boolean()),
+    bondTypes: v.optional(v.string()),
+    emr: v.optional(v.string()),
+    mbeGoals: v.optional(v.boolean()),
+    mbeGoalPct: v.optional(v.string()),
+    mbeCertifications: v.optional(v.string()),
+    certifiedPayrollRequired: v.optional(v.boolean()),
+    safetyPlanRequired: v.optional(v.boolean()),
+    backgroundChecksRequired: v.optional(v.boolean()),
+    qualificationsNotes: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"]),
+
   // Scope clarifications & assumptions per project
   bidshield_scope_clarifications: defineTable({
     projectId: v.id("bidshield_projects"),
@@ -345,4 +382,16 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_category", ["userId", "category"]),
+
+  // Decision log — paper trail for estimating decisions per project
+  bidshield_decisions: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    text: v.string(),
+    who: v.optional(v.string()),
+    section: v.string(),
+    timestamp: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_project_section", ["projectId", "section"]),
 });

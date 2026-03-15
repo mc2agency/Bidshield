@@ -17,7 +17,9 @@ export type TabId =
   | "rfis"
   | "addenda"
   | "labor"
-  | "validator";
+  | "validator"
+  | "bidquals"
+  | "decisions";
 
 export type TabBadge = {
   label: string;
@@ -91,7 +93,7 @@ export const PHASES: Phase[] = [
     id: "submit",
     label: "Validate & Submit",
     shortLabel: "Submit",
-    tabs: ["validator"],
+    tabs: ["validator", "bidquals"],
     defaultTab: "validator",
   },
 ];
