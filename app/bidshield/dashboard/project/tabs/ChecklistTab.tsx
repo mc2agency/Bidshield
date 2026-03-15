@@ -10,14 +10,6 @@ import type { TabProps } from "../tab-types";
 type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
 type FilterMode = "all" | "incomplete" | "flagged" | "rfi" | "done";
 
-const statusConfig: Record<ChecklistStatus, { icon: string; color: string; bg: string; ring: string }> = {
-  done:    { icon: "✓", color: "text-emerald-600", bg: "bg-emerald-50",  ring: "ring-emerald-200" },
-  pending: { icon: "○", color: "text-slate-400",   bg: "bg-slate-50",    ring: "ring-slate-200"   },
-  rfi:     { icon: "?", color: "text-amber-600",   bg: "bg-amber-50",    ring: "ring-amber-200"   },
-  warning: { icon: "⚑", color: "text-orange-500",  bg: "bg-orange-50",   ring: "ring-orange-200"  },
-  na:      { icon: "—", color: "text-slate-400",   bg: "bg-slate-50",    ring: "ring-slate-200"   },
-};
-
 function matchesFilter(status: ChecklistStatus, filter: FilterMode): boolean {
   if (filter === "all") return true;
   if (filter === "incomplete") return status === "pending" || status === "rfi" || status === "warning";
@@ -27,9 +19,14 @@ function matchesFilter(status: ChecklistStatus, filter: FilterMode): boolean {
   return true;
 }
 
+function formatNoteDate(ts: number | null): string | null {
+  if (!ts) return null;
+  return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 const demoChecklist = getChecklistForTrade("roofing", "tpo", "steel");
 const demoItems = (() => {
-  const items: { phaseKey: string; itemId: string; status: ChecklistStatus; notes: string }[] = [];
+  const items: { phaseKey: string; itemId: string; status: ChecklistStatus; notes: string; updatedAt: number }[] = [];
   const doneIds = ["p1-1", "p1-2", "p1-3", "p2-1", "p2-2", "p2-3", "p3-1", "p3-2"];
   const rfiIds  = ["p3-4", "p5-1"];
   for (const [phaseKey, phase] of Object.entries(demoChecklist)) {
@@ -37,7 +34,7 @@ const demoItems = (() => {
       let status: ChecklistStatus = "pending";
       if (doneIds.includes(item.id)) status = "done";
       if (rfiIds.includes(item.id))  status = "rfi";
-      items.push({ phaseKey, itemId: item.id, status, notes: "" });
+      items.push({ phaseKey, itemId: item.id, status, notes: item.id === "p3-1" ? "Confirmed — drawings received 3/10" : "", updatedAt: Date.now() - 86400000 });
     }
   }
   return items;
@@ -59,7 +56,6 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const [rfiDrawerKey, setRfiDrawerKey] = useState<string | null>(null);
   const [rfiQuestion, setRfiQuestion]   = useState("");
   const [flashedItem, setFlashedItem]   = useState<string | null>(null);
-  const [completedPhaseFlash, setCompletedPhaseFlash] = useState<string | null>(null);
   const prevPhasePcts = useRef<Record<string, number>>({});
   const touchStartX = useRef<number>(0);
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
@@ -87,9 +83,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     ((resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId) as any)?.notes) || "",
   [resolvedItems]);
 
+  const getItemUpdatedAt = useCallback((phaseKey: string, itemId: string): number | null =>
+    ((resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId) as any)?.updatedAt) || null,
+  [resolvedItems]);
+
   const setStatus = useCallback(async (phaseKey: string, itemId: string, target: ChecklistStatus) => {
     if (isDemo) {
-      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: target } : i));
+      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: target, updatedAt: Date.now() } : i));
     } else {
       const current = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
       await updateChecklist({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: target, notes: (current as any)?.notes });
@@ -97,7 +97,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   }, [isDemo, resolvedItems, projectId, updateChecklist]);
 
   const cycleStatus = useCallback(async (phaseKey: string, itemId: string) => {
-    const order: ChecklistStatus[] = ["pending", "done", "rfi", "na"];
+    const order: ChecklistStatus[] = ["pending", "done", "na"];
     const current = getItemStatus(phaseKey, itemId);
     const next = order[(order.indexOf(current) + 1) % order.length];
     await setStatus(phaseKey, itemId, next);
@@ -111,7 +111,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const saveNote = useCallback(async (phaseKey: string, itemId: string, note: string) => {
     const rk = `${phaseKey}-${itemId}`;
     if (isDemo) {
-      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, notes: note } : i));
+      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, notes: note, updatedAt: Date.now() } : i));
     } else {
       const current = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
       await updateChecklist({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: (current as any)?.status || "pending", notes: note });
@@ -149,13 +149,15 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const visiblePhases = useMemo(() => {
     const phases = Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
       const p = phase as any;
-      const items = p.items.filter((item: any) => matchesFilter(getItemStatus(phaseKey, item.id), filter));
-      return { phaseKey, phase: p, items };
+      // Sort: critical items first within each phase
+      const sortedItems = [...p.items].sort((a: any, b: any) => (b.critical ? 1 : 0) - (a.critical ? 1 : 0));
+      const items = sortedItems.filter((item: any) => matchesFilter(getItemStatus(phaseKey, item.id), filter));
+      return { phaseKey, phase: p, items, sortedItems };
     }).filter(({ items }) => items.length > 0);
-    // Always anchor Phase 1 (Project Setup) at top in filtered views even if fully complete
+    // Always anchor Phase 1 at top in filtered views even if fully complete
     if (filter !== "all" && !phases.some(p => p.phaseKey === "phase1") && checklistTemplate["phase1"]) {
       const p1 = checklistTemplate["phase1"] as any;
-      phases.unshift({ phaseKey: "phase1", phase: p1, items: [] });
+      phases.unshift({ phaseKey: "phase1", phase: p1, items: [], sortedItems: [...p1.items] });
     }
     return phases;
   }, [checklistTemplate, filter, resolvedItems, getItemStatus]);
@@ -170,10 +172,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     Object.entries(checklistTemplate).reduce((sum, [phaseKey]) => sum + getPhaseStats(phaseKey).rfis, 0),
   [checklistTemplate, getPhaseStats]);
 
-  // Build quick action items dynamically
   const quickActions = useMemo(() => {
     const actions: { label: string; onClick: () => void }[] = [];
-    // Top incomplete phases
     const phaseIncomplete = Object.entries(checklistTemplate)
       .map(([phaseKey, phase]) => {
         const p = phase as any;
@@ -195,14 +195,14 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     return actions;
   }, [checklistTemplate, resolvedItems, getItemStatus, rfiCount, onNavigateTab]);
 
-  // Detect when a phase just reached 100% → flash "✓ Complete" in header
+  // Detect when phase just reached 100% → auto-collapse
   useEffect(() => {
     for (const [phaseKey] of Object.entries(checklistTemplate)) {
       const stats = getPhaseStats(phaseKey);
       const prev = prevPhasePcts.current[phaseKey] ?? 0;
       if (stats.total > 0 && stats.pct === 100 && prev < 100) {
-        setCompletedPhaseFlash(phaseKey);
-        setTimeout(() => setCompletedPhaseFlash(f => f === phaseKey ? null : f), 2000);
+        // Auto-collapse when phase completes
+        setExpanded(p => ({ ...p, [phaseKey]: false }));
       }
       prevPhasePcts.current[phaseKey] = stats.pct;
     }
@@ -226,28 +226,33 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
       {/* ── LEFT: Checklist ── */}
       <div className="flex flex-col gap-3 min-w-0">
 
-        {/* Filter tabs — segmented control (Linear/Vercel pattern) */}
+        {/* Filter tabs */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f3f4f6", padding: 4, borderRadius: 8 }}>
           {FILTERS.map(({ id, label }) => (
             <button
               key={id}
               onClick={() => setFilter(id)}
               style={{
-                height: 30,
-                padding: "0 12px",
-                borderRadius: 6,
-                fontSize: 13,
+                height: 30, padding: "0 12px", borderRadius: 6, fontSize: 13,
                 fontWeight: filter === id ? 500 : 400,
                 background: filter === id ? "#ffffff" : "transparent",
                 color: filter === id ? "#111827" : "#6b7280",
                 boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
-                transition: "all 0.15s",
-                whiteSpace: "nowrap",
+                transition: "all 0.15s", whiteSpace: "nowrap",
               }}
             >
               {label}
             </button>
           ))}
+        </div>
+
+        {/* Status legend — inline pills below filters */}
+        <div className="flex items-center gap-2 flex-wrap px-1">
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>Click to mark:</span>
+          <span style={{ fontSize: 11, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>✓ Done</span>
+          <span style={{ fontSize: 11, background: "#f8fafc", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>N/A</span>
+          <span style={{ fontSize: 11, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>⚑ Flag</span>
+          <span style={{ fontSize: 11, background: "#fffbeb", color: "#d97706", border: "1px solid #fde68a", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>? RFI</span>
         </div>
 
         {/* Empty state */}
@@ -261,11 +266,12 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         {/* Phase cards */}
         <div className="flex flex-col gap-2">
           {visiblePhases.map(({ phaseKey, phase, items }) => {
-            const stats          = getPhaseStats(phaseKey);
-            const isOpen         = expanded[phaseKey] ?? (filter !== "done" && stats.pct < 100);
-            const isHighRisk     = !!phase.critical;
-            const allItemsInPhase = (phase as any).items;
-            const pctColor       = stats.pct === 0 ? "#6b7280" : stats.pct < 50 ? "#f59e0b" : stats.pct < 100 ? "#3b82f6" : "#10b981";
+            const stats       = getPhaseStats(phaseKey);
+            const isComplete  = stats.total > 0 && stats.pct === 100;
+            // Auto-collapse completed phases; expand incomplete ones by default
+            const isOpen      = expanded[phaseKey] ?? (filter !== "done" && !isComplete);
+            const isHighRisk  = !!phase.critical;
+            const pctColor    = stats.pct === 0 ? "#6b7280" : stats.pct < 50 ? "#f59e0b" : stats.pct < 100 ? "#3b82f6" : "#10b981";
 
             return (
               <div
@@ -294,18 +300,16 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                       {isHighRisk && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CRITICAL</span>}
                       {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
                       {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
-                      {completedPhaseFlash === phaseKey && (
-                        <span style={{ fontSize: 11, color: "#059669", fontWeight: 600 }}>✓ Complete</span>
+                      {/* Permanent ✓ Complete badge when phase is 100% */}
+                      {isComplete && (
+                        <span style={{ fontSize: 11, color: "#059669", fontWeight: 600, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 99, padding: "1px 8px" }}>✓ Complete</span>
                       )}
                     </div>
                     {/* Mini inline progress bar */}
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span style={{ fontSize: 12, color: "#9ca3af" }} className="shrink-0">{allItemsInPhase.length} items · {stats.pct}%</span>
+                      <span style={{ fontSize: 12, color: "#9ca3af" }} className="shrink-0">{(phase as any).items.length} items · {stats.pct}%</span>
                       <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${stats.pct}%`, background: pctColor }}
-                        />
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${stats.pct}%`, background: pctColor }} />
                       </div>
                     </div>
                   </div>
@@ -321,18 +325,20 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                   </div>
                 )}
 
-                {/* Items — 40px rows, note hover-only */}
+                {/* All complete state */}
                 {isOpen && items.length === 0 && (
                   <div className="px-4 py-2.5 border-t border-[#e2e8f0] text-xs text-emerald-600 font-medium flex items-center gap-1.5">
                     <span>✓</span> All items complete
                   </div>
                 )}
+
+                {/* Items */}
                 {isOpen && items.length > 0 && (
                   <div className="border-t border-[#e2e8f0] divide-y divide-[#f1f5f9]">
                     {items.map((item: any) => {
                       const status            = getItemStatus(phaseKey, item.id);
                       const note              = getItemNote(phaseKey, item.id);
-                      const config            = statusConfig[status];
+                      const noteTs            = getItemUpdatedAt(phaseKey, item.id);
                       const rowKey            = `${phaseKey}-${item.id}`;
                       const isDone            = status === "done" || status === "na";
                       const isFlagged         = status === "warning";
@@ -341,6 +347,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                       const isRfiDrawerOpen   = rfiDrawerKey === rowKey;
                       const noteSaved         = savedNoteFlash === rowKey;
                       const itemIsHighRisk    = isHighRisk || !!item.critical;
+                      const isOptional        = item.text.includes("(if applicable)");
 
                       return (
                         <div
@@ -366,18 +373,21 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               if (Math.abs(dx) > 60) setStatus(phaseKey, item.id, dx > 0 ? "done" : "na");
                             }}
                           >
-                            {/* Status badge */}
-                            <span className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-bold ring-1 shrink-0 ${config.color} ${config.bg} ${config.ring}`}>
-                              {config.icon}
-                            </span>
-
                             {/* Item text */}
                             <div className="flex-1 min-w-0">
-                              <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : itemIsHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : itemIsHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
-                                {item.id === "p9-ec1" && climateZone
-                                  ? `${item.text} ${climateZone}`
-                                  : item.text}
-                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : itemIsHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : itemIsHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
+                                  {item.id === "p9-ec1" && climateZone
+                                    ? `${item.text} ${climateZone}`
+                                    : item.text}
+                                </span>
+                                {/* Optional badge */}
+                                {isOptional && !isDone && (
+                                  <span style={{ fontSize: 9, background: "#f1f5f9", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 4, padding: "1px 5px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
+                                    Optional
+                                  </span>
+                                )}
+                              </div>
                               {item.helpUrl && !isDone && (
                                 <a
                                   href={item.helpUrl}
@@ -408,7 +418,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               )}
                             </div>
 
-                            {/* RFI badge — opens inline drawer, no navigate */}
+                            {/* RFI badge — opens inline drawer */}
                             {status === "rfi" && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setRfiDrawerKey(prev => prev === rowKey ? null : rowKey); setRfiQuestion(item.text); }}
@@ -429,41 +439,59 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               </button>
                             )}
 
-                            {/* + Note button — hover only */}
+                            {/* 📝 Add note button — hover only */}
                             {!isEditingThisNote && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] text-slate-400 hover:text-emerald-600 shrink-0"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] text-slate-400 hover:text-amber-600 shrink-0 whitespace-nowrap"
                               >
-                                {note ? "Edit" : "+ Note"}
+                                {note ? "📝 Edit" : "📝 Add note"}
+                              </button>
+                            )}
+
+                            {/* Status pill — RIGHT side */}
+                            {status !== "rfi" && status !== "warning" && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); cycleStatus(phaseKey, item.id); }}
+                                className={`
+                                  shrink-0 rounded-full text-[11px] font-medium px-3 py-1 border transition-all whitespace-nowrap
+                                  ${status === "done"
+                                    ? "bg-[#f0fdf4] text-[#16a34a] border-[#86efac]"
+                                    : status === "na"
+                                    ? "bg-[#f8fafc] text-[#94a3b8] border-[#e2e8f0]"
+                                    : "bg-white text-[#9ca3af] border-[#e2e8f0] hover:bg-[#f0fdf4] hover:text-[#16a34a] hover:border-[#86efac]"}
+                                `}
+                              >
+                                {status === "done" ? "✓ Done" : status === "na" ? "N/A" : "Mark Done"}
                               </button>
                             )}
                           </div>
 
-                          {/* Persistent note display */}
+                          {/* Note display — styled amber callout */}
                           {note && !isEditingThisNote && (
                             <div
-                              className="mx-4 mb-2 group/note flex items-start gap-2 cursor-pointer"
-                              style={{ background: "#f8fafc", borderRadius: 6, padding: "6px 10px" }}
+                              className="mx-4 mb-2 flex items-start justify-between cursor-pointer"
+                              style={{ background: "#fffbeb", borderLeft: "3px solid #fbbf24", borderRadius: 4, padding: "6px 10px" }}
                               onClick={e => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
                             >
-                              <p className="text-[12px] text-slate-500 flex-1" style={{ lineHeight: 1.4 }}>{note}</p>
-                              <svg className="w-3 h-3 text-slate-300 group-hover/note:text-slate-500 transition-colors shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
-                              </svg>
+                              <p style={{ fontSize: 12, color: "#92400e", lineHeight: 1.4, flex: 1 }}>
+                                <span style={{ fontWeight: 600 }}>📝 Note: </span>{note}
+                              </p>
+                              <span style={{ fontSize: 10, color: "#d97706", marginLeft: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
+                                {formatNoteDate(noteTs) ? `· ${formatNoteDate(noteTs)}` : ""}
+                              </span>
                               {noteSaved && (
-                                <span className="text-[10px] text-emerald-600 font-semibold shrink-0">Saved ✓</span>
+                                <span className="text-[10px] text-emerald-600 font-semibold shrink-0 ml-1">Saved ✓</span>
                               )}
                             </div>
                           )}
-                          {/* Saved flash when no note was there before */}
                           {noteSaved && !note && (
                             <div className="mx-4 mb-2 text-[11px] text-emerald-600 font-medium px-2">Saved ✓</div>
                           )}
 
                           {/* Note editing textarea */}
                           {isEditingThisNote && (
-                            <div className="px-4 pb-3 pt-1 ml-9" onClick={e => e.stopPropagation()}>
+                            <div className="px-4 pb-3 pt-1 ml-4" onClick={e => e.stopPropagation()}>
                               <textarea
                                 autoFocus
                                 value={noteText}
@@ -472,7 +500,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 onKeyDown={e => { if (e.key === "Escape") setEditingNote(null); if (e.key === "Enter" && e.metaKey) saveNote(phaseKey, item.id, noteText); }}
                                 placeholder="Add a note..."
                                 rows={2}
-                                className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
+                                className="w-full text-xs text-slate-700 bg-white border border-amber-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-200"
                               />
                               <p className="text-[10px] text-slate-400 mt-0.5">Blur or ⌘↵ to save · Esc to cancel</p>
                             </div>
@@ -514,36 +542,20 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             );
           })}
         </div>
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-3 px-3 py-2 rounded-lg border border-slate-100">
-          <span className="text-[10px] text-slate-400 self-center">Tap to cycle:</span>
-          {Object.entries(statusConfig).map(([status, config]) => (
-            <div key={status} className="flex items-center gap-1">
-              <span className={`w-4 h-4 flex items-center justify-center rounded ring-1 text-[8px] font-bold ${config.color} ${config.bg} ${config.ring}`}>{config.icon}</span>
-              <span className="text-[10px] text-slate-500 capitalize">{status === "warning" ? "flagged" : status}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ── RIGHT: Sticky panel ── */}
       <div className="hidden lg:flex flex-col gap-3 sticky top-4">
 
-        {/* Bid readiness — progress bar, no donut */}
+        {/* Bid readiness */}
         <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
           <div className="flex items-center justify-between mb-2">
             <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Bid Readiness</div>
             <span className="text-2xl font-bold text-slate-900">{overall}%</span>
           </div>
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${overall}%`, background: "#10b981" }}
-            />
+            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${overall}%`, background: "#10b981" }} />
           </div>
-
-          {/* Project info */}
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
             <div className="text-[13px] font-semibold text-slate-900 leading-snug">{project?.name || "—"}</div>
             {(project as any)?.gc && <div className="text-[11px] text-slate-500">GC: {(project as any).gc}</div>}
@@ -556,7 +568,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           </div>
         </div>
 
-        {/* Compact stats — single inline row, no boxes */}
+        {/* Compact stats */}
         <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: "12px 16px" }}>
           <div className="text-[14px]" style={{ color: "#64748b" }}>
             <span>{filterCounts.incomplete} incomplete</span>
@@ -566,17 +578,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           </div>
         </div>
 
-        {/* Quick actions — clean text links, no colored boxes */}
+        {/* Quick actions */}
         {quickActions.length > 0 && (
           <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
             <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Quick Actions</div>
             <div className="flex flex-col gap-2.5">
               {quickActions.map((action, i) => (
-                <button
-                  key={i}
-                  onClick={action.onClick}
-                  className="text-[13px] text-slate-600 hover:text-emerald-600 text-left transition-colors flex items-start gap-1.5"
-                >
+                <button key={i} onClick={action.onClick} className="text-[13px] text-slate-600 hover:text-emerald-600 text-left transition-colors flex items-start gap-1.5">
                   <span className="shrink-0 mt-px">→</span>
                   <span>{action.label}</span>
                 </button>
