@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import FooterWrapper from "@/components/FooterWrapper";
 import { Providers } from "./providers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -149,7 +149,7 @@ export default function RootLayout({
         <Providers>
           <Navigation />
           {children}
-          <Footer />
+          <FooterWrapper />
         </Providers>
         <Analytics />
         <SpeedInsights />
