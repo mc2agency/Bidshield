@@ -229,7 +229,8 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
         <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
           <div className="text-4xl mb-3">📁</div>
           <p className="text-sm text-slate-500 mb-2">No addenda logged for this project</p>
-          <p className="text-xs text-slate-500">Click "+ Add Addendum" when you receive one from the GC</p>
+          <p className="text-xs text-slate-500">Click &quot;+ Add Addendum&quot; when you receive one from the GC</p>
+          <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">Missed addenda are one of the most common bid-day errors — BidShield tracks each one so nothing falls through.</p>
         </div>
       )}
     </div>

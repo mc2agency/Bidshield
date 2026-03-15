@@ -158,6 +158,7 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
           <div className="text-5xl mb-4">📨</div>
           <p className="text-slate-500 mb-2">No RFIs {filter !== "all" ? `with status "${filter}"` : "yet"}</p>
           <p className="text-sm text-slate-500">Create an RFI to track questions for this project.</p>
+          <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">Open RFIs show up as warnings in your Validate check — log them here to keep your bid status accurate.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">

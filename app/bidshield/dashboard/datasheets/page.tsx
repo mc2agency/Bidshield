@@ -60,6 +60,15 @@ export default function DatasheetsPage() {
               </tr>
             </thead>
             <tbody>
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-16">
+                    <div className="text-3xl mb-3">📑</div>
+                    <p className="text-sm text-slate-500 mb-1">No datasheets yet</p>
+                    <p className="text-xs text-slate-400 max-w-sm mx-auto">Upload manufacturer datasheets to keep product specs, pricing, and coverage rates in one place. Your datasheet library carries across all projects.</p>
+                  </td>
+                </tr>
+              )}
               {filtered.map((mat) => (
                 <tr key={mat.product} className="border-b border-slate-200 hover:bg-slate-50">
                   <td className="p-3.5 text-sm font-medium text-slate-200">{mat.product}</td>
