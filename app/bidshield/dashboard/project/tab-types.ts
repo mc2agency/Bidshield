@@ -17,6 +17,7 @@ export type TabId =
   | "rfis"
   | "addenda"
   | "labor"
+  | "generalconditions"
   | "validator"
   | "bidquals"
   | "decisions";
@@ -79,7 +80,7 @@ export const PHASES: Phase[] = [
     id: "price",
     label: "Pricing & Costs",
     shortLabel: "Price",
-    tabs: ["pricing", "labor", "quotes"],
+    tabs: ["pricing", "labor", "generalconditions", "quotes"],
     defaultTab: "pricing",
   },
   {

@@ -383,6 +383,26 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_category", ["userId", "category"]),
 
+  // General Conditions line items per project
+  bidshield_gc_items: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    category: v.string(), // "bidding", "site", "safety", "supervision", "insurance", "markup"
+    description: v.string(),
+    quantity: v.optional(v.number()),
+    unit: v.optional(v.string()),
+    unitCost: v.optional(v.number()),
+    total: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    isMarkup: v.optional(v.boolean()), // true = percentage-based markup row
+    markupPct: v.optional(v.number()), // e.g. 10 = 10%
+    sortOrder: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
   // Decision log — paper trail for estimating decisions per project
   bidshield_decisions: defineTable({
     projectId: v.id("bidshield_projects"),

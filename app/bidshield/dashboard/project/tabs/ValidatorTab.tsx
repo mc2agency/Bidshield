@@ -110,6 +110,10 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
     api.bidshield.getBidQuals,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const gcItems = useQuery(
+    api.bidshield.getGCItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const [hasRun, setHasRun] = useState(true);
 
@@ -282,7 +286,22 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       }
     }
 
-    // 10. BID QUALIFICATIONS
+    // 10. GENERAL CONDITIONS
+    if (isDemo) {
+      items.push({ label: "General Conditions", status: "pass", message: "GC costs and markups entered", tabLink: "generalconditions" });
+    } else if (gcItems !== undefined) {
+      const lineItems = gcItems.filter((i: any) => !i.isMarkup && i.total);
+      const priced = lineItems.length;
+      if (priced === 0) {
+        items.push({ label: "General Conditions", status: "warn", message: "No GC costs entered — open Gen. Conds to add site, safety, and fee items", tabLink: "generalconditions" });
+      } else if (priced < 3) {
+        items.push({ label: "General Conditions", status: "warn", message: `Only ${priced} GC item${priced !== 1 ? "s" : ""} priced — review all categories`, tabLink: "generalconditions" });
+      } else {
+        items.push({ label: "General Conditions", status: "pass", message: `${priced} GC line items priced`, tabLink: "generalconditions" });
+      }
+    }
+
+    // 11. BID QUALIFICATIONS
     if (isDemo) {
       items.push({ label: "Bid Qualifications", status: "pass", message: "Basis of bid, labor type, insurance, and schedule documented" });
     } else if (bidQuals) {

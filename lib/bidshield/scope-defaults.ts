@@ -23,19 +23,14 @@ export const SCOPE_CATEGORIES: Record<ScopeCategory, { label: string; icon: stri
 export const DEFAULT_SCOPE_ITEMS: DefaultScopeItem[] = [
   // Demolition & Removal
   { category: "demolition", name: "Demo / Tear-off of existing roof", sortOrder: 1 },
-  { category: "demolition", name: "Dumpster / Debris disposal", sortOrder: 2 },
   { category: "demolition", name: "Hazmat / Asbestos abatement", sortOrder: 3 },
   { category: "demolition", name: "Wet insulation removal", sortOrder: 4 },
 
   // Site Access & Logistics
-  { category: "access", name: "Crane / Hoist time", sortOrder: 5 },
   { category: "access", name: "Roof access (ladder, stairs, hatch)", sortOrder: 6 },
   { category: "access", name: "Material staging area", sortOrder: 7 },
-  { category: "access", name: "Material hoisting / conveyor", sortOrder: 8 },
-  { category: "access", name: "Mobilization / Demobilization", sortOrder: 9 },
 
   // Temporary Protection
-  { category: "protection", name: "Temporary waterproofing", sortOrder: 10 },
   { category: "protection", name: "Interior protection", sortOrder: 11 },
   { category: "protection", name: "Vapor barrier", sortOrder: 12 },
   { category: "protection", name: "Dust / debris protection for occupied spaces", sortOrder: 13 },
@@ -66,12 +61,7 @@ export const DEFAULT_SCOPE_ITEMS: DefaultScopeItem[] = [
   { category: "safety", name: "Hot work permits", sortOrder: 30 },
 
   // General Conditions
-  { category: "general", name: "Permits", sortOrder: 31 },
-  { category: "general", name: "Bonding (performance / payment)", sortOrder: 32 },
-  { category: "general", name: "Insurance (additional insured)", sortOrder: 33 },
-  { category: "general", name: "Submittals / Shop drawings", sortOrder: 34 },
   { category: "general", name: "Project management / Supervision", sortOrder: 35 },
   { category: "general", name: "Punch list / Final cleanup", sortOrder: 36 },
-  { category: "general", name: "Testing (flood test, core cuts)", sortOrder: 37 },
   { category: "general", name: "Owner / GC-required meetings", sortOrder: 38 },
 ];

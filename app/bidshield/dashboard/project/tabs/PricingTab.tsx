@@ -44,6 +44,15 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
     (projectMaterials ?? []).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0)
   );
 
+  const gcItems = useQuery(
+    api.bidshield.getGCItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const gcLineItemsTotal = (gcItems ?? []).filter((i: any) => !i.isMarkup).reduce((s: number, i: any) => s + (i.total ?? 0), 0);
+  const gcMarkupBase = computedMaterialTotal + (project?.laborCost ?? 0) + gcLineItemsTotal;
+  const gcMarkupTotal = (gcItems ?? []).filter((i: any) => i.isMarkup).reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0);
+  const computedGCTotal = Math.round(gcLineItemsTotal + gcMarkupTotal);
+
   const grossRoofArea: number | null = isDemo ? 68000 : (project?.grossRoofArea ?? null);
 
   const [demoPricing, setDemoPricing] = useState({
@@ -202,8 +211,25 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
             <div className="text-[10px] text-slate-500">Labor</div>
           </div>
           <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-            {editing ? <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-slate-600">{pricing.otherCost ? fmtDollar(pricing.otherCost) : "—"}</div>}
-            <div className="text-[10px] text-slate-500">Other</div>
+            {editing ? (
+              <div>
+                <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" />
+                {computedGCTotal > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, otherCost: computedGCTotal.toString() }))}
+                    className="mt-1 text-[10px] text-amber-600 underline cursor-pointer bg-transparent border-none p-0"
+                  >
+                    Pull from GC ({fmtDollar(computedGCTotal)})
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="text-lg font-bold text-slate-600">
+                {pricing.otherCost ? fmtDollar(pricing.otherCost) : computedGCTotal > 0 ? <span title="Computed from Gen. Conditions tab">{fmtDollar(computedGCTotal)} <span className="text-[10px] text-slate-400">(GC)</span></span> : "—"}
+              </div>
+            )}
+            <div className="text-[10px] text-slate-500">Gen. Conds</div>
           </div>
           <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200 col-span-2 sm:col-span-1">
             <div className={`text-lg font-bold ${healthColor}`}>{dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>

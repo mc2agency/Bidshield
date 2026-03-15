@@ -8,6 +8,7 @@ export { default as QuotesTab } from "./QuotesTab";
 export { default as RFIsTab } from "./RFIsTab";
 export { default as AddendaTab } from "./AddendaTab";
 export { default as LaborTab } from "./LaborTab";
+export { default as GeneralConditionsTab } from "./GeneralConditionsTab";
 export { default as ValidatorTab } from "./ValidatorTab";
 export { default as BidQualsTab } from "./BidQualsTab";
 export { default as DecisionLogTab } from "./DecisionLogTab";

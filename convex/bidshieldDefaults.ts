@@ -334,24 +334,6 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p14-10", text: "SPF spray crew rates & overspray protection time", systems: ["spf"] },
     ],
   },
-  // General conditions — after pricing, before submission
-  phase18: {
-    key: "phase18",
-    title: "General Conditions & Overhead",
-    icon: "📊",
-    items: [
-      { id: "p18-1", text: "Dumpster / disposal costs included" },
-      { id: "p18-2", text: "Crane / hoist rental costs included" },
-      { id: "p18-3", text: "Temporary weather protection included" },
-      { id: "p18-4", text: "Permit costs included" },
-      { id: "p18-5", text: "Builders risk / additional insured requirements" },
-      { id: "p18-6", text: "Project-specific insurance costs" },
-      { id: "p18-7", text: "Mobilization / demobilization costs" },
-      { id: "p18-8", text: "Daily cleanup & protection of adjacent work" },
-      { id: "p18-9", text: "Overhead & profit markup applied" },
-      { id: "p18-10", text: "Bond premium included (if required)" },
-    ],
-  },
   phase15: {
     key: "phase15",
     title: "Pre-Submission Review",
@@ -464,18 +446,6 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p14-2", text: "Labor burden calculated (WC, FICA, UI)" },
       { id: "p14-3", text: "Overtime considered if needed" },
       { id: "p14-4", text: "Mobilization included" },
-    ],
-  },
-  phase18: {
-    key: "phase18",
-    title: "General Conditions & Overhead",
-    icon: "📊",
-    items: [
-      { id: "p18-1", text: "Dumpster / disposal costs included" },
-      { id: "p18-4", text: "Permit costs included" },
-      { id: "p18-5", text: "Insurance requirements reviewed" },
-      { id: "p18-9", text: "Overhead & profit markup applied" },
-      { id: "p18-10", text: "Bond premium included (if required)" },
     ],
   },
   phase15: {

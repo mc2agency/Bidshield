@@ -9,7 +9,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
 import {
   LayoutList, AlignLeft, Ruler, Package,
-  DollarSign, Users, Quote, FileText,
+  DollarSign, Users, Briefcase, Quote, FileText,
   HelpCircle, CheckSquare, ClipboardList, History,
 } from "lucide-react";
 
@@ -18,7 +18,7 @@ import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-sys
 import type { TabId } from "./tab-types";
 import {
   ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
-  ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, ValidatorTab, BidQualsTab, DecisionLogTab,
+  ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
 } from "./tabs";
 
 const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
@@ -27,8 +27,9 @@ const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size
   { id: "takeoff",   label: "Takeoff",   Icon: Ruler },
   { id: "materials", label: "Materials", Icon: Package },
   { id: "pricing",   label: "Pricing",   Icon: DollarSign },
-  { id: "labor",     label: "Labor",     Icon: Users },
-  { id: "quotes",    label: "Quotes",    Icon: Quote },
+  { id: "labor",              label: "Labor",      Icon: Users },
+  { id: "generalconditions", label: "Gen. Conds", Icon: Briefcase },
+  { id: "quotes",            label: "Quotes",     Icon: Quote },
   { id: "addenda",   label: "Addenda",   Icon: FileText },
   { id: "rfis",      label: "RFIs",      Icon: HelpCircle },
   { id: "validator", label: "Validate",  Icon: CheckSquare },
@@ -491,8 +492,9 @@ function ProjectDetail() {
                   {activeTab === "quotes"    && <QuotesTab    {...tabProps} />}
                   {activeTab === "rfis"      && <RFIsTab      {...tabProps} />}
                   {activeTab === "addenda"   && <AddendaTab   {...tabProps} />}
-                  {activeTab === "labor"     && <LaborTab     {...tabProps} />}
-                  {activeTab === "validator" && <ValidatorTab {...tabProps} />}
+                  {activeTab === "labor"              && <LaborTab             {...tabProps} />}
+                  {activeTab === "generalconditions" && <GeneralConditionsTab {...tabProps} />}
+                  {activeTab === "validator"         && <ValidatorTab         {...tabProps} />}
                   {activeTab === "bidquals"  && <BidQualsTab  {...tabProps} />}
                   {activeTab === "decisions" && <DecisionLogTab {...tabProps} />}
                 </div>
