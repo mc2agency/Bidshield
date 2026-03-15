@@ -6,6 +6,11 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import type { TabProps, TabId } from "../tab-types";
+import {
+  LayoutList, AlignLeft, DollarSign, Quote, FileText,
+  HelpCircle, ClipboardList, Briefcase, Calendar, Info,
+  CheckCircle2, AlertTriangle, XCircle, ChevronRight,
+} from "lucide-react";
 
 interface ScoreItem {
   label: string;
@@ -14,6 +19,7 @@ interface ScoreItem {
   tabLink?: TabId;
 }
 
+// ── Score ring ──────────────────────────────────────────────────────────────
 function scoreColor(score: number) {
   if (score >= 90) return "#10b981";
   if (score >= 70) return "#3b82f6";
@@ -21,68 +27,77 @@ function scoreColor(score: number) {
   return "#ef4444";
 }
 
-function ScoreRing({ score }: { score: number }) {
+function ScoreRing({ score, size = 120 }: { score: number; size?: number }) {
   const [animated, setAnimated] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setAnimated(true), 50);
+    const t = setTimeout(() => setAnimated(true), 80);
     return () => clearTimeout(t);
   }, [score]);
-  const r = 72, sw = 10, size = 180;
-  const circ = 2 * Math.PI * r;
+  const r = size / 2 - 9, sw = 9, circ = 2 * Math.PI * r;
   const offset = animated ? circ * (1 - score / 100) : circ;
   const color = scoreColor(score);
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={sw} />
-        <circle
-          cx={size / 2} cy={size / 2} r={r} fill="none"
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none"
           stroke={color} strokeWidth={sw} strokeLinecap="round"
-          strokeDasharray={circ}
-          strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 1s ease-out" }}
+          strokeDasharray={circ} strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1.1s ease-out" }}
         />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-        <span style={{ fontSize: 64, fontWeight: 800, color: "#111827", lineHeight: 1, letterSpacing: "-0.04em" }}>{score}</span>
-        <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>/100</span>
+        <span style={{ fontSize: size * 0.32, fontWeight: 800, color: "#111827", lineHeight: 1, letterSpacing: "-0.03em" }}>{score}</span>
+        <span style={{ fontSize: 11, color: "#9ca3af", marginTop: 1 }}>/100</span>
       </div>
     </div>
   );
 }
 
-function SummaryCard({ scoreData }: { scoreData: { items: ScoreItem[]; score: number; grade: string } }) {
-  const fails = scoreData.items.filter(i => i.status === "fail").length;
-  const warns = scoreData.items.filter(i => i.status === "warn").length;
-  const color = scoreColor(scoreData.score);
-  const bgColor = fails > 0 ? "#fef2f2" : warns > 0 ? "#fffbeb" : "#f0fdf4";
-  const borderColor = fails > 0 ? "#fecaca" : warns > 0 ? "#fde68a" : "#bbf7d0";
-  const statusText = fails > 0
-    ? `Not ready — ${fails} check${fails !== 1 ? "s" : ""} failing`
-    : warns > 0
-    ? `Ready with ${warns} warning${warns !== 1 ? "s" : ""}`
-    : `All ${scoreData.items.length} checks passing ✓`;
-  const subText = fails > 0
-    ? "Fix these before submitting your bid"
-    : warns > 0
-    ? "Review warnings before submitting"
-    : "Bid is ready to submit";
-  const headingColor = fails > 0 ? "#991b1b" : warns > 0 ? "#92400e" : "#065f46";
-  const subColor = fails > 0 ? "#dc2626" : warns > 0 ? "#b45309" : "#059669";
-  return (
-    <div style={{ background: bgColor, border: `1px solid ${borderColor}`, borderRadius: 12, padding: "28px 24px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-      <ScoreRing score={scoreData.score} />
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: headingColor }}>{statusText}</div>
-        <div style={{ fontSize: 13, color: subColor, marginTop: 4 }}>{subText}</div>
-      </div>
-      <div style={{ width: "100%", height: 3, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${scoreData.score}%`, background: color, borderRadius: 9999, transition: "width 1s ease-out" }} />
-      </div>
-    </div>
-  );
+// ── Section card definitions ─────────────────────────────────────────────────
+const SECTION_DEFS: { tabId: TabId | null; label: string; Icon: React.ComponentType<any> }[] = [
+  { tabId: "checklist",         label: "Checklist",     Icon: LayoutList   },
+  { tabId: "scope",             label: "Scope",         Icon: AlignLeft    },
+  { tabId: "pricing",           label: "Pricing",       Icon: DollarSign   },
+  { tabId: "generalconditions", label: "Gen. Conds",    Icon: Briefcase    },
+  { tabId: "quotes",            label: "Quotes",        Icon: Quote        },
+  { tabId: "addenda",           label: "Addenda",       Icon: FileText     },
+  { tabId: "rfis",              label: "RFIs",          Icon: HelpCircle   },
+  { tabId: "bidquals",          label: "Bid Quals",     Icon: ClipboardList},
+  { tabId: null,                label: "Project & Dates",Icon: Calendar    },
+];
+
+function getLabelGroup(label: string): TabId | "__meta__" {
+  if (label.startsWith("Critical")) return "checklist";
+  const map: Record<string, TabId | "__meta__"> = {
+    "Checklist Progress": "checklist",
+    "Critical Phases": "checklist",
+    "Vendor Quotes": "quotes",
+    "Expired Quotes": "quotes",
+    "Expiring Quotes": "quotes",
+    "Missing Quotes": "quotes",
+    "Open RFIs": "rfis",
+    "Draft RFIs": "rfis",
+    "RFIs": "rfis",
+    "Bid Date": "__meta__",
+    "Project Info": "__meta__",
+    "Scope Coverage": "scope",
+    "Addenda Review": "addenda",
+    "Pricing": "pricing",
+    "General Conditions": "generalconditions",
+    "Bid Qualifications": "bidquals",
+  };
+  return map[label] ?? "__meta__";
 }
 
+function worstStatus(items: ScoreItem[]): "pass" | "warn" | "fail" | "none" {
+  if (!items.length) return "none";
+  if (items.some(i => i.status === "fail")) return "fail";
+  if (items.some(i => i.status === "warn")) return "warn";
+  return "pass";
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function ValidatorTab({ projectId, isDemo, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
@@ -115,10 +130,10 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
 
-  const [hasRun, setHasRun] = useState(true);
-
+  const [hasRun] = useState(true);
   const projectData = project;
 
+  // ── buildScore — unchanged logic ─────────────────────────────────────────
   function buildScore(): { items: ScoreItem[]; score: number; grade: string } {
     const items: ScoreItem[] = [];
 
@@ -147,7 +162,6 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       const template = getChecklistForTrade(trade, sysType, dkType);
       const criticalPhases = Object.entries(template).filter(([_, p]) => p.critical);
       const checklistItems = isDemo ? [] : (checklist ?? []);
-
       let allCriticalDone = true;
       for (const [phaseKey, phase] of criticalPhases) {
         const phaseItems = checklistItems.filter((i: any) => i.phaseKey === phaseKey);
@@ -191,7 +205,6 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
         return daysLeft > 0 && daysLeft <= 14;
       }).length;
       const noQuote = quoteList.filter((q: any) => q.status === "none" || q.status === "requested").length;
-
       if (expired > 0) items.push({ label: "Expired Quotes", status: "fail", message: `${expired} quote${expired !== 1 ? "s" : ""} expired — pricing is stale`, tabLink: "quotes" });
       if (expiring > 0) items.push({ label: "Expiring Quotes", status: "warn", message: `${expiring} quote${expiring !== 1 ? "s" : ""} expiring within 14 days`, tabLink: "quotes" });
       if (noQuote > 0) items.push({ label: "Missing Quotes", status: "warn", message: `${noQuote} vendor${noQuote !== 1 ? "s" : ""} with no quote on file`, tabLink: "quotes" });
@@ -257,7 +270,6 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       const total = addenda.length;
       const notReviewed = addenda.filter((a: any) => a.affectsScope === undefined || a.affectsScope === null).length;
       const needsRePrice = addenda.filter((a: any) => a.affectsScope === true && !a.repriced).length;
-
       if (total === 0) {
         items.push({ label: "Addenda Review", status: "pass", message: "No addenda received" });
       } else if (needsRePrice > 0) {
@@ -320,136 +332,241 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       items.push({ label: "Bid Qualifications", status: "warn", message: "Complete Bid Qualifications before submitting", tabLink: "bidquals" });
     }
 
-    // Calculate score
     const total = items.length;
     const passCount = items.filter(i => i.status === "pass").length;
     const warnCount = items.filter(i => i.status === "warn").length;
     const rawScore = total > 0 ? Math.round(((passCount + warnCount * 0.4) / total) * 100) : 0;
     const score = Math.min(100, Math.max(0, rawScore));
-
     let grade = "F";
     if (score >= 90) grade = "A";
     else if (score >= 80) grade = "B";
     else if (score >= 65) grade = "C";
     else if (score >= 50) grade = "D";
-
     return { items, score, grade };
   }
 
   const scoreData = (hasRun && (isDemo || projectData)) ? buildScore() : null;
+  if (!scoreData) return null;
+
+  const fails   = scoreData.items.filter(i => i.status === "fail");
+  const warns   = scoreData.items.filter(i => i.status === "warn");
+  const passes  = scoreData.items.filter(i => i.status === "pass");
+  const total   = scoreData.items.length;
+  const isReady = fails.length === 0;
+  const allPass = fails.length === 0 && warns.length === 0;
+
+  // Hero status
+  const heroTitle = allPass
+    ? "Ready to Submit ✓"
+    : isReady
+    ? `Ready with ${warns.length} warning${warns.length !== 1 ? "s" : ""}`
+    : `Not ready — ${fails.length} check${fails.length !== 1 ? "s" : ""} failing`;
+  const heroSub = allPass
+    ? "All checks passing. Your bid is ready."
+    : isReady
+    ? "No blockers, but review warnings before submitting."
+    : "Fix these before submitting your bid.";
+  const heroBg    = allPass ? "#f0fdf4" : isReady ? "#fffbeb" : "#fef2f2";
+  const heroBdr   = allPass ? "#bbf7d0" : isReady ? "#fde68a" : "#fecaca";
+  const heroColor = allPass ? "#065f46" : isReady ? "#92400e" : "#991b1b";
+
+  // Stacked bar
+  const passW = total > 0 ? (passes.length / total) * 100 : 0;
+  const warnW = total > 0 ? (warns.length / total) * 100 : 0;
+  const failW = total > 0 ? (fails.length / total) * 100 : 0;
+
+  // Group items by section
+  const grouped = new Map<string, ScoreItem[]>();
+  for (const item of scoreData.items) {
+    const key = getLabelGroup(item.label);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(item);
+  }
+
+  // Status styling helpers
+  const statusBorderColor = (s: "pass" | "warn" | "fail" | "none") =>
+    s === "pass" ? "#10b981" : s === "warn" ? "#f59e0b" : s === "fail" ? "#ef4444" : "#d1d5db";
+  const StatusIcon = ({ s }: { s: "pass" | "warn" | "fail" | "none" }) => {
+    if (s === "pass") return <CheckCircle2 size={18} color="#10b981" />;
+    if (s === "warn") return <AlertTriangle size={18} color="#f59e0b" />;
+    if (s === "fail") return <XCircle size={18} color="#ef4444" />;
+    return <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#e5e7eb" }} />;
+  };
 
   return (
-    <div className="flex flex-col gap-6">
-      {scoreData ? (
-        <div className="flex flex-col gap-4">
-          <SummaryCard scoreData={scoreData} />
+    <div className="p-6 flex flex-col gap-5 max-w-4xl">
 
-          <div className="flex flex-col gap-3">
-            {scoreData.items.filter(i => i.status === "fail").map((item, idx) => (
-              <div key={`fail-${idx}`} className="bg-white rounded-lg border-l-4 border-red-500 p-4 flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <span className="text-red-500 font-bold text-lg mt-0.5">X</span>
-                  <div>
-                    <div className="text-sm font-medium text-slate-900">{item.label}</div>
-                    <div className="text-[13px] text-slate-500 mt-0.5">{item.message}</div>
-                  </div>
-                </div>
-                {item.tabLink && (
-                  <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1.5 bg-red-50 text-red-600 text-xs font-medium rounded hover:bg-red-500/30 transition-colors">
-                    Fix
-                  </button>
-                )}
-              </div>
-            ))}
-            {scoreData.items.filter(i => i.status === "warn").map((item, idx) => (
-              <div key={`warn-${idx}`} className="bg-white rounded-lg border-l-4 border-amber-500 p-4 flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <span className="text-amber-600 font-bold text-lg mt-0.5">!</span>
-                  <div>
-                    <div className="text-sm font-medium text-slate-900">{item.label}</div>
-                    <div className="text-[13px] text-slate-500 mt-0.5">{item.message}</div>
-                  </div>
-                </div>
-                {item.tabLink && (
-                  <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1.5 bg-amber-50 text-amber-600 text-xs font-medium rounded hover:bg-amber-500/30 transition-colors">
-                    Review
-                  </button>
-                )}
-              </div>
-            ))}
-            {scoreData.items.filter(i => i.status === "pass").map((item, idx) => (
-              <div key={`pass-${idx}`} className="bg-white rounded-lg border-l-4 border-emerald-500 p-4 flex items-start gap-3">
-                <span className="text-emerald-600 font-bold text-lg mt-0.5">&#10003;</span>
-                <div>
-                  <div className="text-sm font-medium text-slate-900">{item.label}</div>
-                  <div className="text-[13px] text-slate-500 mt-0.5">{item.message}</div>
-                </div>
-              </div>
-            ))}
+      {/* ── ZONE 1: Hero ── */}
+      <div style={{
+        background: heroBg, border: `1px solid ${heroBdr}`,
+        borderRadius: 14, padding: "24px 28px",
+        display: "flex", alignItems: "center", gap: 28,
+      }}>
+        <ScoreRing score={scoreData.score} size={120} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: heroColor, marginBottom: 4 }}>{heroTitle}</div>
+          <div style={{ fontSize: 14, color: heroColor, opacity: 0.75, marginBottom: 16 }}>{heroSub}</div>
+          {/* Stacked bar */}
+          <div style={{ height: 8, borderRadius: 9999, overflow: "hidden", display: "flex", background: "#e5e7eb", marginBottom: 8 }}>
+            {passW > 0 && <div style={{ width: `${passW}%`, background: "#10b981", transition: "width 1s ease-out" }} />}
+            {warnW > 0 && <div style={{ width: `${warnW}%`, background: "#f59e0b", transition: "width 1s ease-out" }} />}
+            {failW > 0 && <div style={{ width: `${failW}%`, background: "#ef4444", transition: "width 1s ease-out" }} />}
           </div>
+          <div style={{ display: "flex", gap: 16, fontSize: 12, color: "#6b7280" }}>
+            <span><span style={{ color: "#10b981", fontWeight: 700 }}>{passes.length}</span> passing</span>
+            {warns.length > 0 && <span><span style={{ color: "#f59e0b", fontWeight: 700 }}>{warns.length}</span> warnings</span>}
+            {fails.length > 0 && <span><span style={{ color: "#ef4444", fontWeight: 700 }}>{fails.length}</span> failing</span>}
+          </div>
+        </div>
+      </div>
 
-          {/* ── SUBMIT GATE + EXPORT ── */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            {scoreData.items.some(i => i.status === "fail") ? (
-              <div className="text-center">
-                <div className="text-3xl mb-2">🚫</div>
-                <h3 className="text-sm font-bold text-red-600 uppercase">Not Ready to Submit</h3>
-                <p className="text-xs text-slate-500 mt-1 mb-4">Resolve all failing checks before exporting your bid package.</p>
-                <div className="flex gap-3 justify-center">
-                  <a
-                    href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`}
-                    target="_blank"
-                    className="px-5 py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
-                  >
-                    📄 Export Draft (with warnings)
-                  </a>
+      {/* ── ZONE 2: Section health grid ── */}
+      <div>
+        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Section Health</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {SECTION_DEFS.map(({ tabId, label, Icon }) => {
+            const key = tabId ?? "__meta__";
+            const sectionItems = grouped.get(key) ?? [];
+            const status = worstStatus(sectionItems);
+            const border = statusBorderColor(status);
+            // Best single message to show
+            const worstItem = sectionItems.find(i => i.status === "fail") ?? sectionItems.find(i => i.status === "warn") ?? sectionItems[0];
+            const canNavigate = tabId && (status === "fail" || status === "warn");
+
+            return (
+              <div
+                key={label}
+                onClick={() => canNavigate && onNavigateTab?.(tabId!)}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e5e7eb",
+                  borderLeft: `4px solid ${border}`,
+                  borderRadius: 10,
+                  padding: "14px 16px",
+                  cursor: canNavigate ? "pointer" : "default",
+                  transition: "box-shadow 0.15s, transform 0.1s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                }}
+                onMouseEnter={e => {
+                  if (canNavigate) {
+                    (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.10)";
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+                  }
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <Icon size={15} color="#6b7280" strokeWidth={1.75} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>{label}</span>
+                  </div>
+                  <StatusIcon s={status} />
                 </div>
+                <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.4 }}>
+                  {worstItem
+                    ? worstItem.message
+                    : <span style={{ color: "#d1d5db" }}>No checks for this section</span>}
+                </div>
+                {canNavigate && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 8, fontSize: 11, color: border, fontWeight: 600 }}>
+                    Go to {label} <ChevronRight size={11} />
+                  </div>
+                )}
               </div>
-            ) : scoreData.items.some(i => i.status === "warn") ? (
-              <div className="text-center">
-                <div className="text-3xl mb-2">⚠️</div>
-                <h3 className="text-sm font-bold text-amber-600 uppercase">Ready with Warnings</h3>
-                <p className="text-xs text-slate-500 mt-1 mb-4">No blockers, but {scoreData.items.filter(i => i.status === "warn").length} item{scoreData.items.filter(i => i.status === "warn").length > 1 ? "s" : ""} should be reviewed.</p>
-                <div className="flex gap-3 justify-center">
-                  <a
-                    href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`}
-                    target="_blank"
-                    className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-                  >
-                    📄 Export Bid Summary
-                  </a>
-                </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── ZONE 3: Action items (fails + warns only) ── */}
+      {(fails.length > 0 || warns.length > 0) && (
+        <div>
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Action Items</h3>
+          <div className="flex flex-col gap-2">
+            {fails.length > 0 && (
+              <div className="mb-1">
+                <div className="text-xs font-semibold text-red-500 uppercase tracking-wide mb-2">Blocking — must fix</div>
+                {fails.map((item, idx) => (
+                  <div key={`f-${idx}`} className="bg-white rounded-lg border border-red-100 border-l-4 border-l-red-500 px-4 py-3 flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-start gap-3">
+                      <XCircle size={16} color="#ef4444" className="mt-0.5 shrink-0" />
+                      <div>
+                        <div className="text-sm font-medium text-slate-800">{item.label}</div>
+                        <div className="text-[12px] text-slate-500 mt-0.5">{item.message}</div>
+                      </div>
+                    </div>
+                    {item.tabLink && (
+                      <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full hover:bg-red-100 transition-colors border-0 cursor-pointer">
+                        Fix →
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-            ) : (
-              <div className="text-center">
-                <div className="text-3xl mb-2">✅</div>
-                <h3 className="text-sm font-bold text-emerald-600 uppercase">Ready to Submit</h3>
-                <p className="text-xs text-slate-500 mt-1 mb-4">All checks passed. Your bid is ready.</p>
-                <div className="flex gap-3 justify-center">
-                  <a
-                    href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`}
-                    target="_blank"
-                    className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-                  >
-                    📄 Export Bid Summary
-                  </a>
-                </div>
+            )}
+            {warns.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold text-amber-500 uppercase tracking-wide mb-2">Warnings — review before submitting</div>
+                {warns.map((item, idx) => (
+                  <div key={`w-${idx}`} className="bg-white rounded-lg border border-amber-100 border-l-4 border-l-amber-500 px-4 py-3 flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle size={16} color="#f59e0b" className="mt-0.5 shrink-0" />
+                      <div>
+                        <div className="text-sm font-medium text-slate-800">{item.label}</div>
+                        <div className="text-[12px] text-slate-500 mt-0.5">{item.message}</div>
+                      </div>
+                    </div>
+                    {item.tabLink && (
+                      <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full hover:bg-amber-100 transition-colors border-0 cursor-pointer">
+                        Review →
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </div>
-      ) : (
-        <div className="text-center py-20 bg-white rounded-xl border border-slate-200">
-          <div className="text-6xl mb-4">&#128737;&#65039;</div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">Validate Your Bid</h3>
-          <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-            Check checklist completion, quote freshness, open RFIs, and bid date readiness before you submit.
-          </p>
-          <button onClick={() => setHasRun(true)} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">
-            Run Validation
-          </button>
-        </div>
       )}
+
+      {/* ── ZONE 4: Submit gate ── */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
+        {fails.length > 0 ? (
+          <>
+            <div className="text-2xl mb-2">🚫</div>
+            <h3 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Not Ready to Submit</h3>
+            <p className="text-xs text-slate-500 mb-4">Resolve all failing checks before exporting your bid package.</p>
+            <a href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`} target="_blank"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
+              📄 Export Draft (with warnings)
+            </a>
+          </>
+        ) : warns.length > 0 ? (
+          <>
+            <div className="text-2xl mb-2">⚠️</div>
+            <h3 className="text-sm font-bold text-amber-600 uppercase tracking-wide mb-1">Ready with Warnings</h3>
+            <p className="text-xs text-slate-500 mb-4">No blockers, but {warns.length} item{warns.length > 1 ? "s" : ""} should be reviewed.</p>
+            <a href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`} target="_blank"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+              📄 Export Bid Summary
+            </a>
+          </>
+        ) : (
+          <>
+            <div className="text-2xl mb-2">✅</div>
+            <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-wide mb-1">Ready to Submit</h3>
+            <p className="text-xs text-slate-500 mb-4">All checks passed. Your bid is ready.</p>
+            <a href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`} target="_blank"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+              📄 Export Bid Package
+            </a>
+          </>
+        )}
+      </div>
+
     </div>
   );
 }
