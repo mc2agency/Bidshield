@@ -151,7 +151,7 @@ export default function GeneralConditionsTab({ isDemo, userId, projectId, projec
   async function pullGCTotal() {
     if (isDemo || !isValidProjectId) return;
     await updateProjectMut({
-      id: projectId as Id<"bidshield_projects">,
+      projectId: projectId as Id<"bidshield_projects">,
       otherCost: Math.round(gcTotal),
     });
   }
