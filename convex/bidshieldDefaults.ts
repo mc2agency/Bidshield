@@ -222,6 +222,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-epdm1", text: "Attachment method confirmed (ballasted adds 10+ psf — verify structural)", systems: ["epdm"] },
       { id: "p9-epdm2", text: "Chemical incompatibility with bitumen noted", systems: ["epdm"] },
       { id: "p9-epdm3", text: "Shrinkage allowance in flashing details confirmed", systems: ["epdm"] },
+      { id: "p9-epdm4", text: "Adhesive application temperature requirements noted", systems: ["epdm"] },
+      { id: "p9-epdm5", text: "Seam primer and tape requirements documented", systems: ["epdm"] },
       // PVC-specific
       { id: "p9-pvc1", text: "Grease exhaust proximity confirmed (restaurant/kitchen hoods)", systems: ["pvc"] },
       { id: "p9-pvc2", text: "Asphalt-impregnated material separation noted", systems: ["pvc"] },
@@ -515,9 +517,11 @@ function filterItems(
   energyCode?: boolean
 ): ChecklistItemDef[] {
   return items.filter(item => {
-    // If item is system-specific, only include when matching system is selected
-    if (item.systems) {
-      if (!systemType || !item.systems.includes(systemType)) return false;
+    // If item is system-specific:
+    // - When systemType IS set: only include items matching that system
+    // - When systemType is NOT set: show all items (UI adds "select a system" note)
+    if (item.systems && systemType) {
+      if (!item.systems.includes(systemType)) return false;
     }
     // If item is deck-specific, only include when matching deck is selected
     if (item.decks) {

@@ -394,6 +394,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                   </div>
                 )}
 
+                {/* No system selected note — spec review only */}
+                {phaseKey === "phase9" && !systemType && isOpen && (
+                  <div className="px-4 py-2 bg-amber-50 border-t border-amber-100 text-xs text-amber-700">
+                    💡 Select a roof system in Project Settings to filter spec items to your system type. All items are shown until then.
+                  </div>
+                )}
+
                 {/* All complete state */}
                 {isOpen && items.length === 0 && (
                   <div className="px-4 py-2.5 border-t border-[#e2e8f0] text-xs text-emerald-600 font-medium flex items-center gap-1.5">
