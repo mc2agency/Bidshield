@@ -278,7 +278,7 @@ function ProjectDetail() {
       <aside
         className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
         style={{
-          width: 220,
+          width: 256,
           minHeight: "calc(100vh - 4rem)",
           background: "linear-gradient(180deg, #0f1117 0%, #141820 100%)",
           borderRight: "1px solid rgba(255,255,255,0.06)",
@@ -341,25 +341,25 @@ function ProjectDetail() {
                 onClick={() => setActiveTab(isActive ? null : id)}
                 className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-all group/item"
                 style={isActive
-                  ? { background: "rgba(16,185,129,0.1)", color: "#ffffff", borderLeft: "2px solid #10b981" }
-                  : { color: "#6b7280" }
+                  ? { background: "rgba(16,185,129,0.12)", color: "#ffffff", borderLeft: "2px solid #10b981" }
+                  : { color: "#9ca3af" }
                 }
                 onMouseEnter={e => {
                   if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.color = "#d1d5db";
-                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
+                    (e.currentTarget as HTMLElement).style.color = "#e5e7eb";
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
                   }
                 }}
                 onMouseLeave={e => {
                   if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.color = "#6b7280";
+                    (e.currentTarget as HTMLElement).style.color = "#9ca3af";
                     (e.currentTarget as HTMLElement).style.background = "transparent";
                   }
                 }}
               >
                 <div className="flex items-center gap-2.5">
-                  <Icon size={16} strokeWidth={1.75} />
-                  <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 400 }}>{label}</span>
+                  <Icon size={17} strokeWidth={1.75} />
+                  <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>{label}</span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span title={dotLabel} style={{ width: 8, height: 8, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default", flexShrink: 0 }} />
