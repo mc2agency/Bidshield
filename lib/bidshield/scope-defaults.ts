@@ -1,7 +1,7 @@
 // Default scope items for the Scope Gap Checker.
 // These auto-populate when a user first opens the Scope tab.
 
-export type ScopeCategory = "demolition" | "access" | "protection" | "schedule" | "flashing" | "warranty" | "safety" | "general";
+export type ScopeCategory = "demolition" | "access" | "protection" | "schedule" | "sheetmetal" | "warranty" | "safety" | "general";
 
 export interface DefaultScopeItem {
   category: ScopeCategory;
@@ -14,7 +14,7 @@ export const SCOPE_CATEGORIES: Record<ScopeCategory, { label: string; icon: stri
   access: { label: "Site Access & Logistics", icon: "🚧" },
   protection: { label: "Temporary Protection", icon: "🛡️" },
   schedule: { label: "Schedule & Phasing", icon: "📅" },
-  flashing: { label: "Flashing & Sheet Metal", icon: "🔩" },
+  sheetmetal: { label: "Sheet Metal & Drainage", icon: "🔩" },
   warranty: { label: "Warranty & Inspections", icon: "📜" },
   safety: { label: "Safety & Compliance", icon: "⚠️" },
   general: { label: "General Conditions", icon: "📋" },
@@ -46,34 +46,32 @@ export const DEFAULT_SCOPE_ITEMS: DefaultScopeItem[] = [
   { category: "schedule", name: "Winter conditions premium", sortOrder: 16 },
   { category: "schedule", name: "Occupied building restrictions", sortOrder: 17 },
 
-  // Flashing & Sheet Metal
-  { category: "flashing", name: "Penetration flashings (all)", sortOrder: 18 },
-  { category: "flashing", name: "Parapet wall flashing / coping", sortOrder: 19 },
-  { category: "flashing", name: "Counterflashing / reglet", sortOrder: 20 },
-  { category: "flashing", name: "Expansion joints / Area dividers", sortOrder: 21 },
-  { category: "flashing", name: "Sheet metal gutters / Downspouts", sortOrder: 22 },
-  { category: "flashing", name: "Edge metal / Drip edge", sortOrder: 23 },
-  { category: "flashing", name: "Scupper flashings", sortOrder: 24 },
+  // Sheet Metal & Drainage
+  { category: "sheetmetal", name: "Sheet metal gutters / Downspouts", sortOrder: 18 },
+  { category: "sheetmetal", name: "Scuppers / Overflow provisions", sortOrder: 19 },
+  { category: "sheetmetal", name: "Coping / Edge metal fabrication", sortOrder: 20 },
+  { category: "sheetmetal", name: "Counterflashing (furnished by GC or roofer?)", sortOrder: 21 },
+  { category: "sheetmetal", name: "Roof drain bodies (furnished by plumber or roofer?)", sortOrder: 22 },
 
   // Warranty & Inspections
-  { category: "warranty", name: "Manufacturer warranty inspection fee", sortOrder: 25 },
-  { category: "warranty", name: "Extended warranty upgrade", sortOrder: 26 },
-  { category: "warranty", name: "Warranty-required details", sortOrder: 27 },
-  { category: "warranty", name: "As-built documentation / Photos", sortOrder: 28 },
+  { category: "warranty", name: "Manufacturer warranty inspection fee", sortOrder: 23 },
+  { category: "warranty", name: "Extended warranty upgrade", sortOrder: 24 },
+  { category: "warranty", name: "Warranty-required details", sortOrder: 25 },
+  { category: "warranty", name: "As-built documentation / Photos", sortOrder: 26 },
 
   // Safety & Compliance
-  { category: "safety", name: "OSHA fall protection (guardrails, anchors)", sortOrder: 29 },
-  { category: "safety", name: "Safety netting / Debris containment", sortOrder: 30 },
-  { category: "safety", name: "Fire watch", sortOrder: 31 },
-  { category: "safety", name: "Hot work permits", sortOrder: 32 },
+  { category: "safety", name: "OSHA fall protection (guardrails, anchors)", sortOrder: 27 },
+  { category: "safety", name: "Safety netting / Debris containment", sortOrder: 28 },
+  { category: "safety", name: "Fire watch", sortOrder: 29 },
+  { category: "safety", name: "Hot work permits", sortOrder: 30 },
 
   // General Conditions
-  { category: "general", name: "Permits", sortOrder: 33 },
-  { category: "general", name: "Bonding (performance / payment)", sortOrder: 34 },
-  { category: "general", name: "Insurance (additional insured)", sortOrder: 35 },
-  { category: "general", name: "Submittals / Shop drawings", sortOrder: 36 },
-  { category: "general", name: "Project management / Supervision", sortOrder: 37 },
-  { category: "general", name: "Punch list / Final cleanup", sortOrder: 38 },
-  { category: "general", name: "Testing (flood test, core cuts)", sortOrder: 39 },
-  { category: "general", name: "Owner / GC-required meetings", sortOrder: 40 },
+  { category: "general", name: "Permits", sortOrder: 31 },
+  { category: "general", name: "Bonding (performance / payment)", sortOrder: 32 },
+  { category: "general", name: "Insurance (additional insured)", sortOrder: 33 },
+  { category: "general", name: "Submittals / Shop drawings", sortOrder: 34 },
+  { category: "general", name: "Project management / Supervision", sortOrder: 35 },
+  { category: "general", name: "Punch list / Final cleanup", sortOrder: 36 },
+  { category: "general", name: "Testing (flood test, core cuts)", sortOrder: 37 },
+  { category: "general", name: "Owner / GC-required meetings", sortOrder: 38 },
 ];
