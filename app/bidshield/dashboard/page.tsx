@@ -325,6 +325,7 @@ function DashboardContent() {
       deckType: np.deckType || undefined,
       gc: np.gc || undefined,
       sqft: np.sqft ? parseInt(np.sqft) : undefined,
+      grossRoofArea: np.sqft ? parseInt(np.sqft) : undefined,
       estimatedValue: np.estimatedValue ? parseInt(np.estimatedValue) : undefined,
       assemblies: np.assemblies ? np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean) : [],
     });

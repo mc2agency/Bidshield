@@ -40,6 +40,7 @@ export const createProject = mutation({
     deckType: v.optional(v.string()),
     gc: v.optional(v.string()),
     sqft: v.optional(v.number()),
+    grossRoofArea: v.optional(v.number()),
     estimatedValue: v.optional(v.number()),
     assemblies: v.array(v.string()),
   },
@@ -76,6 +77,7 @@ export const createProject = mutation({
       deckType: args.deckType,
       gc: args.gc,
       sqft: args.sqft,
+      grossRoofArea: args.grossRoofArea ?? args.sqft,
       estimatedValue: args.estimatedValue,
       assemblies: args.assemblies,
       createdAt: now,
@@ -536,12 +538,12 @@ export const getStats = query({
     }
 
     const projectsWithPricing = projects.filter(
-      (p) => p.totalBidAmount && p.sqft && p.sqft > 0
+      (p) => p.totalBidAmount && (p.grossRoofArea || p.sqft) && (p.grossRoofArea || p.sqft)! > 0
     );
     const avgDollarPerSf =
       projectsWithPricing.length > 0
         ? projectsWithPricing.reduce(
-            (sum, p) => sum + p.totalBidAmount! / p.sqft!,
+            (sum, p) => sum + p.totalBidAmount! / (p.grossRoofArea || p.sqft)!,
             0
           ) / projectsWithPricing.length
         : 0;
@@ -580,8 +582,9 @@ export const getComparisonData = query({
       if (!assemblyStats[assembly]) {
         assemblyStats[assembly] = { totalDollarPerSf: 0, count: 0, won: 0, lost: 0 };
       }
-      if (p.totalBidAmount && p.sqft && p.sqft > 0) {
-        assemblyStats[assembly].totalDollarPerSf += p.totalBidAmount / p.sqft;
+      const pSf = p.grossRoofArea || p.sqft;
+      if (p.totalBidAmount && pSf && pSf > 0) {
+        assemblyStats[assembly].totalDollarPerSf += p.totalBidAmount / pSf;
         assemblyStats[assembly].count += 1;
       }
       if (p.status === "won") assemblyStats[assembly].won += 1;
@@ -623,7 +626,7 @@ export const getComparisonData = query({
     const sizeStats = { small: { won: 0, lost: 0 }, medium: { won: 0, lost: 0 }, large: { won: 0, lost: 0 } };
     for (const p of projects) {
       if (p.status !== "won" && p.status !== "lost") continue;
-      const sf = p.sqft || p.grossRoofArea || 0;
+      const sf = p.grossRoofArea || p.sqft || 0;
       const bucket = sf < 5000 ? "small" : sf <= 25000 ? "medium" : "large";
       if (p.status === "won") sizeStats[bucket].won += 1;
       if (p.status === "lost") sizeStats[bucket].lost += 1;
@@ -638,7 +641,8 @@ export const getComparisonData = query({
         if (!compMap[n]) compMap[n] = { count: 0, totalPrice: 0, totalDpsf: 0 };
         compMap[n].count += 1;
         if (p.competitorPrice) compMap[n].totalPrice += p.competitorPrice;
-        if (p.competitorPrice && p.sqft && p.sqft > 0) compMap[n].totalDpsf += p.competitorPrice / p.sqft;
+        const cSf = p.grossRoofArea || p.sqft;
+        if (p.competitorPrice && cSf && cSf > 0) compMap[n].totalDpsf += p.competitorPrice / cSf;
       }
     }
     for (const [name, d] of Object.entries(compMap)) {

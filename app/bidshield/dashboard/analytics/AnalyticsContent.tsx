@@ -98,7 +98,7 @@ function AnalyticsInner() {
 
   // Projects with pricing data
   const pricedProjects = filteredProjects.filter(
-    (p) => p.totalBidAmount && p.sqft && p.sqft > 0
+    (p) => p.totalBidAmount && ((p as any).grossRoofArea || p.sqft) > 0
   );
 
   // Enhanced GC Intelligence
@@ -109,9 +109,9 @@ function AnalyticsInner() {
       if (!gcMap[p.gc]) gcMap[p.gc] = { won: 0, lost: 0, total: 0, totalSF: 0, totalBid: 0, wonBid: 0, wonSF: 0 };
       const g = gcMap[p.gc];
       g.total += 1;
-      if (p.status === "won") { g.won += 1; g.wonBid += (p.totalBidAmount || 0); g.wonSF += (p.sqft || 0); }
+      if (p.status === "won") { g.won += 1; g.wonBid += (p.totalBidAmount || 0); g.wonSF += ((p as any).grossRoofArea || p.sqft || 0); }
       if (p.status === "lost") g.lost += 1;
-      g.totalSF += (p.sqft || 0);
+      g.totalSF += ((p as any).grossRoofArea || p.sqft || 0);
       g.totalBid += (p.totalBidAmount || 0);
     }
     return Object.entries(gcMap)
@@ -155,14 +155,14 @@ function AnalyticsInner() {
     .map((p) => ({
       name: p.name?.length > 20 ? p.name.substring(0, 18) + "..." : p.name,
       fullName: p.name,
-      dollarPerSf: +(p.totalBidAmount / p.sqft).toFixed(2),
+      dollarPerSf: +((p.totalBidAmount / ((p as any).grossRoofArea || p.sqft)).toFixed(2)),
       status: p.status,
       bidDate: p.bidDate,
     }))
     .sort((a, b) => (a.bidDate || "").localeCompare(b.bidDate || ""));
 
   const avgDpsf = pricedProjects.length > 0
-    ? pricedProjects.reduce((sum, p) => sum + p.totalBidAmount / p.sqft, 0) / pricedProjects.length
+    ? pricedProjects.reduce((sum, p) => sum + p.totalBidAmount / ((p as any).grossRoofArea || p.sqft), 0) / pricedProjects.length
     : 0;
 
   // Cost breakdown chart data
@@ -555,7 +555,7 @@ function AnalyticsInner() {
               const m = { small: { won: 0, lost: 0 }, medium: { won: 0, lost: 0 }, large: { won: 0, lost: 0 } };
               for (const p of rawProjects) {
                 if (p.status !== "won" && p.status !== "lost") continue;
-                const sf = p.sqft || 0;
+                const sf = (p as any).grossRoofArea || p.sqft || 0;
                 const b = sf < 5000 ? "small" : sf <= 25000 ? "medium" : "large";
                 if (p.status === "won") m[b].won++; else m[b].lost++;
               }
@@ -712,7 +712,8 @@ function AnalyticsInner() {
               {filteredProjects
                 .sort((a, b) => (b.bidDate || "").localeCompare(a.bidDate || ""))
                 .map((p: any, i: number) => {
-                  const dpsf = p.totalBidAmount && p.sqft && p.sqft > 0 ? (p.totalBidAmount / p.sqft).toFixed(2) : "—";
+                  const sf = (p as any).grossRoofArea || p.sqft || 0;
+                  const dpsf = p.totalBidAmount && sf > 0 ? (p.totalBidAmount / sf).toFixed(2) : "—";
                   const statusLabel = p.status === "won" ? "WON" : p.status === "lost" ? "LOST" : p.status === "no_award" ? "NO AWARD" : p.status === "submitted" ? "SUBMITTED" : p.status === "in_progress" ? "ACTIVE" : p.status === "no_bid" ? "NO BID" : "SETUP";
                   const statusClasses = p.status === "won" ? "bg-emerald-50 text-emerald-600" : p.status === "lost" ? "bg-red-50 text-red-600" : p.status === "no_award" ? "bg-slate-100 text-slate-500" : p.status === "in_progress" || p.status === "submitted" ? "bg-amber-50 text-amber-600" : "bg-slate-100 text-slate-500";
                   return (
@@ -720,7 +721,7 @@ function AnalyticsInner() {
                       <td className="p-3 text-sm text-slate-700 max-w-[160px] truncate">{p.name}</td>
                       <td className="p-3 text-sm text-slate-500 max-w-[120px] truncate">{p.gc || "—"}</td>
                       <td className="p-3 text-[11px] text-slate-500 max-w-[140px] truncate">{p.primaryAssembly || "—"}</td>
-                      <td className="p-3 text-sm text-slate-600 tabular-nums">{p.sqft ? p.sqft.toLocaleString() : "—"}</td>
+                      <td className="p-3 text-sm text-slate-600 tabular-nums">{sf > 0 ? sf.toLocaleString() : "—"}</td>
                       <td className="p-3 text-sm text-slate-600 tabular-nums">{dpsf !== "—" ? `$${dpsf}` : "—"}</td>
                       <td className="p-3 text-sm font-bold text-slate-600 tabular-nums">
                         {p.totalBidAmount ? `$${(p.totalBidAmount / 1000).toFixed(0)}k` : p.estimatedValue ? `$${(p.estimatedValue / 1000).toFixed(0)}k` : "—"}
