@@ -60,6 +60,43 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const touchStartX = useRef<number>(0);
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
   const [expandedHelp, setExpandedHelp] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const selKey = (pk: string, id: string) => `${pk}__${id}`;
+
+  const toggleSelect = useCallback((key: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
+
+  const bulkSetStatus = useCallback(async (target: ChecklistStatus) => {
+    const updates = [...selected].map(key => {
+      const idx = key.indexOf("__");
+      return { phaseKey: key.slice(0, idx), itemId: key.slice(idx + 2) };
+    });
+    if (isDemo) {
+      setDemoState(prev => prev.map(i => {
+        const hit = updates.find(u => u.phaseKey === i.phaseKey && u.itemId === i.itemId);
+        return hit ? { ...i, status: target, updatedAt: Date.now() } : i;
+      }));
+    } else {
+      await Promise.all(updates.map(({ phaseKey, itemId }) =>
+        updateChecklist({
+          projectId: projectId as Id<"bidshield_projects">,
+          phaseKey,
+          itemId,
+          status: target,
+          notes: (resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId) as any)?.notes || "",
+        })
+      ));
+    }
+    clearSelection();
+  }, [selected, isDemo, updateChecklist, projectId, resolvedItems, clearSelection]);
 
   const trade             = project?.trade || "roofing";
   const systemType        = project?.systemType;
@@ -221,6 +258,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   ];
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
 
       {/* ── LEFT: Checklist ── */}
@@ -271,7 +309,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             // Auto-collapse completed phases; expand incomplete ones by default
             const isOpen      = expanded[phaseKey] ?? (filter !== "done" && !isComplete);
             const isHighRisk  = !!phase.critical;
-            const pctColor    = stats.pct === 0 ? "#6b7280" : stats.pct < 50 ? "#f59e0b" : stats.pct < 100 ? "#3b82f6" : "#10b981";
+            const pctColor    = stats.pct === 100 ? "#10b981" : stats.pct >= 67 ? "#3b82f6" : stats.pct >= 34 ? "#f59e0b" : "#ef4444";
+            const incompleteInPhase = (phase as any).items.filter((item: any) => {
+              const s = getItemStatus(phaseKey, item.id);
+              return s === "pending" || s === "rfi" || s === "warning";
+            });
+            const allPhaseSelected = incompleteInPhase.length > 0 && incompleteInPhase.every((item: any) => selected.has(selKey(phaseKey, item.id)));
+            const somePhaseSelected = !allPhaseSelected && incompleteInPhase.some((item: any) => selected.has(selKey(phaseKey, item.id)));
 
             return (
               <div
@@ -286,37 +330,62 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 }}
               >
                 {/* Phase header */}
-                <button
-                  onClick={() => setExpanded(p => ({ ...p, [phaseKey]: !isOpen }))}
-                  className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-left"
-                  style={{ background: "#f8fafc" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f1f5f9"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#f8fafc"}
-                >
-                  <span className="text-base shrink-0">{phase.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{phase.title}</span>
-                      {isHighRisk && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CRITICAL</span>}
-                      {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
-                      {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
-                      {/* Permanent ✓ Complete badge when phase is 100% */}
-                      {isComplete && (
-                        <span style={{ fontSize: 11, color: "#059669", fontWeight: 600, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 99, padding: "1px 8px" }}>✓ Complete</span>
-                      )}
-                    </div>
-                    {/* Mini inline progress bar */}
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span style={{ fontSize: 12, color: "#9ca3af" }} className="shrink-0">{(phase as any).items.length} items · {stats.pct}%</span>
-                      <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
-                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${stats.pct}%`, background: pctColor }} />
+                <div className="flex items-center" style={{ background: "#f8fafc" }}>
+                  {/* Select-all checkbox */}
+                  <div
+                    className="pl-4 flex items-center justify-center self-stretch"
+                    style={{ minWidth: 36 }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelected(prev => {
+                        const next = new Set(prev);
+                        if (allPhaseSelected) {
+                          incompleteInPhase.forEach((item: any) => next.delete(selKey(phaseKey, item.id)));
+                        } else {
+                          incompleteInPhase.forEach((item: any) => next.add(selKey(phaseKey, item.id)));
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allPhaseSelected}
+                      ref={el => { if (el) el.indeterminate = somePhaseSelected; }}
+                      onChange={() => {}}
+                      style={{ width: 13, height: 13, cursor: "pointer", accentColor: "#64748b", flexShrink: 0 }}
+                      title={allPhaseSelected ? "Deselect all" : "Select all incomplete"}
+                    />
+                  </div>
+                  <button
+                    onClick={() => setExpanded(p => ({ ...p, [phaseKey]: !isOpen }))}
+                    className="flex-1 flex items-center gap-3 px-3 py-3 transition-colors text-left"
+                    onMouseEnter={e => { (e.currentTarget.parentElement as HTMLElement).style.background = "#f1f5f9"; }}
+                    onMouseLeave={e => { (e.currentTarget.parentElement as HTMLElement).style.background = "#f8fafc"; }}
+                  >
+                    <span className="text-base shrink-0">{phase.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{phase.title}</span>
+                        {isHighRisk && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CRITICAL</span>}
+                        {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
+                        {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
+                        {isComplete && (
+                          <span style={{ fontSize: 11, color: "#059669", fontWeight: 600, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 99, padding: "1px 8px" }}>✓ Complete</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span style={{ fontSize: 12, color: "#9ca3af" }} className="shrink-0">{(phase as any).items.length} items · {stats.pct}%</span>
+                        <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${stats.pct}%`, background: pctColor }} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <svg className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
+                    <svg className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                </div>
 
                 {/* Critical rule banner */}
                 {phase.criticalRule && isOpen && (
@@ -373,6 +442,14 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               if (Math.abs(dx) > 60) setStatus(phaseKey, item.id, dx > 0 ? "done" : "na");
                             }}
                           >
+                            {/* Selection checkbox */}
+                            <input
+                              type="checkbox"
+                              checked={selected.has(selKey(phaseKey, item.id))}
+                              onChange={e => { e.stopPropagation(); toggleSelect(selKey(phaseKey, item.id)); }}
+                              onClick={e => e.stopPropagation()}
+                              style={{ width: 13, height: 13, accentColor: "#64748b", flexShrink: 0, cursor: "pointer" }}
+                            />
                             {/* Item text */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
@@ -594,5 +671,68 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         )}
       </div>
     </div>
+
+    {/* Floating bulk action bar */}
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        left: "50%",
+        transform: selected.size > 0 ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(80px)",
+        opacity: selected.size > 0 ? 1 : 0,
+        pointerEvents: selected.size > 0 ? "auto" : "none",
+        transition: "transform 0.25s ease-out, opacity 0.2s",
+        background: "#1e293b",
+        color: "white",
+        borderRadius: 12,
+        padding: "10px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+        zIndex: 50,
+        minWidth: 360,
+        maxWidth: 560,
+        width: "calc(100vw - 48px)",
+      }}
+    >
+      <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8", flexShrink: 0, marginRight: 4 }}>
+        {selected.size} selected
+      </span>
+      <div style={{ flex: 1 }} />
+      <button
+        onClick={() => bulkSetStatus("done")}
+        style={{ fontSize: 12, fontWeight: 600, background: "#10b981", color: "white", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#059669"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#10b981"}
+      >
+        Mark Done
+      </button>
+      <button
+        onClick={() => bulkSetStatus("na")}
+        style={{ fontSize: 12, fontWeight: 500, background: "#334155", color: "#94a3b8", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#475569"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#334155"}
+      >
+        Mark N/A
+      </button>
+      <button
+        onClick={() => bulkSetStatus("warning")}
+        style={{ fontSize: 12, fontWeight: 500, background: "#334155", color: "#fb923c", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#475569"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#334155"}
+      >
+        Flag
+      </button>
+      <button
+        onClick={clearSelection}
+        style={{ fontSize: 12, fontWeight: 500, color: "#64748b", background: "none", border: "none", padding: "6px 8px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#94a3b8"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#64748b"}
+      >
+        ✕ Clear
+      </button>
+    </div>
+    </>
   );
 }

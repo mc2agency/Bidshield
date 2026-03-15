@@ -80,14 +80,41 @@ const demoStats = {
 // ============================================================
 // STAT CARD
 // ============================================================
-function StatCard({ value, label }: {
+function StatCard({ value, label, dimmed }: {
   value: string | number;
   label: string;
+  dimmed?: boolean;
 }) {
   return (
-    <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 20 }}>
-      <div style={{ fontSize: 30, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
+    <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 20, opacity: dimmed ? 0.5 : 1 }}>
+      <div style={{ fontSize: 30, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em", lineHeight: 1 }}>{dimmed ? "—" : value}</div>
       <div style={{ fontSize: 13, color: "#6b7280", marginTop: 6, fontWeight: 500 }}>{label}</div>
+    </div>
+  );
+}
+
+// ============================================================
+// WELCOME CARD (zero-project state)
+// ============================================================
+function WelcomeCard({ onNewBid }: { onNewBid: () => void }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-8 py-10 text-center">
+      <h2 className="text-xl font-bold text-slate-900 mb-2">Welcome to BidShield</h2>
+      <p className="text-slate-500 text-sm mb-6">Start your first bid review to catch what estimating software misses.</p>
+      <button
+        onClick={onNewBid}
+        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+        + New Bid
+      </button>
+      <div className="flex items-center justify-center flex-wrap gap-x-2 gap-y-1 mt-6 text-xs text-slate-400">
+        <span>1. Create a project</span>
+        <span className="text-slate-300">→</span>
+        <span>2. Run through the checklist</span>
+        <span className="text-slate-300">→</span>
+        <span>3. Validate before you submit</span>
+      </div>
     </div>
   );
 }
@@ -398,13 +425,25 @@ function DashboardContent() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard value={stats.activeProjects} label="Active Bids" />
-        <StatCard value={`${stats.winRate}%`} label="Win Rate" />
-        <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" />
-        <StatCard value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`} label="Pipeline Value" />
-      </div>
+      {/* Stats / Welcome */}
+      {!isDemo && projects.length === 0 ? (
+        <WelcomeCard onNewBid={handleNewBidClick} />
+      ) : (
+        <div className="grid grid-cols-4 gap-4">
+          <StatCard value={stats.activeProjects} label="Active Bids" />
+          <StatCard
+            value={`${stats.winRate}%`}
+            label="Win Rate"
+            dimmed={stats.winRate === 0 && stats.wonProjects + stats.lostProjects === 0}
+          />
+          <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" />
+          <StatCard
+            value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`}
+            label="Pipeline Value"
+            dimmed={stats.pipelineValue === 0}
+          />
+        </div>
+      )}
 
       {/* Alerts */}
       {(stats.expiringQuotes > 0 || stats.openRFIs > 0) && (

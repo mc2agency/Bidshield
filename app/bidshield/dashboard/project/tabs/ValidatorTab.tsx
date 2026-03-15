@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -12,6 +12,75 @@ interface ScoreItem {
   status: "pass" | "warn" | "fail";
   message: string;
   tabLink?: TabId;
+}
+
+function scoreColor(score: number) {
+  if (score >= 90) return "#10b981";
+  if (score >= 70) return "#3b82f6";
+  if (score >= 40) return "#f59e0b";
+  return "#ef4444";
+}
+
+function ScoreRing({ score }: { score: number }) {
+  const [animated, setAnimated] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 50);
+    return () => clearTimeout(t);
+  }, [score]);
+  const r = 72, sw = 10, size = 180;
+  const circ = 2 * Math.PI * r;
+  const offset = animated ? circ * (1 - score / 100) : circ;
+  const color = scoreColor(score);
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={sw} />
+        <circle
+          cx={size / 2} cy={size / 2} r={r} fill="none"
+          stroke={color} strokeWidth={sw} strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1s ease-out" }}
+        />
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+        <span style={{ fontSize: 64, fontWeight: 800, color: "#111827", lineHeight: 1, letterSpacing: "-0.04em" }}>{score}</span>
+        <span style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>/100</span>
+      </div>
+    </div>
+  );
+}
+
+function SummaryCard({ scoreData }: { scoreData: { items: ScoreItem[]; score: number; grade: string } }) {
+  const fails = scoreData.items.filter(i => i.status === "fail").length;
+  const warns = scoreData.items.filter(i => i.status === "warn").length;
+  const color = scoreColor(scoreData.score);
+  const bgColor = fails > 0 ? "#fef2f2" : warns > 0 ? "#fffbeb" : "#f0fdf4";
+  const borderColor = fails > 0 ? "#fecaca" : warns > 0 ? "#fde68a" : "#bbf7d0";
+  const statusText = fails > 0
+    ? `Not ready — ${fails} check${fails !== 1 ? "s" : ""} failing`
+    : warns > 0
+    ? `Ready with ${warns} warning${warns !== 1 ? "s" : ""}`
+    : `All ${scoreData.items.length} checks passing ✓`;
+  const subText = fails > 0
+    ? "Fix these before submitting your bid"
+    : warns > 0
+    ? "Review warnings before submitting"
+    : "Bid is ready to submit";
+  const headingColor = fails > 0 ? "#991b1b" : warns > 0 ? "#92400e" : "#065f46";
+  const subColor = fails > 0 ? "#dc2626" : warns > 0 ? "#b45309" : "#059669";
+  return (
+    <div style={{ background: bgColor, border: `1px solid ${borderColor}`, borderRadius: 12, padding: "28px 24px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+      <ScoreRing score={scoreData.score} />
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: headingColor }}>{statusText}</div>
+        <div style={{ fontSize: 13, color: subColor, marginTop: 4 }}>{subText}</div>
+      </div>
+      <div style={{ width: "100%", height: 3, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${scoreData.score}%`, background: color, borderRadius: 9999, transition: "width 1s ease-out" }} />
+      </div>
+    </div>
+  );
 }
 
 export default function ValidatorTab({ projectId, isDemo, project, userId, onNavigateTab }: TabProps) {
@@ -231,41 +300,7 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
     <div className="flex flex-col gap-6">
       {scoreData ? (
         <div className="flex flex-col gap-4">
-          {/* Focused status */}
-          {scoreData.items.filter(i => i.status === "fail").length > 0 ? (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-bold text-red-800">Not ready — {scoreData.items.filter(i => i.status === "fail").length} checks failing</div>
-                  <p className="text-xs text-red-600 mt-0.5">Fix these before submitting your bid</p>
-                </div>
-                <div className="text-2xl font-extrabold text-red-600">{scoreData.score}<span className="text-sm font-normal text-red-400">/100</span></div>
-              </div>
-              <div className="h-2 bg-red-100 rounded-full overflow-hidden mt-3">
-                <div className={`h-full rounded-full ${scoreData.score >= 90 ? "bg-emerald-500" : scoreData.score >= 65 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${scoreData.score}%` }} />
-              </div>
-            </div>
-          ) : scoreData.items.filter(i => i.status === "warn").length > 0 ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-bold text-amber-800">Ready with {scoreData.items.filter(i => i.status === "warn").length} warnings</div>
-                  <p className="text-xs text-amber-600 mt-0.5">Review warnings before submitting</p>
-                </div>
-                <div className="text-2xl font-extrabold text-amber-600">{scoreData.score}<span className="text-sm font-normal text-amber-400">/100</span></div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-bold text-emerald-700">All {scoreData.items.length} checks passing ✓</div>
-                  <p className="text-xs text-emerald-600 mt-0.5">Bid is ready to submit</p>
-                </div>
-                <div className="text-2xl font-extrabold text-emerald-600">{scoreData.score}<span className="text-sm font-normal text-emerald-400">/100</span></div>
-              </div>
-            </div>
-          )}
+          <SummaryCard scoreData={scoreData} />
 
           <div className="flex flex-col gap-3">
             {scoreData.items.filter(i => i.status === "fail").map((item, idx) => (

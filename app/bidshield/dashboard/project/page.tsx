@@ -34,12 +34,11 @@ const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size
   { id: "validator", label: "Validate",  Icon: CheckSquare },
 ];
 
-// 6-point dot color system: 0=gray, 1-49=amber, 50-99=blue, 100=green
 function scoreDot(s: number): string {
-  if (s === 0)   return "#6b7280";
-  if (s < 50)    return "#f59e0b";
-  if (s < 100)   return "#3b82f6";
-  return "#10b981";
+  if (s === 100) return "#10b981";
+  if (s >= 67)   return "#3b82f6";
+  if (s >= 34)   return "#f59e0b";
+  return "#ef4444";
 }
 
 type ActionLevel = "blocker" | "warning" | "info";
@@ -64,6 +63,7 @@ function ProjectDetail() {
     lossReason: string;
   }>({ result: null, competitorName: "", competitorPrice: "", lossReason: "" });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
+  const [panelOverrides, setPanelOverrides] = useState<Record<string, boolean>>({});
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const checklist = useQuery(api.bidshield.getChecklist, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -256,6 +256,12 @@ function ProjectDetail() {
   const bidAmt = (projectData as any)?.totalBidAmount;
   const dpsf = grossArea && bidAmt ? Math.round((bidAmt / grossArea) * 100) / 100 : null;
 
+  const panelKey = activeTab ?? "__overview__";
+  const defaultPanelOpen = activeTab === null || activeTab === "checklist";
+  const panelOpen = panelKey in panelOverrides ? panelOverrides[panelKey] : defaultPanelOpen;
+  const togglePanel = () => setPanelOverrides(prev => ({ ...prev, [panelKey]: !panelOpen }));
+  const readinessColor = readinessScore === 100 ? "#10b981" : readinessScore >= 67 ? "#3b82f6" : readinessScore >= 34 ? "#f59e0b" : "#ef4444";
+
   return (
     <>
     <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
@@ -315,6 +321,11 @@ function ProjectDetail() {
             const isActive = activeTab === id;
             const remainingCount = remaining[id as keyof typeof remaining] ?? 0;
             const showCount = sectionScore !== undefined && sectionScore > 0 && sectionScore < 100 && remainingCount > 0;
+            const dotLabel =
+              dot === "#10b981" ? "Complete" :
+              dot === "#3b82f6" ? (remainingCount > 0 ? `In progress · ${remainingCount} left` : "In progress") :
+              dot === "#f59e0b" ? (remainingCount > 0 ? `${remainingCount} item${remainingCount !== 1 ? "s" : ""} need attention` : "Needs attention") :
+              "Not started";
 
             return (
               <button
@@ -343,7 +354,7 @@ function ProjectDetail() {
                   <span style={{ fontSize: 13, fontWeight: isActive ? 500 : 400 }}>{label}</span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, display: "inline-block" }} />
+                  <span title={dotLabel} style={{ width: 6, height: 6, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default" }} />
                   {showCount && (
                     <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 400 }}>{remainingCount}</span>
                   )}
@@ -589,12 +600,23 @@ function ProjectDetail() {
             )}
           </main>
 
-          {/* Panel C — right info card, no dividers */}
-          <aside
-            className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
-            style={{ width: 320, background: "#ffffff", borderLeft: "1px solid #e5e7eb", overflowX: "hidden" }}
-          >
-            <div style={{ padding: "20px 16px 0" }}>
+          {/* Panel C — right info card */}
+          {panelOpen ? (
+            <aside
+              className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
+              style={{ width: 320, background: "#ffffff", borderLeft: "1px solid #e5e7eb", overflowX: "hidden" }}
+            >
+              <button
+                onClick={togglePanel}
+                className="hidden lg:flex items-center justify-center shrink-0 hover:bg-slate-50 transition-colors"
+                style={{ height: 36, borderBottom: "1px solid #e5e7eb", color: "#9ca3af", flexShrink: 0 }}
+                title="Collapse panel"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+              <div style={{ padding: "20px 16px 0" }}>
 
               {/* 1. BID READINESS — top priority */}
               <div style={{ paddingBottom: 20 }}>
@@ -606,7 +628,7 @@ function ProjectDetail() {
                     {readinessScore}%
                   </div>
                   <div style={{ height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden", marginBottom: 8 }}>
-                    <div style={{ height: "100%", width: `${readinessScore}%`, background: "#10b981", borderRadius: 9999, transition: "width 0.5s" }} />
+                    <div style={{ height: "100%", width: `${readinessScore}%`, background: readinessColor, borderRadius: 9999, transition: "width 0.5s" }} />
                   </div>
                   {daysUntilBid !== null && (
                     <div style={{ fontSize: 12, color: daysUntilBid <= 3 ? "#d97706" : "#6b7280", fontWeight: daysUntilBid <= 3 ? 600 : 400 }}>
@@ -798,7 +820,44 @@ function ProjectDetail() {
                 </button>
               )}
             </div>
-          </aside>
+            </aside>
+          ) : (
+            <aside
+              className="hidden lg:flex flex-col items-center shrink-0"
+              style={{ width: 40, background: "#ffffff", borderLeft: "1px solid #e5e7eb" }}
+            >
+              <button
+                onClick={togglePanel}
+                className="flex items-center justify-center shrink-0 hover:bg-slate-50 transition-colors"
+                style={{ width: 40, height: 40, borderBottom: "1px solid #e5e7eb", color: "#9ca3af", flexShrink: 0 }}
+                title="Expand panel"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  writingMode: "vertical-rl",
+                  transform: "rotate(180deg)",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: activeTab === "validator" ? readinessColor : "#9ca3af",
+                  whiteSpace: "nowrap",
+                  paddingBottom: 16,
+                  paddingTop: 16,
+                }}
+              >
+                {activeTab === "validator" ? `${readinessScore}/100` : `Bid Readiness · ${readinessScore}%`}
+              </div>
+            </aside>
+          )}
 
         </div>
       </div>

@@ -253,7 +253,6 @@ export default function HomepageContent() {
             Download the 18-phase checklist commercial roofing estimators use to catch every line item.
           </p>
           <EmailCapture />
-          <p className="text-sm text-slate-500 mt-4">No spam. Unsubscribe anytime.</p>
         </div>
       </section>
 
