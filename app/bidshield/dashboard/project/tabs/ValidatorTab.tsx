@@ -398,7 +398,7 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
   };
 
   return (
-    <div className="p-6 flex flex-col gap-5 max-w-4xl">
+    <div className="p-6 flex flex-col gap-5 w-full">
 
       {/* ── ZONE 1: Hero ── */}
       <div style={{
@@ -427,7 +427,7 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       {/* ── ZONE 2: Section health grid ── */}
       <div>
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Section Health</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {SECTION_DEFS.map(({ tabId, label, Icon }) => {
             const key = tabId ?? "__meta__";
             const sectionItems = grouped.get(key) ?? [];
