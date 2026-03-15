@@ -74,6 +74,16 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
+  const trade             = project?.trade || "roofing";
+  const systemType        = project?.systemType;
+  const deckType          = project?.deckType;
+  const fmGlobal          = project?.fmGlobal ?? false;
+  const pre1990           = project?.pre1990 ?? false;
+  const energyCode        = project?.energyCode ?? false;
+  const climateZone       = project?.climateZone ?? "";
+  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal, pre1990, energyCode);
+  const resolvedItems     = isDemo ? demoState : (checklistItems ?? []);
+
   const bulkSetStatus = useCallback(async (target: ChecklistStatus) => {
     const updates = [...selected].map(key => {
       const idx = key.indexOf("__");
@@ -97,16 +107,6 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     }
     clearSelection();
   }, [selected, isDemo, updateChecklist, projectId, resolvedItems, clearSelection]);
-
-  const trade             = project?.trade || "roofing";
-  const systemType        = project?.systemType;
-  const deckType          = project?.deckType;
-  const fmGlobal          = project?.fmGlobal ?? false;
-  const pre1990           = project?.pre1990 ?? false;
-  const energyCode        = project?.energyCode ?? false;
-  const climateZone       = project?.climateZone ?? "";
-  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal, pre1990, energyCode);
-  const resolvedItems     = isDemo ? demoState : (checklistItems ?? []);
 
   const overall = isDemo
     ? (() => { const d = demoState.filter(i => i.status === "done" || i.status === "na").length; return demoState.length > 0 ? Math.round((d / demoState.length) * 100) : 0; })()
