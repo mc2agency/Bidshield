@@ -10,7 +10,7 @@ import Link from "next/link";
 import {
   LayoutList, AlignLeft, Ruler, Package,
   DollarSign, Users, Quote, FileText,
-  HelpCircle, CheckSquare,
+  HelpCircle, CheckSquare, ClipboardList,
 } from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
@@ -18,7 +18,7 @@ import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-sys
 import type { TabId } from "./tab-types";
 import {
   ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
-  ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, ValidatorTab,
+  ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, ValidatorTab, BidQualsTab,
 } from "./tabs";
 
 const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
@@ -32,6 +32,7 @@ const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size
   { id: "addenda",   label: "Addenda",   Icon: FileText },
   { id: "rfis",      label: "RFIs",      Icon: HelpCircle },
   { id: "validator", label: "Validate",  Icon: CheckSquare },
+  { id: "bidquals",  label: "Bid Quals", Icon: ClipboardList },
 ];
 
 function scoreDot(s: number): string {
@@ -73,6 +74,7 @@ function ProjectDetail() {
   const projectMaterials = useQuery(api.bidshield.getProjectMaterials, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const scopeItems = useQuery(api.bidshield.getScopeItems, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const bidQuals = useQuery(api.bidshield.getBidQuals, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
 
   const projectData = isDemo
     ? { name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
@@ -479,6 +481,7 @@ function ProjectDetail() {
                   {activeTab === "addenda"   && <AddendaTab   {...tabProps} />}
                   {activeTab === "labor"     && <LaborTab     {...tabProps} />}
                   {activeTab === "validator" && <ValidatorTab {...tabProps} />}
+                  {activeTab === "bidquals"  && <BidQualsTab  {...tabProps} />}
                 </div>
               </>
             ) : (

@@ -106,6 +106,10 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
     api.bidshield.getAddenda,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const bidQuals = useQuery(
+    api.bidshield.getBidQuals,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const [hasRun, setHasRun] = useState(true);
 
@@ -276,6 +280,25 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
       } else {
         items.push({ label: "Pricing", status: "pass", message: `Total bid $${bidAmt.toLocaleString()} with full cost breakdown` });
       }
+    }
+
+    // 10. BID QUALIFICATIONS
+    if (isDemo) {
+      items.push({ label: "Bid Qualifications", status: "pass", message: "Basis of bid, labor type, insurance, and schedule documented" });
+    } else if (bidQuals) {
+      const filled = !!(bidQuals.plansDated && bidQuals.laborType && bidQuals.insuranceProgram && bidQuals.estimatedDuration);
+      if (filled) {
+        items.push({ label: "Bid Qualifications", status: "pass", message: "Basis of bid, labor, insurance, and schedule documented" });
+      } else {
+        const missing: string[] = [];
+        if (!bidQuals.plansDated) missing.push("plans dated");
+        if (!bidQuals.laborType) missing.push("labor type");
+        if (!bidQuals.insuranceProgram) missing.push("insurance");
+        if (!bidQuals.estimatedDuration) missing.push("schedule");
+        items.push({ label: "Bid Qualifications", status: "warn", message: `Complete Bid Qualifications before submitting — missing: ${missing.join(", ")}`, tabLink: "bidquals" });
+      }
+    } else if (!isDemo) {
+      items.push({ label: "Bid Qualifications", status: "warn", message: "Complete Bid Qualifications before submitting", tabLink: "bidquals" });
     }
 
     // Calculate score
