@@ -149,7 +149,7 @@ type QualFields = {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function BidQualsTab({ projectId, isDemo, userId }: TabProps) {
+export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const qualsData = useQuery(
@@ -185,6 +185,19 @@ export default function BidQualsTab({ projectId, isDemo, userId }: TabProps) {
     if (next.has(type)) next.delete(type); else next.add(type);
     saveField("bondTypes", [...next].join(","), true);
   };
+
+  if (!isPro && !isDemo) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
+        <div className="text-4xl mb-4">🔒</div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Bid Qualifications</h3>
+        <p className="text-sm text-slate-500 mb-6">Track bonding, insurance, exclusions, and other GC submission requirements. Available on Pro.</p>
+        <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
+          Upgrade to Pro
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">

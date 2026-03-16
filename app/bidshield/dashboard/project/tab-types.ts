@@ -37,6 +37,7 @@ export type TabConfig = {
 export interface TabProps {
   projectId: string;
   isDemo: boolean;
+  isPro?: boolean;
   project: any;
   userId?: string;
   onNavigateTab?: (tab: TabId) => void;

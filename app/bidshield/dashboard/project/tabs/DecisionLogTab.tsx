@@ -44,7 +44,7 @@ function formatTime(ts: number): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function DecisionLogTab({ projectId, isDemo, userId }: TabProps) {
+export default function DecisionLogTab({ projectId, isDemo, isPro, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const decisionsRaw = useQuery(
@@ -79,6 +79,19 @@ export default function DecisionLogTab({ projectId, isDemo, userId }: TabProps) 
           A paper trail of estimating decisions — who decided what and when. Share with PMs and reviewers to prevent second-guessing.
         </p>
       </div>
+
+      {!isPro && !isDemo && (
+        <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-amber-200" style={{ background: "#fffbeb" }}>
+          <span className="text-sm text-amber-700">
+            {decisions.length >= 5
+              ? `Decision Log full (${decisions.length}/5) — upgrade to log unlimited decisions`
+              : `Free plan: ${decisions.length}/5 decisions used`}
+          </span>
+          <a href="/bidshield/pricing" className="text-xs font-semibold text-emerald-600 hover:text-emerald-500 ml-4 shrink-0">
+            Upgrade →
+          </a>
+        </div>
+      )}
 
       {/* Search */}
       <div style={{ position: "relative" }}>

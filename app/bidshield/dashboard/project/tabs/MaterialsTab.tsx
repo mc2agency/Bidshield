@@ -83,7 +83,7 @@ function datasheetCategoryToMaterial(cat: string): string {
   return map[cat] || "accessories";
 }
 
-export default function MaterialsTab({ projectId, isDemo, project, userId, onNavigateTab }: TabProps) {
+export default function MaterialsTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const projectMaterials = useQuery(
@@ -445,9 +445,15 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
               Recalculate
             </button>
           )}
-          <button onClick={() => setShowAddModal(true)} style={{ background: "#10b981" }} className="px-3 py-1.5 text-white rounded-lg text-xs font-medium hover:opacity-90 transition-colors">
-            + Add Material
-          </button>
+          {(isPro || isDemo) ? (
+            <button onClick={() => setShowAddModal(true)} style={{ background: "#10b981" }} className="px-3 py-1.5 text-white rounded-lg text-xs font-medium hover:opacity-90 transition-colors">
+              + Add Material
+            </button>
+          ) : (
+            <a href="/bidshield/pricing" className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors" style={{ background: "#f1f5f9", color: "#94a3b8", border: "1px solid #e2e8f0" }}>
+              🔒 Add Material · Pro
+            </a>
+          )}
         </div>
       </div>
 
@@ -538,9 +544,15 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
                                 className={`text-xs transition-colors ${isChecking ? "text-blue-500" : "text-slate-400 hover:text-blue-500"}`}
                                 title="Check against datasheet library"
                               >📋</button>
-                              <button onClick={() => startEdit(m)} className="text-slate-500 hover:text-slate-900 text-xs">Edit</button>
-                              {!isDemo && (
-                                <button onClick={() => deleteMaterial({ materialId: m._id })} className="text-red-600/50 hover:text-red-600 text-xs">×</button>
+                              {(isPro || isDemo) ? (
+                                <>
+                                  <button onClick={() => startEdit(m)} className="text-slate-500 hover:text-slate-900 text-xs">Edit</button>
+                                  {!isDemo && (
+                                    <button onClick={() => deleteMaterial({ materialId: m._id })} className="text-red-600/50 hover:text-red-600 text-xs">×</button>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="text-[10px] text-slate-300">🔒</span>
                               )}
                             </div>
                           )}

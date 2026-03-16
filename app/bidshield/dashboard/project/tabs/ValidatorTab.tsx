@@ -98,7 +98,7 @@ function worstStatus(items: ScoreItem[]): "pass" | "warn" | "fail" | "none" {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function ValidatorTab({ projectId, isDemo, project, userId, onNavigateTab }: TabProps) {
+export default function ValidatorTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const checklist = useQuery(
@@ -600,6 +600,17 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
         );
 
         return (
+          <div className="relative">
+          {!isPro && !isDemo && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl" style={{ background: "rgba(248,250,252,0.85)", backdropFilter: "blur(6px)" }}>
+              <div className="text-2xl mb-2">🔒</div>
+              <p className="text-sm font-semibold text-slate-800 mb-1">Bid Summary — Pro</p>
+              <p className="text-xs text-slate-500 mb-3">See your complete cost breakdown and $/SF before submission.</p>
+              <a href="/bidshield/pricing" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors">
+                Upgrade to Pro
+              </a>
+            </div>
+          )}
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
             <div style={{ background: "#f8fafc", borderBottom: "1px solid #e5e7eb", padding: "10px 20px", display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", letterSpacing: "0.08em", textTransform: "uppercase" }}>Bid Summary</span>
@@ -641,6 +652,7 @@ export default function ValidatorTab({ projectId, isDemo, project, userId, onNav
                 {fact("Labor type", laborLabel ?? <span style={{ color: "#d1d5db" }}>—</span>)}
               </div>
             </div>
+          </div>
           </div>
         );
       })()}

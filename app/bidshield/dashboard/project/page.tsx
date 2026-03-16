@@ -81,6 +81,8 @@ function ProjectDetail() {
   const bidQuals = useQuery(api.bidshield.getBidQuals, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const decisions = useQuery(api.bidshield.getDecisions, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addDecision = useMutation(api.bidshield.addDecision);
+  const subscription = useQuery(api.users.getUserSubscription, !isDemo && userId ? { clerkId: userId } : "skip");
+  const isPro = isDemo || (subscription?.isPro ?? false);
 
   const projectData = isDemo
     ? { name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
@@ -254,7 +256,7 @@ function ProjectDetail() {
   const daysUntilBid = bidDate ? Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
   const blockerCount = actionItems.filter(a => a.level === "blocker").length;
   const warnCount = actionItems.filter(a => a.level === "warning").length;
-  const tabProps = { projectId: projectIdParam, isDemo, project: projectData, userId: userId ?? undefined, onNavigateTab: openTab };
+  const tabProps = { projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigateTab: openTab };
   const activeTabLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label;
 
   const sysId = (projectData as any)?.systemType;
@@ -946,7 +948,26 @@ function ProjectDetail() {
       (() => {
         const sectionLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label ?? activeTab;
         const sectionCount = isDemo ? 0 : (decisions ?? []).filter((d: any) => d.section === sectionLabel).length;
-        return (
+        const totalDecisions = isDemo ? 0 : (decisions ?? []).length;
+        const atLimit = !isPro && totalDecisions >= 5;
+        return atLimit ? (
+          <a
+            href="/bidshield/pricing"
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            style={{
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: 10,
+              padding: "8px 14px",
+              fontSize: 12,
+              fontWeight: 500,
+              color: "#94a3b8",
+              textDecoration: "none",
+            }}
+          >
+            🔒 Decision Log (5/5) · Upgrade
+          </a>
+        ) : (
           <button
             onClick={() => setDecisionModalOpen(true)}
             className="fixed bottom-6 right-6 z-40 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"

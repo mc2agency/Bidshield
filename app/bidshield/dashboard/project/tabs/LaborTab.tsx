@@ -16,7 +16,7 @@ const categories = [
   { id: "general", label: "General", icon: "📋" },
 ];
 
-export default function LaborTab({ isDemo, userId, projectId }: TabProps) {
+export default function LaborTab({ isDemo, isPro, userId, projectId }: TabProps) {
   const rates = useQuery(
     api.bidshield.getLaborRates,
     !isDemo && userId ? { userId } : "skip"
@@ -105,6 +105,19 @@ export default function LaborTab({ isDemo, userId, projectId }: TabProps) {
       });
     }
   };
+
+  if (!isPro && !isDemo) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
+        <div className="text-4xl mb-4">🔒</div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Labor Rate Database</h3>
+        <p className="text-sm text-slate-500 mb-6">Build and reuse your production rates across every bid. Available on Pro.</p>
+        <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
+          Upgrade to Pro
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

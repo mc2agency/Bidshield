@@ -26,7 +26,7 @@ function varianceBg(pct: number): string {
   return "bg-red-50 border-red-500/30";
 }
 
-export default function PricingTab({ projectId, isDemo, project, userId }: TabProps) {
+export default function PricingTab({ projectId, isDemo, isPro, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
   const updateProject = useMutation(api.bidshield.updateProject);
   const [editing, setEditing] = useState(false);
@@ -183,9 +183,13 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
       <div className="bg-white rounded-xl p-5 border border-slate-200">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm font-semibold text-slate-900">Bid Pricing & Outcome</h3>
-          <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
-            {editing ? "Save" : "Edit"}
-          </button>
+          {(isPro || isDemo) ? (
+            <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
+              {editing ? "Save" : "Edit"}
+            </button>
+          ) : (
+            <a href="/bidshield/pricing" className="text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">🔒 Edit · Pro</a>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">

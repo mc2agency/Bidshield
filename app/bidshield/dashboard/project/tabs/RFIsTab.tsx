@@ -52,7 +52,7 @@ const demoRFIs = [
   },
 ];
 
-export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps) {
+export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const convexRFIs = useQuery(
@@ -71,6 +71,8 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
   const [newSentTo, setNewSentTo] = useState("");
   const [responseTexts, setResponseTexts] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<RFIStatus | "all">("all");
+  const [draftAiContext, setDraftAiContext] = useState("");
+  const [draftAiLoading, setDraftAiLoading] = useState(false);
 
   const rfis = isDemo ? demoRFIState : (convexRFIs ?? []);
   const filteredRFIs = filter === "all" ? rfis : rfis.filter((r: { status: string }) => r.status === filter);
@@ -82,7 +84,25 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
     } else {
       await createRFIMut({ projectId: projectId as Id<"bidshield_projects">, userId: userId || "", question: newQuestion, sentTo: newSentTo || undefined });
     }
-    setNewQuestion(""); setNewSentTo(""); setShowCreateModal(false);
+    setNewQuestion(""); setNewSentTo(""); setDraftAiContext(""); setShowCreateModal(false);
+  };
+
+  const handleDraftWithAI = async () => {
+    if (!draftAiContext.trim()) return;
+    setDraftAiLoading(true);
+    try {
+      const res = await fetch("/api/bidshield/draft-rfi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context: draftAiContext }),
+      });
+      const data = await res.json();
+      if (data.text) setNewQuestion(data.text);
+    } catch {
+      // leave textarea as-is
+    } finally {
+      setDraftAiLoading(false);
+    }
   };
 
   const handleSend = async (rfiId: Id<"bidshield_rfis">) => {
@@ -236,6 +256,31 @@ export default function RFIsTab({ projectId, isDemo, project, userId }: TabProps
           <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-lg border border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">New RFI</h2>
             <div className="space-y-4 mb-6">
+              {(isPro || isDemo) && (
+                <div className="rounded-lg p-3 border border-emerald-200" style={{ background: "#f0fdf4" }}>
+                  <label className="block text-xs font-semibold text-emerald-700 mb-1">✨ Draft with AI</label>
+                  <p className="text-[11px] text-emerald-600 mb-2">Describe what&apos;s unclear and AI will write a professional RFI question.</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={draftAiContext}
+                      onChange={(e) => setDraftAiContext(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleDraftWithAI(); }}
+                      placeholder="e.g., Conflicting deck type between drawings and spec"
+                      className="flex-1 text-xs rounded-md px-2 py-1.5 border border-emerald-200 focus:outline-none focus:border-emerald-400"
+                      style={{ background: "white" }}
+                    />
+                    <button
+                      onClick={handleDraftWithAI}
+                      disabled={!draftAiContext.trim() || draftAiLoading}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors disabled:opacity-50"
+                      style={{ background: "#059669", color: "white" }}
+                    >
+                      {draftAiLoading ? "…" : "Draft"}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm text-slate-600 mb-1">Question *</label>
                 <textarea value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} placeholder="What needs clarification?" rows={4} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
