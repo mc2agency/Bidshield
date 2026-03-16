@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -33,6 +33,7 @@ const DEMO_QUOTES_RAW = [
   {
     _id: "demo_q1", vendorName: "Siplast", vendorEmail: "jmartinez@siplast.com", vendorPhone: "214-555-0192",
     category: "system", quoteDate: "2026-03-08", expirationDate: "2026-06-08", status: "valid", quoteAmount: 187420,
+    isExtracted: true,
     products: [
       '{"m":"SBS Cap Sheet","u":"RL","p":95,"n":"180 SF/sq"}',
       '{"m":"SBS Base Sheet","u":"RL","p":65,"n":"180 SF/sq"}',
@@ -44,6 +45,7 @@ const DEMO_QUOTES_RAW = [
   {
     _id: "demo_q2", vendorName: "GAF", vendorEmail: "estimating@gaf.com", vendorPhone: "973-555-0140",
     category: "system", quoteDate: "2026-03-06", expirationDate: "2026-06-06", status: "received", quoteAmount: 171340,
+    isExtracted: false,
     products: [
       '{"m":"SBS Cap Sheet","u":"RL","p":89,"n":""}',
       '{"m":"SBS Base Sheet","u":"RL","p":61,"n":""}',
@@ -55,6 +57,7 @@ const DEMO_QUOTES_RAW = [
   {
     _id: "demo_q3", vendorName: "Polyglass", vendorEmail: "quotes@polyglass.us", vendorPhone: "",
     category: "system", quoteDate: "2026-03-10", expirationDate: "2026-06-10", status: "received", quoteAmount: 176850,
+    isExtracted: false,
     products: [
       '{"m":"SBS Cap Sheet","u":"RL","p":92,"n":""}',
       '{"m":"SBS Base Sheet","u":"RL","p":63,"n":""}',
@@ -80,13 +83,14 @@ function formatDate(d: string) {
   catch { return d; }
 }
 
-// ─── Blank quote form ─────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 const BLANK_FORM = {
   vendorName: "", rep: "", email: "", phone: "",
   quoteNum: "", quoteDate: "", expirationDate: "", notes: "",
+  quoteAmount: "",
 };
 const BLANK_LINE: LineItem = { m: "", u: "RL", p: 0, n: "" };
-const UNITS = ["RL", "SQ", "SF", "LF", "EA", "GAL", "BG", "TON", "LS"];
+const UNITS = ["RL", "SQ", "SF", "LF", "EA", "GAL", "BG", "TON", "LS", "BDL", "CS"];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function QuotesTab({ projectId, isDemo, project, userId }: TabProps) {
@@ -101,62 +105,148 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       : "skip"
   );
   const createQuoteMut = useMutation(api.bidshield.createQuote);
-  const updateQuoteMut = useMutation(api.bidshield.updateQuote);
   const deleteQuoteMut = useMutation(api.bidshield.deleteQuote);
+  const generateUploadUrl = useMutation(api.bidshield.generatePdfUploadUrl);
 
   const [demoQuotes, setDemoQuotes] = useState<any[]>(DEMO_QUOTES_RAW);
   const resolvedQuotes = isDemo ? demoQuotes : (quotes ?? []);
 
   // Modal state
-  const [modalOpen, setModalOpen]     = useState(false);
-  const [step, setStep]               = useState<1 | 2 | 3>(1);
-  const [form, setForm]               = useState(BLANK_FORM);
-  const [lineItems, setLineItems]     = useState<LineItem[]>([{ ...BLANK_LINE }]);
-  const [saving, setSaving]           = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  // "upload" = show PDF upload UI; "review" = show form (AI-filled or blank)
+  const [modalStage, setModalStage] = useState<"upload" | "review">("upload");
+  const [form, setForm] = useState({ ...BLANK_FORM });
+  const [lineItems, setLineItems] = useState<LineItem[]>([{ ...BLANK_LINE }]);
+  const [saving, setSaving] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
   const [showCompare, setShowCompare] = useState(false);
+
+  // PDF extraction state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState("");
+  const [pdfStorageId, setPdfStorageId] = useState("");
 
   const notify = (msg: string) => { setNotification(msg); setTimeout(() => setNotification(null), 3000); };
 
   const openModal = () => {
-    setForm(BLANK_FORM);
+    setForm({ ...BLANK_FORM });
     setLineItems([{ ...BLANK_LINE }]);
-    setStep(1);
+    setModalStage("upload");
+    setExtractError("");
+    setPdfStorageId("");
     setModalOpen(true);
   };
 
+  const closeModal = () => {
+    setModalOpen(false);
+    setExtractError("");
+    setPdfStorageId("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleExtract = async () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) { setExtractError("Please select a PDF file."); return; }
+    if (file.size > 10 * 1024 * 1024) { setExtractError("File must be under 10 MB."); return; }
+
+    setExtractError("");
+    setExtracting(true);
+
+    try {
+      // Upload to Convex storage for persistence
+      const uploadUrl = await generateUploadUrl();
+      const uploadRes = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const { storageId } = await uploadRes.json();
+      setPdfStorageId(storageId);
+
+      // Read as base64 for Anthropic
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch("/api/bidshield/extract-quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error ?? "Extraction failed");
+
+      const q = data.quote;
+      setForm({
+        vendorName: q.vendorName ?? "",
+        rep: q.repName ?? "",
+        email: q.repEmail ?? "",
+        phone: q.repPhone ?? "",
+        quoteNum: q.quoteNumber ?? "",
+        quoteDate: q.quoteDate ?? "",
+        expirationDate: q.expirationDate ?? "",
+        notes: q.notes ?? "",
+        quoteAmount: q.totalAmount != null ? String(q.totalAmount) : "",
+      });
+      setLineItems(
+        (q.lineItems ?? []).length > 0
+          ? q.lineItems.map((li: any) => ({
+              m: li.material ?? "",
+              u: UNITS.includes(li.unit) ? li.unit : "EA",
+              p: li.unitPrice ?? 0,
+              n: li.notes ?? "",
+            }))
+          : [{ ...BLANK_LINE }]
+      );
+      setModalStage("review");
+    } catch (err: any) {
+      setExtractError(err.message ?? "Extraction failed");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   const handleSave = async () => {
-    if (!form.vendorName || (!isDemo && !userId)) return;
+    if (!form.vendorName.trim() || (!isDemo && !userId)) return;
     setSaving(true);
     try {
       const products = encodeLineItems(lineItems.filter(l => l.m.trim()));
-      const notes    = encodeMeta({ rep: form.rep, quoteNum: form.quoteNum, notes: form.notes });
-      const total    = lineItems.reduce((s, l) => s + (l.p || 0), 0); // rough sum; real total from quoteAmount
+      const notes = encodeMeta({ rep: form.rep, quoteNum: form.quoteNum, notes: form.notes });
 
       if (isDemo) {
         const newQ = {
           _id: `demo_q${Date.now()}`, vendorName: form.vendorName,
           vendorEmail: form.email, vendorPhone: form.phone,
           category: "system", quoteDate: form.quoteDate, expirationDate: form.expirationDate,
-          status: "received", quoteAmount: undefined, products, notes,
+          status: "received", quoteAmount: form.quoteAmount ? parseFloat(form.quoteAmount) : undefined,
+          isExtracted: !!pdfStorageId, products, notes,
         };
         setDemoQuotes(p => [...p, newQ]);
       } else {
         await createQuoteMut({
           userId: userId!,
           projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
-          vendorName: form.vendorName,
-          vendorEmail: form.email || undefined,
-          vendorPhone: form.phone || undefined,
+          vendorName: form.vendorName.trim(),
+          vendorEmail: form.email.trim() || undefined,
+          vendorPhone: form.phone.trim() || undefined,
           category: "system",
           products,
+          quoteAmount: form.quoteAmount ? parseFloat(form.quoteAmount) : undefined,
           quoteDate: form.quoteDate || undefined,
           expirationDate: form.expirationDate || undefined,
           notes,
+          sourcePdf: pdfStorageId || undefined,
+          isExtracted: pdfStorageId ? true : undefined,
         });
       }
       notify("Quote saved!");
-      setModalOpen(false);
+      closeModal();
     } finally {
       setSaving(false);
     }
@@ -185,10 +275,9 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     return { total: all.length, expiring, expired, bestDpsf };
   }, [resolvedQuotes, project]);
 
-  // Comparison table — materials found in all quotes
+  // Comparison table
   const comparison = useMemo(() => {
     if (resolvedQuotes.length < 2) return null;
-    // Collect all unique material names
     const allMaterials = new Set<string>();
     for (const q of resolvedQuotes) {
       for (const item of decodeLineItems(q.products || [])) {
@@ -197,17 +286,15 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     }
     if (allMaterials.size === 0) return null;
     const materials = Array.from(allMaterials);
-    // Build price map: material → [vendor price, ...]
     const rows = materials.map(mat => {
       const prices = resolvedQuotes.map((q: any) => {
         const found = decodeLineItems(q.products || []).find(l => l.m.trim() === mat);
         return found ? found.p : null;
       });
       const validPrices = prices.filter((p): p is number => p !== null);
-      const minPrice    = validPrices.length > 0 ? Math.min(...validPrices) : null;
+      const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : null;
       return { mat, prices, minPrice };
     });
-    // System totals per vendor
     const totals = resolvedQuotes.map((q: any) => q.quoteAmount ?? null);
     const minTotal = totals.filter((t): t is number => t !== null).reduce((a, b) => (b < a ? b : a), Infinity);
     return { vendors: resolvedQuotes.map((q: any) => q.vendorName), rows, totals, minTotal };
@@ -263,7 +350,8 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           {!isDemo && (
             <button
               onClick={openModal}
-              style={{ background: "#10b981" }} className="text-[13px] font-semibold px-4 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors"
+              style={{ background: "#10b981" }}
+              className="text-[13px] font-semibold px-4 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors"
             >
               + Add Quote
             </button>
@@ -301,7 +389,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                     ))}
                   </tr>
                 ))}
-                {/* System total row */}
                 <tr style={{ background: "#f8fafc", borderTop: "2px solid #e2e8f0" }}>
                   <td className="px-4 py-3 font-bold text-slate-800 text-[12px] uppercase tracking-wider">System Total</td>
                   {comparison.totals.map((t, i) => {
@@ -331,7 +418,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
         <div className="text-center py-16 rounded-xl border border-dashed border-slate-200">
           <div className="text-3xl mb-3">📄</div>
           <div className="text-sm font-semibold text-slate-700 mb-1">No quotes yet</div>
-          <div className="text-xs text-slate-400 mb-4">Add vendor quotes to compare pricing across manufacturers</div>
+          <div className="text-xs text-slate-400 mb-4">Upload a vendor PDF or add manually to start comparing pricing</div>
           {!isDemo && (
             <button onClick={openModal} style={{ background: "#10b981" }} className="px-5 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">
               + Add First Quote
@@ -341,10 +428,10 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       ) : (
         <div className="flex flex-col gap-4">
           {resolvedQuotes.map((quote: any) => {
-            const status    = getEffectiveStatus(quote);
-            const meta      = decodeMeta(quote.notes);
-            const items     = decodeLineItems(quote.products || []);
-            const dpsf      = quote.quoteAmount && (project as any)?.grossRoofArea
+            const status = getEffectiveStatus(quote);
+            const meta   = decodeMeta(quote.notes);
+            const items  = decodeLineItems(quote.products || []);
+            const dpsf   = quote.quoteAmount && (project as any)?.grossRoofArea
               ? (quote.quoteAmount / (project as any).grossRoofArea).toFixed(2)
               : null;
 
@@ -359,11 +446,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
             const ss = statusStyle[status] || statusStyle.none;
 
             return (
-              <div
-                key={quote._id}
-                className="rounded-xl overflow-hidden"
-                style={{ border: "1px solid #e2e8f0" }}
-              >
+              <div key={quote._id} className="rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
                 {/* Card header */}
                 <div className="px-5 py-4" style={{ background: "#0f1117" }}>
                   <div className="flex items-start justify-between gap-3">
@@ -372,6 +455,9 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                         <span className="text-[15px] font-bold text-white">{quote.vendorName}</span>
                         {meta.quoteNum && (
                           <span className="text-[11px] text-slate-400 font-mono">Quote #{meta.quoteNum}</span>
+                        )}
+                        {quote.isExtracted && (
+                          <span className="text-[10px] bg-blue-900/60 text-blue-300 px-1.5 py-0.5 rounded font-medium">AI</span>
                         )}
                       </div>
                       {meta.rep && (
@@ -425,9 +511,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 {/* Totals + notes */}
                 <div className="px-5 py-3 flex items-center justify-between gap-4" style={{ background: "#fafafa" }}>
                   <div>
-                    {meta.notes && (
-                      <p className="text-[11px] text-slate-500 mb-1">{meta.notes}</p>
-                    )}
+                    {meta.notes && <p className="text-[11px] text-slate-500 mb-1">{meta.notes}</p>}
                     {quote.quoteAmount ? (
                       <div className="flex items-baseline gap-3">
                         <span className="text-[15px] font-bold text-slate-900">${quote.quoteAmount.toLocaleString()}</span>
@@ -438,14 +522,12 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                     )}
                   </div>
                   {!isDemo && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDelete(quote)}
-                        className="text-[12px] text-slate-400 hover:text-red-600 transition-colors px-2 py-1"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleDelete(quote)}
+                      className="text-[12px] text-slate-400 hover:text-red-600 transition-colors px-2 py-1"
+                    >
+                      Delete
+                    </button>
                   )}
                 </div>
               </div>
@@ -458,43 +540,86 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       {modalOpen && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-          onClick={() => setModalOpen(false)}
+          onClick={closeModal}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            {/* Modal header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-[15px] font-bold text-slate-900">Add Quote</h2>
-              <div className="flex items-center gap-4">
-                {/* Step indicator */}
-                <div className="flex items-center gap-1.5">
-                  {([1, 2, 3] as const).map(s => (
-                    <div
-                      key={s}
-                      className="flex items-center justify-center rounded-full text-[11px] font-bold transition-all"
-                      style={{
-                        width: 22, height: 22,
-                        background: step >= s ? "#0f1117" : "#f1f5f9",
-                        color: step >= s ? "#ffffff" : "#94a3b8",
-                      }}
-                    >
-                      {s}
-                    </div>
-                  ))}
-                </div>
-                <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+              <div>
+                <h2 className="text-[15px] font-bold text-slate-900">Add Quote</h2>
+                {modalStage === "upload" && (
+                  <p className="text-[12px] text-slate-400 mt-0.5">Upload a vendor PDF — AI extracts everything automatically</p>
+                )}
+                {modalStage === "review" && pdfStorageId && (
+                  <p className="text-[12px] text-emerald-600 mt-0.5">✓ Extracted from PDF — review and save</p>
+                )}
+                {modalStage === "review" && !pdfStorageId && (
+                  <p className="text-[12px] text-slate-400 mt-0.5">Enter quote details manually</p>
+                )}
               </div>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-700 text-lg">✕</button>
             </div>
 
-            <div className="px-6 py-5">
-              {/* Step 1 — Vendor Info */}
-              {step === 1 && (
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+
+              {/* ── Upload stage ── */}
+              {modalStage === "upload" && (
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider">Vendor Info</h3>
                   <div>
-                    <label className="block text-[12px] font-medium text-slate-500 mb-1">Manufacturer / Vendor *</label>
+                    <label className="block text-[12px] font-medium text-slate-500 mb-1.5">Quote PDF *</label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf"
+                      className="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">PDF only · max 10 MB</p>
+                  </div>
+
+                  {extractError && (
+                    <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                      {extractError}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleExtract}
+                    disabled={extracting}
+                    style={{ background: extracting ? undefined : "#10b981" }}
+                    className="w-full py-2.5 text-white font-semibold rounded-lg text-[13px] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {extracting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Reading quote...
+                      </span>
+                    ) : "Extract with AI →"}
+                  </button>
+
+                  <div className="text-center">
+                    <button
+                      onClick={() => { setModalStage("review"); }}
+                      className="text-[12px] text-slate-400 hover:text-slate-600 underline"
+                    >
+                      No PDF? Enter manually instead
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Review / Edit stage ── */}
+              {modalStage === "review" && (
+                <div className="flex flex-col gap-4">
+
+                  {/* Vendor section */}
+                  <div>
+                    <label className="block text-[12px] font-medium text-slate-500 mb-1">Vendor / Manufacturer *</label>
                     <input
                       autoFocus
                       type="text"
@@ -504,163 +629,140 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400"
                     />
                   </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[12px] font-medium text-slate-500 mb-1">Rep Name</label>
-                      <input type="text" value={form.rep} onChange={e => setForm(f => ({ ...f, rep: e.target.value }))} placeholder="John Martinez" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                      <input type="text" value={form.rep} onChange={e => setForm(f => ({ ...f, rep: e.target.value }))} placeholder="John Martinez" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                     </div>
                     <div>
                       <label className="block text-[12px] font-medium text-slate-500 mb-1">Quote Number</label>
-                      <input type="text" value={form.quoteNum} onChange={e => setForm(f => ({ ...f, quoteNum: e.target.value }))} placeholder="24-889" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                      <input type="text" value={form.quoteNum} onChange={e => setForm(f => ({ ...f, quoteNum: e.target.value }))} placeholder="24-889" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                     </div>
                   </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[12px] font-medium text-slate-500 mb-1">Rep Email</label>
-                      <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="rep@vendor.com" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                      <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="rep@vendor.com" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                     </div>
                     <div>
                       <label className="block text-[12px] font-medium text-slate-500 mb-1">Rep Phone</label>
-                      <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="(555) 123-4567" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                      <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="(555) 123-4567" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                     </div>
                   </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[12px] font-medium text-slate-500 mb-1">Quote Date</label>
-                      <input type="date" value={form.quoteDate} onChange={e => setForm(f => ({ ...f, quoteDate: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                      <input type="date" value={form.quoteDate} onChange={e => setForm(f => ({ ...f, quoteDate: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                     </div>
                     <div>
                       <label className="block text-[12px] font-medium text-slate-500 mb-1">Expiration Date</label>
-                      <input type="date" value={form.expirationDate} onChange={e => setForm(f => ({ ...f, expirationDate: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
+                      <input type="date" value={form.expirationDate} onChange={e => setForm(f => ({ ...f, expirationDate: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-[12px] font-medium text-slate-500 mb-1">Notes</label>
-                    <input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Bulk pricing for 45k SF, includes delivery..." className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[14px] text-slate-900 focus:outline-none focus:border-emerald-400" />
-                  </div>
-                </div>
-              )}
 
-              {/* Step 2 — Line Items */}
-              {step === 2 && (
-                <div className="flex flex-col gap-4">
-                  <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider">Materials Covered</h3>
-                  <p className="text-[12px] text-slate-500">Enter each material with its unit price. Quantities come from the Materials tab.</p>
-
-                  {/* Table header */}
-                  <div className="grid grid-cols-[1fr_64px_88px_24px] gap-2">
-                    <div className="text-[11px] font-bold text-slate-400 uppercase">Material</div>
-                    <div className="text-[11px] font-bold text-slate-400 uppercase">Unit</div>
-                    <div className="text-[11px] font-bold text-slate-400 uppercase">Unit Price</div>
-                    <div />
-                  </div>
-
-                  {lineItems.map((li, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_64px_88px_24px] gap-2 items-center">
-                      <input
-                        type="text"
-                        value={li.m}
-                        onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, m: e.target.value } : x))}
-                        placeholder="SBS Cap Sheet"
-                        className="border border-slate-200 rounded-md px-2 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400"
-                      />
-                      <select
-                        value={li.u}
-                        onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, u: e.target.value } : x))}
-                        className="border border-slate-200 rounded-md px-2 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400"
-                      >
-                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                      </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Total Amount</label>
                       <div className="relative">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[12px] text-slate-400">$</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step={0.01}
-                          value={li.p || ""}
-                          onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, p: parseFloat(e.target.value) || 0 } : x))}
-                          placeholder="0.00"
-                          className="w-full border border-slate-200 rounded-md pl-5 pr-2 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400"
-                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                        <input type="number" value={form.quoteAmount} onChange={e => setForm(f => ({ ...f, quoteAmount: e.target.value }))} placeholder="0.00" step="0.01" className="w-full border border-slate-200 rounded-lg pl-7 pr-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                       </div>
-                      <button
-                        onClick={() => setLineItems(items => items.filter((_, i) => i !== idx))}
-                        className="text-slate-300 hover:text-red-400 transition-colors text-[16px]"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-
-                  <button
-                    onClick={() => setLineItems(items => [...items, { ...BLANK_LINE }])}
-                    className="text-[13px] text-emerald-600 hover:text-emerald-700 font-medium text-left transition-colors"
-                  >
-                    + Add line item
-                  </button>
-                </div>
-              )}
-
-              {/* Step 3 — Summary */}
-              {step === 3 && (
-                <div className="flex flex-col gap-4">
-                  <h3 className="text-[13px] font-bold text-slate-400 uppercase tracking-wider">Summary</h3>
-                  <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
-                    <div className="px-4 py-3" style={{ background: "#0f1117" }}>
-                      <div className="text-[15px] font-bold text-white">{form.vendorName}</div>
-                      {form.rep && <div className="text-[12px] text-slate-400">Rep: {form.rep}{form.email ? ` · ${form.email}` : ""}</div>}
-                      {(form.quoteDate || form.expirationDate) && (
-                        <div className="text-[11px] text-slate-500 mt-1">
-                          {form.quoteDate && `Quoted: ${formatDate(form.quoteDate)}`}
-                          {form.quoteDate && form.expirationDate && " · "}
-                          {form.expirationDate && `Expires: ${formatDate(form.expirationDate)}`}
-                        </div>
-                      )}
                     </div>
                     <div>
-                      {lineItems.filter(l => l.m.trim()).map((li, i, arr) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between px-4 py-2.5"
-                          style={{ borderBottom: i < arr.length - 1 ? "1px solid #f1f5f9" : undefined }}
-                        >
-                          <span className="text-[13px] text-slate-700">{li.m}</span>
-                          <span className="text-[13px] font-semibold text-slate-900 tabular-nums">${li.p.toFixed(2)}/{li.u.toLowerCase()}</span>
-                        </div>
-                      ))}
+                      <label className="block text-[12px] font-medium text-slate-500 mb-1">Notes</label>
+                      <input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="NDL warranty, delivery included..." className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400" />
                     </div>
-                    {form.notes && (
-                      <div className="px-4 py-2.5 border-t border-slate-100">
-                        <p className="text-[11px] text-slate-500">{form.notes}</p>
-                      </div>
-                    )}
                   </div>
-                  <p className="text-[12px] text-slate-400">Quantities will be auto-calculated using data from the Materials tab once saved.</p>
+
+                  {/* Line items */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-[12px] font-medium text-slate-500">Line Items</label>
+                      <span className="text-[11px] text-slate-400">{lineItems.filter(l => l.m.trim()).length} materials</span>
+                    </div>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="grid grid-cols-[1fr_56px_80px_24px] gap-0 px-3 py-2 bg-slate-50 border-b border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Material</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Unit</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Price</span>
+                        <span />
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {lineItems.map((li, idx) => (
+                          <div key={idx} className="grid grid-cols-[1fr_56px_80px_24px] gap-1 px-3 py-2 items-center">
+                            <input
+                              type="text"
+                              value={li.m}
+                              onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, m: e.target.value } : x))}
+                              placeholder="SBS Cap Sheet"
+                              className="border-0 bg-transparent text-[13px] text-slate-900 focus:outline-none placeholder-slate-300 min-w-0"
+                            />
+                            <select
+                              value={li.u}
+                              onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, u: e.target.value } : x))}
+                              className="border border-slate-200 rounded px-1 py-1 text-[12px] text-slate-700 focus:outline-none focus:border-emerald-400"
+                            >
+                              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                            </select>
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">$</span>
+                              <input
+                                type="number"
+                                min={0}
+                                step={0.01}
+                                value={li.p || ""}
+                                onChange={e => setLineItems(items => items.map((x, i) => i === idx ? { ...x, p: parseFloat(e.target.value) || 0 } : x))}
+                                placeholder="0.00"
+                                className="w-full border border-slate-200 rounded pl-5 pr-1 py-1 text-[12px] text-slate-900 focus:outline-none focus:border-emerald-400"
+                              />
+                            </div>
+                            <button
+                              onClick={() => setLineItems(items => items.filter((_, i) => i !== idx))}
+                              className="text-slate-300 hover:text-red-400 transition-colors text-center leading-none"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setLineItems(items => [...items, { ...BLANK_LINE }])}
+                      className="mt-2 text-[12px] text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                    >
+                      + Add line item
+                    </button>
+                  </div>
+
+                  {!pdfStorageId && (
+                    <button
+                      onClick={() => setModalStage("upload")}
+                      className="text-[12px] text-slate-400 hover:text-slate-600 underline text-left"
+                    >
+                      ← Upload a PDF instead
+                    </button>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Modal footer */}
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
               <button
-                onClick={() => step > 1 ? setStep(s => (s - 1) as 1 | 2 | 3) : setModalOpen(false)}
+                onClick={modalStage === "review" && pdfStorageId ? () => { setModalStage("upload"); setPdfStorageId(""); } : closeModal}
                 className="text-[13px] text-slate-500 hover:text-slate-800 font-medium transition-colors"
               >
-                {step === 1 ? "Cancel" : "← Back"}
+                {modalStage === "review" && pdfStorageId ? "← Re-upload" : "Cancel"}
               </button>
-              {step < 3 ? (
-                <button
-                  onClick={() => setStep(s => (s + 1) as 1 | 2 | 3)}
-                  disabled={step === 1 && !form.vendorName.trim()}
-                  className="px-5 py-2 bg-slate-900 text-white text-[13px] font-semibold rounded-lg hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next →
-                </button>
-              ) : (
+              {modalStage === "review" && (
                 <button
                   onClick={handleSave}
-                  disabled={saving}
-                  className="px-5 py-2 bg-emerald-600 text-white text-[13px] font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                  disabled={saving || !form.vendorName.trim()}
+                  style={{ background: saving || !form.vendorName.trim() ? undefined : "#10b981" }}
+                  className="px-5 py-2 text-white text-[13px] font-semibold rounded-lg disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {saving ? "Saving..." : "Save Quote"}
                 </button>

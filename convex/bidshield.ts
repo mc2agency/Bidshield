@@ -349,6 +349,8 @@ export const createQuote = mutation({
     quoteDate: v.optional(v.string()),
     expirationDate: v.optional(v.string()),
     notes: v.optional(v.string()),
+    sourcePdf: v.optional(v.string()),
+    isExtracted: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
@@ -365,6 +367,8 @@ export const createQuote = mutation({
       quoteDate: args.quoteDate,
       expirationDate: args.expirationDate,
       notes: args.notes,
+      sourcePdf: args.sourcePdf,
+      isExtracted: args.isExtracted,
       status: "none",
       createdAt: now,
       updatedAt: now,

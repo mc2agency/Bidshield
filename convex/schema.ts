@@ -183,6 +183,8 @@ export default defineSchema({
     ),
     notes: v.optional(v.string()),
     attachmentUrl: v.optional(v.string()),
+    sourcePdf: v.optional(v.string()),
+    isExtracted: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
