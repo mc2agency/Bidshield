@@ -185,6 +185,7 @@ export default defineSchema({
     attachmentUrl: v.optional(v.string()),
     sourcePdf: v.optional(v.string()),
     isExtracted: v.optional(v.boolean()),
+    globalQuoteId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

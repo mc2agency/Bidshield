@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -104,8 +104,13 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
         : { userId }
       : "skip"
   );
+  const allUserQuotes = useQuery(
+    api.bidshield.getQuotesWithProjects,
+    !isDemo && userId ? { userId } : "skip"
+  );
   const createQuoteMut = useMutation(api.bidshield.createQuote);
   const deleteQuoteMut = useMutation(api.bidshield.deleteQuote);
+  const importQuoteMut = useMutation(api.bidshield.importQuoteToProject);
   const generateUploadUrl = useMutation(api.bidshield.generatePdfUploadUrl);
 
   const [demoQuotes, setDemoQuotes] = useState<any[]>(DEMO_QUOTES_RAW);
@@ -120,6 +125,45 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [saving, setSaving] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
   const [showCompare, setShowCompare] = useState(false);
+
+  // Import from library state
+  const [importModal, setImportModal] = useState(false);
+  const [importSearch, setImportSearch] = useState("");
+  const [importingId, setImportingId] = useState<string | null>(null);
+
+  // Quotes available to import = all user quotes not already in this project
+  const importableQuotes = useMemo(() => {
+    if (!allUserQuotes) return [];
+    const inProject = new Set((resolvedQuotes).map((q: any) => q._id));
+    const linkedOrigins = new Set((resolvedQuotes).map((q: any) => q.globalQuoteId).filter(Boolean));
+    return allUserQuotes.filter(q =>
+      !inProject.has(q._id) &&
+      !linkedOrigins.has(q._id) &&
+      q.projectId !== (isValidConvexId ? projectId : undefined)
+    );
+  }, [allUserQuotes, resolvedQuotes, projectId, isValidConvexId]);
+
+  const filteredImportable = useMemo(() => {
+    if (!importSearch) return importableQuotes;
+    const lq = importSearch.toLowerCase();
+    return importableQuotes.filter(q => q.vendorName.toLowerCase().includes(lq));
+  }, [importableQuotes, importSearch]);
+
+  const handleImport = async (quoteId: string) => {
+    if (!userId || !isValidConvexId) return;
+    setImportingId(quoteId);
+    try {
+      await importQuoteMut({
+        userId,
+        quoteId: quoteId as Id<"bidshield_quotes">,
+        projectId: projectId as Id<"bidshield_projects">,
+      });
+      setImportModal(false);
+      notify("Quote imported!");
+    } finally {
+      setImportingId(null);
+    }
+  };
 
   // PDF extraction state
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -348,13 +392,23 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
             </button>
           )}
           {!isDemo && (
-            <button
-              onClick={openModal}
-              style={{ background: "#10b981" }}
-              className="text-[13px] font-semibold px-4 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors"
-            >
-              + Add Quote
-            </button>
+            <>
+              {isValidConvexId && (
+                <button
+                  onClick={() => { setImportSearch(""); setImportModal(true); }}
+                  className="text-[13px] font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  📥 Import from Library
+                </button>
+              )}
+              <button
+                onClick={openModal}
+                style={{ background: "#10b981" }}
+                className="text-[13px] font-semibold px-4 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors"
+              >
+                + Add Quote
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -533,6 +587,82 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Import from Library Modal */}
+      {importModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setImportModal(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+              <div>
+                <h2 className="text-[15px] font-bold text-slate-900">Import from Library</h2>
+                <p className="text-[12px] text-slate-400 mt-0.5">Link an existing quote from your database to this project</p>
+              </div>
+              <button onClick={() => setImportModal(false)} className="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+            </div>
+            <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search by vendor..."
+                value={importSearch}
+                onChange={e => setImportSearch(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-400"
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {filteredImportable.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-2xl mb-2">📋</div>
+                  <p className="text-sm text-slate-500">
+                    {importSearch ? "No matching quotes" : "No quotes available to import"}
+                  </p>
+                  {!importSearch && (
+                    <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+                      Upload quotes to other projects or the Quotes & Pricing library to import them here.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {filteredImportable.map((q: any) => {
+                    const meta = decodeMeta(q.notes);
+                    const items = decodeLineItems(q.products || []).filter((l: LineItem) => l.m.trim());
+                    return (
+                      <div key={q._id} className="px-5 py-3.5 hover:bg-slate-50 flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[14px] font-semibold text-slate-800 truncate">{q.vendorName}</span>
+                            {meta.quoteNum && <span className="text-[11px] text-slate-400 font-mono shrink-0">#{meta.quoteNum}</span>}
+                            {q.isExtracted && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-semibold shrink-0">AI</span>}
+                          </div>
+                          <div className="flex gap-3 mt-0.5 text-[11px] text-slate-400">
+                            {q.quoteDate && <span>{formatDate(q.quoteDate)}</span>}
+                            {items.length > 0 && <span>{items.length} items</span>}
+                            {q.quoteAmount && <span className="text-emerald-600 font-medium">${q.quoteAmount.toLocaleString()}</span>}
+                            {q.projectName && <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{q.projectName}</span>}
+                            {!q.projectName && <span className="text-slate-400">General</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleImport(q._id)}
+                          disabled={importingId === q._id}
+                          style={{ background: importingId === q._id ? undefined : "#10b981" }}
+                          className="text-[12px] font-semibold px-3 py-1.5 rounded-lg text-white disabled:bg-slate-200 disabled:text-slate-400 shrink-0 transition-colors"
+                        >
+                          {importingId === q._id ? "Importing..." : "Import"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-3 border-t border-slate-100 flex-shrink-0">
+              <button onClick={() => setImportModal(false)} className="text-[13px] text-slate-500 hover:text-slate-800 font-medium">Close</button>
+            </div>
+          </div>
         </div>
       )}
 

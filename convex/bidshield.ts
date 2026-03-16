@@ -418,6 +418,63 @@ export const deleteQuote = mutation({
   },
 });
 
+// Returns all quotes for a user with project name resolved
+export const getQuotesWithProjects = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const quotes = await ctx.db
+      .query("bidshield_quotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const projects = await ctx.db
+      .query("bidshield_projects")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const projectMap = new Map(projects.map((p) => [p._id as string, p.name]));
+
+    return quotes.map((q) => ({
+      ...q,
+      projectName: q.projectId ? (projectMap.get(q.projectId) ?? "Unknown Project") : null,
+    }));
+  },
+});
+
+// Copies a quote from the library into a project (linked via globalQuoteId)
+export const importQuoteToProject = mutation({
+  args: {
+    userId: v.string(),
+    quoteId: v.id("bidshield_quotes"),
+    projectId: v.id("bidshield_projects"),
+  },
+  handler: async (ctx, { userId, quoteId, projectId }) => {
+    await validateAuth(ctx, userId);
+    const source = await ctx.db.get(quoteId);
+    if (!source) throw new Error("Quote not found");
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_quotes", {
+      userId,
+      projectId,
+      globalQuoteId: quoteId,
+      vendorName: source.vendorName,
+      vendorEmail: source.vendorEmail,
+      vendorPhone: source.vendorPhone,
+      category: source.category,
+      products: source.products,
+      quoteAmount: source.quoteAmount,
+      quoteDate: source.quoteDate,
+      expirationDate: source.expirationDate,
+      notes: source.notes,
+      sourcePdf: source.sourcePdf,
+      isExtracted: source.isExtracted,
+      status: "received",
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
 // ===== RFIs =====
 
 export const getRFIs = query({
