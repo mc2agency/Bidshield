@@ -403,6 +403,27 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Master material/product datasheet library (global, per user)
+  bidshield_datasheets: defineTable({
+    userId: v.string(),
+    productName: v.string(),
+    category: v.string(),
+    unit: v.string(),
+    unitPrice: v.number(),
+    coverage: v.optional(v.number()),      // SF per unit (e.g. 1000 SF/RL)
+    coverageUnit: v.optional(v.string()),  // e.g. "SF/RL"
+    vendorName: v.optional(v.string()),
+    quoteDate: v.optional(v.string()),     // YYYY-MM-DD — the date on the price list
+    pdfUrl: v.optional(v.string()),        // External URL for manually-added spec sheets
+    sourcePdf: v.optional(v.string()),     // Convex storage ID for uploaded PDFs
+    isExtracted: v.optional(v.boolean()), // true = AI-extracted from price sheet
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_created", ["userId", "createdAt"]),
+
   // Decision log — paper trail for estimating decisions per project
   bidshield_decisions: defineTable({
     projectId: v.id("bidshield_projects"),

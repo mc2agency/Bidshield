@@ -207,31 +207,38 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-5", text: "Installation requirements noted" },
       { id: "p9-6", text: "Testing requirements (flood, adhesion)" },
       { id: "p9-7", text: "Special inspections required?" },
-      { id: "p9-8", text: "Weld test / seam test requirements noted", systems: ["tpo", "pvc"] },
-      { id: "p9-9", text: "Torch application safety requirements", systems: ["sbs", "app", "bur"] },
-      { id: "p9-10", text: "Metal panel gauge, profile & finish specified", systems: ["metal"] },
-      { id: "p9-11", text: "SPF density, thickness & coating requirements", systems: ["spf"] },
-      { id: "p9-12", text: "EPDM adhesive & seam tape requirements", systems: ["epdm"] },
       { id: "p9-13", text: "Mock-up / test area required per spec?" },
-      // TPO-specific
+      // TPO / PVC
       { id: "p9-tpo1", text: "Membrane thickness confirmed (45, 60, or 80 mil)", systems: ["tpo"] },
       { id: "p9-tpo2", text: "Seam width minimum 1.5\" per spec confirmed", systems: ["tpo"] },
       { id: "p9-tpo3", text: "Ambient temp limitations for welding noted", systems: ["tpo"] },
       { id: "p9-tpo4", text: "Attachment method confirmed (mech attached, fully adhered, or induction)", systems: ["tpo"] },
-      // EPDM-specific
+      { id: "p9-tpopvc1", text: "Weld temperature & speed requirements noted", systems: ["tpo", "pvc"] },
+      { id: "p9-tpopvc2", text: "Seam testing method documented (spark test, vacuum, air lance)", systems: ["tpo", "pvc"] },
+      { id: "p9-pvc1", text: "Grease exhaust proximity confirmed (restaurant/kitchen hoods)", systems: ["pvc"] },
+      { id: "p9-pvc2", text: "Asphalt-impregnated material separation noted", systems: ["pvc"] },
+      { id: "p9-pvc3", text: "Cold-weather brittleness for climate zone reviewed", systems: ["pvc"] },
+      // EPDM
       { id: "p9-epdm1", text: "Attachment method confirmed (ballasted adds 10+ psf — verify structural)", systems: ["epdm"] },
       { id: "p9-epdm2", text: "Chemical incompatibility with bitumen noted", systems: ["epdm"] },
       { id: "p9-epdm3", text: "Shrinkage allowance in flashing details confirmed", systems: ["epdm"] },
       { id: "p9-epdm4", text: "Adhesive application temperature requirements noted", systems: ["epdm"] },
-      { id: "p9-epdm5", text: "Seam primer and tape requirements documented", systems: ["epdm"] },
-      // PVC-specific
-      { id: "p9-pvc1", text: "Grease exhaust proximity confirmed (restaurant/kitchen hoods)", systems: ["pvc"] },
-      { id: "p9-pvc2", text: "Asphalt-impregnated material separation noted", systems: ["pvc"] },
-      { id: "p9-pvc3", text: "Cold-weather brittleness for climate zone reviewed", systems: ["pvc"] },
-      // SBS-specific
-      { id: "p9-sbs1", text: "Torch application fire code restrictions checked", systems: ["sbs"] },
-      { id: "p9-sbs2", text: "Hot work permit required?", systems: ["sbs"] },
-      { id: "p9-sbs3", text: "Interply mopping temp range confirmed", systems: ["sbs"] },
+      { id: "p9-epdm5", text: "Seam primer and splice tape requirements documented", systems: ["epdm"] },
+      // SBS / APP / BUR
+      { id: "p9-9", text: "Torch application safety requirements", systems: ["sbs", "app", "bur"] },
+      { id: "p9-sbs1", text: "Torch application fire code restrictions checked", systems: ["sbs", "app", "bur"] },
+      { id: "p9-sbs2", text: "Hot work permit required?", systems: ["sbs", "app", "bur"] },
+      { id: "p9-sbs3", text: "Interply mopping temp range confirmed", systems: ["sbs", "app", "bur"] },
+      // SPF
+      { id: "p9-11", text: "SPF density, thickness & coating requirements", systems: ["spf"] },
+      { id: "p9-spf1", text: "Substrate moisture testing required", systems: ["spf"] },
+      { id: "p9-spf2", text: "Coating mil thickness requirements noted", systems: ["spf"] },
+      // Metal
+      { id: "p9-10", text: "Metal panel gauge, profile & finish specified", systems: ["metal"] },
+      { id: "p9-metal1", text: "Panel clip spacing and fastener schedule noted", systems: ["metal"] },
+      { id: "p9-metal2", text: "Thermal movement allowance requirements documented", systems: ["metal"] },
+      // EPDM legacy catch-all (kept for backward compat)
+      { id: "p9-12", text: "EPDM adhesive & seam tape requirements", systems: ["epdm"] },
       // Energy code
       { id: "p9-ec1", text: "Energy code compliance required — verify minimum R-value for Climate Zone", energyCode: true, critical: true, helpUrl: "https://www.energycodes.gov/climate-zones" },
       { id: "p9-fm1", text: "System verified via RoofNav before specifying", fmGlobal: true },
@@ -313,6 +320,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p13-8", text: "Metal panel clips & fastener quantities", systems: ["metal"] },
       { id: "p13-9", text: "SPF foam & coating quantities calculated", systems: ["spf"] },
       { id: "p13-10", text: "Material lead times checked (note if >3 weeks)" },
+      { id: "p13-11", text: "Sales tax exemption verified (if applicable)" },
+      { id: "p13-12", text: "Material price escalation clause considered (if applicable)" },
     ],
   },
   phase14: {
@@ -332,6 +341,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p14-8", text: "Torch crew rates and hot work permit time", systems: ["sbs", "app", "bur"] },
       { id: "p14-9", text: "Metal panel install crew rates", systems: ["metal"] },
       { id: "p14-10", text: "SPF spray crew rates & overspray protection time", systems: ["spf"] },
+      { id: "p14-11", text: "Prevailing wage / Davis-Bacon requirements checked (if applicable)" },
+      { id: "p14-12", text: "Subcontractor quotes received — sheet metal, caulking, etc. (if applicable)" },
     ],
   },
   phase15: {
@@ -346,6 +357,9 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p15-5", text: "Bond requirements addressed" },
       { id: "p15-6", text: "Insurance requirements reviewed" },
       { id: "p15-7", text: "Bid form completed correctly" },
+      { id: "p15-8", text: "Retainage terms reviewed (typical 5-10%)" },
+      { id: "p15-9", text: "Liquidated damages clause reviewed" },
+      { id: "p15-10", text: "Bid form completed per GC requirements" },
     ],
   },
   phase16: {
@@ -433,6 +447,8 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p13-2", text: "Waste factors applied" },
       { id: "p13-3", text: "Freight costs included" },
       { id: "p13-4", text: "Tax calculated correctly" },
+      { id: "p13-11", text: "Sales tax exemption verified (if applicable)" },
+      { id: "p13-12", text: "Material price escalation clause considered (if applicable)" },
     ],
   },
   phase14: {
@@ -446,6 +462,8 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p14-2", text: "Labor burden calculated (WC, FICA, UI)" },
       { id: "p14-3", text: "Overtime considered if needed" },
       { id: "p14-4", text: "Mobilization included" },
+      { id: "p14-11", text: "Prevailing wage / Davis-Bacon requirements checked (if applicable)" },
+      { id: "p14-12", text: "Subcontractor quotes received — sheet metal, caulking, etc. (if applicable)" },
     ],
   },
   phase15: {
@@ -460,6 +478,9 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p15-5", text: "Bond requirements addressed" },
       { id: "p15-6", text: "Insurance requirements reviewed" },
       { id: "p15-7", text: "Bid form completed correctly" },
+      { id: "p15-8", text: "Retainage terms reviewed (typical 5-10%)" },
+      { id: "p15-9", text: "Liquidated damages clause reviewed" },
+      { id: "p15-10", text: "Bid form completed per GC requirements" },
     ],
   },
   phase16: {

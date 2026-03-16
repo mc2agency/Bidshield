@@ -11,6 +11,7 @@
     "prebuild": "bash scripts/check-forbidden-terms.sh || true"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@clerk/nextjs": "^6.36.3",
     "@heroicons/react": "^2.2.0",
     "@vercel/analytics": "^1.6.1",

@@ -1607,3 +1607,96 @@ export const deleteGCItem = mutation({
     await ctx.db.delete(id);
   },
 });
+
+// ===== DATASHEETS =====
+
+export const getDatasheets = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const items = await ctx.db
+      .query("bidshield_datasheets")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    return Promise.all(
+      items.map(async (item) => ({
+        ...item,
+        sourcePdfUrl: item.sourcePdf
+          ? await ctx.storage.getUrl(item.sourcePdf as any)
+          : null,
+      }))
+    );
+  },
+});
+
+export const addDatasheet = mutation({
+  args: {
+    userId: v.string(),
+    productName: v.string(),
+    category: v.string(),
+    unit: v.string(),
+    unitPrice: v.number(),
+    coverage: v.optional(v.number()),
+    coverageUnit: v.optional(v.string()),
+    vendorName: v.optional(v.string()),
+    quoteDate: v.optional(v.string()),
+    pdfUrl: v.optional(v.string()),
+    sourcePdf: v.optional(v.string()),
+    isExtracted: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_datasheets", {
+      ...args,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const updateDatasheet = mutation({
+  args: {
+    id: v.id("bidshield_datasheets"),
+    productName: v.optional(v.string()),
+    category: v.optional(v.string()),
+    unit: v.optional(v.string()),
+    unitPrice: v.optional(v.number()),
+    coverage: v.optional(v.number()),
+    coverageUnit: v.optional(v.string()),
+    vendorName: v.optional(v.string()),
+    quoteDate: v.optional(v.string()),
+    pdfUrl: v.optional(v.string()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, { id, ...fields }) => {
+    await ctx.db.patch(id, { ...fields, updatedAt: Date.now() });
+  },
+});
+
+export const deleteDatasheet = mutation({
+  args: { id: v.id("bidshield_datasheets") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id);
+  },
+});
+
+export const generatePdfUploadUrl = mutation({
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const getMonthlyExtractionCount = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const items = await ctx.db
+      .query("bidshield_datasheets")
+      .withIndex("by_user_created", (q) =>
+        q.eq("userId", userId).gte("createdAt", startOfMonth)
+      )
+      .collect();
+    return items.filter((i) => i.isExtracted).length;
+  },
+});
