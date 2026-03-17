@@ -371,7 +371,12 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
         </div>
         <div className="flex gap-2 ml-auto">
           {!isDemo && (
-            <button onClick={handleRecalculate} className="px-3 py-1.5 bg-blue-600/20 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-600/30 transition-colors">
+            <button
+              onClick={handleRecalculate}
+              disabled={totalSF === 0}
+              title={totalSF === 0 ? "Enter SF in Takeoff tab first" : "Recalculate quantities from takeoff"}
+              className="px-3 py-1.5 bg-blue-600/20 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-600/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
               Recalculate
             </button>
           )}
@@ -380,6 +385,14 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
           </button>
         </div>
       </div>
+
+      {/* No SF hint */}
+      {!isDemo && totalSF === 0 && materials.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+          <svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
+          <span>Enter SF in the <button onClick={() => onNavigateTab?.("takeoff")} className="font-semibold underline">Takeoff tab</button> to auto-calculate quantities</span>
+        </div>
+      )}
 
       {/* Material Table by Category */}
       {Object.entries(grouped).map(([cat, items]) => {

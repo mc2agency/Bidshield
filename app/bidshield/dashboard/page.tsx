@@ -21,20 +21,12 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         </button>
         <div className="text-center">
           <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached the free plan limit</h2>
-          <p className="text-slate-500 text-sm mb-6">The free plan includes 1 active project. Upgrade to Pro for unlimited projects and all features.</p>
-          <div className="bg-slate-50 rounded-xl p-4 mb-6 text-left space-y-2">
-            {["Unlimited projects", "Full 18-phase checklist", "Materials database & takeoffs", "RFI tracking", "Subcontractor quotes", "Analytics dashboard"].map((f) => (
-              <div key={f} className="flex items-center gap-2 text-sm text-slate-700">
-                <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                {f}
-              </div>
-            ))}
-          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached your free plan limit</h2>
+          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $149/month</p>
           <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm">
-            Upgrade to Pro &mdash; $149/month
+            Upgrade to Pro &rarr;
           </a>
-          <button onClick={onClose} className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors">Maybe later</button>
+          <button onClick={onClose} className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
         </div>
       </div>
     </div>
@@ -106,6 +98,110 @@ function StatCard({ value, label, icon, accent }: {
       <span className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${s.icon} mb-3`}>{icon}</span>
       <div className={`text-3xl font-bold tracking-tight ${s.value}`}>{value}</div>
       <div className="text-sm text-slate-500 mt-1 font-medium">{label}</div>
+    </div>
+  );
+}
+
+// ============================================================
+// PROJECT TABLE (desktop pipeline view)
+// ============================================================
+function ProjectRow({ project, isDemo, onStatusChange, router }: {
+  project: BidProject;
+  isDemo: boolean;
+  onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
+  router: ReturnType<typeof useRouter>;
+}) {
+  const progress = useQuery(
+    api.bidshield.getChecklistProgress,
+    !isDemo ? { projectId: project._id } : "skip"
+  );
+  const displayProgress = isDemo ? 45 : (progress ?? 0);
+  const bidDate = new Date(project.bidDate);
+  const daysUntil = Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const isUrgent = daysUntil <= 3 && daysUntil >= 0;
+  const isPastDue = daysUntil < 0;
+  const dpsf = (project.estimatedValue && project.sqft) ? (project.estimatedValue / project.sqft).toFixed(2) : null;
+  const systemType = (project as any).systemType as string | undefined;
+
+  return (
+    <tr
+      onClick={() => router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
+      className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors group"
+    >
+      <td className="px-4 py-3">
+        <div className="font-semibold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate max-w-[200px]">{project.name}</div>
+        <div className="text-xs text-slate-400 truncate">{project.location}</div>
+      </td>
+      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{project.gc || "—"}</td>
+      <td className="px-4 py-3 whitespace-nowrap">
+        <span className={`text-sm font-medium ${isPastDue ? "text-red-600" : isUrgent ? "text-amber-600" : "text-slate-600"}`}>
+          {isPastDue ? "Past due" : daysUntil === 0 ? "Today" : `${daysUntil}d`}
+        </span>
+        <div className="text-xs text-slate-400">{project.bidDate}</div>
+      </td>
+      <td className="px-4 py-3">
+        {systemType ? (
+          <span className="text-[10px] font-semibold bg-violet-50 text-violet-600 px-2 py-0.5 rounded-md uppercase">{systemType}</span>
+        ) : project.assemblies && project.assemblies.length > 0 ? (
+          <span className="text-xs text-slate-500 truncate max-w-[100px] block">{project.assemblies[0]}</span>
+        ) : <span className="text-xs text-slate-400">—</span>}
+      </td>
+      <td className="px-4 py-3 text-right text-sm font-medium text-slate-700 whitespace-nowrap">
+        {dpsf ? `$${dpsf}` : "—"}
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2 justify-end">
+          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full ${displayProgress >= 80 ? "bg-emerald-500" : displayProgress >= 40 ? "bg-amber-500" : "bg-slate-400"}`} style={{ width: `${displayProgress}%` }} />
+          </div>
+          <span className={`text-xs font-bold tabular-nums w-8 text-right ${displayProgress >= 80 ? "text-emerald-600" : displayProgress >= 40 ? "text-amber-600" : "text-slate-400"}`}>{displayProgress}%</span>
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex gap-1.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="py-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-emerald-200">Won</button>
+          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="py-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-red-200">Lost</button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function ProjectTable({ projects, isDemo, onStatusChange, router, onNewBid }: {
+  projects: BidProject[];
+  isDemo: boolean;
+  onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
+  router: ReturnType<typeof useRouter>;
+  onNewBid: () => void;
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-slate-100 bg-slate-50">
+            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Project</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">GC</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Bid Date</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">System</th>
+            <th className="text-right px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">$/SF</th>
+            <th className="text-right px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Ready</th>
+            <th className="px-4 py-3 w-24" />
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((project) => (
+            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} router={router} />
+          ))}
+          <tr>
+            <td colSpan={7} className="px-4 py-3">
+              <button onClick={onNewBid} className="flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                {projects.length === 0 ? "Create your first bid" : "New Bid"}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -228,14 +324,6 @@ function DashboardContent() {
   }, [isDemo, convexProjects, userId]);
   const isLoading = !isDemo && convexProjects === undefined;
 
-  const handleNewBidClick = () => {
-    if (!isDemo && !isPro && activeProjects.length >= 1) {
-      setShowUpgradeModal(true);
-    } else {
-      setShowNewProject(true);
-    }
-  };
-
   const handleCreateProject = async (np: any) => {
     if (!np.name || !np.location || !np.bidDate) return;
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
@@ -267,10 +355,18 @@ function DashboardContent() {
   const activeProjects = projects.filter((p) => { const s = getProjectStatus(p); return s === "setup" || s === "in_progress"; });
   const completedProjects = projects.filter((p) => { const s = getProjectStatus(p); return s === "won" || s === "lost"; });
 
+  const handleNewBidClick = () => {
+    if (!isDemo && !isPro && activeProjects.length >= 1) {
+      setShowUpgradeModal(true);
+    } else {
+      setShowNewProject(true);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           {[1,2,3,4].map(i => (
             <div key={i} className="bg-white rounded-xl p-6 border border-slate-100 animate-pulse">
               <div className="h-9 w-9 bg-slate-100 rounded-lg mb-3" />
@@ -312,7 +408,7 @@ function DashboardContent() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <StatCard value={stats.activeProjects} label="Active Bids" icon="📋" accent="slate" />
         <StatCard value={`${stats.winRate}%`} label="Win Rate" icon="🎯" accent={stats.winRate >= 50 ? "emerald" : "amber"} />
         <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" icon="✅" accent="emerald" />
@@ -355,14 +451,21 @@ function DashboardContent() {
         </div>
         <div className="flex gap-3 shrink-0">
           <a href={isDemo ? "/bidshield/dashboard/datasheets?demo=true" : "/bidshield/dashboard/datasheets"} className="px-4 py-2 border border-white/30 text-white hover:bg-white/10 font-medium rounded-lg text-sm whitespace-nowrap transition-colors">Material Database</a>
-          <a href={isDemo ? "/bidshield/dashboard/templates?demo=true" : "/bidshield/dashboard/templates"} className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">View Templates &rarr;</a>
+          <a href="/bidshield/pricing" className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">Upgrade to Pro &rarr;</a>
         </div>
       </div>
 
-      {/* Active Bids */}
+      {/* Active Bids — table on desktop, cards on mobile */}
       <div>
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Active Bids</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        {/* Desktop: pipeline table */}
+        <div className="hidden md:block">
+          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} router={router} onNewBid={handleNewBidClick} />
+        </div>
+
+        {/* Mobile: card grid */}
+        <div className="grid grid-cols-1 gap-4 md:hidden">
           {activeProjects.map((project: BidProject) => (
             <ProjectCard key={project._id} project={project} isDemo={isDemo} onStatusChange={handleStatusChange} router={router} />
           ))}

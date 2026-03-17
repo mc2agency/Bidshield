@@ -17,6 +17,8 @@ import Footer from "@/components/Footer";
 import { Providers } from "./providers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
+import { GA_ID } from "@/lib/gtag";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,8 +30,8 @@ export const metadata: Metadata = {
     default: "BidShield — Bidding Command Center for Commercial Roofing",
     template: "%s | BidShield",
   },
-  description: "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker. Built by estimators, for estimators.",
-  keywords: ["roofing estimation", "construction estimating", "roofing templates", "estimating tools", "roofing calculators", "contractor tools", "bid templates", "bidshield", "bid management"],
+  description: "One missed mechanical curb costs $30K–$80K. BidShield's 18-phase pre-submission review catches what estimating software can't — works alongside The EDGE, STACK, and Excel.",
+  keywords: ["commercial roofing bid checklist", "pre-submission bid review roofing", "roofing scope gap checker", "bid QA commercial roofing", "roofing estimating tools", "BidShield", "missed mechanical curb commercial roofing", "addendum review roofing"],
   authors: [{ name: "MC2 Estimating" }],
   creator: "MC2 Estimating",
   publisher: "MC2 Estimating",
@@ -98,12 +100,46 @@ export default function RootLayout({
               "name": "BidShield",
               "url": "https://mc2estimating.com",
               "logo": "https://mc2estimating.com/og-image.png",
-              "description": "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker.",
+              "description": "BidShield's 18-phase pre-submission review catches what estimating software can't — works alongside The EDGE, STACK, and Excel.",
               "sameAs": [],
               "contactPoint": {
                 "@type": "ContactPoint",
                 "contactType": "customer service",
                 "url": "https://mc2estimating.com/contact"
+              }
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "BidShield",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Web",
+              "url": "https://mc2estimating.com/bidshield/dashboard",
+              "description": "BidShield is the pre-submission bid review platform for commercial roofing estimators. 18-phase checklist, scope gap checker, takeoff reconciliation, and bid readiness score.",
+              "offers": [
+                {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "USD",
+                  "name": "Free Plan"
+                },
+                {
+                  "@type": "Offer",
+                  "price": "149",
+                  "priceCurrency": "USD",
+                  "name": "Pro Plan",
+                  "billingIncrement": "monthly"
+                }
+              ],
+              "publisher": {
+                "@type": "Organization",
+                "name": "MC2 Estimating",
+                "url": "https://mc2estimating.com"
               }
             })
           }}
@@ -117,6 +153,17 @@ export default function RootLayout({
         </Providers>
         <Analytics />
         <SpeedInsights />
+        {GA_ID && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+            <Script id="ga4-init" strategy="afterInteractive">{`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_ID}');
+            `}</Script>
+          </>
+        )}
         <script
           dangerouslySetInnerHTML={{
             __html: `

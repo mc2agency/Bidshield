@@ -16,27 +16,6 @@ import {
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, ValidatorTab,
 } from "./tabs";
 
-function ReadinessGauge({ score, size = 52 }: { score: number; size?: number }) {
-  const r = (size - 8) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - score / 100);
-  const color = score >= 90 ? "#059669" : score >= 70 ? "#f59e0b" : score >= 50 ? "#ea580c" : "#dc2626";
-  const bgColor = score >= 90 ? "#d1fae5" : score >= 70 ? "#fef3c7" : score >= 50 ? "#ffedd5" : "#fee2e2";
-  return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={bgColor} strokeWidth="5"/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="5"
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-          transform={`rotate(-90 ${size/2} ${size/2})`} style={{ transition: "stroke-dashoffset 0.6s ease" }}/>
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-base font-extrabold" style={{ color, lineHeight: 1 }}>{score}%</span>
-      </div>
-    </div>
-  );
-}
-
 const BROWSE_ITEMS: { id: TabId; label: string }[] = [
   { id: "checklist", label: "Checklist" },
   { id: "scope", label: "Scope" },
@@ -81,9 +60,8 @@ function ProjectDetail() {
     : project;
 
   const openTab = useCallback((tab: TabId) => setActiveTab(tab), []);
-  const goHome = useCallback(() => setActiveTab(null), []);
 
-  const { actionItems, readinessScore, passCount } = useMemo(() => {
+  const { actionItems, readinessScore, passCount, scores } = useMemo(() => {
     const items: ActionItem[] = [];
     const cl = isDemo ? [] : (checklist ?? []);
     const clTotal = isDemo ? 95 : cl.length;
@@ -130,7 +108,7 @@ function ProjectDetail() {
       ? { level: "blocker", title: `${scUnaddressed} scope items unaddressed`, detail: "Mark each as included, excluded, or by others", tab: "scope" }
       : { level: "warning", title: `${scUnaddressed} scope items remaining`, tab: "scope" });
     if (adNotRepriced > 0) items.push({ level: "blocker", title: `${adNotRepriced} addend${adNotRepriced > 1 ? "a" : "um"} not re-priced`, detail: "Scope changes need pricing updates", tab: "addenda" });
-    if (deltaPct !== null && deltaPct > 5) items.push({ level: "blocker", title: `${deltaSF.toLocaleString()} SF gap in takeoff`, detail: `${deltaPct.toFixed(1)}% doesn't match plans`, tab: "takeoff" });
+    if (deltaPct !== null && deltaPct > 5) items.push({ level: "blocker", title: `${deltaSF.toLocaleString()} SF gap in takeoff`, detail: `${Math.round(deltaPct)}% doesn't match plans`, tab: "takeoff" });
     else if (deltaPct !== null && deltaPct > 2) items.push({ level: "warning", title: `${deltaSF.toLocaleString()} SF takeoff gap`, tab: "takeoff" });
     if (expired > 0) items.push({ level: "blocker", title: `${expired} expired quote${expired > 1 ? "s" : ""}`, tab: "quotes" });
     if (expiring > 0) items.push({ level: "warning", title: `${expiring} quote${expiring > 1 ? "s" : ""} expiring soon`, tab: "quotes" });
@@ -144,9 +122,11 @@ function ProjectDetail() {
 
     items.sort((a, b) => ({ blocker: 0, warning: 1, info: 2 }[a.level]) - ({ blocker: 0, warning: 1, info: 2 }[b.level]));
 
+    // All scores Math.rounded — no floats displayed
     const scores = {
-      checklist: clPct, scope: scPct,
-      takeoff: deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : (controlSF > 0 ? 0 : 50),
+      checklist: clPct,
+      scope: scPct,
+      takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : (controlSF > 0 ? 0 : 50)),
       pricing: pricingDone ? 100 : (bidAmt ? 50 : 0),
       materials: mats.length > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
       quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 50,
@@ -157,7 +137,7 @@ function ProjectDetail() {
     const readiness = Math.round(Object.entries(w).reduce((s, [k, v]) => s + (scores[k as keyof typeof scores] ?? 0) * v, 0));
     const passes = [scPct >= 100, adCount === 0 || (adNotRepriced === 0 && adNotReviewed === 0), expired === 0 && expiring === 0, rPending === 0, clPct >= 80, mats.length > 0 && matUnpriced === 0, pricingDone].filter(Boolean).length;
 
-    return { actionItems: items, readinessScore: readiness, passCount: passes };
+    return { actionItems: items, readinessScore: readiness, passCount: passes, scores };
   }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis]);
 
   if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
@@ -166,218 +146,405 @@ function ProjectDetail() {
   const bidDate = projectData?.bidDate ? new Date(projectData.bidDate) : null;
   const daysUntilBid = bidDate ? Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
   const blockerCount = actionItems.filter(a => a.level === "blocker").length;
+  const warnCount = actionItems.filter(a => a.level === "warning").length;
   const tabProps = { projectId: projectIdParam, isDemo, project: projectData, userId: userId ?? undefined, onNavigateTab: openTab };
+  const activeTabLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label;
 
-  // ── FOCUSED VIEW: user tapped into a specific section ──
-  if (activeTab) {
-    const tabLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label ?? activeTab;
-    return (
-      <div className="flex flex-col min-h-screen">
-        <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-          <button onClick={goHome} className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-            Back
-          </button>
-          <span className="text-sm font-semibold text-slate-900">{tabLabel}</span>
-          <div className="w-12" />
-        </div>
-        <div className="flex-1 p-4 max-w-lg mx-auto w-full">
-          {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
-          {activeTab === "takeoff" && <TakeoffTab {...tabProps} />}
-          {activeTab === "pricing" && <PricingTab {...tabProps} />}
-          {activeTab === "materials" && <MaterialsTab {...tabProps} />}
-          {activeTab === "scope" && <ScopeTab {...tabProps} />}
-          {activeTab === "quotes" && <QuotesTab {...tabProps} />}
-          {activeTab === "rfis" && <RFIsTab {...tabProps} />}
-          {activeTab === "addenda" && <AddendaTab {...tabProps} />}
-          {activeTab === "labor" && <LaborTab {...tabProps} />}
-          {activeTab === "validator" && <ValidatorTab {...tabProps} />}
-        </div>
-      </div>
-    );
-  }
+  const sysId = (projectData as any)?.systemType;
+  const assembly = (projectData as any)?.primaryAssembly;
+  const sys = sysId ? getRoofSystem(sysId) : assembly ? getRoofSystemByAssembly(assembly) : undefined;
+  const grossArea = (projectData as any)?.grossRoofArea;
+  const bidAmt = (projectData as any)?.totalBidAmount;
+  const dpsf = grossArea && bidAmt ? Math.round((bidAmt / grossArea) * 100) / 100 : null;
 
-  // ── HOME: What needs your attention ──
+  const scoreColor = (s: number) => s >= 80 ? "#10b981" : s >= 50 ? "#f59e0b" : "#ef4444";
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="bg-white border-b border-slate-200">
-        <div className="px-4 sm:px-6 py-3 max-w-lg mx-auto flex items-center gap-3">
-          <ReadinessGauge score={readinessScore} />
-          <div className="flex-1 min-w-0">
-            <Link href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-              className="text-[10px] text-slate-400 hover:text-emerald-600 inline-flex items-center gap-0.5">
-              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-              Dashboard
-            </Link>
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 truncate leading-tight">{projectData?.name}</h1>
-            <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500">
-              <span>{projectData?.location}</span>
-              {(projectData as any)?.gc && <><span>·</span><span>{(projectData as any).gc}</span></>}
-            </div>
+    <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
+
+      {/* Panel A — dark left project sidebar (full height) */}
+      <aside
+        className="hidden lg:flex flex-col shrink-0 border-r border-white/10 overflow-y-auto"
+        style={{ width: 220, background: "#0f1117", minHeight: "calc(100vh - 4rem)" }}
+      >
+        {/* Project info */}
+        <div className="px-4 pt-4 pb-3 border-b border-white/8">
+          <div className="text-white font-semibold text-[13px] leading-snug">{projectData?.name}</div>
+          <div className="text-slate-400 text-[11px] mt-0.5">{projectData?.location}</div>
+          {(projectData as any)?.gc && (
+            <div className="text-slate-500 text-[11px]">{(projectData as any).gc}</div>
+          )}
+          {/* Readiness bar — always green */}
+          <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${readinessScore}%`, background: "#10b981" }}
+            />
           </div>
-          {daysUntilBid !== null && (
-            <div className="text-right flex-shrink-0">
-              <div className={`text-xl font-extrabold leading-tight ${daysUntilBid <= 0 ? "text-red-600" : daysUntilBid <= 3 ? "text-amber-600" : "text-emerald-600"}`}>
-                {daysUntilBid > 0 ? `${daysUntilBid}d` : daysUntilBid === 0 ? "TODAY" : "LATE"}
-              </div>
-              <div className="text-[9px] text-slate-400">until bid</div>
-            </div>
+          <div className="text-[10px] text-slate-500 mt-1">{readinessScore}% bid ready</div>
+        </div>
+
+        {/* Section nav — no truncation, Math.rounded % */}
+        <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5">
+          {BROWSE_ITEMS.map(({ id, label }) => {
+            const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
+            const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
+            const dotColor = hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#10b981";
+            const sectionScore = scores[id as keyof typeof scores];
+            const isActive = activeTab === id;
+
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(isActive ? null : id)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-all"
+                style={isActive
+                  ? { background: "rgba(255,255,255,0.08)", color: "#ffffff", boxShadow: "inset 2px 0 0 #10b981" }
+                  : { color: "#94a3b8" }
+                }
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
+                  {/* No truncate — sidebar is wide enough */}
+                  <span className="text-[13px] font-medium">{label}</span>
+                </div>
+                {sectionScore !== undefined && (
+                  <span className="text-[10px] font-bold shrink-0" style={{ color: scoreColor(sectionScore) }}>
+                    {sectionScore}%
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Status pills */}
+        <div className="px-3 pb-4 pt-2 border-t border-white/8 flex flex-wrap gap-1.5">
+          {blockerCount > 0 && (
+            <span className="text-[10px] font-bold bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">
+              {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
+            </span>
+          )}
+          {warnCount > 0 && (
+            <span className="text-[10px] font-bold bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full">
+              {warnCount} warning{warnCount > 1 ? "s" : ""}
+            </span>
+          )}
+          {passCount > 0 && (
+            <span className="text-[10px] font-bold bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full">
+              {passCount} passing
+            </span>
           )}
         </div>
-      </div>
+      </aside>
 
-      <div className="flex-1 px-4 sm:px-6 py-4 max-w-lg mx-auto w-full flex flex-col gap-4">
-        {actionItems.length === 0 ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
-            <div className="text-3xl mb-2">✅</div>
-            <div className="text-sm font-bold text-emerald-700">Bid ready to submit</div>
-            <button onClick={() => openTab("validator")} className="mt-3 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700">
-              Review & Export →
-            </button>
+      {/* Right side: breadcrumb + panels B + C stacked */}
+      <div className="flex-1 flex flex-col min-w-0">
+
+        {/* Breadcrumb bar — only spans panels B + C, no dark sidebar overlap */}
+        <div className="bg-white border-b border-slate-200 px-5 py-2.5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-1.5 text-sm min-w-0">
+            <Link
+              href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
+              className="text-slate-400 hover:text-slate-700 transition-colors flex items-center gap-1 shrink-0"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+              All projects
+            </Link>
+            <span className="text-slate-200 shrink-0">/</span>
+            <span
+              className={`font-medium truncate max-w-[200px] ${activeTab ? "text-slate-500 cursor-pointer hover:text-slate-700" : "text-slate-800"}`}
+              onClick={activeTab ? () => setActiveTab(null) : undefined}
+            >
+              {projectData?.name ?? "Project"}
+            </span>
+            {activeTab && (
+              <>
+                <span className="text-slate-200 shrink-0">/</span>
+                <span className="text-slate-900 font-semibold shrink-0">{activeTabLabel}</span>
+              </>
+            )}
           </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""} · ` : ""}{actionItems.length} need attention
-              </h2>
-              {passCount > 0 && <span className="text-[10px] text-emerald-600 font-medium">{passCount} passing ✓</span>}
+
+          <div className="flex items-center gap-3 shrink-0">
+            {daysUntilBid !== null && (
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                daysUntilBid <= 0 ? "bg-red-100 text-red-600"
+                  : daysUntilBid <= 3 ? "bg-amber-100 text-amber-700"
+                  : "bg-emerald-100 text-emerald-700"
+              }`}>
+                {daysUntilBid > 0 ? `${daysUntilBid}d to bid` : daysUntilBid === 0 ? "Due today" : "Past due"}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="#e2e8f0" strokeWidth="3"/>
+                <circle cx="12" cy="12" r="9" fill="none"
+                  stroke={readinessScore >= 90 ? "#059669" : readinessScore >= 70 ? "#f59e0b" : "#dc2626"}
+                  strokeWidth="3"
+                  strokeDasharray={`${2 * Math.PI * 9}`}
+                  strokeDashoffset={`${2 * Math.PI * 9 * (1 - readinessScore / 100)}`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 12 12)"
+                />
+              </svg>
+              <span className="text-xs text-slate-500 font-medium">{readinessScore}%</span>
             </div>
-            {actionItems.map((item, i) => (
-              <button key={`${item.tab}-${i}`} onClick={() => openTab(item.tab)}
-                className={`w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] ${
-                  item.level === "blocker" ? "bg-white border-l-4 border-red-500 shadow-sm"
-                    : item.level === "warning" ? "bg-white border-l-4 border-amber-400"
-                    : "bg-white border-l-4 border-blue-300"
-                }`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-slate-900">{item.title}</div>
-                    {item.detail && <div className="text-xs text-slate-500 mt-0.5">{item.detail}</div>}
+          </div>
+        </div>
+
+        {/* Panels B + C side by side */}
+        <div className="flex-1 flex overflow-hidden">
+
+          {/* Panel B — main white content */}
+          <main className="flex-1 bg-white overflow-auto min-w-0">
+            {activeTab ? (
+              <>
+                {/* Tab sticky header */}
+                <div className="px-6 py-3 border-b border-slate-100 flex items-center gap-3 sticky top-0 bg-white z-10">
+                  <button
+                    onClick={() => setActiveTab(null)}
+                    className="text-sm text-slate-400 hover:text-slate-700 flex items-center gap-1 lg:hidden"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                    Back
+                  </button>
+                  <h2 className="text-[15px] font-semibold text-slate-900">{activeTabLabel}</h2>
+                </div>
+                <div className="p-6">
+                  {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
+                  {activeTab === "takeoff" && <TakeoffTab {...tabProps} />}
+                  {activeTab === "pricing" && <PricingTab {...tabProps} />}
+                  {activeTab === "materials" && <MaterialsTab {...tabProps} />}
+                  {activeTab === "scope" && <ScopeTab {...tabProps} />}
+                  {activeTab === "quotes" && <QuotesTab {...tabProps} />}
+                  {activeTab === "rfis" && <RFIsTab {...tabProps} />}
+                  {activeTab === "addenda" && <AddendaTab {...tabProps} />}
+                  {activeTab === "labor" && <LaborTab {...tabProps} />}
+                  {activeTab === "validator" && <ValidatorTab {...tabProps} />}
+                </div>
+              </>
+            ) : (
+              /* Overview */
+              <div className="p-6 max-w-2xl">
+                {/* Mobile section nav */}
+                <div className="lg:hidden flex flex-wrap gap-2 mb-6">
+                  {BROWSE_ITEMS.map(({ id, label }) => {
+                    const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
+                    const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => openTab(id)}
+                        className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-1.5 hover:bg-slate-100 active:scale-95 transition-all"
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${hasBlocker ? "bg-red-400" : hasWarning ? "bg-amber-400" : "bg-emerald-400"}`} />
+                        <span className="text-xs font-medium text-slate-600">{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Action items */}
+                {actionItems.length === 0 ? (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-8 text-center">
+                    <div className="text-3xl mb-3">✅</div>
+                    <div className="text-sm font-bold text-emerald-700 mb-1">Bid ready to submit</div>
+                    <div className="text-xs text-emerald-600 mb-4">All sections are complete and passing.</div>
+                    <button
+                      onClick={() => openTab("validator")}
+                      className="px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+                    >
+                      Review & Export →
+                    </button>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      item.level === "blocker" ? "bg-red-100 text-red-600" : item.level === "warning" ? "bg-amber-100 text-amber-600" : "bg-blue-100 text-blue-600"
-                    }`}>{item.level === "blocker" ? "Fix" : item.level === "warning" ? "Review" : "Info"}</span>
-                    <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""} · ` : ""}
+                        {actionItems.length} need attention
+                      </h2>
+                      {passCount > 0 && (
+                        <span className="text-[10px] text-emerald-600 font-medium">{passCount} passing ✓</span>
+                      )}
+                    </div>
+                    {actionItems.map((item, i) => (
+                      <button
+                        key={`${item.tab}-${i}`}
+                        onClick={() => openTab(item.tab)}
+                        className={`w-full text-left rounded-xl p-4 transition-all active:scale-[0.98] border-l-4 border border-slate-100 ${
+                          item.level === "blocker" ? "border-l-red-500 shadow-sm"
+                            : item.level === "warning" ? "border-l-amber-400"
+                            : "border-l-blue-300"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[13px] font-semibold text-slate-900">{item.title}</div>
+                            {item.detail && <div className="text-xs text-slate-500 mt-0.5">{item.detail}</div>}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              item.level === "blocker" ? "bg-red-100 text-red-600"
+                                : item.level === "warning" ? "bg-amber-100 text-amber-600"
+                                : "bg-blue-100 text-blue-600"
+                            }`}>
+                              {item.level === "blocker" ? "Fix" : item.level === "warning" ? "Review" : "Info"}
+                            </span>
+                            <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Section Progress — fills the empty space below alerts */}
+                <div className="mt-8">
+                  <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Section Progress</h3>
+                  <div className="flex flex-col gap-2.5">
+                    {BROWSE_ITEMS.map(({ id, label }) => {
+                      const score = scores[id as keyof typeof scores];
+                      if (score === undefined) return null;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => openTab(id)}
+                          className="flex items-center gap-3 group"
+                        >
+                          <span className="text-[12px] text-slate-500 group-hover:text-slate-900 font-medium w-20 text-left shrink-0 transition-colors">
+                            {label}
+                          </span>
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{ width: `${score}%`, background: scoreColor(score) }}
+                            />
+                          </div>
+                          <span
+                            className="text-[11px] font-bold w-8 text-right shrink-0"
+                            style={{ color: scoreColor(score) }}
+                          >
+                            {score}%
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              </button>
-            ))}
-          </div>
-        )}
 
-        {/* Sections not flagged — compact access */}
-        {(() => {
-          const flaggedTabs = new Set(actionItems.map(a => a.tab));
-          const unflagged = BROWSE_ITEMS.filter(item => !flaggedTabs.has(item.id));
-          if (unflagged.length === 0) return null;
-          return (
-            <div className="flex flex-wrap gap-2">
-              {unflagged.map((item) => (
-                <button key={item.id} onClick={() => openTab(item.id)}
-                  className="bg-white rounded-lg px-3 py-2.5 text-left hover:shadow-sm active:scale-[0.98] border border-slate-100 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                  <span className="text-xs font-medium text-slate-500">{item.label}</span>
-                </button>
-              ))}
+              </div>
+            )}
+          </main>
+
+          {/* Panel C — light right rail, fixed 280px, overflow-hidden */}
+          <aside
+            className="hidden lg:flex flex-col shrink-0 border-l border-slate-200 overflow-y-auto"
+            style={{ width: 280, background: "#f8fafc", overflowX: "hidden" }}
+          >
+            {/* Roof system header */}
+            <div className="px-4 pt-4 pb-3 border-b border-slate-200">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Roof System</div>
+              <div
+                className="text-[13px] font-semibold text-slate-800 leading-snug"
+                style={{ wordBreak: "break-word" }}
+              >
+                {assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}
+              </div>
+              {sys && <div className="text-[11px] text-slate-500 mt-0.5">CSI {sys.csiSection}</div>}
             </div>
-          );
-        })()}
 
-        {/* Roof System Specs — research-backed */}
-        {(() => {
-          const sysId = (projectData as any)?.systemType;
-          const assembly = (projectData as any)?.primaryAssembly;
-          const sys = sysId ? getRoofSystem(sysId) : assembly ? getRoofSystemByAssembly(assembly) : undefined;
-          const grossArea = (projectData as any)?.grossRoofArea;
-          const bidAmt = (projectData as any)?.totalBidAmount;
-          const dpsf = grossArea && bidAmt ? bidAmt / grossArea : null;
+            {/* Bid stats */}
+            <div className="grid grid-cols-3 border-b border-slate-200">
+              <div className="px-3 py-2.5 border-r border-slate-200">
+                <div className="text-[12px] font-bold text-slate-800">{grossArea ? grossArea.toLocaleString() : "—"}</div>
+                <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">SF</div>
+              </div>
+              <div className="px-3 py-2.5 border-r border-slate-200">
+                <div className="text-[12px] font-bold text-slate-800">{bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—"}</div>
+                <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">Bid</div>
+              </div>
+              <div className="px-3 py-2.5">
+                <div className="text-[12px] font-bold text-slate-800">{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
+                <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">$/SF</div>
+              </div>
+            </div>
 
-          return (
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              {/* System header */}
-              <div className="px-4 py-3 bg-slate-900 text-white flex items-center justify-between">
+            {/* System details */}
+            {sys && (
+              <div className="px-4 py-3 flex flex-col gap-3 border-b border-slate-200">
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Roof System</div>
-                  <div className="text-sm font-bold">{assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Seam Method</div>
+                  <div className="text-[12px] text-slate-700" style={{ wordBreak: "break-word" }}>
+                    {sys.seamMethod.split("(")[0].trim()}
+                  </div>
                 </div>
-                {sys && <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-slate-300">CSI {sys.csiSection}</span>}
+                <div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Manufacturers</div>
+                  <div className="flex flex-wrap gap-1">
+                    {sys.manufacturers.slice(0, 4).map(m => (
+                      <span key={m} className="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full" style={{ wordBreak: "break-word" }}>{m}</span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Warranty Tiers</div>
+                  <div className="flex flex-wrap gap-1">
+                    {sys.warrantyOptions.map(w => (
+                      <span key={w} className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full">{w}</span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Thickness</div>
+                  <div className="text-[12px] text-slate-700" style={{ wordBreak: "break-word" }}>
+                    {sys.thicknessOptions.join(" · ")}
+                  </div>
+                </div>
+                <button
+                  onClick={() => openTab("materials")}
+                  className="text-[11px] text-emerald-600 hover:text-emerald-700 font-semibold text-left transition-colors"
+                >
+                  {sys.requiredMaterials.length} materials for this system →
+                </button>
               </div>
+            )}
 
-              {/* Stats row */}
-              <div className="grid grid-cols-3 gap-px bg-slate-100">
-                <div className="bg-white p-3 text-center">
-                  <div className="text-sm font-bold text-slate-900">{grossArea ? grossArea.toLocaleString() : "—"}</div>
-                  <div className="text-[10px] text-slate-400">SQ FT</div>
-                </div>
-                <div className="bg-white p-3 text-center">
-                  <div className="text-sm font-bold text-slate-900">{bidAmt ? `$${(bidAmt / 1000).toFixed(0)}K` : "—"}</div>
-                  <div className="text-[10px] text-slate-400">BID AMT</div>
-                </div>
-                <div className="bg-white p-3 text-center">
-                  <div className="text-sm font-bold text-slate-900">{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
-                  <div className="text-[10px] text-slate-400">$/SF</div>
-                </div>
+            {/* Notes */}
+            {(projectData as any)?.notes && (
+              <div className="px-4 py-3 border-b border-slate-200">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Notes</div>
+                <p className="text-[11px] text-slate-600 leading-relaxed" style={{ wordBreak: "break-word" }}>
+                  {(projectData as any).notes}
+                </p>
               </div>
+            )}
 
-              {/* System details — what you need to know for this system */}
-              {sys && (
-                <div className="px-4 py-3 flex flex-col gap-2.5 border-t border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-medium">Seam method</span>
-                    <span className="text-xs text-slate-700">{sys.seamMethod.split("(")[0].trim()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-medium">Thickness options</span>
-                    <span className="text-xs text-slate-700">{sys.thicknessOptions.join(" · ")}</span>
-                  </div>
-
-                  {/* Manufacturers */}
-                  <div>
-                    <div className="text-[10px] text-slate-400 font-medium mb-1">Manufacturers</div>
-                    <div className="flex flex-wrap gap-1">
-                      {sys.manufacturers.slice(0, 5).map(m => (
-                        <span key={m} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">{m}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Warranty options */}
-                  <div>
-                    <div className="text-[10px] text-slate-400 font-medium mb-1">Warranty tiers</div>
-                    <div className="flex flex-wrap gap-1">
-                      {sys.warrantyOptions.map(w => (
-                        <span key={w} className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">{w}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Materials for this system */}
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-medium">{sys.requiredMaterials.length} materials for this system</span>
-                    <button onClick={() => openTab("materials")} className="text-[10px] text-emerald-600 font-semibold">View materials →</button>
-                  </div>
-                </div>
-              )}
+            {/* Submit CTA */}
+            <div className="p-4 mt-auto">
+              <button
+                onClick={() => openTab("validator")}
+                disabled={blockerCount > 0}
+                className={`w-full py-3 rounded-lg text-[13px] font-bold transition-all ${
+                  blockerCount > 0
+                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                    : "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]"
+                }`}
+              >
+                {blockerCount > 0
+                  ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} first`
+                  : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
+              </button>
             </div>
-          );
-        })()}
+          </aside>
 
-        {(projectData as any)?.notes && (
-          <div className="bg-white rounded-lg p-3 border border-slate-100">
-            <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Notes</div>
-            <p className="text-xs text-slate-600">{(projectData as any).notes}</p>
-          </div>
-        )}
-
-        <div className="pb-6">
-          <button onClick={() => openTab("validator")} disabled={blockerCount > 0}
-            className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all ${
-              blockerCount > 0 ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]"
-            }`}>
-            {blockerCount > 0 ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} to submit` : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
-          </button>
         </div>
       </div>
     </div>

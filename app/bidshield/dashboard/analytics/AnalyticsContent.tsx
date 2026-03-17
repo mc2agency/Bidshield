@@ -100,6 +100,45 @@ function AnalyticsInner() {
     (p) => p.totalBidAmount && p.sqft && p.sqft > 0
   );
 
+  // Enhanced GC Intelligence
+  const gcIntelData = useMemo(() => {
+    const gcMap: Record<string, { won: number; lost: number; total: number; totalSF: number; totalBid: number; wonBid: number; wonSF: number }> = {};
+    for (const p of filteredProjects) {
+      if (!p.gc || !(p.status === "won" || p.status === "lost")) continue;
+      if (!gcMap[p.gc]) gcMap[p.gc] = { won: 0, lost: 0, total: 0, totalSF: 0, totalBid: 0, wonBid: 0, wonSF: 0 };
+      const g = gcMap[p.gc];
+      g.total += 1;
+      if (p.status === "won") { g.won += 1; g.wonBid += (p.totalBidAmount || 0); g.wonSF += (p.sqft || 0); }
+      if (p.status === "lost") g.lost += 1;
+      g.totalSF += (p.sqft || 0);
+      g.totalBid += (p.totalBidAmount || 0);
+    }
+    return Object.entries(gcMap)
+      .map(([gc, d]) => ({
+        gc,
+        bids: d.total,
+        wins: d.won,
+        winRate: d.total > 0 ? Math.round((d.won / d.total) * 100) : 0,
+        avgDpsf: d.totalSF > 0 ? d.totalBid / d.totalSF : 0,
+        wonDpsf: d.wonSF > 0 ? d.wonBid / d.wonSF : 0,
+        revenue: d.wonBid,
+      }))
+      .filter((g) => g.bids >= 2)
+      .sort((a, b) => b.bids - a.bids);
+  }, [filteredProjects]);
+
+  // GC Insights
+  const gcInsights = useMemo(() => {
+    const insights: string[] = [];
+    const bestGc = gcIntelData.reduce((best, g) => g.winRate > (best?.winRate ?? 0) ? g : best, gcIntelData[0]);
+    const worstGc = gcIntelData.reduce((worst, g) => g.winRate < (worst?.winRate ?? 100) ? g : worst, gcIntelData[0]);
+    const topRevenue = gcIntelData.reduce((top, g) => g.revenue > (top?.revenue ?? 0) ? g : top, gcIntelData[0]);
+    if (bestGc && bestGc.winRate > 0) insights.push(`Highest win rate: ${bestGc.gc} at ${bestGc.winRate}% (${bestGc.wins}/${bestGc.bids})`);
+    if (worstGc && worstGc.winRate < 100 && worstGc.gc !== bestGc?.gc) insights.push(`Lowest win rate: ${worstGc.gc} at ${worstGc.winRate}% — review pricing strategy`);
+    if (topRevenue && topRevenue.revenue > 0) insights.push(`Top revenue source: ${topRevenue.gc} ($${(topRevenue.revenue / 1000).toFixed(0)}k won)`);
+    return insights;
+  }, [gcIntelData]);
+
   if (!stats) {
     return (
       <div className="text-center py-20">
@@ -170,45 +209,6 @@ function AnalyticsInner() {
     .map(([gc, data]: [string, any]) => ({ gc, won: data.won, lost: data.lost, total: data.total, winRate: data.total > 0 ? Math.round((data.won / data.total) * 100) : 0 }))
     .filter((g) => g.total >= 2)
     .sort((a, b) => b.total - a.total);
-
-  // Enhanced GC Intelligence
-  const gcIntelData = useMemo(() => {
-    const gcMap: Record<string, { won: number; lost: number; total: number; totalSF: number; totalBid: number; wonBid: number; wonSF: number }> = {};
-    for (const p of filteredProjects) {
-      if (!p.gc || !(p.status === "won" || p.status === "lost")) continue;
-      if (!gcMap[p.gc]) gcMap[p.gc] = { won: 0, lost: 0, total: 0, totalSF: 0, totalBid: 0, wonBid: 0, wonSF: 0 };
-      const g = gcMap[p.gc];
-      g.total += 1;
-      if (p.status === "won") { g.won += 1; g.wonBid += (p.totalBidAmount || 0); g.wonSF += (p.sqft || 0); }
-      if (p.status === "lost") g.lost += 1;
-      g.totalSF += (p.sqft || 0);
-      g.totalBid += (p.totalBidAmount || 0);
-    }
-    return Object.entries(gcMap)
-      .map(([gc, d]) => ({
-        gc,
-        bids: d.total,
-        wins: d.won,
-        winRate: d.total > 0 ? Math.round((d.won / d.total) * 100) : 0,
-        avgDpsf: d.totalSF > 0 ? d.totalBid / d.totalSF : 0,
-        wonDpsf: d.wonSF > 0 ? d.wonBid / d.wonSF : 0,
-        revenue: d.wonBid,
-      }))
-      .filter((g) => g.bids >= 2)
-      .sort((a, b) => b.bids - a.bids);
-  }, [filteredProjects]);
-
-  // GC Insights
-  const gcInsights = useMemo(() => {
-    const insights: string[] = [];
-    const bestGc = gcIntelData.reduce((best, g) => g.winRate > (best?.winRate ?? 0) ? g : best, gcIntelData[0]);
-    const worstGc = gcIntelData.reduce((worst, g) => g.winRate < (worst?.winRate ?? 100) ? g : worst, gcIntelData[0]);
-    const topRevenue = gcIntelData.reduce((top, g) => g.revenue > (top?.revenue ?? 0) ? g : top, gcIntelData[0]);
-    if (bestGc && bestGc.winRate > 0) insights.push(`Highest win rate: ${bestGc.gc} at ${bestGc.winRate}% (${bestGc.wins}/${bestGc.bids})`);
-    if (worstGc && worstGc.winRate < 100 && worstGc.gc !== bestGc?.gc) insights.push(`Lowest win rate: ${worstGc.gc} at ${worstGc.winRate}% — review pricing strategy`);
-    if (topRevenue && topRevenue.revenue > 0) insights.push(`Top revenue source: ${topRevenue.gc} ($${(topRevenue.revenue / 1000).toFixed(0)}k won)`);
-    return insights;
-  }, [gcIntelData]);
 
   // Loss reasons
   const lossReasonData = isDemo

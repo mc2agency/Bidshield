@@ -4,6 +4,7 @@ Allow: /
 Sitemap: https://mc2estimating.com/sitemap.xml
 
 # Block internal/auth routes
+Disallow: /admin
 Disallow: /dashboard
 Disallow: /sign-in
 Disallow: /sign-up

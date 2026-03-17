@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
+import { gtagEvent } from "@/lib/gtag";
 
 const plans = [
   {
@@ -71,7 +72,14 @@ export default function PricingPage() {
   const { isSignedIn } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
 
+  useEffect(() => {
+    gtagEvent("view_pricing");
+  }, []);
+
   const handleCheckout = async (planId: string) => {
+    if (planId !== "free") {
+      gtagEvent("begin_checkout", { plan: planId });
+    }
     if (planId === "free") {
       window.location.href = isSignedIn ? "/bidshield/dashboard" : "/sign-up";
       return;

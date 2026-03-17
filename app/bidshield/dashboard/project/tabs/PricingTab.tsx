@@ -36,6 +36,13 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
     api.bidshield.getProjects,
     !isDemo && userId ? { userId } : "skip"
   );
+  const projectMaterials = useQuery(
+    api.bidshield.getProjectMaterials,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const computedMaterialTotal = Math.round(
+    (projectMaterials ?? []).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0)
+  );
 
   const grossRoofArea: number | null = isDemo ? 68000 : (project?.grossRoofArea ?? null);
 
@@ -174,7 +181,16 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
             <div className="text-[10px] text-slate-500">Total Bid</div>
           </div>
           <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-            {editing ? <input type="number" value={form.materialCost} onChange={(e) => setForm({ ...form, materialCost: e.target.value })} placeholder="Material" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-blue-600">{pricing.materialCost ? fmtDollar(pricing.materialCost) : "—"}</div>}
+            {editing ? (
+              <>
+                <input type="number" value={form.materialCost} onChange={(e) => setForm({ ...form, materialCost: e.target.value })} placeholder="Material" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" />
+                {!isDemo && computedMaterialTotal > 0 && (
+                  <button type="button" onClick={() => setForm({ ...form, materialCost: computedMaterialTotal.toString() })} className="text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 block w-full text-center whitespace-nowrap">
+                    ↑ Use Materials tab: {fmtDollar(computedMaterialTotal)}
+                  </button>
+                )}
+              </>
+            ) : <div className="text-lg font-bold text-blue-600">{pricing.materialCost ? fmtDollar(pricing.materialCost) : "—"}</div>}
             <div className="text-[10px] text-slate-500">Material</div>
           </div>
           <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">

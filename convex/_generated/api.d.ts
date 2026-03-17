@@ -10,6 +10,7 @@
 
 import type * as bidshield from "../bidshield.js";
 import type * as bidshieldDefaults from "../bidshieldDefaults.js";
+import type * as email from "../email.js";
 import type * as gumroad from "../gumroad.js";
 import type * as leads from "../leads.js";
 import type * as users from "../users.js";
@@ -23,6 +24,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   bidshield: typeof bidshield;
   bidshieldDefaults: typeof bidshieldDefaults;
+  email: typeof email;
   gumroad: typeof gumroad;
   leads: typeof leads;
   users: typeof users;

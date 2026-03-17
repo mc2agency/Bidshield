@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 // Get or create user from Clerk authentication
 export const getOrCreateUser = mutation({
@@ -34,6 +35,15 @@ export const getOrCreateUser = mutation({
       createdAt: Date.now(),
       lastLoginAt: Date.now(),
     });
+
+    // Schedule onboarding email sequence
+    const DAY = 24 * 60 * 60 * 1000;
+    const emailArgs = { email: args.email, name: args.name };
+    await ctx.scheduler.runAfter(0,         internal.email.sendOnboardingEmail, { ...emailArgs, day: 1 });
+    await ctx.scheduler.runAfter(3 * DAY,   internal.email.sendOnboardingEmail, { ...emailArgs, day: 3 });
+    await ctx.scheduler.runAfter(5 * DAY,   internal.email.sendOnboardingEmail, { ...emailArgs, day: 5 });
+    await ctx.scheduler.runAfter(8 * DAY,   internal.email.sendOnboardingEmail, { ...emailArgs, day: 8 });
+    await ctx.scheduler.runAfter(12 * DAY,  internal.email.sendOnboardingEmail, { ...emailArgs, day: 12 });
 
     // Check for existing purchases with this email and link them
     const orphanedPurchases = await ctx.db
@@ -131,6 +141,20 @@ export const getUserSubscription = query({
       subscription: user.bidshieldSubscription ?? null,
       isPro: user.membershipLevel === "bidshield" || user.membershipLevel === "pro",
     };
+  },
+});
+
+// Admin: get all users + all projects
+export const adminGetAllData = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== "user_3Aid1uIjrlbv2KrZsADW4SkYKlp") {
+      throw new Error("Unauthorized");
+    }
+    const users = await ctx.db.query("users").order("desc").collect();
+    const projects = await ctx.db.query("bidshield_projects").order("desc").collect();
+    return { users, projects };
   },
 });
 

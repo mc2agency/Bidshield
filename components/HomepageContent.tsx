@@ -64,11 +64,10 @@ export default function HomepageContent() {
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-            BidShield catches missed mechanical curbs, addenda, and scope items
-            before you submit — so you stop eating the difference.
+            BidShield is the pre-submission review layer that works alongside The EDGE, STACK, and Excel — built by a 12-year commercial roofing estimator for the mistakes those tools can&apos;t catch.
           </p>
-          <p className="text-sm text-slate-500 mb-10">
-            Free to start. $149/month for BidShield Pro.
+          <p className="text-sm text-emerald-400 font-medium mb-10">
+            Works alongside The EDGE, STACK, and Excel — no replacement required.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -76,7 +75,7 @@ export default function HomepageContent() {
               href="/sign-up"
               className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
             >
-              Start Free Trial
+              Start 14-Day Free Trial — No Card Required
               <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -85,7 +84,7 @@ export default function HomepageContent() {
               href="/bidshield/demo"
               className="inline-flex items-center justify-center px-8 py-4 border border-slate-600 hover:border-slate-400 text-white rounded-xl font-semibold text-lg transition-all duration-300"
             >
-              See Demo
+              See Live Demo
             </Link>
           </div>
 
@@ -238,7 +237,7 @@ export default function HomepageContent() {
                 href="/bidshield/pricing"
                 className="block w-full text-center px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all"
               >
-                Start Pro Trial
+                Start 14-Day Free Trial
               </Link>
             </div>
           </div>
@@ -275,10 +274,10 @@ export default function HomepageContent() {
             href="/sign-up"
             className="inline-flex items-center justify-center px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
           >
-            Start Your Free Trial
+            Start 14-Day Free Trial — No Card Required
           </Link>
           <p className="mt-6 text-sm text-slate-500">
-            No credit card required &bull; Free forever plan available
+            Works alongside The EDGE, STACK, and Excel &bull; Free forever plan available
           </p>
         </div>
       </section>
