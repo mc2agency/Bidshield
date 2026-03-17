@@ -150,6 +150,38 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
   );
 }
 
+function MobileBottomNav({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
+  const demoSuffix = isDemo ? "?demo=true" : "";
+
+  const isActive = (href: string, exact: boolean) => {
+    if (exact) return pathname === href;
+    return pathname.startsWith(href);
+  };
+
+  return (
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900 border-t border-slate-800 flex items-stretch h-16 safe-area-inset-bottom">
+      {NAV_ITEMS.map(({ href, label, exact, icon }) => {
+        const active = isActive(href, exact);
+        const fullHref = href + demoSuffix;
+        return (
+          <Link
+            key={href}
+            href={fullHref}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors ${
+              active ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            <span className={`w-5 h-5 flex items-center justify-center ${active ? "[&_svg]:stroke-emerald-400" : ""}`}>
+              {icon}
+            </span>
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const router = useRouter();
@@ -193,8 +225,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             🎯 Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
           </div>
         )}
-        <main className="flex-1 min-w-0 overflow-auto p-6">{children}</main>
+        <main className="flex-1 min-w-0 overflow-auto p-6 pb-20 md:pb-6">{children}</main>
       </div>
+
+      <MobileBottomNav isDemo={isDemo} pathname={pathname} />
     </div>
   );
 }
