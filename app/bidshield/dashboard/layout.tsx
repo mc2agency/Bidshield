@@ -5,8 +5,9 @@ import { useSearchParams, usePathname } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
 import { gtagEvent } from "@/lib/gtag";
 
 const NAV_ITEMS = [
@@ -152,10 +153,13 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn, userId } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const isDemo = searchParams.get("demo") === "true";
+  const getOrCreateUser = useMutation(api.users.getOrCreateUser);
+  const existingUser = useQuery(api.users.getCurrentUser, userId ? { clerkId: userId } : "skip");
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && !isDemo) {
@@ -170,6 +174,18 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     localStorage.setItem(key, "1");
     gtagEvent("sign_up");
   }, [userId, isSignedIn]);
+
+  // Ensure user row exists in Convex (needed for subscription checks)
+  useEffect(() => {
+    if (!user || !isSignedIn || existingUser === undefined) return;
+    if (existingUser === null) {
+      getOrCreateUser({
+        clerkId: user.id,
+        email: user.emailAddresses[0]?.emailAddress ?? "",
+        name: user.fullName ?? user.emailAddresses[0]?.emailAddress ?? "",
+      });
+    }
+  }, [user, isSignedIn, existingUser, getOrCreateUser]);
 
   if (!isLoaded && !isDemo) {
     return (
