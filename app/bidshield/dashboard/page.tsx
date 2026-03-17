@@ -408,7 +408,7 @@ function DashboardContent() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard value={stats.activeProjects} label="Active Bids" icon="📋" accent="slate" />
         <StatCard value={`${stats.winRate}%`} label="Win Rate" icon="🎯" accent={stats.winRate >= 50 ? "emerald" : "amber"} />
         <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" icon="✅" accent="emerald" />

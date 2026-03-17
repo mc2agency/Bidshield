@@ -440,6 +440,23 @@ function ProjectDetail() {
                   </div>
                 </div>
 
+                {/* Mobile validate / submit button */}
+                <div className="lg:hidden mt-8">
+                  <button
+                    onClick={() => openTab("validator")}
+                    disabled={blockerCount > 0}
+                    className={`w-full py-3.5 rounded-xl text-[14px] font-bold transition-all active:scale-[0.98] ${
+                      blockerCount > 0
+                        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                        : "bg-slate-900 text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    {blockerCount > 0
+                      ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} first`
+                      : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
+                  </button>
+                </div>
+
               </div>
             )}
           </main>
