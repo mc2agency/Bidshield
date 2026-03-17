@@ -330,7 +330,32 @@ function ProjectDetail() {
               </>
             ) : (
               /* Overview */
-              <div className="p-6 max-w-2xl">
+              <div className="p-6 pb-28 max-w-2xl">
+                {/* Mobile: Panel C stats (roof system + bid numbers) */}
+                <div className="lg:hidden mb-6 rounded-xl border border-slate-200 overflow-hidden bg-white">
+                  <div className="px-4 py-3 border-b border-slate-100">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Roof System</div>
+                    <div className="text-[13px] font-semibold text-slate-800">
+                      {assembly || sys?.fullName || sysId?.toUpperCase() || "Not set"}
+                    </div>
+                    {sys && <div className="text-[11px] text-slate-500">CSI {sys.csiSection}</div>}
+                  </div>
+                  <div className="grid grid-cols-3 divide-x divide-slate-100">
+                    <div className="px-3 py-2.5">
+                      <div className="text-[13px] font-bold text-slate-800">{grossArea ? grossArea.toLocaleString() : "—"}</div>
+                      <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">SF</div>
+                    </div>
+                    <div className="px-3 py-2.5">
+                      <div className="text-[13px] font-bold text-slate-800">{bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—"}</div>
+                      <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">Bid</div>
+                    </div>
+                    <div className="px-3 py-2.5">
+                      <div className="text-[13px] font-bold text-slate-800">{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
+                      <div className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">$/SF</div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Mobile section nav */}
                 <div className="lg:hidden flex flex-wrap gap-2 mb-6">
                   {BROWSE_ITEMS.map(({ id, label }) => {
