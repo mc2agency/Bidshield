@@ -71,7 +71,7 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-60 bg-slate-900 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="hidden lg:flex flex-col w-60 bg-slate-900 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-slate-800">
         <div className="flex items-center gap-2.5">
@@ -151,6 +151,53 @@ function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
   );
 }
 
+function MobileNav({ pathname, isDemo, isPro }: { pathname: string; isDemo: boolean; isPro: boolean }) {
+  // Project pages have their own mobile bottom bar
+  if (pathname.startsWith("/bidshield/dashboard/project")) return null;
+
+  const demoSuffix = isDemo ? "?demo=true" : "";
+  const tabs = [
+    { href: "/bidshield/dashboard", label: "Dashboard", exact: true, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+      </svg>
+    )},
+    { href: "/bidshield/dashboard/analytics", label: "Analytics", exact: false, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+      </svg>
+    )},
+    { href: "/bidshield/dashboard/templates", label: "Templates", exact: false, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+      </svg>
+    )},
+    { href: "/bidshield/dashboard/datasheets", label: "Pricing", exact: false, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.25v2.625c0 2.278-3.694 4.125-8.25 4.125S3.75 13.522 3.75 11.25V8.625m16.5 2.625v2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125v-2.625" />
+      </svg>
+    )},
+  ];
+
+  return (
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center bg-slate-900 border-t border-slate-800" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      {tabs.map(({ href, label, exact, icon }) => {
+        const active = exact ? pathname === href : pathname.startsWith(href);
+        return (
+          <Link
+            key={href}
+            href={href + demoSuffix}
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${active ? "text-emerald-400" : "text-slate-500"}`}
+          >
+            {icon}
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const { user } = useUser();
@@ -199,6 +246,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  const subscription = useQuery(
+    api.users.getUserSubscription,
+    !isDemo && userId ? { clerkId: userId } : "skip"
+  );
+  const isPro = isDemo || (subscription?.isPro ?? false);
+
   return (
     <div className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "#f8fafc" }}>
       <Sidebar isDemo={isDemo} pathname={pathname} />
@@ -209,8 +262,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             🎯 Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
           </div>
         )}
-        <main className="flex-1 min-w-0 overflow-auto p-6">{children}</main>
+        <main className="flex-1 min-w-0 overflow-auto p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
       </div>
+
+      <MobileNav pathname={pathname} isDemo={isDemo} isPro={isPro} />
     </div>
   );
 }
