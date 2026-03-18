@@ -678,6 +678,38 @@ function ProjectDetail() {
                 </div>
               </div>
             )}
+
+            {/* Mobile bottom bar — readiness + validate */}
+            <div
+              className="lg:hidden sticky bottom-0 z-20 flex items-center justify-between gap-3 px-4 py-3"
+              style={{ background: "#ffffff", borderTop: "1px solid #e5e7eb", boxShadow: "0 -2px 8px rgba(0,0,0,0.06)" }}
+            >
+              <div className="flex items-center gap-2">
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0fdf4", border: `2px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: readinessColor }}>{readinessScore}%</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>Bid Readiness</div>
+                  <div style={{ fontSize: 11, color: "#9ca3af" }}>{blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : actionItems.length > 0 ? `${actionItems.length} to review` : "Looking good"}</div>
+                </div>
+              </div>
+              <button
+                onClick={() => openTab("validator")}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  background: blockerCount > 0 ? "#f3f4f6" : "#10b981",
+                  color: blockerCount > 0 ? "#9ca3af" : "#ffffff",
+                  border: "none",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {blockerCount > 0 ? `Fix ${blockerCount}` : "Validate →"}
+              </button>
+            </div>
           </main>
 
           {/* Panel C — right info card */}
