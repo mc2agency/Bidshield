@@ -207,6 +207,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isDemo = searchParams.get("demo") === "true";
   const getOrCreateUser = useMutation(api.users.getOrCreateUser);
   const existingUser = useQuery(api.users.getCurrentUser, userId ? { clerkId: userId } : "skip");
+  const subscription = useQuery(
+    api.users.getUserSubscription,
+    !isDemo && userId ? { clerkId: userId } : "skip"
+  );
+  const isPro = isDemo || (subscription?.isPro ?? false);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && !isDemo) {
@@ -245,12 +250,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   if (!isSignedIn && !isDemo) {
     return null;
   }
-
-  const subscription = useQuery(
-    api.users.getUserSubscription,
-    !isDemo && userId ? { clerkId: userId } : "skip"
-  );
-  const isPro = isDemo || (subscription?.isPro ?? false);
 
   return (
     <div className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "#f8fafc" }}>
