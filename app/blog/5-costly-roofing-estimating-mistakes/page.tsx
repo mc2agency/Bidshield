@@ -5,13 +5,63 @@ import Navigation from "@/components/Navigation";
 export const metadata: Metadata = {
   title: "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)",
   description: "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
-  keywords: "roofing estimating mistakes, bid errors, roofing contractor tips, estimating accuracy, construction bidding",
   openGraph: {
     title: "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)",
-    description: "Learn the most common roofing estimating errors that cost contractors thousands.",
+    description: "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
     type: "article",
     publishedTime: "2026-01-28",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=5 Costly Roofing Estimating Mistakes (And How to Avoid Them)&type=article",
+        width: 1200,
+        height: 630,
+        alt: "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)",
+      },
+    ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)",
+    description: "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
+    images: ["/api/og?title=5 Costly Roofing Estimating Mistakes (And How to Avoid Them)&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)",
+  "description": "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2026-01-28",
+  "dateModified": "2026-01-28",
+  "image": "https://mc2estimating.com/api/og?title=5 Costly Roofing Estimating Mistakes (And How to Avoid Them)&type=article",
+  "url": "https://mc2estimating.com/blog/5-costly-roofing-estimating-mistakes",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/5-costly-roofing-estimating-mistakes"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)", "item": "https://mc2estimating.com/blog/5-costly-roofing-estimating-mistakes" }
+  ]
 };
 
 export default function BlogPost() {
@@ -19,6 +69,8 @@ export default function BlogPost() {
     <>
       <Navigation />
       <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-24 pb-16">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
         <article className="max-w-3xl mx-auto px-4 sm:px-6">
           {/* Breadcrumb */}
           <nav className="text-sm text-slate-500 mb-8">

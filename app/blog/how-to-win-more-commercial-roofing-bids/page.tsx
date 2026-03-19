@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]',
-  description: 'Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.',
+export const metadata: Metadata = {
+  title: "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
+  description: "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
+  openGraph: {
+    title: "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
+    description: "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
+    type: "article",
+    publishedTime: "2026-02-01",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]&type=article",
+        width: 1200,
+        height: 630,
+        alt: "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
+    description: "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
+    images: ["/api/og?title=How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
+  "description": "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2026-02-01",
+  "dateModified": "2026-02-01",
+  "image": "https://mc2estimating.com/api/og?title=How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]&type=article",
+  "url": "https://mc2estimating.com/blog/how-to-win-more-commercial-roofing-bids",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/how-to-win-more-commercial-roofing-bids"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]", "item": "https://mc2estimating.com/blog/how-to-win-more-commercial-roofing-bids" }
+  ]
 };
 
 export default function HowToWinMoreCommercialRoofingBidsPage() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-4">

@@ -420,6 +420,7 @@ export default defineSchema({
     pdfUrl: v.optional(v.string()),        // External URL for manually-added spec sheets
     sourcePdf: v.optional(v.string()),     // Convex storage ID for uploaded PDFs
     isExtracted: v.optional(v.boolean()), // true = AI-extracted from price sheet
+    quoteId: v.optional(v.id("bidshield_quotes")), // source quote (if auto-populated)
     notes: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),

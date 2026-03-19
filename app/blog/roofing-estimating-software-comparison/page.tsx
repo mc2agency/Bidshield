@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Best Roofing Estimating Software 2025: Compare Top Platforms',
-  description: 'Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.',
+export const metadata: Metadata = {
+  title: "Best Roofing Estimating Software 2025: Compare Top Platforms",
+  description: "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
+  openGraph: {
+    title: "Best Roofing Estimating Software 2025: Compare Top Platforms",
+    description: "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
+    type: "article",
+    publishedTime: "2025-09-20",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=Best Roofing Estimating Software 2025: Compare Top Platforms&type=article",
+        width: 1200,
+        height: 630,
+        alt: "Best Roofing Estimating Software 2025: Compare Top Platforms",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Best Roofing Estimating Software 2025: Compare Top Platforms",
+    description: "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
+    images: ["/api/og?title=Best Roofing Estimating Software 2025: Compare Top Platforms&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Best Roofing Estimating Software 2025: Compare Top Platforms",
+  "description": "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2025-09-20",
+  "dateModified": "2025-09-20",
+  "image": "https://mc2estimating.com/api/og?title=Best Roofing Estimating Software 2025: Compare Top Platforms&type=article",
+  "url": "https://mc2estimating.com/blog/roofing-estimating-software-comparison",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/roofing-estimating-software-comparison"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Best Roofing Estimating Software 2025: Compare Top Platforms", "item": "https://mc2estimating.com/blog/roofing-estimating-software-comparison" }
+  ]
 };
 
 export default function RoofingEstimatingSoftwareArticle() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     description: "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/api/og",
         width: 1200,
         height: 630,
         alt: "BidShield — Bid QA for Commercial Roofing",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "BidShield",
     description: "The bidding command center for commercial roofing estimators. Catch mistakes before they cost money.",
-    images: ["/og-image.png"],
+    images: ["/api/og"],
   },
   robots: {
     index: true,
@@ -101,7 +101,7 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "BidShield",
               "url": "https://mc2estimating.com",
-              "logo": "https://mc2estimating.com/og-image.png",
+              "logo": "https://mc2estimating.com/api/og",
               "description": "BidShield's 18-phase pre-submission review catches what estimating software can't — works alongside The EDGE, STACK, and Excel.",
               "sameAs": [],
               "contactPoint": {

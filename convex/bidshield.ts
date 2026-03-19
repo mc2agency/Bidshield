@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, MutationCtx } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 import { getChecklistForTrade } from "./bidshieldDefaults";
 
 async function validateAuth(ctx: any, userId: string) {
@@ -336,6 +337,86 @@ export const getQuotes = query({
   },
 });
 
+// Helper: parse compact line item JSON {m, u, p, n} stored in products array
+function parseLineItems(products: string[]): Array<{ m: string; u: string; p: number; n: string }> {
+  return products.flatMap((s) => {
+    try {
+      const item = JSON.parse(s);
+      if (item && typeof item.m === "string" && typeof item.p === "number") return [item];
+      return [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+// Helper: upsert quote line items into the datasheets price library
+async function upsertLineItemsToDatasheets(
+  ctx: MutationCtx,
+  opts: {
+    userId: string;
+    quoteId: Id<"bidshield_quotes">;
+    vendorName: string;
+    category: string;
+    quoteDate: string | undefined;
+    sourcePdf: string | undefined;
+    isExtracted: boolean | undefined;
+    products: string[];
+  }
+) {
+  const lineItems = parseLineItems(opts.products);
+  if (lineItems.length === 0) return;
+
+  // Load all existing datasheets for this user to do fuzzy matching
+  const existing = await ctx.db
+    .query("bidshield_datasheets")
+    .withIndex("by_user", (q) => q.eq("userId", opts.userId))
+    .collect();
+
+  const now = Date.now();
+
+  for (const item of lineItems) {
+    if (!item.m || !item.u || item.p <= 0) continue;
+    const productNameNorm = item.m.toLowerCase().trim();
+    const vendorNorm = opts.vendorName.toLowerCase().trim();
+
+    // Find existing entry matching vendor + product name (case-insensitive)
+    const match = existing.find(
+      (d) =>
+        d.productName.toLowerCase().trim() === productNameNorm &&
+        (d.vendorName ?? "").toLowerCase().trim() === vendorNorm
+    );
+
+    if (match) {
+      await ctx.db.patch(match._id, {
+        unitPrice: item.p,
+        unit: item.u,
+        quoteDate: opts.quoteDate,
+        quoteId: opts.quoteId,
+        isExtracted: opts.isExtracted,
+        sourcePdf: opts.sourcePdf,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert("bidshield_datasheets", {
+        userId: opts.userId,
+        productName: item.m,
+        category: opts.category,
+        unit: item.u,
+        unitPrice: item.p,
+        vendorName: opts.vendorName,
+        quoteDate: opts.quoteDate,
+        sourcePdf: opts.sourcePdf,
+        isExtracted: opts.isExtracted,
+        quoteId: opts.quoteId,
+        notes: item.n || undefined,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  }
+}
+
 export const createQuote = mutation({
   args: {
     userId: v.string(),
@@ -355,7 +436,7 @@ export const createQuote = mutation({
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
     const now = Date.now();
-    return await ctx.db.insert("bidshield_quotes", {
+    const quoteId = await ctx.db.insert("bidshield_quotes", {
       userId: args.userId,
       projectId: args.projectId,
       vendorName: args.vendorName,
@@ -373,6 +454,20 @@ export const createQuote = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // Auto-populate Price Library from line items
+    await upsertLineItemsToDatasheets(ctx, {
+      userId: args.userId,
+      quoteId,
+      vendorName: args.vendorName,
+      category: args.category,
+      quoteDate: args.quoteDate,
+      sourcePdf: args.sourcePdf,
+      isExtracted: args.isExtracted,
+      products: args.products,
+    });
+
+    return quoteId;
   },
 });
 
@@ -1703,6 +1798,7 @@ export const addDatasheet = mutation({
     pdfUrl: v.optional(v.string()),
     sourcePdf: v.optional(v.string()),
     isExtracted: v.optional(v.boolean()),
+    quoteId: v.optional(v.id("bidshield_quotes")),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -1727,6 +1823,7 @@ export const updateDatasheet = mutation({
     vendorName: v.optional(v.string()),
     quoteDate: v.optional(v.string()),
     pdfUrl: v.optional(v.string()),
+    quoteId: v.optional(v.id("bidshield_quotes")),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, { id, ...fields }) => {

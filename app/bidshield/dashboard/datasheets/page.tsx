@@ -98,6 +98,210 @@ type ExtractedItem = {
   coverage: number | null; coverageUnit: string | null; notes: string | null; selected: boolean;
 };
 
+// ─── ComparePricePanel ────────────────────────────────────────────────────────
+
+function ComparePricePanel({
+  vendor,
+  history,
+  onClose,
+}: {
+  vendor: string;
+  history: { quotes: any[]; materialTrends: Record<string, { date: string; price: number; unit: string }[]> };
+  onClose: () => void;
+}) {
+  const sortedQuotes = [...history.quotes].sort((a, b) => (a.quoteDate ?? "").localeCompare(b.quoteDate ?? ""));
+  const older = sortedQuotes[sortedQuotes.length - 2];
+  const newer = sortedQuotes[sortedQuotes.length - 1];
+  const olderItems = decodeLineItems(older?.products ?? []).filter(l => l.m.trim());
+  const newerItems = decodeLineItems(newer?.products ?? []).filter(l => l.m.trim());
+  const olderMap = new Map(olderItems.map(l => [l.m.toLowerCase().trim(), l]));
+  const newerMap = new Map(newerItems.map(l => [l.m.toLowerCase().trim(), l]));
+  const allProducts = Array.from(new Set([...olderMap.keys(), ...newerMap.keys()])).sort();
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-bold text-violet-700">📊 Price Comparison — {vendor}</span>
+        <button onClick={onClose} className="text-xs text-violet-400 hover:text-violet-600">close ×</button>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-violet-200">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-violet-100/70">
+              <th className="text-left px-3 py-2 text-xs font-semibold text-violet-700 w-1/2">Product</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-slate-500">{formatDate(older?.quoteDate)}</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-slate-700">{formatDate(newer?.quoteDate)}</th>
+              <th className="text-right px-3 py-2 text-xs font-semibold text-slate-500">Change</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white">
+            {allProducts.map(key => {
+              const o = olderMap.get(key);
+              const n = newerMap.get(key);
+              const pct = o && n ? ((n.p - o.p) / o.p) * 100 : null;
+              const up = pct !== null && pct > 0;
+              const down = pct !== null && pct < 0;
+              return (
+                <tr key={key} className="border-t border-slate-100 hover:bg-slate-50">
+                  <td className="px-3 py-2 text-slate-800 font-medium">{o?.m ?? n?.m}</td>
+                  <td className="px-3 py-2 text-right text-slate-500 tabular-nums">
+                    {o ? `$${o.p.toFixed(2)}/${o.u.toLowerCase()}` : <span className="text-slate-300">—</span>}
+                  </td>
+                  <td className="px-3 py-2 text-right font-semibold tabular-nums">
+                    {n ? (
+                      <span className={up ? "text-red-600" : down ? "text-emerald-600" : "text-slate-800"}>
+                        ${n.p.toFixed(2)}/{n.u.toLowerCase()}
+                      </span>
+                    ) : <span className="text-slate-300">—</span>}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {pct !== null ? (
+                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${up ? "bg-red-100 text-red-600" : down ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                        {up ? "+" : ""}{pct.toFixed(1)}%
+                        {up ? " ↑" : down ? " ↓" : ""}
+                      </span>
+                    ) : <span className="text-slate-300 text-xs">new</span>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {sortedQuotes.length > 2 && (
+        <p className="text-xs text-violet-500 mt-2">Showing most recent 2 of {sortedQuotes.length} quotes. All price trends visible in each quote row.</p>
+      )}
+    </div>
+  );
+}
+
+// ─── QuoteRows ────────────────────────────────────────────────────────────────
+
+function QuoteRows({
+  quote, meta, items, status, ss, isExpanded,
+  vendorQuoteCount, compareVendor, vendorHistory,
+  qDeleteConfirm, userId, hideVendorName,
+  onToggleExpand, onToggleCompare, onDeleteConfirm, onDeleteCancel, onDelete,
+}: {
+  quote: any; meta: QuoteMeta; items: LineItem[]; status: string;
+  ss: { bg: string; text: string; label: string }; isExpanded: boolean;
+  vendorQuoteCount: number; compareVendor: string | null;
+  vendorHistory: Record<string, any>; qDeleteConfirm: string | null;
+  userId: string; hideVendorName?: boolean;
+  onToggleExpand: () => void; onToggleCompare: () => void;
+  onDeleteConfirm: () => void; onDeleteCancel: () => void; onDelete: () => Promise<void>;
+}) {
+  const hasCompare = vendorQuoteCount >= 2;
+  const showComparePanel = compareVendor === quote.vendorName && !!vendorHistory[quote.vendorName] && !hideVendorName;
+
+  return (
+    <>
+      <tr
+        className={`border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors ${isExpanded ? "bg-blue-50/30" : ""}`}
+        onClick={onToggleExpand}
+      >
+        {/* Expand chevron */}
+        <td className="pl-3.5 pr-1 py-3.5 text-slate-400 text-xs w-6">
+          {items.length > 0 ? (isExpanded ? "▾" : "▸") : ""}
+        </td>
+        <td className="p-3.5">
+          {!hideVendorName && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-sm font-semibold text-slate-800">{quote.vendorName}</span>
+              {quote.isExtracted && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-semibold">AI</span>}
+              {hasCompare && (
+                <button
+                  onClick={e => { e.stopPropagation(); onToggleCompare(); }}
+                  className="text-[10px] bg-violet-100 text-violet-700 hover:bg-violet-200 px-1.5 py-0.5 rounded font-semibold transition-colors"
+                >
+                  📊 Compare
+                </button>
+              )}
+            </div>
+          )}
+          {hideVendorName && quote.isExtracted && (
+            <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-semibold">AI</span>
+          )}
+          {meta.rep && <div className="text-xs text-slate-400 mt-0.5">{meta.rep}</div>}
+        </td>
+        <td className="p-3.5 text-sm text-slate-600 font-mono">{meta.quoteNum || <span className="text-slate-400">—</span>}</td>
+        <td className="p-3.5">
+          {quote.projectName
+            ? <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{quote.projectName}</span>
+            : <span className="text-xs text-slate-400">General</span>
+          }
+        </td>
+        <td className={`p-3.5 text-sm font-medium ${staleTextColor(quote.quoteDate)}`}>{formatDate(quote.quoteDate)}</td>
+        <td className={`p-3.5 text-sm ${status === "expired" ? "text-red-500" : status === "expiring" ? "text-amber-500" : "text-slate-500"}`}>
+          {formatDate(quote.expirationDate)}
+        </td>
+        <td className="p-3.5 text-sm font-bold text-emerald-600">
+          {quote.quoteAmount ? `$${quote.quoteAmount.toLocaleString()}` : <span className="text-slate-400">—</span>}
+        </td>
+        <td className="p-3.5 text-sm text-slate-500">{items.length || <span className="text-slate-400">—</span>}</td>
+        <td className="p-3.5">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: ss.bg, color: ss.text }}>{ss.label}</span>
+        </td>
+        <td className="p-3.5">
+          {qDeleteConfirm === quote._id ? (
+            <div className="flex gap-1 items-center">
+              <span className="text-xs text-red-500">Delete?</span>
+              <button onClick={async e => { e.stopPropagation(); await onDelete(); }} className="text-xs text-red-600 font-medium hover:text-red-800">Yes</button>
+              <button onClick={e => { e.stopPropagation(); onDeleteCancel(); }} className="text-xs text-slate-400 hover:text-slate-600">No</button>
+            </div>
+          ) : (
+            <button onClick={e => { e.stopPropagation(); onDeleteConfirm(); }} className="text-slate-400 hover:text-red-500 text-xs transition-colors">×</button>
+          )}
+        </td>
+      </tr>
+
+      {/* Expanded line items — compact data table */}
+      {isExpanded && items.length > 0 && (
+        <tr className="border-b border-blue-100">
+          <td colSpan={10} className="px-0 py-0">
+            <div className="bg-blue-50/40 border-t border-blue-100">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-blue-100">
+                    <th className="text-left px-6 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Product</th>
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Unit</th>
+                    <th className="text-right px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Unit Price</th>
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Notes</th>
+                    <th className="px-4 py-2 text-xs text-blue-500 font-medium text-right cursor-pointer hover:text-blue-700" onClick={onToggleExpand}>
+                      collapse ↑
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-blue-50">
+                  {items.map((li, i) => (
+                    <tr key={i} className="hover:bg-blue-50/60">
+                      <td className="px-6 py-2 text-slate-800 font-medium">{li.m}</td>
+                      <td className="px-3 py-2 text-slate-500 uppercase text-xs">{li.u}</td>
+                      <td className="px-3 py-2 text-right font-bold text-emerald-700 tabular-nums">${li.p.toFixed(2)}</td>
+                      <td className="px-3 py-2 text-slate-400 text-xs">{li.n || "—"}</td>
+                      <td className="px-4 py-2" />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {meta.notes && <p className="text-xs text-slate-400 px-6 pb-2">{meta.notes}</p>}
+            </div>
+          </td>
+        </tr>
+      )}
+
+      {/* Inline compare panel (flat list mode) */}
+      {showComparePanel && (
+        <tr className="border-b border-violet-100">
+          <td colSpan={10} className="px-4 py-4 bg-violet-50/60">
+            <ComparePricePanel vendor={quote.vendorName} history={vendorHistory[quote.vendorName]} onClose={onToggleCompare} />
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function QuotesPricingPage() {
@@ -134,6 +338,9 @@ export default function QuotesPricingPage() {
   const [qFilterStatus, setQFilterStatus] = useState("");
   const [expandedQuote, setExpandedQuote] = useState<string | null>(null);
   const [historyVendor, setHistoryVendor] = useState<string | null>(null);
+  const [groupByVendor, setGroupByVendor] = useState(false);
+  const [compareVendor, setCompareVendor] = useState<string | null>(null);
+  const [collapsedVendors, setCollapsedVendors] = useState<Set<string>>(new Set());
 
   // Quote upload modal state
   const [quoteModal, setQuoteModal] = useState(false);
@@ -480,6 +687,17 @@ export default function QuotesPricingPage() {
               <option value="active">Active</option>
               <option value="expired">Expired</option>
             </select>
+            {/* Group by vendor toggle */}
+            <button
+              onClick={() => { setGroupByVendor(v => !v); setCollapsedVendors(new Set()); }}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
+                groupByVendor
+                  ? "bg-slate-800 text-white border-slate-800"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <span className="text-xs">⊞</span> Group by Vendor
+            </button>
             <button
               onClick={openQuoteModal}
               className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
@@ -494,8 +712,8 @@ export default function QuotesPricingPage() {
               <table className="w-full">
                 <thead>
                   <tr>
-                    {["Vendor", "Quote #", "Project", "Date", "Expires", "Total", "Items", "Status", ""].map(h => (
-                      <th key={h} className="text-left p-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 bg-slate-50 whitespace-nowrap">
+                    {["", "Vendor", "Quote #", "Project", "Date", "Expires", "Total", "Items", "Status", ""].map((h, i) => (
+                      <th key={i} className="text-left p-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 bg-slate-50 whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -503,11 +721,11 @@ export default function QuotesPricingPage() {
                 </thead>
                 <tbody>
                   {quotesWithProjects === undefined && (
-                    <tr><td colSpan={9} className="text-center py-10 text-sm text-slate-400">Loading...</td></tr>
+                    <tr><td colSpan={10} className="text-center py-10 text-sm text-slate-400">Loading...</td></tr>
                   )}
                   {quotesWithProjects !== undefined && filteredQuotes.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="text-center py-16">
+                      <td colSpan={10} className="text-center py-16">
                         <div className="text-3xl mb-3">📋</div>
                         <p className="text-sm text-slate-500 mb-1">{qSearch || qFilterVendor || qFilterProject || qFilterStatus ? "No matching quotes" : "No quotes yet"}</p>
                         {!qSearch && !qFilterVendor && !qFilterProject && !qFilterStatus && (
@@ -518,126 +736,135 @@ export default function QuotesPricingPage() {
                       </td>
                     </tr>
                   )}
-                  {filteredQuotes.map(quote => {
-                    const meta = decodeMeta(quote.notes);
-                    const items = decodeLineItems(quote.products || []).filter(l => l.m.trim());
-                    const status = getEffectiveStatus(quote);
-                    const ss = STATUS_STYLE[status] || STATUS_STYLE.none;
-                    const isExpanded = expandedQuote === quote._id;
-                    const hasHistory = !!vendorHistory[quote.vendorName];
-                    return (
-                      <>
-                        <tr
+
+                  {/* ── FLAT LIST (group by vendor OFF) ── */}
+                  {!groupByVendor && filteredQuotes
+                    .slice()
+                    .sort((a, b) => (b.quoteDate ?? "").localeCompare(a.quoteDate ?? ""))
+                    .map(quote => {
+                      const meta = decodeMeta(quote.notes);
+                      const items = decodeLineItems(quote.products || []).filter(l => l.m.trim());
+                      const status = getEffectiveStatus(quote);
+                      const ss = STATUS_STYLE[status] || STATUS_STYLE.none;
+                      const isExpanded = expandedQuote === quote._id;
+                      const vendorQuoteCount = allQuotes.filter(q => q.vendorName === quote.vendorName).length;
+                      return (
+                        <QuoteRows
                           key={quote._id}
-                          className={`border-b border-slate-100 hover:bg-slate-50 cursor-pointer ${staleBg(quote.quoteDate)}`}
-                          onClick={() => setExpandedQuote(isExpanded ? null : quote._id)}
-                        >
-                          <td className="p-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-sm font-semibold text-slate-800">{quote.vendorName}</span>
-                              {quote.isExtracted && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-semibold">AI</span>}
-                              {hasHistory && (
+                          quote={quote}
+                          meta={meta}
+                          items={items}
+                          status={status}
+                          ss={ss}
+                          isExpanded={isExpanded}
+                          vendorQuoteCount={vendorQuoteCount}
+                          compareVendor={compareVendor}
+                          vendorHistory={vendorHistory}
+                          qDeleteConfirm={qDeleteConfirm}
+                          userId={userId}
+                          onToggleExpand={() => setExpandedQuote(isExpanded ? null : quote._id)}
+                          onToggleCompare={() => setCompareVendor(compareVendor === quote.vendorName ? null : quote.vendorName)}
+                          onDeleteConfirm={() => setQDeleteConfirm(quote._id)}
+                          onDeleteCancel={() => setQDeleteConfirm(null)}
+                          onDelete={async () => { await deleteQuote({ quoteId: quote._id as Id<"bidshield_quotes">, userId }); setQDeleteConfirm(null); }}
+                        />
+                      );
+                    })}
+
+                  {/* ── GROUPED BY VENDOR ── */}
+                  {groupByVendor && (() => {
+                    const byVendor = new Map<string, typeof filteredQuotes>();
+                    for (const q of filteredQuotes.slice().sort((a, b) => (b.quoteDate ?? "").localeCompare(a.quoteDate ?? ""))) {
+                      if (!byVendor.has(q.vendorName)) byVendor.set(q.vendorName, []);
+                      byVendor.get(q.vendorName)!.push(q);
+                    }
+                    return Array.from(byVendor.entries()).map(([vendor, quotes]) => {
+                      const isCollapsed = collapsedVendors.has(vendor);
+                      const hasCompare = quotes.length >= 2;
+                      return (
+                        <>
+                          {/* Vendor header row */}
+                          <tr key={`vendor-${vendor}`} className="bg-slate-50 border-b border-slate-200">
+                            <td colSpan={10} className="px-4 py-2.5">
+                              <div className="flex items-center gap-3">
                                 <button
-                                  onClick={e => { e.stopPropagation(); setHistoryVendor(historyVendor === quote.vendorName ? null : quote.vendorName); }}
-                                  title="View price history"
-                                  className="text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded font-semibold hover:bg-violet-200 transition-colors"
+                                  onClick={() => setCollapsedVendors(prev => {
+                                    const next = new Set(prev);
+                                    next.has(vendor) ? next.delete(vendor) : next.add(vendor);
+                                    return next;
+                                  })}
+                                  className="text-slate-400 hover:text-slate-600 transition-colors"
                                 >
-                                  📈
+                                  {isCollapsed ? "▶" : "▼"}
                                 </button>
-                              )}
-                            </div>
-                            {meta.rep && <div className="text-xs text-slate-400 mt-0.5">{meta.rep}</div>}
-                          </td>
-                          <td className="p-3.5 text-sm text-slate-600 font-mono">{meta.quoteNum || <span className="text-slate-400">—</span>}</td>
-                          <td className="p-3.5">
-                            {quote.projectName
-                              ? <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{quote.projectName}</span>
-                              : <span className="text-xs text-slate-400">General</span>
-                            }
-                          </td>
-                          <td className={`p-3.5 text-sm font-medium ${staleTextColor(quote.quoteDate)}`}>{formatDate(quote.quoteDate)}</td>
-                          <td className={`p-3.5 text-sm ${status === "expired" ? "text-red-500" : status === "expiring" ? "text-amber-500" : "text-slate-500"}`}>
-                            {formatDate(quote.expirationDate)}
-                          </td>
-                          <td className="p-3.5 text-sm font-bold text-emerald-600">
-                            {quote.quoteAmount ? `$${quote.quoteAmount.toLocaleString()}` : <span className="text-slate-400">—</span>}
-                          </td>
-                          <td className="p-3.5 text-sm text-slate-500">{items.length || <span className="text-slate-400">—</span>}</td>
-                          <td className="p-3.5">
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: ss.bg, color: ss.text }}>{ss.label}</span>
-                          </td>
-                          <td className="p-3.5">
-                            {qDeleteConfirm === quote._id ? (
-                              <div className="flex gap-1 items-center">
-                                <span className="text-xs text-red-500">Delete?</span>
-                                <button onClick={async e => { e.stopPropagation(); await deleteQuote({ quoteId: quote._id as Id<"bidshield_quotes">, userId }); setQDeleteConfirm(null); }} className="text-xs text-red-600 font-medium hover:text-red-800">Yes</button>
-                                <button onClick={e => { e.stopPropagation(); setQDeleteConfirm(null); }} className="text-xs text-slate-400 hover:text-slate-600">No</button>
-                              </div>
-                            ) : (
-                              <button onClick={e => { e.stopPropagation(); setQDeleteConfirm(quote._id); }} className="text-slate-400 hover:text-red-500 text-xs transition-colors">×</button>
-                            )}
-                          </td>
-                        </tr>
-                        {/* Expanded line items */}
-                        {isExpanded && items.length > 0 && (
-                          <tr key={`${quote._id}-expanded`} className="bg-slate-50 border-b border-slate-100">
-                            <td colSpan={9} className="px-6 py-3">
-                              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Line Items</div>
-                              <div className="grid grid-cols-3 gap-x-8 gap-y-1">
-                                {items.map((li, i) => (
-                                  <div key={i} className="flex items-center justify-between text-sm py-0.5">
-                                    <span className="text-slate-700 truncate">{li.m}</span>
-                                    <span className="text-slate-900 font-semibold tabular-nums ml-4 shrink-0">${li.p.toFixed(2)}/{li.u.toLowerCase()}</span>
-                                  </div>
-                                ))}
-                              </div>
-                              {meta.notes && <p className="text-xs text-slate-400 mt-2">{meta.notes}</p>}
-                            </td>
-                          </tr>
-                        )}
-                        {/* Price history panel */}
-                        {historyVendor === quote.vendorName && vendorHistory[quote.vendorName] && (
-                          <tr key={`${quote._id}-history`} className="bg-violet-50/60 border-b border-violet-100">
-                            <td colSpan={9} className="px-6 py-4">
-                              <div className="flex items-center gap-2 mb-3">
-                                <span className="text-xs font-bold text-violet-600 uppercase tracking-wider">Price History — {quote.vendorName}</span>
-                                <button onClick={() => setHistoryVendor(null)} className="text-xs text-violet-400 hover:text-violet-600 ml-auto">close ×</button>
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                {Object.entries(vendorHistory[quote.vendorName].materialTrends).map(([mat, entries]) => (
-                                  <div key={mat} className="flex items-start gap-3">
-                                    <span className="text-sm text-slate-700 w-48 shrink-0 font-medium">{mat}</span>
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      {entries.map((e, i) => {
-                                        const prev = entries[i - 1];
-                                        const up = prev && e.price > prev.price;
-                                        const down = prev && e.price < prev.price;
-                                        return (
-                                          <div key={i} className="flex items-center gap-1 text-xs">
-                                            {i > 0 && <span className="text-slate-300">→</span>}
-                                            <span className={`font-semibold tabular-nums ${up ? "text-red-500" : down ? "text-emerald-600" : "text-slate-700"}`}>
-                                              ${e.price.toFixed(2)}/{e.unit.toLowerCase()}
-                                            </span>
-                                            <span className="text-slate-400">({formatDate(e.date)})</span>
-                                            {up && <span className="text-red-400">↑</span>}
-                                            {down && <span className="text-emerald-500">↓</span>}
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                ))}
+                                <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">{vendor}</span>
+                                <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-medium">
+                                  {quotes.length} {quotes.length === 1 ? "quote" : "quotes"}
+                                </span>
+                                {hasCompare && (
+                                  <button
+                                    onClick={() => setCompareVendor(compareVendor === vendor ? null : vendor)}
+                                    className="text-xs bg-violet-100 text-violet-700 hover:bg-violet-200 px-2 py-0.5 rounded font-semibold transition-colors"
+                                  >
+                                    📊 Compare
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
-                        )}
-                      </>
-                    );
-                  })}
+                          {/* Compare panel */}
+                          {compareVendor === vendor && vendorHistory[vendor] && (
+                            <tr key={`compare-${vendor}`}>
+                              <td colSpan={10} className="px-4 py-4 bg-violet-50/60 border-b border-violet-100">
+                                <ComparePricePanel vendor={vendor} history={vendorHistory[vendor]} onClose={() => setCompareVendor(null)} />
+                              </td>
+                            </tr>
+                          )}
+                          {/* Quote rows for this vendor */}
+                          {!isCollapsed && quotes.map(quote => {
+                            const meta = decodeMeta(quote.notes);
+                            const items = decodeLineItems(quote.products || []).filter(l => l.m.trim());
+                            const status = getEffectiveStatus(quote);
+                            const ss = STATUS_STYLE[status] || STATUS_STYLE.none;
+                            const isExpanded = expandedQuote === quote._id;
+                            return (
+                              <QuoteRows
+                                key={quote._id}
+                                quote={quote}
+                                meta={meta}
+                                items={items}
+                                status={status}
+                                ss={ss}
+                                isExpanded={isExpanded}
+                                vendorQuoteCount={quotes.length}
+                                compareVendor={compareVendor}
+                                vendorHistory={vendorHistory}
+                                qDeleteConfirm={qDeleteConfirm}
+                                userId={userId}
+                                hideVendorName
+                                onToggleExpand={() => setExpandedQuote(isExpanded ? null : quote._id)}
+                                onToggleCompare={() => setCompareVendor(compareVendor === quote.vendorName ? null : quote.vendorName)}
+                                onDeleteConfirm={() => setQDeleteConfirm(quote._id)}
+                                onDeleteCancel={() => setQDeleteConfirm(null)}
+                                onDelete={async () => { await deleteQuote({ quoteId: quote._id as Id<"bidshield_quotes">, userId }); setQDeleteConfirm(null); }}
+                              />
+                            );
+                          })}
+                        </>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
           </div>
+
+          {/* Flat compare panel (when not grouped) */}
+          {!groupByVendor && compareVendor && vendorHistory[compareVendor] && (
+            <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+              <ComparePricePanel vendor={compareVendor} history={vendorHistory[compareVendor]} onClose={() => setCompareVendor(null)} />
+            </div>
+          )}
         </div>
       )}
 
@@ -732,6 +959,7 @@ export default function QuotesPricingPage() {
                         <td className="p-3.5">
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-medium text-slate-800">{ds.productName}</span>
+                            {ds.quoteId && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-semibold">From Quote</span>}
                             {ds.isExtracted && <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">AI</span>}
                           </div>
                           {ds.notes && <div className="text-xs text-slate-400 mt-0.5">{ds.notes}</div>}
