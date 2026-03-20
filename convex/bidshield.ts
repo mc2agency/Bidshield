@@ -1858,3 +1858,73 @@ export const getMonthlyExtractionCount = query({
     return items.filter((i) => i.isExtracted).length;
   },
 });
+
+export const backfillPriceLibraryFromQuotes = mutation({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    await validateAuth(ctx, userId);
+    const quotes = await ctx.db
+      .query("bidshield_quotes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    let upserted = 0;
+    let updated = 0;
+
+    for (const quote of quotes) {
+      if (!quote.products?.length) continue;
+      const lineItems = parseLineItems(quote.products);
+      if (lineItems.length === 0) continue;
+
+      const existing = await ctx.db
+        .query("bidshield_datasheets")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+
+      const now = Date.now();
+      for (const item of lineItems) {
+        if (!item.m || !item.u || item.p <= 0) continue;
+        const productNameNorm = item.m.toLowerCase().trim();
+        const vendorNorm = (quote.vendorName ?? "").toLowerCase().trim();
+
+        const match = existing.find(
+          (d) =>
+            d.productName.toLowerCase().trim() === productNameNorm &&
+            (d.vendorName ?? "").toLowerCase().trim() === vendorNorm
+        );
+
+        if (match) {
+          await ctx.db.patch(match._id, {
+            unitPrice: item.p,
+            unit: item.u,
+            quoteDate: quote.quoteDate,
+            quoteId: quote._id,
+            isExtracted: quote.isExtracted,
+            sourcePdf: quote.sourcePdf,
+            updatedAt: now,
+          });
+          updated++;
+        } else {
+          await ctx.db.insert("bidshield_datasheets", {
+            userId,
+            productName: item.m,
+            category: quote.category ?? "Other",
+            unit: item.u,
+            unitPrice: item.p,
+            vendorName: quote.vendorName,
+            quoteDate: quote.quoteDate,
+            sourcePdf: quote.sourcePdf,
+            isExtracted: quote.isExtracted,
+            quoteId: quote._id,
+            notes: item.n || undefined,
+            createdAt: now,
+            updatedAt: now,
+          });
+          upserted++;
+        }
+      }
+    }
+
+    return { upserted, updated };
+  },
+});

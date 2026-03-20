@@ -323,6 +323,7 @@ export default function QuotesPricingPage() {
   const createQuote = useMutation(api.bidshield.createQuote);
   const deleteQuote = useMutation(api.bidshield.deleteQuote);
   const generateUploadUrl = useMutation(api.bidshield.generatePdfUploadUrl);
+  const backfillPriceLibrary = useMutation(api.bidshield.backfillPriceLibraryFromQuotes);
 
   const isPro = subscription?.isPro ?? false;
   const extractionsUsed = monthlyCount ?? 0;
@@ -527,6 +528,8 @@ export default function QuotesPricingPage() {
   const [savingExtracted, setSavingExtracted] = useState(false);
   const [pdfStorageId, setPdfStorageId] = useState("");
   const [dsDeleteConfirm, setDsDeleteConfirm] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<{ upserted: number; updated: number } | null>(null);
   const dsFileRef = useRef<HTMLInputElement>(null);
 
   const allDsVendors = useMemo(() =>
@@ -899,7 +902,30 @@ export default function QuotesPricingPage() {
               <option value="">All Categories</option>
               {DATASHEET_CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              {/* Backfill from quotes — shown when library is empty but quotes exist */}
+              {allQuotes.length > 0 && (datasheets?.length ?? 0) === 0 && (
+                <button
+                  onClick={async () => {
+                    setBackfilling(true);
+                    try {
+                      const result = await backfillPriceLibrary({ userId });
+                      setBackfillResult(result);
+                    } finally {
+                      setBackfilling(false);
+                    }
+                  }}
+                  disabled={backfilling}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {backfilling ? "Importing…" : "↓ Import from Quotes"}
+                </button>
+              )}
+              {backfillResult && (
+                <span className="self-center text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg">
+                  ✓ Added {backfillResult.upserted}, updated {backfillResult.updated}
+                </span>
+              )}
               <button onClick={() => { setDsForm(BLANK_DS); setManualModal(true); }} className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors">
                 + Add Product
               </button>
