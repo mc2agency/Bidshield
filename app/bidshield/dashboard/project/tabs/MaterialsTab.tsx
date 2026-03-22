@@ -1,7 +1,7 @@
 "use client";
 import { DEMO_MATERIALS as IMPORTED_MATERIALS } from "@/lib/bidshield/demo-data";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -949,7 +949,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         </div>
       )}
 
-      {/* Material Table — single table, one header, per-category tbody groups */}
+      {/* Material Table — single table, one header row, flat tbody */}
       {filteredMaterials.length > 0 && (() => {
         const colCount = selectedQuoteId ? 9 : 7;
         const selectedQuote = quotes.find((q: any) => q._id === selectedQuoteId);
@@ -958,24 +958,25 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-slate-500 border-b border-slate-200 bg-slate-50">
-                    <th className="text-left px-5 py-2.5 font-medium">Material</th>
-                    <th className="text-center px-3 py-2.5 font-medium w-14">Unit</th>
-                    <th className="text-right px-3 py-2.5 font-medium w-16">Qty</th>
-                    <th className="text-center px-3 py-2.5 font-medium w-20">Waste</th>
-                    <th className="text-right px-3 py-2.5 font-medium w-28">{selectedQuoteId ? "Your Price" : "Unit Price"}</th>
-                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-medium w-28">Quote Price</th>}
-                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-medium w-24">Diff</th>}
-                    <th className="text-right px-5 py-2.5 font-medium w-28">Total</th>
-                    <th className="text-center px-3 py-2.5 font-medium w-20"></th>
+                  <tr className="text-xs text-slate-500 border-b-2 border-slate-200 bg-slate-50">
+                    <th className="text-left px-5 py-2.5 font-semibold">Material</th>
+                    <th className="text-center px-3 py-2.5 font-semibold w-14">Unit</th>
+                    <th className="text-right px-3 py-2.5 font-semibold w-16">Qty</th>
+                    <th className="text-center px-3 py-2.5 font-semibold w-20">Waste</th>
+                    <th className="text-right px-3 py-2.5 font-semibold w-28">{selectedQuoteId ? "Your Price" : "Unit Price"}</th>
+                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-semibold w-28">Quote Price</th>}
+                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-semibold w-24">Diff</th>}
+                    <th className="text-right px-5 py-2.5 font-semibold w-28">Total</th>
+                    <th className="text-center px-3 py-2.5 w-20"></th>
                   </tr>
                 </thead>
+                <tbody>
                 {Object.entries(grouped).map(([cat, items]) => {
                   const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
                   const catTotal = (items as any[]).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
                   const noCategoryQuote = !!selectedQuoteId && categoryHasQuote[cat] === false && catTotal > 5000;
                   return (
-                    <tbody key={cat}>
+                    <React.Fragment key={cat}>
                       {/* Category warning */}
                       {noCategoryQuote && (
                         <tr>
@@ -1168,9 +1169,10 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                           </tr>
                         );
                       })()}
-                    </tbody>
+                    </React.Fragment>
                   );
                 })}
+                </tbody>
               </table>
             </div>
           </div>
