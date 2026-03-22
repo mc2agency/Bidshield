@@ -250,6 +250,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [previewItems, setPreviewItems] = useState<any[] | null>(null);
   const [previewFilename, setPreviewFilename] = useState<string>("");
   const [isSavingExtraction, setIsSavingExtraction] = useState(false);
+  const [replaceError, setReplaceError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Resolve materials (demo vs real)
@@ -399,6 +400,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   // ── Replace all existing materials with extracted items ───────────────────
   const handleReplaceAll = useCallback(async () => {
     if (!previewItems) return;
+    setReplaceError(null);
     setIsSavingExtraction(true);
     try {
       if (isDemo) {
@@ -434,12 +436,17 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           userId,
           items: sanitizedItems,
         });
+      } else {
+        setReplaceError(`Cannot save: projectId=${projectId ?? "missing"}, userId=${userId ?? "missing — not signed in?"}`);
+        return;
       }
+      // Only reached on success
       setExtractedFrom(previewFilename);
       setPreviewItems(null);
       setPreviewFilename("");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Replace materials error:", err);
+      setReplaceError(err?.message ?? "Server error — check browser console for details");
     } finally {
       setIsSavingExtraction(false);
     }
@@ -1045,8 +1052,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           items={previewItems}
           filename={previewFilename}
           isSaving={isSavingExtraction}
+          replaceError={replaceError}
           onReplace={handleReplaceAll}
-          onCancel={() => { setPreviewItems(null); setPreviewFilename(""); }}
+          onCancel={() => { setPreviewItems(null); setPreviewFilename(""); setReplaceError(null); }}
         />
       )}
 
@@ -1070,12 +1078,14 @@ function ExtractionPreviewModal({
   items,
   filename,
   isSaving,
+  replaceError,
   onReplace,
   onCancel,
 }: {
   items: any[];
   filename: string;
   isSaving: boolean;
+  replaceError?: string | null;
   onReplace: () => void;
   onCancel: () => void;
 }) {
@@ -1161,7 +1171,13 @@ function ExtractionPreviewModal({
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-4 bg-slate-50 rounded-b-2xl">
+        <div className="px-6 py-4 border-t border-slate-200 flex flex-col gap-3 bg-slate-50 rounded-b-2xl">
+          {replaceError && (
+            <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {replaceError}
+            </p>
+          )}
+          <div className="flex items-center justify-between gap-4">
           <p className="text-xs text-slate-500">
             This will <strong>replace</strong> your current materials list.
           </p>
@@ -1185,6 +1201,7 @@ function ExtractionPreviewModal({
                 </>
               ) : "Replace all materials"}
             </button>
+          </div>
           </div>
         </div>
       </div>
