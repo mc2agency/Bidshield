@@ -1350,15 +1350,19 @@ export const clearProjectMaterials = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
-    const existing = await ctx.db
-      .query("bidshield_project_materials")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-    for (const m of existing) {
-      await ctx.db.delete(m._id);
+    try {
+      const existing = await ctx.db
+        .query("bidshield_project_materials")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect();
+      for (const m of existing) {
+        await ctx.db.delete(m._id);
+      }
+      return { deleted: existing.length };
+    } catch (error) {
+      console.error("clearProjectMaterials error:", error);
+      throw error;
     }
-    return { deleted: existing.length };
   },
 });
 
@@ -1379,7 +1383,7 @@ export const bulkSaveMaterialsFromExtraction = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    try {
     const now = Date.now();
     const existing = await ctx.db
       .query("bidshield_project_materials")
@@ -1423,6 +1427,10 @@ export const bulkSaveMaterialsFromExtraction = mutation({
       });
     }
     return { inserted: args.items.length };
+    } catch (error) {
+      console.error("bulkSaveMaterialsFromExtraction error:", error);
+      throw error;
+    }
   },
 });
 
