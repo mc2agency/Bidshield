@@ -82,6 +82,7 @@ function getProductFamily(s: string): number {
 }
 
 // Match a material name against quote line items with strict confidence rules
+let _quoteMatchLogCount = 0;
 function findBestQuoteMatch(
   materialName: string,
   lineItems: { m: string; u: string; p: number }[]
@@ -99,8 +100,9 @@ function findBestQuoteMatch(
     const candidateNums = extractNumericTokens(candidate);
     const candidateFamily = getProductFamily(candidate);
 
-    // All numeric identifiers in target must appear in candidate
+    // Bidirectional numeric check: all target nums must be in candidate AND vice versa
     if (targetNums.length > 0 && !targetNums.every(n => candidateNums.includes(n))) continue;
+    if (candidateNums.length > 0 && !candidateNums.every(n => targetNums.includes(n))) continue;
 
     // No cross-family matching when both families are known
     if (targetFamily !== -1 && candidateFamily !== -1 && targetFamily !== candidateFamily) continue;
@@ -108,9 +110,20 @@ function findBestQuoteMatch(
     const matched = targetWords.filter(w => candidate.includes(w));
     const confidence = targetWords.length > 0 ? (matched.length / targetWords.length) * 100 : 0;
 
+    // Require at least 2 significant words matched
+    if (matched.length < 2) continue;
+
     if (confidence > (best?.confidence ?? 0)) {
       best = { item: li, confidence };
     }
+  }
+
+  // Debug: log top matches for first 5 materials processed
+  if (_quoteMatchLogCount < 5 && lineItems.length > 0) {
+    _quoteMatchLogCount++;
+    console.log(
+      `[QuoteMatch] "${materialName}" → ${best ? `"${best.item.m}" (${best.confidence.toFixed(0)}% confidence, $${best.item.p})` : "NO MATCH"}`
+    );
   }
 
   return best && best.confidence >= 70 ? best : null;
@@ -870,7 +883,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">vs. Quote:</span>
               <select
                 value={selectedQuoteId ?? ""}
-                onChange={e => setSelectedQuoteId(e.target.value || null)}
+                onChange={e => { _quoteMatchLogCount = 0; setSelectedQuoteId(e.target.value || null); }}
                 className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
                 <option value="">Select quote to compare</option>
@@ -936,182 +949,233 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         </div>
       )}
 
-      {/* Material Table by Category */}
-      {Object.entries(grouped).map(([cat, items]) => {
-        const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
-        const catTotal = (items as any[]).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
-        const noCategoryQuote = !!selectedQuoteId && categoryHasQuote[cat] === false && catTotal > 5000;
+      {/* Material Table — single table, one header, per-category tbody groups */}
+      {filteredMaterials.length > 0 && (() => {
+        const colCount = selectedQuoteId ? 9 : 7;
+        const selectedQuote = quotes.find((q: any) => q._id === selectedQuoteId);
         return (
-          <div key={cat} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            {/* Category-level quote warning */}
-            {noCategoryQuote && (
-              <div className="px-5 py-2 bg-amber-50 border-b border-amber-200 flex items-center gap-2">
-                <span className="text-amber-600 text-xs font-semibold">⚠ No vendor quote for {catInfo?.label} — pricing may be estimated, not quoted</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200">
-              <div className="flex items-center gap-2">
-                <span className="text-base">{catInfo?.icon}</span>
-                <h3 className="text-sm font-semibold text-slate-900">{catInfo?.label}</h3>
-                <span className="text-xs text-slate-500">({(items as any[]).length} items)</span>
-              </div>
-              <span className="text-sm font-semibold text-emerald-600">${catTotal.toLocaleString()}</span>
-            </div>
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-slate-500 border-b border-slate-200">
-                    <th className="text-left px-5 py-2 font-medium">Material</th>
-                    <th className="text-center px-3 py-2 font-medium w-16">Unit</th>
-                    <th className="text-right px-3 py-2 font-medium w-20">Qty</th>
-                    <th className="text-center px-3 py-2 font-medium w-24">Waste</th>
-                    <th className="text-right px-3 py-2 font-medium w-36">Unit Price</th>
-                    <th className="text-right px-5 py-2 font-medium w-28">Total</th>
-                    <th className="text-center px-3 py-2 font-medium w-16"></th>
+                  <tr className="text-xs text-slate-500 border-b border-slate-200 bg-slate-50">
+                    <th className="text-left px-5 py-2.5 font-medium">Material</th>
+                    <th className="text-center px-3 py-2.5 font-medium w-14">Unit</th>
+                    <th className="text-right px-3 py-2.5 font-medium w-16">Qty</th>
+                    <th className="text-center px-3 py-2.5 font-medium w-20">Waste</th>
+                    <th className="text-right px-3 py-2.5 font-medium w-28">{selectedQuoteId ? "Your Price" : "Unit Price"}</th>
+                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-medium w-28">Quote Price</th>}
+                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-medium w-24">Diff</th>}
+                    <th className="text-right px-5 py-2.5 font-medium w-28">Total</th>
+                    <th className="text-center px-3 py-2.5 font-medium w-20"></th>
                   </tr>
                 </thead>
-                <tbody>
-                  {(items as any[]).map((m: any) => {
-                    const isEditing = editingId === m._id;
-                    const isChecking = checkRowId === m._id;
-                    return (
-                      <tr key={m._id} className="border-b border-slate-200/30 hover:bg-slate-100/20">
-                        {/* Material name + coverage */}
-                        <td className="px-5 py-2.5">
-                          <div className="text-slate-700">{m.name}</div>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                            {m.calcType === "linear_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (linear)</span>}
-                            {m.calcType === "count_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (count)</span>}
-                            {m.calcType === "coverage" && !m.coverageRate && <span className="text-[10px] text-slate-500">{m.coverage} SF/unit</span>}
-                            <CoverageFlag material={m} onLookup={handleCoverageLookup} lookupResults={coverageLookups} />
+                {Object.entries(grouped).map(([cat, items]) => {
+                  const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
+                  const catTotal = (items as any[]).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
+                  const noCategoryQuote = !!selectedQuoteId && categoryHasQuote[cat] === false && catTotal > 5000;
+                  return (
+                    <tbody key={cat}>
+                      {/* Category warning */}
+                      {noCategoryQuote && (
+                        <tr>
+                          <td colSpan={colCount} className="px-5 py-2 bg-amber-50 border-b border-amber-200">
+                            <span className="text-amber-600 text-xs font-semibold">⚠ No vendor quote for {catInfo?.label} — pricing may be estimated, not quoted</span>
+                          </td>
+                        </tr>
+                      )}
+                      {/* Category group header */}
+                      <tr className="bg-slate-50 border-t border-slate-200">
+                        <td colSpan={colCount} className="px-5 py-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">{catInfo?.icon}</span>
+                              <h3 className="text-sm font-semibold text-slate-900">{catInfo?.label}</h3>
+                              <span className="text-xs text-slate-500">({(items as any[]).length} items)</span>
+                            </div>
+                            <span className="text-sm font-semibold text-emerald-600">${catTotal.toLocaleString()}</span>
                           </div>
                         </td>
-                        {/* Unit */}
-                        <td className="text-center px-3 py-2.5 text-slate-500">{m.unit}</td>
-                        {/* Qty */}
-                        <td className="text-right px-3 py-2.5">
-                          {isEditing ? (
-                            <input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="w-16 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" />
-                          ) : (
-                            <span className={m.quantity ? "text-slate-900" : "text-slate-500"}>{m.quantity ?? "—"}</span>
-                          )}
-                        </td>
-                        {/* Waste + flag */}
-                        <td className="text-center px-3 py-2.5">
-                          {isEditing ? (
-                            <input type="number" value={editWaste} onChange={(e) => setEditWaste(e.target.value)} className="w-12 bg-white border border-slate-300 text-slate-900 text-center text-xs rounded px-1 py-1" />
-                          ) : (
-                            <div className="flex items-center justify-center gap-1">
-                              <span className="text-slate-500 text-xs">{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
-                              <WasteFlag material={m} />
-                            </div>
-                          )}
-                        </td>
-                        {/* Unit Price + pricing flag */}
-                        <td className="text-right px-3 py-2.5">
-                          {isEditing ? (
-                            <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="w-20 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" step="0.01" />
-                          ) : (
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className={m.unitPrice ? "text-slate-700" : "text-amber-600"}>{m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}</span>
-                              {!isEditing && <PricingFlag material={m} quoteLineItems={selectedQuoteLineItems} selectedQuoteId={selectedQuoteId} />}
-                            </div>
-                          )}
-                        </td>
-                        {/* Total */}
-                        <td className="text-right px-5 py-2.5 font-semibold">
-                          <span className={m.totalCost ? "text-emerald-600" : "text-slate-500"}>
-                            {m.totalCost ? `$${m.totalCost.toLocaleString()}` : "—"}
-                          </span>
-                        </td>
-                        {/* Actions */}
-                        <td className="text-center px-3 py-2.5">
-                          {isEditing ? (
-                            <div className="flex gap-1">
-                              <button onClick={() => saveEdit(m)} className="text-emerald-600 hover:text-emerald-300 text-xs">Save</button>
-                              <button onClick={() => setEditingId(null)} className="text-slate-500 text-xs">Cancel</button>
-                            </div>
-                          ) : (
-                            <div className="flex gap-1 items-center">
-                              <button
-                                onClick={() => setCheckRowId(isChecking ? null : m._id)}
-                                className={`text-xs transition-colors ${isChecking ? "text-blue-500" : "text-slate-400 hover:text-blue-500"}`}
-                                title="Check against datasheet library"
-                              >📋</button>
-                              {(isPro || isDemo) ? (
-                                <>
-                                  <button onClick={() => startEdit(m)} className="text-slate-500 hover:text-slate-900 text-xs">Edit</button>
-                                  {!isDemo && (
-                                    <button onClick={() => deleteMaterial({ materialId: m._id })} className="text-red-600/50 hover:text-red-600 text-xs">×</button>
-                                  )}
-                                </>
+                      </tr>
+                      {/* Material rows */}
+                      {(items as any[]).map((m: any) => {
+                        const isEditing = editingId === m._id;
+                        const isChecking = checkRowId === m._id;
+                        const quoteMatch = selectedQuoteId ? findBestQuoteMatch(m.name, selectedQuoteLineItems) : null;
+                        return (
+                          <tr key={m._id} className="border-b border-slate-100 hover:bg-slate-50/60">
+                            {/* Material name + coverage */}
+                            <td className="px-5 py-2.5">
+                              <div className="text-slate-700">{m.name}</div>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                {m.calcType === "linear_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (linear)</span>}
+                                {m.calcType === "count_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (count)</span>}
+                                {m.calcType === "coverage" && !m.coverageRate && <span className="text-[10px] text-slate-500">{m.coverage} SF/unit</span>}
+                                <CoverageFlag material={m} onLookup={handleCoverageLookup} lookupResults={coverageLookups} />
+                              </div>
+                            </td>
+                            {/* Unit */}
+                            <td className="text-center px-3 py-2.5 text-slate-500 text-xs">{m.unit}</td>
+                            {/* Qty */}
+                            <td className="text-right px-3 py-2.5">
+                              {isEditing ? (
+                                <input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="w-16 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" />
                               ) : (
-                                <span className="text-[10px] text-slate-300">🔒</span>
+                                <span className={`text-xs ${m.quantity ? "text-slate-900" : "text-slate-400"}`}>{m.quantity ?? "—"}</span>
                               )}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {/* Quote comparison detail row */}
-                  {checkRowId && selectedQuoteId && (() => {
-                    const m = (items as any[]).find((x: any) => x._id === checkRowId);
-                    if (!m) return null;
-                    const match = findBestQuoteMatch(m.name, selectedQuoteLineItems);
-                    const selectedQuote = quotes.find((q: any) => q._id === selectedQuoteId);
-                    const stale = selectedQuote?.quoteDate && isStaleQuote(selectedQuote.quoteDate);
-                    const priceDiff = match ? (m.unitPrice ?? 0) - match.item.p : 0;
-                    const priceDiffPct = match && match.item.p ? Math.abs(priceDiff / match.item.p * 100) : 0;
-                    return (
-                      <tr>
-                        <td colSpan={7} className="px-5 py-3 bg-blue-50 border-b border-blue-100">
-                          {match ? (
-                            <div className="flex flex-wrap gap-5 items-start text-xs">
-                              <div>
-                                <div className="text-slate-500 mb-0.5">Matched in quote</div>
-                                <div className="font-medium text-slate-800">{match.item.m}</div>
-                                {selectedQuote?.vendorName && <div className="text-slate-400">{selectedQuote.vendorName}</div>}
-                              </div>
-                              <div>
-                                <div className="text-slate-500 mb-0.5">Quote price</div>
-                                <div className="font-semibold text-emerald-600">${match.item.p.toFixed(2)} / {match.item.u}</div>
-                                {priceDiffPct >= 3 && (
-                                  <div className={`mt-0.5 font-medium ${priceDiff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                    Estimate is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
-                                  </div>
-                                )}
-                                {priceDiffPct < 3 && (m.unitPrice ?? 0) > 0 && <div className="mt-0.5 text-slate-400">Prices match ✓</div>}
-                              </div>
-                              <div>
-                                <div className="text-slate-500 mb-0.5">Match confidence</div>
-                                <div className="font-medium text-slate-800">{match.confidence.toFixed(0)}%</div>
-                              </div>
-                              <div>
-                                <div className="text-slate-500 mb-0.5">Quote date</div>
-                                <div className={`font-medium ${stale ? "text-amber-600" : "text-slate-800"}`}>
-                                  {selectedQuote?.quoteDate
-                                    ? new Date(selectedQuote.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                                    : "No date on file"}
-                                  {stale && " ⚠️ >90 days"}
+                            </td>
+                            {/* Waste + flag */}
+                            <td className="text-center px-3 py-2.5">
+                              {isEditing ? (
+                                <input type="number" value={editWaste} onChange={(e) => setEditWaste(e.target.value)} className="w-12 bg-white border border-slate-300 text-slate-900 text-center text-xs rounded px-1 py-1" />
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <span className="text-slate-500 text-xs">{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
+                                  <WasteFlag material={m} />
                                 </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-3 text-xs text-slate-500">
-                              <span>No match found in the selected quote (confidence &lt;70%).</span>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })()}
-                </tbody>
+                              )}
+                            </td>
+                            {/* Your Price */}
+                            <td className="text-right px-3 py-2.5">
+                              {isEditing ? (
+                                <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="w-20 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" step="0.01" />
+                              ) : (
+                                <span className={`text-xs ${m.unitPrice ? "text-slate-700" : "text-amber-600"}`}>
+                                  {m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}
+                                </span>
+                              )}
+                            </td>
+                            {/* Quote Price (conditional) */}
+                            {selectedQuoteId && (
+                              <td className="text-right px-3 py-2.5 text-xs">
+                                {quoteMatch ? (
+                                  (() => {
+                                    const diffPct = quoteMatch.item.p > 0 ? Math.abs(((m.unitPrice ?? 0) - quoteMatch.item.p) / quoteMatch.item.p * 100) : 0;
+                                    return (
+                                      <span className={diffPct < 3 ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
+                                        {diffPct < 3 ? "✓ " : "⚠ "}${quoteMatch.item.p.toFixed(2)}
+                                      </span>
+                                    );
+                                  })()
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
+                              </td>
+                            )}
+                            {/* Diff (conditional) */}
+                            {selectedQuoteId && (
+                              <td className="text-right px-3 py-2.5 text-xs">
+                                {quoteMatch ? (
+                                  (() => {
+                                    const diff = (m.unitPrice ?? 0) - quoteMatch.item.p;
+                                    const diffPct = quoteMatch.item.p > 0 ? Math.abs(diff / quoteMatch.item.p * 100) : 0;
+                                    if (diffPct < 3) return <span className="text-slate-400">—</span>;
+                                    return (
+                                      <span className={diff > 0 ? "text-amber-600 font-semibold" : "text-emerald-600 font-semibold"}>
+                                        {diff > 0 ? "+" : ""}${diff.toFixed(2)}
+                                      </span>
+                                    );
+                                  })()
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
+                              </td>
+                            )}
+                            {/* Total */}
+                            <td className="text-right px-5 py-2.5 text-xs font-semibold">
+                              <span className={m.totalCost ? "text-emerald-600" : "text-slate-400"}>
+                                {m.totalCost ? `$${m.totalCost.toLocaleString()}` : "—"}
+                              </span>
+                            </td>
+                            {/* Actions */}
+                            <td className="text-center px-3 py-2.5">
+                              {isEditing ? (
+                                <div className="flex gap-1">
+                                  <button onClick={() => saveEdit(m)} className="text-emerald-600 hover:text-emerald-700 text-xs">Save</button>
+                                  <button onClick={() => setEditingId(null)} className="text-slate-500 text-xs">Cancel</button>
+                                </div>
+                              ) : (
+                                <div className="flex gap-1 items-center">
+                                  <button
+                                    onClick={() => setCheckRowId(isChecking ? null : m._id)}
+                                    className={`text-xs transition-colors ${isChecking ? "text-blue-500" : "text-slate-400 hover:text-blue-500"}`}
+                                    title="Check against quote"
+                                  >📋</button>
+                                  {(isPro || isDemo) ? (
+                                    <>
+                                      <button onClick={() => startEdit(m)} className="text-slate-500 hover:text-slate-900 text-xs">Edit</button>
+                                      {!isDemo && (
+                                        <button onClick={() => deleteMaterial({ materialId: m._id })} className="text-red-600/50 hover:text-red-600 text-xs">×</button>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-300">🔒</span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {/* Quote comparison detail row */}
+                      {checkRowId && selectedQuoteId && (() => {
+                        const m = (items as any[]).find((x: any) => x._id === checkRowId);
+                        if (!m) return null;
+                        const match = findBestQuoteMatch(m.name, selectedQuoteLineItems);
+                        const stale = selectedQuote?.quoteDate && isStaleQuote(selectedQuote.quoteDate);
+                        const priceDiff = match ? (m.unitPrice ?? 0) - match.item.p : 0;
+                        const priceDiffPct = match && match.item.p ? Math.abs(priceDiff / match.item.p * 100) : 0;
+                        return (
+                          <tr>
+                            <td colSpan={colCount} className="px-5 py-3 bg-blue-50 border-b border-blue-100">
+                              {match ? (
+                                <div className="flex flex-wrap gap-5 items-start text-xs">
+                                  <div>
+                                    <div className="text-slate-500 mb-0.5">Matched in quote</div>
+                                    <div className="font-medium text-slate-800">{match.item.m}</div>
+                                    {selectedQuote?.vendorName && <div className="text-slate-400">{selectedQuote.vendorName}</div>}
+                                  </div>
+                                  <div>
+                                    <div className="text-slate-500 mb-0.5">Quote price</div>
+                                    <div className="font-semibold text-emerald-600">${match.item.p.toFixed(2)} / {match.item.u}</div>
+                                    {priceDiffPct >= 3 && (
+                                      <div className={`mt-0.5 font-medium ${priceDiff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                                        Estimate is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
+                                      </div>
+                                    )}
+                                    {priceDiffPct < 3 && (m.unitPrice ?? 0) > 0 && <div className="mt-0.5 text-slate-400">Prices match ✓</div>}
+                                  </div>
+                                  <div>
+                                    <div className="text-slate-500 mb-0.5">Confidence</div>
+                                    <div className="font-medium text-slate-800">{match.confidence.toFixed(0)}%</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-slate-500 mb-0.5">Quote date</div>
+                                    <div className={`font-medium ${stale ? "text-amber-600" : "text-slate-800"}`}>
+                                      {selectedQuote?.quoteDate
+                                        ? new Date(selectedQuote.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                        : "No date on file"}
+                                      {stale && " ⚠️ >90 days"}
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-xs text-slate-500">
+                                  No match found in the selected quote (below 70% confidence or conflicting product identifiers).
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })()}
+                    </tbody>
+                  );
+                })}
               </table>
             </div>
           </div>
         );
-      })}
+      })()}
 
       {filteredMaterials.length === 0 && materials.length > 0 && (
         <div className="text-center py-10 text-slate-500">No materials in this category</div>
