@@ -1,7 +1,7 @@
 "use client";
 import { DEMO_MATERIALS as IMPORTED_MATERIALS } from "@/lib/bidshield/demo-data";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -17,18 +17,18 @@ import {
 
 // Demo material data for Meridian Business Park (TPO 60mil, 68,000 SF)
 const DEMO_MATERIALS = [
-  { _id: "dm_1", templateKey: "tpo-60mil", category: "membrane", name: "TPO 60mil Membrane (10' wide)", unit: "RL", calcType: "coverage", quantity: 48, unitPrice: 285, totalCost: 13680, wasteFactor: 1.05, coverage: 1000 },
-  { _id: "dm_2", templateKey: "iso-2.5in", category: "insulation", name: 'Polyiso 2.5" (4x8)', unit: "BD", calcType: "coverage", quantity: 1477, unitPrice: 34, totalCost: 50218, wasteFactor: 1.05, coverage: 32 },
-  { _id: "dm_3", templateKey: "densdeck", category: "insulation", name: 'DensDeck Cover Board 1/2"', unit: "BD", calcType: "coverage", quantity: 1477, unitPrice: 22, totalCost: 32494, wasteFactor: 1.05, coverage: 32 },
+  { _id: "dm_1", templateKey: "tpo-60mil", category: "membrane", name: "TPO 60mil Membrane (10' wide)", unit: "RL", calcType: "coverage", quantity: 48, unitPrice: 285, totalCost: 13680, wasteFactor: 1.05, coverage: 1000, coverageRate: "1000 SF/RL" },
+  { _id: "dm_2", templateKey: "iso-2.5in", category: "insulation", name: 'Polyiso 2.5" (4x8)', unit: "BD", calcType: "coverage", quantity: 1477, unitPrice: 34, totalCost: 50218, wasteFactor: 1.05, coverage: 32, coverageRate: "32 SF/BD" },
+  { _id: "dm_3", templateKey: "densdeck", category: "insulation", name: 'DensDeck Cover Board 1/2"', unit: "BD", calcType: "coverage", quantity: 1477, unitPrice: 22, totalCost: 32494, wasteFactor: 1.05, coverage: 32, coverageRate: "32 SF/BD" },
   { _id: "dm_4", templateKey: "iso-fasteners", category: "fasteners", name: "Insulation Screws + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", quantity: 24, unitPrice: 145, totalCost: 3480, wasteFactor: 1.05, qtyPerSf: 0.25 },
   { _id: "dm_5", templateKey: "membrane-fasteners", category: "fasteners", name: "Membrane Fasteners + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", quantity: 16, unitPrice: 165, totalCost: 2640, wasteFactor: 1.05, qtyPerSf: 0.167 },
-  { _id: "dm_6", templateKey: "bonding-adhesive", category: "adhesive", name: "Bonding Adhesive (5 gal pail)", unit: "GL", calcType: "coverage", quantity: 198, unitPrice: 185, totalCost: 36630, wasteFactor: 1.10, coverage: 250 },
-  { _id: "dm_7", templateKey: "tpo-primer", category: "adhesive", name: "TPO/PVC Primer (1 gal)", unit: "GL", calcType: "coverage", quantity: 248, unitPrice: 65, totalCost: 16120, wasteFactor: 1.10, coverage: 200 },
+  { _id: "dm_6", templateKey: "bonding-adhesive", category: "adhesive", name: "Bonding Adhesive (5 gal pail)", unit: "GL", calcType: "coverage", quantity: 198, unitPrice: 185, totalCost: 36630, wasteFactor: 1.10, coverage: 250, coverageRate: "250 SF/GL" },
+  { _id: "dm_7", templateKey: "tpo-primer", category: "adhesive", name: "TPO/PVC Primer (1 gal)", unit: "GL", calcType: "coverage", quantity: 248, unitPrice: 65, totalCost: 16120, wasteFactor: 1.10, coverage: 200, coverageRate: "200 SF/GL" },
   { _id: "dm_8", templateKey: "drip-edge", category: "edge_metal", name: "Drip Edge (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", quantity: 84, unitPrice: 18, totalCost: 1512, wasteFactor: 1.05 },
   { _id: "dm_9", templateKey: "coping-cap", category: "edge_metal", name: "Coping Cap (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", quantity: 42, unitPrice: 42, totalCost: 1764, wasteFactor: 1.05 },
   { _id: "dm_10", templateKey: "pipe-boots", category: "accessories", name: "Pipe Boots (TPO/PVC)", unit: "EA", calcType: "count_from_takeoff", quantity: 24, unitPrice: 35, totalCost: 840, wasteFactor: 1.0 },
   { _id: "dm_11", templateKey: "drain-assembly", category: "accessories", name: "Drain Assemblies", unit: "EA", calcType: "count_from_takeoff", quantity: 8, unitPrice: 125, totalCost: 1000, wasteFactor: 1.0 },
-  { _id: "dm_12", templateKey: "seam-tape", category: "accessories", name: "Seaming Tape (100' roll)", unit: "RL", calcType: "coverage", quantity: 520, unitPrice: 55, totalCost: 28600, wasteFactor: 1.10, coverage: 100 },
+  { _id: "dm_12", templateKey: "seam-tape", category: "accessories", name: "Seaming Tape (100' roll)", unit: "RL", calcType: "coverage", quantity: 520, unitPrice: 55, totalCost: 28600, wasteFactor: 1.10, coverage: 100, coverageRate: "100 SF/RL" },
 ];
 
 const DEMO_TAKEOFF_LINE_ITEMS = [
@@ -43,6 +43,20 @@ const DEMO_TAKEOFF_LINE_ITEMS = [
   { itemType: "overflow_drain", quantity: 4 },
   { itemType: "pitch_pan", quantity: 6 },
 ];
+
+// Categories where 0% waste is always a problem
+const WASTE_REQUIRED_CATS = new Set(["membrane", "insulation", "fasteners"]);
+
+// Known coverage ranges per category for validation
+const COVERAGE_RANGES: Record<string, { min: number; max: number; unit: string }> = {
+  "tpo": { min: 100, max: 2000, unit: "SF/RL" },
+  "epdm": { min: 100, max: 2000, unit: "SF/RL" },
+  "pvc": { min: 100, max: 2000, unit: "SF/RL" },
+  "membrane": { min: 30, max: 2000, unit: "SF" },
+  "insulation": { min: 16, max: 64, unit: "SF/BD" },
+  "adhesive": { min: 50, max: 500, unit: "SF/GL" },
+  "fasteners": { min: 100, max: 1000, unit: "EA/BX" },
+};
 
 // Fuzzy match a material name against the datasheet library
 function findBestDatasheetMatch(name: string, datasheets: any[]): any | null {
@@ -83,6 +97,111 @@ function datasheetCategoryToMaterial(cat: string): string {
   return map[cat] || "accessories";
 }
 
+// ── Pricing flag ─────────────────────────────────────────────────────────────
+function PricingFlag({ material, datasheets }: { material: any; datasheets: any[] }) {
+  const match = findBestDatasheetMatch(material.name, datasheets);
+  if (!match) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+        ⚠ No quote
+      </span>
+    );
+  }
+  const priceDiff = (material.unitPrice ?? 0) - match.unitPrice;
+  const priceDiffPct = match.unitPrice > 0 ? Math.abs(priceDiff / match.unitPrice * 100) : 0;
+  if (priceDiffPct < 3) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded" title={`Matches ${match.vendorName || "library"}: $${match.unitPrice.toFixed(2)}`}>
+        ✓ Quoted
+      </span>
+    );
+  }
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded cursor-help"
+      title={`Library price: $${match.unitPrice.toFixed(2)} — ${priceDiff > 0 ? "+" : ""}${priceDiff.toFixed(2)} difference`}
+    >
+      ⚠ Quote: ${match.unitPrice.toFixed(2)}
+    </span>
+  );
+}
+
+// ── Waste flag ───────────────────────────────────────────────────────────────
+function WasteFlag({ material }: { material: any }) {
+  if (!WASTE_REQUIRED_CATS.has(material.category)) return null;
+  const wastePct = (material.wasteFactor - 1) * 100;
+  if (wastePct > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600" title="Waste factor applied">
+        ✓
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600" title="Waste factor required for this category">
+      ⚠ 0%
+    </span>
+  );
+}
+
+// ── Coverage flag ────────────────────────────────────────────────────────────
+function CoverageFlag({ material, onLookup, lookupResults }: {
+  material: any;
+  onLookup: (id: string, name: string) => void;
+  lookupResults: Record<string, { coverageRate: string | null; confidence: string; loading?: boolean }>;
+}) {
+  const coverageRate = material.coverageRate as string | undefined;
+  const coverageSource = material.coverageSource as string | undefined;
+  const lookup = lookupResults[material._id];
+
+  // If AI estimated
+  if (coverageSource === "ai_estimated" && coverageRate) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded" title="AI-estimated coverage rate — verify against spec sheet">
+        ✨ {coverageRate} (AI — verify)
+      </span>
+    );
+  }
+
+  // If coverage present and verified/from report
+  if (coverageRate) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500" title="Coverage rate on file">
+        {coverageRate}
+      </span>
+    );
+  }
+
+  // Not present — show lookup option or result
+  if (lookup?.loading) {
+    return <span className="text-[10px] text-slate-400">Looking up...</span>;
+  }
+  if (lookup && lookup.coverageRate) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded" title="AI-estimated coverage rate — verify against spec sheet">
+        ✨ {lookup.coverageRate} (AI — verify)
+      </span>
+    );
+  }
+  if (lookup && !lookup.coverageRate) {
+    return <span className="text-[10px] text-amber-600">⚠ Coverage unknown</span>;
+  }
+
+  // No coverage, no lookup yet — only show for coverage-type materials
+  if (material.calcType === "coverage") {
+    return (
+      <button
+        onClick={() => onLookup(material._id, material.name)}
+        className="text-[10px] text-amber-600 hover:text-amber-800 underline underline-offset-2"
+        title="Look up standard coverage rate with AI"
+      >
+        ⚠ No coverage — look up
+      </button>
+    );
+  }
+  return null;
+}
+
 export default function MaterialsTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
@@ -112,6 +231,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const updateMaterial = useMutation(api.bidshield.updateProjectMaterial);
   const deleteMaterial = useMutation(api.bidshield.deleteProjectMaterial);
   const upsertPrice = useMutation(api.bidshield.upsertUserMaterialPrice);
+  const bulkSaveExtracted = useMutation(api.bidshield.bulkSaveMaterialsFromExtraction);
+  const updateCoverageRate = useMutation(api.bidshield.updateMaterialCoverageRate);
 
   const [filterCategory, setFilterCategory] = useState<MaterialCategory | "all">("all");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -121,6 +242,11 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [showAddModal, setShowAddModal] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [checkRowId, setCheckRowId] = useState<string | null>(null);
+  const [coverageLookups, setCoverageLookups] = useState<Record<string, { coverageRate: string | null; confidence: string; loading?: boolean }>>({});
+  const [isUploading, setIsUploading] = useState(false);
+  const [extractedFrom, setExtractedFrom] = useState<string | null>(null);
+  const [alertExpanded, setAlertExpanded] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Resolve materials (demo vs real)
   const [demoMaterials, setDemoMaterials] = useState(DEMO_MATERIALS as any[]);
@@ -128,6 +254,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const lineItems = isDemo ? DEMO_TAKEOFF_LINE_ITEMS : (takeoffLineItems ?? []);
   const sections = isDemo ? [{ squareFeet: 22000 }, { squareFeet: 12500 }, { squareFeet: 4200 }, { squareFeet: 2800 }] : (takeoffSections ?? []);
   const totalSF = sections.reduce((sum: number, s: any) => sum + (s.squareFeet || 0), 0);
+  const ds = isDemo ? [] : (datasheets ?? []);
 
   // Filter
   const filteredMaterials = filterCategory === "all"
@@ -160,6 +287,115 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     }
     return totals;
   }, [materials]);
+
+  // ── Verification issue counts for the alert banner ──────────────────────
+  const verificationIssues = useMemo(() => {
+    const pricingGaps: string[] = [];
+    const coverageIssues: string[] = [];
+    const wasteIssues: string[] = [];
+
+    for (const m of materials as any[]) {
+      // Pricing gap: no datasheet match
+      if (!findBestDatasheetMatch(m.name, ds)) {
+        pricingGaps.push(m.name);
+      }
+      // Coverage issue: coverage-type material with no rate
+      if (m.calcType === "coverage" && !m.coverageRate) {
+        coverageIssues.push(m.name);
+      }
+      // Waste issue: required cat with 0% waste
+      if (WASTE_REQUIRED_CATS.has(m.category) && (m.wasteFactor - 1) * 100 === 0) {
+        wasteIssues.push(m.name);
+      }
+    }
+    return { pricingGaps, coverageIssues, wasteIssues };
+  }, [materials, ds]);
+
+  const totalIssues = verificationIssues.pricingGaps.length + verificationIssues.coverageIssues.length + verificationIssues.wasteIssues.length;
+
+  // ── Category-level quote coverage ─────────────────────────────────────────
+  const categoryHasQuote = useMemo(() => {
+    const covered: Record<string, boolean> = {};
+    for (const m of materials as any[]) {
+      const cat = m.category;
+      if (!covered[cat]) covered[cat] = false;
+      if (findBestDatasheetMatch(m.name, ds)) {
+        covered[cat] = true;
+      }
+    }
+    return covered;
+  }, [materials, ds]);
+
+  // ── Coverage lookup via AI ─────────────────────────────────────────────────
+  const handleCoverageLookup = useCallback(async (materialId: string, materialName: string) => {
+    setCoverageLookups(prev => ({ ...prev, [materialId]: { coverageRate: null, confidence: "low", loading: true } }));
+    try {
+      const res = await fetch("/api/bidshield/lookup-coverage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ materialName }),
+      });
+      const data = await res.json();
+      setCoverageLookups(prev => ({ ...prev, [materialId]: { coverageRate: data.coverageRate, confidence: data.confidence } }));
+      // If high confidence and not demo, save to db
+      if (data.confidence === "high" && data.coverageRate && !isDemo && materialId && !materialId.startsWith("dm_")) {
+        await updateCoverageRate({
+          materialId: materialId as Id<"bidshield_project_materials">,
+          coverageRate: data.coverageRate,
+          source: "ai_estimated",
+        });
+      }
+    } catch {
+      setCoverageLookups(prev => ({ ...prev, [materialId]: { coverageRate: null, confidence: "low" } }));
+    }
+  }, [isDemo, updateCoverageRate]);
+
+  // ── PDF upload handler ────────────────────────────────────────────────────
+  const handlePdfUpload = useCallback(async (file: File) => {
+    if (!file || file.type !== "application/pdf") return;
+    setIsUploading(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+      const res = await fetch("/api/bidshield/extract-estimating-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+      const data = await res.json();
+      if (!data.items?.length) return;
+
+      if (isDemo) {
+        // In demo mode, just prepend to demo state
+        const demoParsed = data.items.map((item: any, i: number) => ({
+          _id: `extracted_${i}`,
+          category: item.category?.toLowerCase().replace(/\s+/g, "_") || "accessories",
+          name: item.materialName,
+          unit: item.unit,
+          calcType: "fixed",
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalCost: item.extendedTotal,
+          wasteFactor: item.wastePct > 0 ? 1 + item.wastePct / 100 : 1.0,
+          coverageRate: item.coverageRate || null,
+          coverageSource: item.coverageRate ? "report" : undefined,
+          extractedFromPdf: true,
+        }));
+        setDemoMaterials(prev => [...demoParsed, ...prev]);
+      } else if (isValidConvexId && userId) {
+        await bulkSaveExtracted({
+          projectId: projectId as Id<"bidshield_projects">,
+          userId,
+          items: data.items,
+        });
+      }
+      setExtractedFrom(file.name);
+    } catch {
+      // Silent fail — keep existing materials
+    } finally {
+      setIsUploading(false);
+    }
+  }, [isDemo, isValidConvexId, userId, projectId, bulkSaveExtracted]);
 
   // Initialize materials from templates for this project's system type
   const handleInitialize = useCallback(async () => {
@@ -201,7 +437,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
   // Recalculate all quantities from current takeoff data
   const handleRecalculate = useCallback(async () => {
-    if (isDemo) return; // demo materials already have quantities
+    if (isDemo) return;
     for (const m of materials) {
       const mat = m as any;
       if (!mat.templateKey) continue;
@@ -253,7 +489,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       wasteFactor: waste,
       totalCost: cost,
     });
-    // Save to user price book
     if (price && userId) {
       await upsertPrice({
         userId,
@@ -321,16 +556,25 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         <div className="text-4xl">🧱</div>
         <h3 className="text-lg font-semibold text-slate-900">No materials yet</h3>
         <p className="text-sm text-slate-500 text-center max-w-md">
-          Auto-generate a material list based on your project&apos;s system type ({project?.systemType?.toUpperCase() || "TPO"}) and takeoff data.
+          Upload your estimating report PDF to auto-populate, or generate a material list from your project&apos;s system type ({project?.systemType?.toUpperCase() || "TPO"}).
         </p>
-        <button
-          onClick={handleInitialize}
-          disabled={isInitializing}
-          className="px-6 py-3 bg-emerald-600 text-slate-900 rounded-lg font-semibold hover:bg-emerald-500 transition-colors disabled:opacity-50"
-        >
-          {isInitializing ? "Generating..." : "Generate Material List"}
-        </button>
-        <p className="text-xs text-slate-500">You can add or remove items after generation</p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-5 py-2.5 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-500 transition-colors text-sm"
+          >
+            ✨ Upload Report PDF
+          </button>
+          <button
+            onClick={handleInitialize}
+            disabled={isInitializing}
+            className="px-5 py-2.5 bg-emerald-600 text-slate-900 rounded-lg font-semibold hover:bg-emerald-500 transition-colors disabled:opacity-50 text-sm"
+          >
+            {isInitializing ? "Generating..." : "Generate from Template"}
+          </button>
+        </div>
+        <p className="text-xs text-slate-500">You can add or remove items after either option</p>
+        <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePdfUpload(f); }} />
       </div>
     );
   }
@@ -339,8 +583,73 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     <div className="flex flex-col gap-5">
       {/* Section subtitle */}
       <p className="text-sm text-slate-500 -mb-1">
-        Enter your material line items with quantities and unit costs — pulled from your vendor quotes or The EDGE takeoff.
+        Verify pricing, coverage, and waste factors against your vendor quotes before submission.
       </p>
+
+      {/* Extracted from badge */}
+      {extractedFrom && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg text-xs text-teal-700 font-medium">
+          <span>✨</span>
+          <span>Extracted from <span className="font-semibold">{extractedFrom}</span> — review and adjust quantities as needed</span>
+          <button onClick={() => setExtractedFrom(null)} className="ml-auto text-teal-400 hover:text-teal-700">×</button>
+        </div>
+      )}
+
+      {/* Summary alert banner — only shown when issues exist */}
+      {totalIssues > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+          <button
+            onClick={() => setAlertExpanded(e => !e)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left"
+          >
+            <span className="text-sm font-semibold text-amber-800">
+              ⚠ {verificationIssues.pricingGaps.length > 0 && `${verificationIssues.pricingGaps.length} pricing gap${verificationIssues.pricingGaps.length !== 1 ? "s" : ""}`}
+              {verificationIssues.pricingGaps.length > 0 && verificationIssues.coverageIssues.length > 0 && " · "}
+              {verificationIssues.coverageIssues.length > 0 && `${verificationIssues.coverageIssues.length} coverage issue${verificationIssues.coverageIssues.length !== 1 ? "s" : ""}`}
+              {(verificationIssues.pricingGaps.length > 0 || verificationIssues.coverageIssues.length > 0) && verificationIssues.wasteIssues.length > 0 && " · "}
+              {verificationIssues.wasteIssues.length > 0 && `${verificationIssues.wasteIssues.length} missing waste`}
+              {" — review before submitting"}
+            </span>
+            <svg className={`w-4 h-4 text-amber-600 transition-transform ${alertExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          {alertExpanded && (
+            <div className="px-4 pb-4 grid sm:grid-cols-3 gap-4 border-t border-amber-100 pt-3">
+              {verificationIssues.pricingGaps.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-amber-700 mb-1.5">No quote match ({verificationIssues.pricingGaps.length})</div>
+                  <ul className="space-y-0.5">
+                    {verificationIssues.pricingGaps.map(n => (
+                      <li key={n} className="text-xs text-amber-700 truncate">• {n}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {verificationIssues.coverageIssues.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-amber-700 mb-1.5">Missing coverage ({verificationIssues.coverageIssues.length})</div>
+                  <ul className="space-y-0.5">
+                    {verificationIssues.coverageIssues.map(n => (
+                      <li key={n} className="text-xs text-amber-700 truncate">• {n}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {verificationIssues.wasteIssues.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-amber-700 mb-1.5">0% waste (required) ({verificationIssues.wasteIssues.length})</div>
+                  <ul className="space-y-0.5">
+                    {verificationIssues.wasteIssues.map(n => (
+                      <li key={n} className="text-xs text-amber-700 truncate">• {n}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* System badge */}
       <div className="flex items-center gap-2">
@@ -450,6 +759,30 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               Recalculate
             </button>
           )}
+          {/* Upload Report PDF */}
+          {(isPro || isDemo) ? (
+            <>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="px-3 py-1.5 bg-teal-600/20 text-teal-700 rounded-lg text-xs font-medium hover:bg-teal-600/30 transition-colors disabled:opacity-50"
+              >
+                {isUploading ? "Extracting..." : "✨ Upload Report PDF"}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePdfUpload(f); e.target.value = ""; }}
+              />
+            </>
+          ) : (
+            <a href="/bidshield/pricing" className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors" style={{ background: "#f1f5f9", color: "#94a3b8", border: "1px solid #e2e8f0" }}>
+              🔒 Upload PDF · Pro
+            </a>
+          )}
+          {/* Add Material */}
           {(isPro || isDemo) ? (
             <button onClick={() => setShowAddModal(true)} style={{ background: "#10b981" }} className="px-3 py-1.5 text-white rounded-lg text-xs font-medium hover:opacity-90 transition-colors">
               + Add Material
@@ -474,8 +807,15 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       {Object.entries(grouped).map(([cat, items]) => {
         const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
         const catTotal = (items as any[]).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
+        const noCategoryQuote = ds.length > 0 && categoryHasQuote[cat] === false && catTotal > 5000;
         return (
           <div key={cat} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            {/* Category-level quote warning */}
+            {noCategoryQuote && (
+              <div className="px-5 py-2 bg-amber-50 border-b border-amber-200 flex items-center gap-2">
+                <span className="text-amber-600 text-xs font-semibold">⚠ No vendor quote for {catInfo?.label} — pricing may be estimated, not quoted</span>
+              </div>
+            )}
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <span className="text-base">{catInfo?.icon}</span>
@@ -491,8 +831,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                     <th className="text-left px-5 py-2 font-medium">Material</th>
                     <th className="text-center px-3 py-2 font-medium w-16">Unit</th>
                     <th className="text-right px-3 py-2 font-medium w-20">Qty</th>
-                    <th className="text-center px-3 py-2 font-medium w-16">Waste</th>
-                    <th className="text-right px-3 py-2 font-medium w-24">Unit Price</th>
+                    <th className="text-center px-3 py-2 font-medium w-24">Waste</th>
+                    <th className="text-right px-3 py-2 font-medium w-36">Unit Price</th>
                     <th className="text-right px-5 py-2 font-medium w-28">Total</th>
                     <th className="text-center px-3 py-2 font-medium w-16"></th>
                   </tr>
@@ -503,13 +843,19 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                     const isChecking = checkRowId === m._id;
                     return (
                       <tr key={m._id} className="border-b border-slate-200/30 hover:bg-slate-100/20">
+                        {/* Material name + coverage */}
                         <td className="px-5 py-2.5">
                           <div className="text-slate-700">{m.name}</div>
-                          {m.calcType === "linear_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (linear)</span>}
-                          {m.calcType === "count_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (count)</span>}
-                          {m.calcType === "coverage" && <span className="text-[10px] text-slate-500">{m.coverage} SF/unit</span>}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                            {m.calcType === "linear_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (linear)</span>}
+                            {m.calcType === "count_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (count)</span>}
+                            {m.calcType === "coverage" && !m.coverageRate && <span className="text-[10px] text-slate-500">{m.coverage} SF/unit</span>}
+                            <CoverageFlag material={m} onLookup={handleCoverageLookup} lookupResults={coverageLookups} />
+                          </div>
                         </td>
+                        {/* Unit */}
                         <td className="text-center px-3 py-2.5 text-slate-500">{m.unit}</td>
+                        {/* Qty */}
                         <td className="text-right px-3 py-2.5">
                           {isEditing ? (
                             <input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="w-16 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" />
@@ -517,25 +863,35 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             <span className={m.quantity ? "text-slate-900" : "text-slate-500"}>{m.quantity ?? "—"}</span>
                           )}
                         </td>
+                        {/* Waste + flag */}
                         <td className="text-center px-3 py-2.5">
                           {isEditing ? (
                             <input type="number" value={editWaste} onChange={(e) => setEditWaste(e.target.value)} className="w-12 bg-white border border-slate-300 text-slate-900 text-center text-xs rounded px-1 py-1" />
                           ) : (
-                            <span className="text-slate-500 text-xs">{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="text-slate-500 text-xs">{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
+                              <WasteFlag material={m} />
+                            </div>
                           )}
                         </td>
+                        {/* Unit Price + pricing flag */}
                         <td className="text-right px-3 py-2.5">
                           {isEditing ? (
                             <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="w-20 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" step="0.01" />
                           ) : (
-                            <span className={m.unitPrice ? "text-slate-700" : "text-amber-600"}>{m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}</span>
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className={m.unitPrice ? "text-slate-700" : "text-amber-600"}>{m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}</span>
+                              {!isEditing && ds.length > 0 && <PricingFlag material={m} datasheets={ds} />}
+                            </div>
                           )}
                         </td>
+                        {/* Total */}
                         <td className="text-right px-5 py-2.5 font-semibold">
                           <span className={m.totalCost ? "text-emerald-600" : "text-slate-500"}>
                             {m.totalCost ? `$${m.totalCost.toLocaleString()}` : "—"}
                           </span>
                         </td>
+                        {/* Actions */}
                         <td className="text-center px-3 py-2.5">
                           {isEditing ? (
                             <div className="flex gap-1">
@@ -565,11 +921,11 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                       </tr>
                     );
                   })}
-                  {/* Datasheet comparison rows — rendered separately to avoid fragment-in-table issues */}
+                  {/* Datasheet comparison rows */}
                   {checkRowId && (() => {
                     const m = (items as any[]).find((x: any) => x._id === checkRowId);
                     if (!m) return null;
-                    const match = findBestDatasheetMatch(m.name, datasheets ?? []);
+                    const match = findBestDatasheetMatch(m.name, ds);
                     const stale = match && isStaleQuote(match.quoteDate);
                     const priceDiff = match ? (m.unitPrice ?? 0) - match.unitPrice : 0;
                     const priceDiffPct = match && match.unitPrice ? Math.abs(priceDiff / match.unitPrice * 100) : 0;
@@ -617,7 +973,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                           ) : (
                             <div className="flex items-center gap-3 text-xs text-slate-500">
                               <span>No matching product in your datasheet library.</span>
-                              <a href="/bidshield/dashboard/datasheets" className="text-blue-500 hover:underline font-medium">Add one →</a>
+                              <a href="/bidshield/dashboard/datasheets" className="text-blue-500 hover:underline font-medium">Go to Datasheets →</a>
                             </div>
                           )}
                         </td>
@@ -643,7 +999,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           onAdd={handleAddMaterial}
           onAddFromDatasheet={handleAddFromDatasheet}
           onClose={() => setShowAddModal(false)}
-          datasheets={datasheets ?? []}
+          datasheets={ds}
         />
       )}
     </div>
@@ -682,7 +1038,7 @@ function AddMaterialModal({
 
   // Library tab
   const filteredLibrary = search
-    ? datasheets.filter((d) => d.productName.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()))
+    ? datasheets.filter((d: any) => d.productName.toLowerCase().includes(search.toLowerCase()) || d.category.toLowerCase().includes(search.toLowerCase()))
     : datasheets;
 
   return (
@@ -697,108 +1053,73 @@ function AddMaterialModal({
         <div className="flex gap-1 px-5 pt-3 pb-1">
           <button
             onClick={() => setActiveTab("templates")}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeTab === "templates" ? "bg-emerald-600 text-white" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === "templates" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-900"}`}
           >
-            Templates
+            System Templates
           </button>
           <button
             onClick={() => setActiveTab("library")}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeTab === "library" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === "library" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-900"}`}
           >
-            📋 From Library {datasheets.length > 0 && <span className="ml-1 text-xs opacity-70">({datasheets.length})</span>}
+            Price Library ({datasheets.length})
           </button>
         </div>
 
         <div className="px-5 py-2">
           <input
             type="text"
-            placeholder={activeTab === "templates" ? "Search templates..." : "Search your library..."}
+            placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-5">
-          {activeTab === "templates" && (
-            <>
-              {Object.entries(groupedTemplates).map(([cat, items]) => {
-                const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
-                return (
-                  <div key={cat} className="mb-4">
-                    <div className="text-xs text-slate-500 font-semibold mb-2">{catInfo?.icon} {catInfo?.label}</div>
-                    <div className="space-y-1">
-                      {items.map((t) => (
-                        <button
-                          key={t.key}
-                          onClick={() => onAdd(t)}
-                          className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-emerald-50 rounded-lg transition-colors text-left"
-                        >
-                          <div>
-                            <div className="text-sm text-slate-700">{t.name}</div>
-                            <div className="text-[10px] text-slate-500">
-                              {t.calcType === "coverage" && `${t.defaultCoverage} SF/${t.unit}`}
-                              {t.calcType === "qty_per_sf" && `${t.defaultQtyPerSf} per SF`}
-                              {t.calcType === "linear_from_takeoff" && "From takeoff (linear)"}
-                              {t.calcType === "count_from_takeoff" && "From takeoff (count)"}
-                              {t.calcType === "fixed" && "Manual qty"}
-                            </div>
-                          </div>
-                          {t.defaultUnitPrice && <span className="text-xs text-slate-500">${t.defaultUnitPrice}</span>}
-                        </button>
-                      ))}
-                    </div>
+          {activeTab === "templates" ? (
+            Object.entries(groupedTemplates).length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-8">All templates for this system type are already added</p>
+            ) : (
+              Object.entries(groupedTemplates).map(([cat, temps]) => (
+                <div key={cat} className="mb-4">
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    {MATERIAL_CATEGORIES[cat as MaterialCategory]?.label || cat}
                   </div>
-                );
-              })}
-              {filteredTemplates.length === 0 && (
-                <div className="text-center text-slate-500 py-8 text-sm">
-                  {available.length === 0 ? "All templates already added" : "No matching templates"}
+                  <div className="space-y-1">
+                    {temps.map((t) => (
+                      <button
+                        key={t.key}
+                        onClick={() => onAdd(t)}
+                        className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors"
+                      >
+                        <div className="text-sm font-medium text-slate-900">{t.name}</div>
+                        <div className="text-xs text-slate-500">{t.unit} · {t.calcType}</div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-
-          {activeTab === "library" && (
-            <>
-              {filteredLibrary.length === 0 && datasheets.length === 0 && (
-                <div className="text-center py-10">
-                  <div className="text-2xl mb-2">📑</div>
-                  <p className="text-sm text-slate-500 mb-1">Your datasheet library is empty</p>
-                  <p className="text-xs text-slate-400 mb-3">Add products in the Datasheets section to pull them here.</p>
-                  <a href="/bidshield/dashboard/datasheets" className="text-sm text-blue-500 hover:underline font-medium">Go to Datasheets →</a>
-                </div>
-              )}
-              {filteredLibrary.length === 0 && datasheets.length > 0 && (
-                <div className="text-center text-slate-500 py-8 text-sm">No matching products</div>
-              )}
+              ))
+            )
+          ) : (
+            filteredLibrary.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-8">No products in library yet. Add them from your vendor quotes.</p>
+            ) : (
               <div className="space-y-1">
-                {filteredLibrary.map((ds: any) => {
-                  const stale = isStaleQuote(ds.quoteDate);
-                  return (
-                    <button
-                      key={ds._id}
-                      onClick={() => onAddFromDatasheet(ds)}
-                      className="w-full flex items-start justify-between p-3 bg-slate-50 hover:bg-blue-50 rounded-lg transition-colors text-left gap-3"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-800 truncate">{ds.productName}</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">
-                          {ds.category}
-                          {ds.coverage && ` · ${ds.coverage} ${ds.coverageUnit || "SF/unit"}`}
-                          {ds.vendorName && ` · ${ds.vendorName}`}
-                        </div>
-                        {stale && <div className="text-[10px] text-amber-500 mt-0.5">⚠️ Quote &gt;90 days old</div>}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-sm font-semibold text-emerald-600">${ds.unitPrice.toFixed(2)}</div>
-                        <div className="text-[10px] text-slate-400">/{ds.unit}</div>
-                      </div>
-                    </button>
-                  );
-                })}
+                {filteredLibrary.map((d: any) => (
+                  <button
+                    key={d._id}
+                    onClick={() => onAddFromDatasheet(d)}
+                    className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors"
+                  >
+                    <div className="flex justify-between">
+                      <div className="text-sm font-medium text-slate-900">{d.productName}</div>
+                      <div className="text-sm font-semibold text-emerald-600">${d.unitPrice.toFixed(2)}/{d.unit}</div>
+                    </div>
+                    <div className="text-xs text-slate-500">{d.category}{d.vendorName ? ` · ${d.vendorName}` : ""}{d.coverage ? ` · ${d.coverage} SF/unit` : ""}</div>
+                  </button>
+                ))}
               </div>
-            </>
+            )
           )}
         </div>
       </div>

@@ -86,6 +86,9 @@ function getLabelGroup(label: string): TabId | "__meta__" {
     "Pricing": "pricing",
     "General Conditions": "generalconditions",
     "Bid Qualifications": "bidquals",
+    "Material Pricing": "materials" as any,
+    "Coverage Rates": "materials" as any,
+    "Waste Factors": "materials" as any,
   };
   return map[label] ?? "__meta__";
 }
@@ -132,6 +135,10 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
   const projectMaterials = useQuery(
     api.bidshield.getProjectMaterials,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const datasheets = useQuery(
+    api.bidshield.getDatasheets,
+    !isDemo && userId ? { userId } : "skip"
   );
 
   const [hasRun] = useState(true);
@@ -334,6 +341,89 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
       }
     } else if (!isDemo) {
       items.push({ label: "Bid Qualifications", status: "warn", message: "Complete Bid Qualifications before submitting", tabLink: "bidquals" });
+    }
+
+    // 12. MATERIAL PRICING GAPS (BLOCKING if cost > $5,000 per category)
+    if (!isDemo && projectMaterials && datasheets) {
+      const WASTE_REQUIRED = new Set(["membrane", "insulation", "fasteners"]);
+      // Simple fuzzy match
+      const hasQuoteMatch = (name: string): boolean => {
+        const target = name.toLowerCase();
+        return datasheets.some((ds: any) => {
+          const p = (ds.productName || "").toLowerCase();
+          if (p === target || p.includes(target) || target.includes(p)) return true;
+          const words = target.split(/\s+/).filter((w: string) => w.length > 2);
+          if (words.length === 0) return false;
+          const matched = words.filter((w: string) => p.includes(w));
+          return matched.length / words.length >= 0.4;
+        });
+      };
+      // Category totals
+      const catTotals: Record<string, number> = {};
+      const catHasMatch: Record<string, boolean> = {};
+      for (const m of projectMaterials as any[]) {
+        const cat = m.category;
+        catTotals[cat] = (catTotals[cat] || 0) + (m.totalCost || 0);
+        if (!catHasMatch[cat]) catHasMatch[cat] = false;
+        if (hasQuoteMatch(m.name)) catHasMatch[cat] = true;
+      }
+      const uncoveredHighCostCats = Object.entries(catTotals).filter(([cat, cost]) =>
+        cost > 5000 && catHasMatch[cat] === false
+      );
+      if (uncoveredHighCostCats.length > 0) {
+        items.push({
+          label: "Material Pricing",
+          status: "fail",
+          message: `${uncoveredHighCostCats.length} material categor${uncoveredHighCostCats.length !== 1 ? "ies have" : "y has"} no vendor quote — get quotes before submitting`,
+          tabLink: "materials" as any,
+        });
+      } else if (projectMaterials.length > 0) {
+        const unmatched = (projectMaterials as any[]).filter(m => !hasQuoteMatch(m.name));
+        if (unmatched.length > 0) {
+          items.push({
+            label: "Material Pricing",
+            status: "warn",
+            message: `${unmatched.length} material${unmatched.length !== 1 ? "s" : ""} without a matching vendor quote in your library`,
+            tabLink: "materials" as any,
+          });
+        } else {
+          items.push({ label: "Material Pricing", status: "pass", message: "All materials matched to vendor quote pricing" });
+        }
+      }
+      // Coverage rates
+      const missingCoverage = (projectMaterials as any[]).filter(m => m.calcType === "coverage" && !m.coverageRate);
+      const aiCoverage = (projectMaterials as any[]).filter(m => m.coverageSource === "ai_estimated");
+      if (missingCoverage.length > 0) {
+        items.push({
+          label: "Coverage Rates",
+          status: "warn",
+          message: `${missingCoverage.length} material${missingCoverage.length !== 1 ? "s" : ""} missing coverage rate — verify before submitting`,
+          tabLink: "materials" as any,
+        });
+      } else if (aiCoverage.length > 0) {
+        items.push({
+          label: "Coverage Rates",
+          status: "warn",
+          message: `${aiCoverage.length} coverage rate${aiCoverage.length !== 1 ? "s" : ""} AI-estimated — verify against spec sheets`,
+          tabLink: "materials" as any,
+        });
+      } else if (projectMaterials.length > 0) {
+        items.push({ label: "Coverage Rates", status: "pass", message: "All coverage rates on file" });
+      }
+      // Waste factors
+      const missingWaste = (projectMaterials as any[]).filter(m =>
+        WASTE_REQUIRED.has(m.category) && (m.wasteFactor - 1) * 100 === 0
+      );
+      if (missingWaste.length > 0) {
+        items.push({
+          label: "Waste Factors",
+          status: "warn",
+          message: `${missingWaste.length} item${missingWaste.length !== 1 ? "s" : ""} (membrane/insulation/fasteners) missing waste factor`,
+          tabLink: "materials" as any,
+        });
+      } else if (projectMaterials.filter((m: any) => WASTE_REQUIRED.has(m.category)).length > 0) {
+        items.push({ label: "Waste Factors", status: "pass", message: "Waste factors applied to all membrane, insulation, and fastener items" });
+      }
     }
 
     const total = items.length;

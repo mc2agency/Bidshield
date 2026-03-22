@@ -284,6 +284,13 @@ export default defineSchema({
     takeoffItemType: v.optional(v.string()), // links to takeoff line item type for linear/count
     notes: v.optional(v.string()),
     sortOrder: v.number(),
+    // Verification fields
+    coverageRate: v.optional(v.string()),   // e.g. "100 SF/RL" — from report, AI, or manual
+    coverageSource: v.optional(v.string()), // "report" | "ai_estimated" | "manual"
+    extractedFromPdf: v.optional(v.boolean()),
+    pricingVerified: v.optional(v.boolean()),
+    coverageVerified: v.optional(v.boolean()),
+    wasteVerified: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

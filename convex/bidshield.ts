@@ -1343,6 +1343,86 @@ export const initProjectMaterials = mutation({
   },
 });
 
+// Bulk save materials extracted from PDF estimating report
+export const bulkSaveMaterialsFromExtraction = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    items: v.array(v.object({
+      materialName: v.string(),
+      category: v.string(),
+      unit: v.string(),
+      quantity: v.number(),
+      coverageRate: v.optional(v.string()),
+      wastePct: v.number(),
+      unitPrice: v.number(),
+      extendedTotal: v.number(),
+    })),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const now = Date.now();
+    const existing = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    const sortBase = existing.length;
+    const categoryMap: Record<string, string> = {
+      "Membrane": "membrane",
+      "Insulation": "insulation",
+      "Fasteners & Plates": "fasteners",
+      "Adhesive & Sealant": "adhesive",
+      "Edge Metal": "edge_metal",
+      "Accessories": "accessories",
+      "Tear-Off": "accessories",
+      "Lumber": "accessories",
+      "Metal Work": "edge_metal",
+      "General": "accessories",
+    };
+    for (let i = 0; i < args.items.length; i++) {
+      const item = args.items[i];
+      const cat = categoryMap[item.category] ?? "accessories";
+      const wasteFactor = item.wastePct > 0 ? 1 + item.wastePct / 100 : 1.0;
+      await ctx.db.insert("bidshield_project_materials", {
+        projectId: args.projectId,
+        userId: args.userId,
+        category: cat,
+        name: item.materialName,
+        unit: item.unit,
+        calcType: "fixed",
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalCost: item.extendedTotal,
+        wasteFactor,
+        coverageRate: item.coverageRate ?? undefined,
+        coverageSource: item.coverageRate ? "report" : undefined,
+        extractedFromPdf: true,
+        sortOrder: sortBase + i,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    return { inserted: args.items.length };
+  },
+});
+
+// Update coverage rate for a single material
+export const updateMaterialCoverageRate = mutation({
+  args: {
+    materialId: v.id("bidshield_project_materials"),
+    coverageRate: v.string(),
+    source: v.string(), // "report" | "ai_estimated" | "manual"
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.materialId, {
+      coverageRate: args.coverageRate,
+      coverageSource: args.source,
+      coverageVerified: args.source === "manual",
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 // ===== USER MATERIAL PRICES =====
 
 export const getUserMaterialPrices = query({
