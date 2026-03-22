@@ -25,7 +25,7 @@ const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size
   { id: "checklist",         label: "Checklist",    Icon: LayoutList },
   { id: "scope",             label: "Scope",        Icon: AlignLeft },
   { id: "takeoff",           label: "Takeoff",      Icon: Ruler },
-  { id: "materials",         label: "Materials",    Icon: Package },
+  { id: "materials",         label: "Reconciliation", Icon: Package },
   { id: "pricing",           label: "Pricing",      Icon: DollarSign },
   { id: "labor",             label: "Labor",        Icon: Users },
   { id: "generalconditions", label: "Gen. Conds",   Icon: Briefcase },
@@ -215,8 +215,8 @@ function ProjectDetail() {
     if (rPending > 0) items.push({ level: "info", title: `${rPending} RFI${rPending > 1 ? "s" : ""} awaiting response`, tab: "rfis" });
     if (clPct < 80) items.push({ level: clPct < 50 ? "blocker" : "warning", title: `Checklist ${clPct}% — ${clPending} items left`, tab: "checklist" });
     if (clRfi > 0) items.push({ level: "info", title: `${clRfi} checklist items flagged as RFI`, tab: "checklist" });
-    if (mats.length === 0) items.push({ level: "warning", title: "Materials not calculated", tab: "materials" });
-    else if (matUnpriced > 0) items.push({ level: "warning", title: `${matUnpriced} materials missing pricing`, tab: "materials" });
+    if (mats.length === 0) items.push({ level: "warning", title: "Reconciliation: no materials calculated", tab: "materials" });
+    else if (matUnpriced > 0) items.push({ level: "warning", title: `Reconciliation: ${matUnpriced} items missing pricing`, tab: "materials" });
     if (!pricingDone) items.push({ level: "warning", title: "Pricing not complete", tab: "pricing" });
 
     items.sort((a, b) => ({ blocker: 0, warning: 1, info: 2 }[a.level]) - ({ blocker: 0, warning: 1, info: 2 }[b.level]));

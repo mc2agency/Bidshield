@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 Each object in the array must have exactly these fields:
 {
   "materialName": string,
-  "category": "Membrane" | "Insulation" | "Fasteners & Plates" | "Adhesive & Sealant" | "Edge Metal" | "Accessories" | "Tear-Off" | "Lumber" | "Metal Work" | "General",
+  "category": "Membrane" | "Insulation" | "Fasteners & Plates" | "Adhesive & Sealant" | "Sheet Metal" | "Lumber & Blocking" | "Accessories" | "Tear-Off" | "Miscellaneous",
   "unit": string,
   "quantity": number,
   "coverageRate": string | null,
@@ -25,16 +25,25 @@ Each object in the array must have exactly these fields:
   "extendedTotal": number
 }
 
-Infer category from material name:
-- Cap Sheet / Base Sheet / TPO / EPDM / PVC / Membrane / Modified Bitumen = Membrane
-- Polyiso / EPS / Coverboard / DensDeck / Insulation Board = Insulation
-- Screws / Plates / Fasteners / Nails / Clips = Fasteners & Plates
-- Adhesive / Primer / Cement / Sealant / Caulk / Mastic = Adhesive & Sealant
-- Coping / Gravel Stop / Drip Edge / Flashing Metal / Reglet / Counterflashing = Edge Metal
-- Lumber / Blocking / Nailer / Cant Strip = Lumber
-- Sheet Metal / Custom Metal / Pre-fab Metal = Metal Work
-- Pipe Boot / Drain / Penetration / Curb / Misc = Accessories
-- Demo / Tear-Off / Removal = Tear-Off
+Assign each item to exactly one of these categories:
+
+Membrane: cap sheets, base sheets, base plies, any SBS/TPO/PVC/EPDM/PMMA membrane, liquid membranes, fleece
+
+Insulation: polyiso flat or tapered boards, EPS boards, coverboards (HD coverboard, DensDeck, gypsum board)
+
+Fasteners & Plates: insulation screws + plates, termination bars, termination bar screws, any mechanical roof fastener
+
+Adhesive & Sealant: cold adhesives, bonding adhesives, foam adhesives, sealants, caulks, flashing cements, primers, pourable sealers, pitch pan fillers
+
+Sheet Metal: ALL metal components including raw sheet stock AND finished descriptions like coping, counterflashing, gravel stop, fascia, lock strip, hook strip, cleat, drip edge, expansion joint cover. Any item with a gauge designation (e.g. "24 ga", "26 gauge") or containing aluminum, galvanized, stainless steel, Galvalume, or Kynar. Fabrication is labor not material — categorize the metal purchase here regardless of how it is described in the report.
+
+Lumber & Blocking: ALL dimensional lumber (2x4 through 2x12 PT), ALL plywood (CDX, fire-treated, pressure-treated), posts, nailers, wood blocking, cant strips. Never put lumber in Accessories.
+
+Accessories: walkway pads, prefabricated corners, pipe boots, roof drain parts, clamping rings, compression strips, backer rod, pitch pans (metal pan only — filler goes to Adhesive & Sealant)
+
+Tear-Off: demolition, tear-off, removal line items
+
+Miscellaneous: anything that does not clearly fit the above categories, items with generic or unclear names, equipment rental. When uncertain use Miscellaneous — never force a wrong category.
 
 For wastePct: extract the waste percentage as a number (e.g. 5 for 5%, 10 for 10%). Use 0 if not specified.
 For coverageRate: extract as a string like "100 SF/RL" or "32 SF/BD". Use null if not present.

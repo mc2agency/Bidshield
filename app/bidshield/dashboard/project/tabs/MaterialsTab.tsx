@@ -24,8 +24,8 @@ const DEMO_MATERIALS = [
   { _id: "dm_5", templateKey: "membrane-fasteners", category: "fasteners", name: "Membrane Fasteners + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", quantity: 16, unitPrice: 165, totalCost: 2640, wasteFactor: 1.05, qtyPerSf: 0.167 },
   { _id: "dm_6", templateKey: "bonding-adhesive", category: "adhesive", name: "Bonding Adhesive (5 gal pail)", unit: "GL", calcType: "coverage", quantity: 198, unitPrice: 185, totalCost: 36630, wasteFactor: 1.10, coverage: 250, coverageRate: "250 SF/GL" },
   { _id: "dm_7", templateKey: "tpo-primer", category: "adhesive", name: "TPO/PVC Primer (1 gal)", unit: "GL", calcType: "coverage", quantity: 248, unitPrice: 65, totalCost: 16120, wasteFactor: 1.10, coverage: 200, coverageRate: "200 SF/GL" },
-  { _id: "dm_8", templateKey: "drip-edge", category: "edge_metal", name: "Drip Edge (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", quantity: 84, unitPrice: 18, totalCost: 1512, wasteFactor: 1.05 },
-  { _id: "dm_9", templateKey: "coping-cap", category: "edge_metal", name: "Coping Cap (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", quantity: 42, unitPrice: 42, totalCost: 1764, wasteFactor: 1.05 },
+  { _id: "dm_8", templateKey: "drip-edge", category: "sheet_metal", name: "Drip Edge (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", quantity: 84, unitPrice: 18, totalCost: 1512, wasteFactor: 1.05 },
+  { _id: "dm_9", templateKey: "coping-cap", category: "sheet_metal", name: "Coping Cap (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", quantity: 42, unitPrice: 42, totalCost: 1764, wasteFactor: 1.05 },
   { _id: "dm_10", templateKey: "pipe-boots", category: "accessories", name: "Pipe Boots (TPO/PVC)", unit: "EA", calcType: "count_from_takeoff", quantity: 24, unitPrice: 35, totalCost: 840, wasteFactor: 1.0 },
   { _id: "dm_11", templateKey: "drain-assembly", category: "accessories", name: "Drain Assemblies", unit: "EA", calcType: "count_from_takeoff", quantity: 8, unitPrice: 125, totalCost: 1000, wasteFactor: 1.0 },
   { _id: "dm_12", templateKey: "seam-tape", category: "accessories", name: "Seaming Tape (100' roll)", unit: "RL", calcType: "coverage", quantity: 520, unitPrice: 55, totalCost: 28600, wasteFactor: 1.10, coverage: 100, coverageRate: "100 SF/RL" },
@@ -126,7 +126,7 @@ function findBestQuoteMatch(
     );
   }
 
-  return best && best.confidence >= 70 ? best : null;
+  return best && best.confidence >= 65 ? best : null;
 }
 
 // Search across ALL project quotes and return the highest-confidence match
@@ -160,7 +160,7 @@ function datasheetCategoryToMaterial(cat: string): string {
     "Insulation": "insulation", "Cover Board": "insulation",
     "Fasteners": "fasteners",
     "Adhesives": "adhesive",
-    "Sheet Metal": "edge_metal",
+    "Sheet Metal": "sheet_metal",
   };
   return map[cat] || "accessories";
 }
@@ -315,6 +315,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const bulkSaveExtracted = useMutation(api.bidshield.bulkSaveMaterialsFromExtraction);
   const clearMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const updateCoverageRate = useMutation(api.bidshield.updateMaterialCoverageRate);
+  const fixCategories = useMutation(api.bidshield.fixMaterialCategories);
 
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>("__best_match__");
   const [filterCategory, setFilterCategory] = useState<MaterialCategory | "all">("all");
@@ -333,6 +334,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [previewFilename, setPreviewFilename] = useState<string>("");
   const [isSavingExtraction, setIsSavingExtraction] = useState(false);
   const [replaceError, setReplaceError] = useState<string | null>(null);
+  const [isFixingCategories, setIsFixingCategories] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Resolve materials (demo vs real)
@@ -550,6 +552,19 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     }
   }, [previewItems, previewFilename, isDemo, isValidConvexId, userId, projectId, clearMaterials, bulkSaveExtracted]);
 
+  // Fix miscategorized items (edge_metal → sheet_metal, lumber out of accessories, etc.)
+  const handleFixCategories = useCallback(async () => {
+    if (isDemo || !isValidConvexId) return;
+    setIsFixingCategories(true);
+    try {
+      await fixCategories({ projectId: projectId as Id<"bidshield_projects"> });
+    } catch (err) {
+      console.error("Fix categories error:", err);
+    } finally {
+      setIsFixingCategories(false);
+    }
+  }, [isDemo, isValidConvexId, projectId, fixCategories]);
+
   // Initialize materials from templates for this project's system type
   const handleInitialize = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
@@ -736,7 +751,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     <div className="flex flex-col gap-5">
       {/* Section subtitle */}
       <p className="text-sm text-slate-500 -mb-1">
-        Verify pricing, coverage, and waste factors against your vendor quotes before submission.
+        Reconcile your estimating report against vendor quotes — verify pricing, coverage, and waste factors before submission.
       </p>
 
       {/* Extracted from badge */}
@@ -851,8 +866,10 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                   insulation: "bg-amber-500",
                   fasteners: "bg-slate-500",
                   adhesive: "bg-purple-500",
-                  edge_metal: "bg-emerald-500",
+                  sheet_metal: "bg-zinc-500",
+                  lumber: "bg-orange-400",
                   accessories: "bg-red-400",
+                  miscellaneous: "bg-slate-300",
                 };
                 return (
                   <div key={cat} className={`${colors[cat] || "bg-slate-200"} transition-all`} style={{ width: `${pct}%` }} title={`${MATERIAL_CATEGORIES[cat as MaterialCategory]?.label}: $${val.toLocaleString()} (${pct.toFixed(0)}%)`} />
@@ -869,8 +886,10 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                   insulation: "text-amber-600",
                   fasteners: "text-slate-500",
                   adhesive: "text-violet-600",
-                  edge_metal: "text-emerald-600",
+                  sheet_metal: "text-zinc-600",
+                  lumber: "text-orange-600",
                   accessories: "text-red-600",
+                  miscellaneous: "text-slate-400",
                 };
                 return (
                   <span key={cat} className={`text-xs ${colors[cat] || "text-slate-500"}`}>
@@ -925,14 +944,24 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
             </div>
           )}
           {!isDemo && (
-            <button
-              onClick={handleRecalculate}
-              disabled={totalSF === 0}
-              title={totalSF === 0 ? "Enter SF in Takeoff tab first" : "Recalculate quantities from takeoff"}
-              className="px-3 py-1.5 bg-blue-600/20 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-600/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Recalculate
-            </button>
+            <>
+              <button
+                onClick={handleFixCategories}
+                disabled={isFixingCategories || !isValidConvexId}
+                title="Auto-correct miscategorized materials (edge metal → Sheet Metal, lumber out of Accessories, etc.)"
+                className="px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isFixingCategories ? "Fixing..." : "Fix Categories"}
+              </button>
+              <button
+                onClick={handleRecalculate}
+                disabled={totalSF === 0}
+                title={totalSF === 0 ? "Enter SF in Takeoff tab first" : "Recalculate quantities from takeoff"}
+                className="px-3 py-1.5 bg-blue-600/20 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-600/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Recalculate
+              </button>
+            </>
           )}
           {/* Upload Report PDF */}
           {(isPro || isDemo) ? (

@@ -1395,12 +1395,17 @@ export const bulkSaveMaterialsFromExtraction = mutation({
       "Insulation": "insulation",
       "Fasteners & Plates": "fasteners",
       "Adhesive & Sealant": "adhesive",
-      "Edge Metal": "edge_metal",
+      "Sheet Metal": "sheet_metal",
+      "Lumber & Blocking": "lumber",
       "Accessories": "accessories",
       "Tear-Off": "accessories",
-      "Lumber": "accessories",
-      "Metal Work": "edge_metal",
-      "General": "accessories",
+      "Miscellaneous": "miscellaneous",
+      // Legacy mappings
+      "Edge Metal": "sheet_metal",
+      "Fabricated Metal": "sheet_metal",
+      "Metal Work": "sheet_metal",
+      "Lumber": "lumber",
+      "General": "miscellaneous",
     };
     for (let i = 0; i < args.items.length; i++) {
       const item = args.items[i];
@@ -1448,6 +1453,62 @@ export const updateMaterialCoverageRate = mutation({
       coverageVerified: args.source === "manual",
       updatedAt: Date.now(),
     });
+  },
+});
+
+// Fix miscategorized materials for a project
+export const fixMaterialCategories = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+  },
+  handler: async (ctx, args) => {
+    const materials = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    const SHEET_METAL_TERMS = [
+      "coping", "counterflashing", "gravel stop", "fascia", "lock strip",
+      "hook strip", "cleat", "drip edge", "expansion joint", "aluminum",
+      "galvanized", "stainless", "galvalume", "kynar", " ga.", " ga ", "gauge",
+      "sheet metal", "coil stock", "flash", "reglet",
+    ];
+    const LUMBER_TERMS = [
+      "lumber", "plywood", "cdx", " pt ", "2x4", "2x6", "2x8", "2x10", "2x12",
+      "4x4", "blocking", "nailer", "cant strip", "wood block",
+    ];
+
+    let fixed = 0;
+    for (const m of materials) {
+      const lower = m.name.toLowerCase();
+      const oldCat = m.category;
+      let newCat: string | null = null;
+
+      // Recategorize edge_metal / fabricated items → sheet_metal
+      if (
+        oldCat === "edge_metal" ||
+        oldCat === "accessories" ||
+        oldCat === "miscellaneous"
+      ) {
+        if (SHEET_METAL_TERMS.some(t => lower.includes(t))) {
+          newCat = "sheet_metal";
+        }
+      }
+
+      // Recategorize accessories/miscellaneous → lumber
+      if (!newCat && (oldCat === "accessories" || oldCat === "miscellaneous")) {
+        if (LUMBER_TERMS.some(t => lower.includes(t))) {
+          newCat = "lumber";
+        }
+      }
+
+      if (newCat && newCat !== oldCat) {
+        await ctx.db.patch(m._id, { category: newCat, updatedAt: Date.now() });
+        fixed++;
+      }
+    }
+
+    return { fixed };
   },
 });
 

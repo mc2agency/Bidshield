@@ -3,7 +3,7 @@
 
 export type CalcType = "coverage" | "qty_per_sf" | "linear_from_takeoff" | "count_from_takeoff" | "fixed";
 
-export type MaterialCategory = "membrane" | "insulation" | "fasteners" | "adhesive" | "edge_metal" | "accessories";
+export type MaterialCategory = "membrane" | "insulation" | "fasteners" | "adhesive" | "sheet_metal" | "lumber" | "accessories" | "miscellaneous";
 
 export interface MaterialTemplate {
   key: string;
@@ -25,8 +25,10 @@ export const MATERIAL_CATEGORIES: Record<MaterialCategory, { label: string; icon
   insulation: { label: "Insulation", icon: "🧱" },
   fasteners: { label: "Fasteners & Plates", icon: "🔩" },
   adhesive: { label: "Adhesive & Sealant", icon: "🧴" },
-  edge_metal: { label: "Edge Metal", icon: "📏" },
+  sheet_metal: { label: "Sheet Metal", icon: "⚙️" },
+  lumber: { label: "Lumber & Blocking", icon: "🪵" },
   accessories: { label: "Accessories", icon: "🔧" },
+  miscellaneous: { label: "Miscellaneous", icon: "📦" },
 };
 
 const ALL_SYSTEMS = ["tpo", "epdm", "sbs", "pvc"];
@@ -61,12 +63,16 @@ export const MATERIAL_TEMPLATES: MaterialTemplate[] = [
   { key: "lap-sealant", category: "adhesive", name: "Lap Sealant (tube)", unit: "EA", calcType: "fixed", wasteFactor: 1.0, defaultUnitPrice: 12, systemTypes: ALL_SYSTEMS, sortOrder: 33 },
   { key: "pitch-pan-filler", category: "adhesive", name: "Pitch Pan Filler (gal)", unit: "GL", calcType: "count_from_takeoff", takeoffItemType: "pitch_pan", wasteFactor: 1.20, defaultUnitPrice: 48, systemTypes: ALL_SYSTEMS, sortOrder: 34 },
 
-  // ===== EDGE METAL =====
-  { key: "drip-edge", category: "edge_metal", name: "Drip Edge (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "edge_metal", wasteFactor: 1.05, defaultUnitPrice: 18, systemTypes: ALL_SYSTEMS, sortOrder: 40 },
-  { key: "coping-cap", category: "edge_metal", name: "Coping Cap (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "coping", wasteFactor: 1.05, defaultUnitPrice: 42, systemTypes: ALL_SYSTEMS, sortOrder: 41 },
-  { key: "gravel-stop", category: "edge_metal", name: "Gravel Stop (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "gravel_stop", wasteFactor: 1.05, defaultUnitPrice: 24, systemTypes: ALL_SYSTEMS, sortOrder: 42 },
-  { key: "term-bar", category: "edge_metal", name: "Termination Bar (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "reglet", wasteFactor: 1.05, defaultUnitPrice: 8, systemTypes: ALL_SYSTEMS, sortOrder: 43 },
-  { key: "counterflashing", category: "edge_metal", name: "Counterflashing (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "counterflashing", wasteFactor: 1.05, defaultUnitPrice: 28, systemTypes: ALL_SYSTEMS, sortOrder: 44 },
+  // ===== SHEET METAL =====
+  { key: "drip-edge", category: "sheet_metal", name: "Drip Edge (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "edge_metal", wasteFactor: 1.05, defaultUnitPrice: 18, systemTypes: ALL_SYSTEMS, sortOrder: 40 },
+  { key: "coping-cap", category: "sheet_metal", name: "Coping Cap (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "coping", wasteFactor: 1.05, defaultUnitPrice: 42, systemTypes: ALL_SYSTEMS, sortOrder: 41 },
+  { key: "gravel-stop", category: "sheet_metal", name: "Gravel Stop (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "gravel_stop", wasteFactor: 1.05, defaultUnitPrice: 24, systemTypes: ALL_SYSTEMS, sortOrder: 42 },
+  { key: "term-bar", category: "sheet_metal", name: "Termination Bar (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "reglet", wasteFactor: 1.05, defaultUnitPrice: 8, systemTypes: ALL_SYSTEMS, sortOrder: 43 },
+  { key: "counterflashing", category: "sheet_metal", name: "Counterflashing (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", takeoffItemType: "counterflashing", wasteFactor: 1.05, defaultUnitPrice: 28, systemTypes: ALL_SYSTEMS, sortOrder: 44 },
+
+  // ===== LUMBER & BLOCKING =====
+  { key: "2x6-pt-nailer", category: "lumber", name: '2x6 PT Nailer', unit: "LF", calcType: "fixed", wasteFactor: 1.10, defaultUnitPrice: 4, systemTypes: ALL_SYSTEMS, sortOrder: 48 },
+  { key: "2x8-pt-nailer", category: "lumber", name: '2x8 PT Nailer', unit: "LF", calcType: "fixed", wasteFactor: 1.10, defaultUnitPrice: 5, systemTypes: ALL_SYSTEMS, sortOrder: 49 },
 
   // ===== ACCESSORIES =====
   { key: "pipe-boots", category: "accessories", name: "Pipe Boots (TPO/PVC)", unit: "EA", calcType: "count_from_takeoff", takeoffItemType: "pipe_penetration", wasteFactor: 1.0, defaultUnitPrice: 35, systemTypes: ["tpo", "pvc"], sortOrder: 50 },
@@ -98,8 +104,10 @@ export function getTemplatesGroupedByCategory(systemType?: string): Record<Mater
     insulation: [],
     fasteners: [],
     adhesive: [],
-    edge_metal: [],
+    sheet_metal: [],
+    lumber: [],
     accessories: [],
+    miscellaneous: [],
   };
   for (const t of templates) {
     grouped[t.category].push(t);
