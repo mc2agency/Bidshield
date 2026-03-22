@@ -1343,6 +1343,25 @@ export const initProjectMaterials = mutation({
   },
 });
 
+// Delete all materials for a project (used before replacing with extracted items)
+export const clearProjectMaterials = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const existing = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    for (const m of existing) {
+      await ctx.db.delete(m._id);
+    }
+    return { deleted: existing.length };
+  },
+});
+
 // Bulk save materials extracted from PDF estimating report
 export const bulkSaveMaterialsFromExtraction = mutation({
   args: {

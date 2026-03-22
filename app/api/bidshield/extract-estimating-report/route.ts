@@ -81,6 +81,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
 
     return NextResponse.json({ items });
   } catch (err: any) {
+    console.error("extract-estimating-report error:", err);
     return NextResponse.json(
       { error: err?.message ?? "Internal server error" },
       { status: 500 }
