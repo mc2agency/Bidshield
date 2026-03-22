@@ -58,25 +58,62 @@ const COVERAGE_RANGES: Record<string, { min: number; max: number; unit: string }
   "fasteners": { min: 100, max: 1000, unit: "EA/BX" },
 };
 
-// Fuzzy match a material name against the datasheet library
-function findBestDatasheetMatch(name: string, datasheets: any[]): any | null {
-  if (!datasheets || datasheets.length === 0) return null;
-  const target = name.toLowerCase();
-  let best: any = null;
-  let bestScore = 0;
-  for (const ds of datasheets) {
-    const p = (ds.productName || "").toLowerCase();
-    let score = 0;
-    if (p === target) score = 100;
-    else if (p.includes(target) || target.includes(p)) score = 70;
-    else {
-      const words = target.split(/\s+/).filter((w) => w.length > 2);
-      const matched = words.filter((w) => p.includes(w));
-      score = words.length > 0 ? (matched.length / words.length) * 50 : 0;
-    }
-    if (score > bestScore) { bestScore = score; best = ds; }
+// Numeric tokens that must all appear in a match (e.g. "20", "2.5", "60mil", "4x8")
+function extractNumericTokens(s: string): string[] {
+  return (s.match(/\d+\.?\d*(?:['"×xmil]+)?/gi) ?? []).map(t => t.toLowerCase());
+}
+
+// Product family groups — cross-family matches are rejected
+const PRODUCT_FAMILIES: string[][] = [
+  ["cap sheet", "cap ply", "granulated", "torch cap"],
+  ["base sheet", "base ply", "base coat", "torch base"],
+  ["coverboard", "cover board", "densdeck", "dens deck", "gypsum board"],
+  ["fastener", "screw", "plate", "nail", "clip"],
+  ["adhesive", "bonding", "primer", "cement", "sealant", "caulk", "mastic"],
+  ["flashing", "counterflashing", "coping", "drip edge", "gravel stop", "reglet"],
+];
+
+function getProductFamily(s: string): number {
+  const lower = s.toLowerCase();
+  for (let i = 0; i < PRODUCT_FAMILIES.length; i++) {
+    if (PRODUCT_FAMILIES[i].some(k => lower.includes(k))) return i;
   }
-  return bestScore >= 20 ? best : null;
+  return -1;
+}
+
+// Match a material name against quote line items with strict confidence rules
+function findBestQuoteMatch(
+  materialName: string,
+  lineItems: { m: string; u: string; p: number }[]
+): { item: { m: string; u: string; p: number }; confidence: number } | null {
+  if (!lineItems.length) return null;
+  const target = materialName.toLowerCase();
+  const targetNums = extractNumericTokens(target);
+  const targetFamily = getProductFamily(target);
+  const targetWords = target.split(/[\s,()\/]+/).filter(w => w.length > 2);
+
+  let best: { item: { m: string; u: string; p: number }; confidence: number } | null = null;
+
+  for (const li of lineItems) {
+    const candidate = li.m.toLowerCase();
+    const candidateNums = extractNumericTokens(candidate);
+    const candidateFamily = getProductFamily(candidate);
+
+    // All numeric identifiers in target must appear in candidate
+    if (targetNums.length > 0 && !targetNums.every(n => candidateNums.includes(n))) continue;
+
+    // No cross-family matching when both families are known
+    if (targetFamily !== -1 && candidateFamily !== -1 && targetFamily !== candidateFamily) continue;
+
+    const matched = targetWords.filter(w => candidate.includes(w));
+    const confidence = targetWords.length > 0 ? (matched.length / targetWords.length) * 100 : 0;
+
+    if (confidence > (best?.confidence ?? 0)) {
+      best = { item: li, confidence };
+    }
+  }
+
+  return best && best.confidence >= 70 ? best : null;
 }
 
 function isStaleQuote(quoteDate: string | undefined): boolean {
@@ -98,20 +135,29 @@ function datasheetCategoryToMaterial(cat: string): string {
 }
 
 // ── Pricing flag ─────────────────────────────────────────────────────────────
-function PricingFlag({ material, datasheets }: { material: any; datasheets: any[] }) {
-  const match = findBestDatasheetMatch(material.name, datasheets);
+function PricingFlag({
+  material,
+  quoteLineItems,
+  selectedQuoteId,
+}: {
+  material: any;
+  quoteLineItems: { m: string; u: string; p: number }[];
+  selectedQuoteId: string | null;
+}) {
+  if (!selectedQuoteId) return null;
+  const match = findBestQuoteMatch(material.name, quoteLineItems);
   if (!match) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
-        ⚠ No quote
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
+        — No match
       </span>
     );
   }
-  const priceDiff = (material.unitPrice ?? 0) - match.unitPrice;
-  const priceDiffPct = match.unitPrice > 0 ? Math.abs(priceDiff / match.unitPrice * 100) : 0;
+  const priceDiff = (material.unitPrice ?? 0) - match.item.p;
+  const priceDiffPct = match.item.p > 0 ? Math.abs(priceDiff / match.item.p * 100) : 0;
   if (priceDiffPct < 3) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded" title={`Matches ${match.vendorName || "library"}: $${match.unitPrice.toFixed(2)}`}>
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded" title={`Quote: $${match.item.p.toFixed(2)}`}>
         ✓ Quoted
       </span>
     );
@@ -119,9 +165,9 @@ function PricingFlag({ material, datasheets }: { material: any; datasheets: any[
   return (
     <span
       className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded cursor-help"
-      title={`Library price: $${match.unitPrice.toFixed(2)} — ${priceDiff > 0 ? "+" : ""}${priceDiff.toFixed(2)} difference`}
+      title={`Quote price: $${match.item.p.toFixed(2)} — ${priceDiff > 0 ? "+" : ""}${priceDiff.toFixed(2)} difference`}
     >
-      ⚠ Quote: ${match.unitPrice.toFixed(2)}
+      ⚠ Quote: ${match.item.p.toFixed(2)}
     </span>
   );
 }
@@ -225,6 +271,10 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     api.bidshield.getDatasheets,
     !isDemo && userId ? { userId } : "skip"
   );
+  const projectQuotes = useQuery(
+    api.bidshield.getQuotes,
+    !isDemo && isValidConvexId && userId ? { userId, projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const initMaterials = useMutation(api.bidshield.initProjectMaterials);
   const addMaterial = useMutation(api.bidshield.addProjectMaterial);
@@ -235,6 +285,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const clearMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const updateCoverageRate = useMutation(api.bidshield.updateMaterialCoverageRate);
 
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState<MaterialCategory | "all">("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
@@ -260,6 +311,15 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const sections = isDemo ? [{ squareFeet: 22000 }, { squareFeet: 12500 }, { squareFeet: 4200 }, { squareFeet: 2800 }] : (takeoffSections ?? []);
   const totalSF = sections.reduce((sum: number, s: any) => sum + (s.squareFeet || 0), 0);
   const ds = isDemo ? [] : (datasheets ?? []);
+  const quotes = isDemo ? [] : (projectQuotes ?? []);
+  const selectedQuoteLineItems = useMemo(() => {
+    if (!selectedQuoteId) return [];
+    const q = quotes.find((q: any) => q._id === selectedQuoteId);
+    if (!q) return [];
+    return (q.products ?? []).flatMap((s: string) => {
+      try { const p = JSON.parse(s); return p.p > 0 ? [p] : []; } catch { return []; }
+    });
+  }, [selectedQuoteId, quotes]);
 
   // Filter
   const filteredMaterials = filterCategory === "all"
@@ -321,15 +381,16 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   // ── Category-level quote coverage ─────────────────────────────────────────
   const categoryHasQuote = useMemo(() => {
     const covered: Record<string, boolean> = {};
+    if (!selectedQuoteId) return covered;
     for (const m of materials as any[]) {
       const cat = m.category;
       if (!covered[cat]) covered[cat] = false;
-      if (findBestDatasheetMatch(m.name, ds)) {
+      if (findBestQuoteMatch(m.name, selectedQuoteLineItems)) {
         covered[cat] = true;
       }
     }
     return covered;
-  }, [materials, ds]);
+  }, [materials, selectedQuoteId, selectedQuoteLineItems]);
 
   // ── Coverage lookup via AI ─────────────────────────────────────────────────
   const handleCoverageLookup = useCallback(async (materialId: string, materialName: string) => {
@@ -804,6 +865,23 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           ))}
         </div>
         <div className="flex gap-2 ml-auto">
+          {!isDemo && quotes.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">vs. Quote:</span>
+              <select
+                value={selectedQuoteId ?? ""}
+                onChange={e => setSelectedQuoteId(e.target.value || null)}
+                className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              >
+                <option value="">Select quote to compare</option>
+                {quotes.map((q: any) => (
+                  <option key={q._id} value={q._id}>
+                    {q.vendorName}{q.quoteDate ? ` — ${new Date(q.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {!isDemo && (
             <button
               onClick={handleRecalculate}
@@ -862,7 +940,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       {Object.entries(grouped).map(([cat, items]) => {
         const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
         const catTotal = (items as any[]).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
-        const noCategoryQuote = ds.length > 0 && categoryHasQuote[cat] === false && catTotal > 5000;
+        const noCategoryQuote = !!selectedQuoteId && categoryHasQuote[cat] === false && catTotal > 5000;
         return (
           <div key={cat} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             {/* Category-level quote warning */}
@@ -936,7 +1014,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                           ) : (
                             <div className="flex flex-col items-end gap-0.5">
                               <span className={m.unitPrice ? "text-slate-700" : "text-amber-600"}>{m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}</span>
-                              {!isEditing && ds.length > 0 && <PricingFlag material={m} datasheets={ds} />}
+                              {!isEditing && <PricingFlag material={m} quoteLineItems={selectedQuoteLineItems} selectedQuoteId={selectedQuoteId} />}
                             </div>
                           )}
                         </td>
@@ -976,59 +1054,52 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                       </tr>
                     );
                   })}
-                  {/* Datasheet comparison rows */}
-                  {checkRowId && (() => {
+                  {/* Quote comparison detail row */}
+                  {checkRowId && selectedQuoteId && (() => {
                     const m = (items as any[]).find((x: any) => x._id === checkRowId);
                     if (!m) return null;
-                    const match = findBestDatasheetMatch(m.name, ds);
-                    const stale = match && isStaleQuote(match.quoteDate);
-                    const priceDiff = match ? (m.unitPrice ?? 0) - match.unitPrice : 0;
-                    const priceDiffPct = match && match.unitPrice ? Math.abs(priceDiff / match.unitPrice * 100) : 0;
+                    const match = findBestQuoteMatch(m.name, selectedQuoteLineItems);
+                    const selectedQuote = quotes.find((q: any) => q._id === selectedQuoteId);
+                    const stale = selectedQuote?.quoteDate && isStaleQuote(selectedQuote.quoteDate);
+                    const priceDiff = match ? (m.unitPrice ?? 0) - match.item.p : 0;
+                    const priceDiffPct = match && match.item.p ? Math.abs(priceDiff / match.item.p * 100) : 0;
                     return (
                       <tr>
                         <td colSpan={7} className="px-5 py-3 bg-blue-50 border-b border-blue-100">
                           {match ? (
                             <div className="flex flex-wrap gap-5 items-start text-xs">
                               <div>
-                                <div className="text-slate-500 mb-0.5">Matched product</div>
-                                <div className="font-medium text-slate-800">{match.productName}</div>
-                                {match.vendorName && <div className="text-slate-400">{match.vendorName}</div>}
+                                <div className="text-slate-500 mb-0.5">Matched in quote</div>
+                                <div className="font-medium text-slate-800">{match.item.m}</div>
+                                {selectedQuote?.vendorName && <div className="text-slate-400">{selectedQuote.vendorName}</div>}
                               </div>
                               <div>
-                                <div className="text-slate-500 mb-0.5">Library price</div>
-                                <div className="font-semibold text-emerald-600">${match.unitPrice.toFixed(2)} / {match.unit}</div>
+                                <div className="text-slate-500 mb-0.5">Quote price</div>
+                                <div className="font-semibold text-emerald-600">${match.item.p.toFixed(2)} / {match.item.u}</div>
                                 {priceDiffPct >= 3 && (
                                   <div className={`mt-0.5 font-medium ${priceDiff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                    Project is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
+                                    Estimate is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
                                   </div>
                                 )}
                                 {priceDiffPct < 3 && (m.unitPrice ?? 0) > 0 && <div className="mt-0.5 text-slate-400">Prices match ✓</div>}
                               </div>
-                              {match.coverage && (
-                                <div>
-                                  <div className="text-slate-500 mb-0.5">Coverage rate</div>
-                                  <div className="font-medium text-slate-800">{match.coverage} {match.coverageUnit || "SF/unit"}</div>
-                                </div>
-                              )}
+                              <div>
+                                <div className="text-slate-500 mb-0.5">Match confidence</div>
+                                <div className="font-medium text-slate-800">{match.confidence.toFixed(0)}%</div>
+                              </div>
                               <div>
                                 <div className="text-slate-500 mb-0.5">Quote date</div>
                                 <div className={`font-medium ${stale ? "text-amber-600" : "text-slate-800"}`}>
-                                  {match.quoteDate
-                                    ? new Date(match.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                  {selectedQuote?.quoteDate
+                                    ? new Date(selectedQuote.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                                     : "No date on file"}
                                   {stale && " ⚠️ >90 days"}
                                 </div>
                               </div>
-                              {match.pdfUrl && (
-                                <div className="self-center">
-                                  <a href={match.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-medium">📄 Spec sheet →</a>
-                                </div>
-                              )}
                             </div>
                           ) : (
                             <div className="flex items-center gap-3 text-xs text-slate-500">
-                              <span>No matching product in your datasheet library.</span>
-                              <a href="/bidshield/dashboard/datasheets" className="text-blue-500 hover:underline font-medium">Go to Datasheets →</a>
+                              <span>No match found in the selected quote (confidence &lt;70%).</span>
                             </div>
                           )}
                         </td>
