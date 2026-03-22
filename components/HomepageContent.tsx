@@ -250,7 +250,7 @@ export default function HomepageContent() {
           <span className="text-4xl mb-4 block">📋</span>
           <h2 className="text-3xl font-bold text-white mb-4">Get the Free Bid-Day Checklist</h2>
           <p className="text-lg text-slate-400 mb-8">
-            Download the 18-phase checklist commercial roofing estimators use to catch every line item.
+            Scope gaps. Missed addenda. Wrong coverage rates. Catch them before the bid goes out.
           </p>
           <EmailCapture />
         </div>

@@ -124,7 +124,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId }: TabProps)
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Labor Rate Database</h2>
-          <p className="text-sm text-slate-500 mt-1">Your production rates — reuse across every bid</p>
+          <p className="text-sm text-slate-500 mt-1">Your crew production rates (SF/day) — used to calculate labor cost for this bid. Load defaults or add your own rates, then expand the Labor Cost Estimator below.</p>
         </div>
         {(
           <div className="flex gap-2">

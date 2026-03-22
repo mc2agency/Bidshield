@@ -82,11 +82,10 @@ export default function EmailCapture({ variant = 'full' }: EmailCaptureProps) {
         <div className="bg-white rounded-2xl p-8 md:p-12 shadow-xl border border-emerald-200 text-center">
           <div className="text-5xl mb-4">📋</div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Download Our FREE Estimating Checklist
+            Download Our FREE Bid Review Checklist
           </h2>
           <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
-            Stop leaving money on the table. Our comprehensive checklist covers every cost category
-            so you never miss a line item on your next estimate.
+            The 18-phase checklist commercial roofing estimators use to catch scope gaps, missed addenda, and pricing errors before submission.
           </p>
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
