@@ -74,8 +74,8 @@ const translations: Record<Language, Record<string, string>> = {
     'bidshield.feature4.desc': 'Validate your hours',
     
     // Email capture
-    'email.title': 'Download Our FREE Estimating Checklist',
-    'email.desc': 'Stop leaving money on the table. Our comprehensive checklist covers every cost category so you never miss a line item on your next estimate.',
+    'email.title': 'Download Our FREE Bid Review Checklist',
+    'email.desc': 'The 18-phase checklist commercial roofing estimators use to catch scope gaps, missed addenda, and pricing errors before submission.',
     'email.note': 'No spam. Unsubscribe anytime.',
     
     // Final CTA

@@ -166,6 +166,11 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Section subtitle */}
+      <p className="text-sm text-slate-500 -mb-1">
+        Your bid total rollup — material, labor, and general conditions costs flow in automatically from their respective sections.
+      </p>
+
       {/* Bid Pricing Card */}
       <div className="bg-white rounded-xl p-5 border border-slate-200">
         <div className="flex justify-between items-center mb-4">
@@ -428,6 +433,13 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
           )}
         </div>
       )}
+
+      {/* Info callout */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+        <p className="text-sm text-slate-500">
+          To update your bid total, edit costs directly in the Materials, Labor, and Gen. Conds sections. Changes reflect here automatically.
+        </p>
+      </div>
     </div>
   );
 }

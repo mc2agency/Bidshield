@@ -272,6 +272,11 @@ export default function MaterialsTab({ projectId, isDemo, project, userId, onNav
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Section subtitle */}
+      <p className="text-sm text-slate-500 -mb-1">
+        Enter your material line items with quantities and unit costs — pulled from your vendor quotes or The EDGE takeoff.
+      </p>
+
       {/* System badge */}
       <div className="flex items-center gap-2">
         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Materials for</span>
