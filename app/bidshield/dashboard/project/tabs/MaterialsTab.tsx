@@ -360,8 +360,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     const wasteIssues: string[] = [];
 
     for (const m of materials as any[]) {
-      // Pricing gap: no datasheet match
-      if (!findBestDatasheetMatch(m.name, ds)) {
+      // Pricing gap: no quote match when a quote is selected
+      if (selectedQuoteId && !findBestQuoteMatch(m.name, selectedQuoteLineItems)) {
         pricingGaps.push(m.name);
       }
       // Coverage issue: coverage-type material with no rate
