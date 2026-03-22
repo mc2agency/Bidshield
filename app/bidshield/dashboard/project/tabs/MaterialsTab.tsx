@@ -129,6 +129,24 @@ function findBestQuoteMatch(
   return best && best.confidence >= 70 ? best : null;
 }
 
+// Search across ALL project quotes and return the highest-confidence match
+function findBestMatchAcrossAllQuotes(
+  materialName: string,
+  allQuotes: any[]
+): { item: { m: string; u: string; p: number }; confidence: number; quoteName: string } | null {
+  let best: { item: { m: string; u: string; p: number }; confidence: number; quoteName: string } | null = null;
+  for (const q of allQuotes) {
+    const lineItems: { m: string; u: string; p: number }[] = (q.products ?? []).flatMap((s: string) => {
+      try { const p = JSON.parse(s); return p.p > 0 ? [p] : []; } catch { return []; }
+    });
+    const match = findBestQuoteMatch(materialName, lineItems);
+    if (match && (!best || match.confidence > best.confidence)) {
+      best = { ...match, quoteName: q.vendorName ?? "Quote" };
+    }
+  }
+  return best;
+}
+
 function isStaleQuote(quoteDate: string | undefined): boolean {
   if (!quoteDate) return false;
   return new Date(quoteDate) < new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
@@ -298,7 +316,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const clearMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const updateCoverageRate = useMutation(api.bidshield.updateMaterialCoverageRate);
 
-  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>("__best_match__");
   const [filterCategory, setFilterCategory] = useState<MaterialCategory | "all">("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
@@ -325,14 +343,16 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const totalSF = sections.reduce((sum: number, s: any) => sum + (s.squareFeet || 0), 0);
   const ds = isDemo ? [] : (datasheets ?? []);
   const quotes = isDemo ? [] : (projectQuotes ?? []);
+  const isBestMatch = selectedQuoteId === "__best_match__";
+  const isComparing = selectedQuoteId !== null;
   const selectedQuoteLineItems = useMemo(() => {
-    if (!selectedQuoteId) return [];
+    if (!selectedQuoteId || isBestMatch) return [];
     const q = quotes.find((q: any) => q._id === selectedQuoteId);
     if (!q) return [];
     return (q.products ?? []).flatMap((s: string) => {
       try { const p = JSON.parse(s); return p.p > 0 ? [p] : []; } catch { return []; }
     });
-  }, [selectedQuoteId, quotes]);
+  }, [selectedQuoteId, isBestMatch, quotes]);
 
   // Filter
   const filteredMaterials = filterCategory === "all"
@@ -374,8 +394,11 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
     for (const m of materials as any[]) {
       // Pricing gap: no quote match when a quote is selected
-      if (selectedQuoteId && !findBestQuoteMatch(m.name, selectedQuoteLineItems)) {
-        pricingGaps.push(m.name);
+      if (isComparing) {
+        const hasMatch = isBestMatch
+          ? !!findBestMatchAcrossAllQuotes(m.name, quotes)
+          : !!findBestQuoteMatch(m.name, selectedQuoteLineItems);
+        if (!hasMatch) pricingGaps.push(m.name);
       }
       // Coverage issue: coverage-type material with no rate
       if (m.calcType === "coverage" && !m.coverageRate) {
@@ -387,23 +410,24 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       }
     }
     return { pricingGaps, coverageIssues, wasteIssues };
-  }, [materials, ds]);
+  }, [materials, ds, isComparing, isBestMatch, quotes, selectedQuoteLineItems]);
 
   const totalIssues = verificationIssues.pricingGaps.length + verificationIssues.coverageIssues.length + verificationIssues.wasteIssues.length;
 
   // ── Category-level quote coverage ─────────────────────────────────────────
   const categoryHasQuote = useMemo(() => {
     const covered: Record<string, boolean> = {};
-    if (!selectedQuoteId) return covered;
+    if (!isComparing) return covered;
     for (const m of materials as any[]) {
       const cat = m.category;
       if (!covered[cat]) covered[cat] = false;
-      if (findBestQuoteMatch(m.name, selectedQuoteLineItems)) {
-        covered[cat] = true;
-      }
+      const hasMatch = isBestMatch
+        ? !!findBestMatchAcrossAllQuotes(m.name, quotes)
+        : !!findBestQuoteMatch(m.name, selectedQuoteLineItems);
+      if (hasMatch) covered[cat] = true;
     }
     return covered;
-  }, [materials, selectedQuoteId, selectedQuoteLineItems]);
+  }, [materials, isComparing, isBestMatch, quotes, selectedQuoteLineItems]);
 
   // ── Coverage lookup via AI ─────────────────────────────────────────────────
   const handleCoverageLookup = useCallback(async (materialId: string, materialName: string) => {
@@ -882,16 +906,21 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">vs. Quote:</span>
               <select
-                value={selectedQuoteId ?? ""}
-                onChange={e => { _quoteMatchLogCount = 0; setSelectedQuoteId(e.target.value || null); }}
+                value={selectedQuoteId ?? "__no_compare__"}
+                onChange={e => {
+                  _quoteMatchLogCount = 0;
+                  const v = e.target.value;
+                  setSelectedQuoteId(v === "__no_compare__" ? null : v);
+                }}
                 className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="">Select quote to compare</option>
+                <option value="__best_match__">Best match (all quotes)</option>
                 {quotes.map((q: any) => (
                   <option key={q._id} value={q._id}>
                     {q.vendorName}{q.quoteDate ? ` — ${new Date(q.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : ""}
                   </option>
                 ))}
+                <option value="__no_compare__">No comparison</option>
               </select>
             </div>
           )}
@@ -951,7 +980,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       {/* Material Table — single table, one header row, flat tbody */}
       {filteredMaterials.length > 0 && (() => {
-        const colCount = selectedQuoteId ? 9 : 7;
+        const colCount = isComparing ? 9 : 7;
         const selectedQuote = quotes.find((q: any) => q._id === selectedQuoteId);
         return (
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -963,9 +992,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                     <th className="text-center px-3 py-2.5 font-semibold w-14">Unit</th>
                     <th className="text-right px-3 py-2.5 font-semibold w-16">Qty</th>
                     <th className="text-center px-3 py-2.5 font-semibold w-20">Waste</th>
-                    <th className="text-right px-3 py-2.5 font-semibold w-28">{selectedQuoteId ? "Your Price" : "Unit Price"}</th>
-                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-semibold w-28">Quote Price</th>}
-                    {selectedQuoteId && <th className="text-right px-3 py-2.5 font-semibold w-24">Diff</th>}
+                    <th className="text-right px-3 py-2.5 font-semibold w-28">{isComparing ? "Your Price" : "Unit Price"}</th>
+                    {isComparing && <th className="text-right px-3 py-2.5 font-semibold w-28">Quote Price</th>}
+                    {isComparing && <th className="text-right px-3 py-2.5 font-semibold w-24">Diff</th>}
                     <th className="text-right px-5 py-2.5 font-semibold w-28">Total</th>
                     <th className="text-center px-3 py-2.5 w-20"></th>
                   </tr>
@@ -974,7 +1003,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                 {Object.entries(grouped).map(([cat, items]) => {
                   const catInfo = MATERIAL_CATEGORIES[cat as MaterialCategory];
                   const catTotal = (items as any[]).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0);
-                  const noCategoryQuote = !!selectedQuoteId && categoryHasQuote[cat] === false && catTotal > 5000;
+                  const noCategoryQuote = isComparing && categoryHasQuote[cat] === false && catTotal > 5000;
                   return (
                     <React.Fragment key={cat}>
                       {/* Category warning */}
@@ -1002,7 +1031,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                       {(items as any[]).map((m: any) => {
                         const isEditing = editingId === m._id;
                         const isChecking = checkRowId === m._id;
-                        const quoteMatch = selectedQuoteId ? findBestQuoteMatch(m.name, selectedQuoteLineItems) : null;
+                        const quoteMatch = !isComparing ? null
+                          : isBestMatch ? findBestMatchAcrossAllQuotes(m.name, quotes)
+                          : findBestQuoteMatch(m.name, selectedQuoteLineItems);
                         return (
                           <tr key={m._id} className="border-b border-slate-100 hover:bg-slate-50/60">
                             {/* Material name + coverage */}
@@ -1047,15 +1078,19 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                               )}
                             </td>
                             {/* Quote Price (conditional) */}
-                            {selectedQuoteId && (
+                            {isComparing && (
                               <td className="text-right px-3 py-2.5 text-xs">
                                 {quoteMatch ? (
                                   (() => {
                                     const diffPct = quoteMatch.item.p > 0 ? Math.abs(((m.unitPrice ?? 0) - quoteMatch.item.p) / quoteMatch.item.p * 100) : 0;
+                                    const sourceName = isBestMatch ? (quoteMatch as any).quoteName : null;
                                     return (
-                                      <span className={diffPct < 3 ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
-                                        {diffPct < 3 ? "✓ " : "⚠ "}${quoteMatch.item.p.toFixed(2)}
-                                      </span>
+                                      <div>
+                                        <span className={diffPct < 3 ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
+                                          {diffPct < 3 ? "✓ " : "⚠ "}${quoteMatch.item.p.toFixed(2)}
+                                        </span>
+                                        {sourceName && <div className="text-slate-400 text-[10px] leading-tight">{sourceName}</div>}
+                                      </div>
                                     );
                                   })()
                                 ) : (
@@ -1064,7 +1099,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                               </td>
                             )}
                             {/* Diff (conditional) */}
-                            {selectedQuoteId && (
+                            {isComparing && (
                               <td className="text-right px-3 py-2.5 text-xs">
                                 {quoteMatch ? (
                                   (() => {
@@ -1119,11 +1154,19 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                         );
                       })}
                       {/* Quote comparison detail row */}
-                      {checkRowId && selectedQuoteId && (() => {
+                      {checkRowId && isComparing && (() => {
                         const m = (items as any[]).find((x: any) => x._id === checkRowId);
                         if (!m) return null;
-                        const match = findBestQuoteMatch(m.name, selectedQuoteLineItems);
-                        const stale = selectedQuote?.quoteDate && isStaleQuote(selectedQuote.quoteDate);
+                        const match = isBestMatch
+                          ? findBestMatchAcrossAllQuotes(m.name, quotes)
+                          : findBestQuoteMatch(m.name, selectedQuoteLineItems);
+                        const matchVendor = isBestMatch
+                          ? (match as any)?.quoteName
+                          : selectedQuote?.vendorName;
+                        const matchQuote = isBestMatch
+                          ? quotes.find((q: any) => q.vendorName === (match as any)?.quoteName)
+                          : selectedQuote;
+                        const stale = matchQuote?.quoteDate && isStaleQuote(matchQuote.quoteDate);
                         const priceDiff = match ? (m.unitPrice ?? 0) - match.item.p : 0;
                         const priceDiffPct = match && match.item.p ? Math.abs(priceDiff / match.item.p * 100) : 0;
                         return (
@@ -1134,7 +1177,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                   <div>
                                     <div className="text-slate-500 mb-0.5">Matched in quote</div>
                                     <div className="font-medium text-slate-800">{match.item.m}</div>
-                                    {selectedQuote?.vendorName && <div className="text-slate-400">{selectedQuote.vendorName}</div>}
+                                    {matchVendor && <div className="text-slate-400">{matchVendor}</div>}
                                   </div>
                                   <div>
                                     <div className="text-slate-500 mb-0.5">Quote price</div>
@@ -1153,8 +1196,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                   <div>
                                     <div className="text-slate-500 mb-0.5">Quote date</div>
                                     <div className={`font-medium ${stale ? "text-amber-600" : "text-slate-800"}`}>
-                                      {selectedQuote?.quoteDate
-                                        ? new Date(selectedQuote.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                      {matchQuote?.quoteDate
+                                        ? new Date(matchQuote.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                                         : "No date on file"}
                                       {stale && " ⚠️ >90 days"}
                                     </div>
@@ -1162,7 +1205,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                 </div>
                               ) : (
                                 <div className="text-xs text-slate-500">
-                                  No match found in the selected quote (below 70% confidence or conflicting product identifiers).
+                                  {isBestMatch
+                                    ? "No match found across any uploaded quotes (below 70% confidence or conflicting product identifiers)."
+                                    : "No match found in the selected quote (below 70% confidence or conflicting product identifiers)."}
                                 </div>
                               )}
                             </td>
