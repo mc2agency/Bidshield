@@ -419,10 +419,20 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         setDemoMaterials(demoParsed);
       } else if (isValidConvexId && userId) {
         await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
+        const sanitizedItems = previewItems.map((item: any) => ({
+          materialName: item.materialName ?? "",
+          category: item.category ?? "General",
+          unit: item.unit ?? "EA",
+          quantity: item.quantity ?? 0,
+          coverageRate: item.coverageRate ?? undefined,
+          wastePct: item.wastePct ?? 0,
+          unitPrice: item.unitPrice ?? 0,
+          extendedTotal: item.extendedTotal ?? 0,
+        }));
         await bulkSaveExtracted({
           projectId: projectId as Id<"bidshield_projects">,
           userId,
-          items: previewItems,
+          items: sanitizedItems,
         });
       }
       setExtractedFrom(previewFilename);

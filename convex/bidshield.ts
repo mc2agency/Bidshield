@@ -1371,11 +1371,11 @@ export const bulkSaveMaterialsFromExtraction = mutation({
       materialName: v.string(),
       category: v.string(),
       unit: v.string(),
-      quantity: v.number(),
+      quantity: v.optional(v.number()),
       coverageRate: v.optional(v.string()),
-      wastePct: v.number(),
-      unitPrice: v.number(),
-      extendedTotal: v.number(),
+      wastePct: v.optional(v.number()),
+      unitPrice: v.optional(v.number()),
+      extendedTotal: v.optional(v.number()),
     })),
   },
   handler: async (ctx, args) => {
@@ -1401,7 +1401,8 @@ export const bulkSaveMaterialsFromExtraction = mutation({
     for (let i = 0; i < args.items.length; i++) {
       const item = args.items[i];
       const cat = categoryMap[item.category] ?? "accessories";
-      const wasteFactor = item.wastePct > 0 ? 1 + item.wastePct / 100 : 1.0;
+      const wastePct = item.wastePct ?? 0;
+      const wasteFactor = wastePct > 0 ? 1 + wastePct / 100 : 1.0;
       await ctx.db.insert("bidshield_project_materials", {
         projectId: args.projectId,
         userId: args.userId,
@@ -1409,9 +1410,9 @@ export const bulkSaveMaterialsFromExtraction = mutation({
         name: item.materialName,
         unit: item.unit,
         calcType: "fixed",
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalCost: item.extendedTotal,
+        quantity: item.quantity ?? 0,
+        unitPrice: item.unitPrice ?? 0,
+        totalCost: item.extendedTotal ?? 0,
         wasteFactor,
         coverageRate: item.coverageRate ?? undefined,
         coverageSource: item.coverageRate ? "report" : undefined,
