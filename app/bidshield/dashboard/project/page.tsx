@@ -21,12 +21,12 @@ import {
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
 } from "./tabs";
 
-const BROWSE_ITEMS: { id: TabId; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
-  { id: "checklist",         label: "Checklist",    Icon: LayoutList },
-  { id: "scope",             label: "Scope",        Icon: AlignLeft },
-  { id: "takeoff",           label: "Takeoff",      Icon: Ruler },
-  { id: "materials",         label: "Reconciliation", Icon: Package },
-  { id: "pricing",           label: "Pricing",      Icon: DollarSign },
+const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
+  { id: "checklist",         label: "Checklist",              Icon: LayoutList },
+  { id: "scope",             label: "Scope",                  Icon: AlignLeft },
+  { id: "takeoff",           label: "Takeoff",                Icon: Ruler },
+  { id: "materials",         label: "Material Reconciliation", shortLabel: "Reconciliation", Icon: Package },
+  { id: "pricing",           label: "Pricing",                Icon: DollarSign },
   { id: "labor",             label: "Labor",        Icon: Users },
   { id: "generalconditions", label: "Gen. Conds",   Icon: Briefcase },
   { id: "quotes",            label: "Quotes",       Icon: Quote },
@@ -215,8 +215,8 @@ function ProjectDetail() {
     if (rPending > 0) items.push({ level: "info", title: `${rPending} RFI${rPending > 1 ? "s" : ""} awaiting response`, tab: "rfis" });
     if (clPct < 80) items.push({ level: clPct < 50 ? "blocker" : "warning", title: `Checklist ${clPct}% — ${clPending} items left`, tab: "checklist" });
     if (clRfi > 0) items.push({ level: "info", title: `${clRfi} checklist items flagged as RFI`, tab: "checklist" });
-    if (mats.length === 0) items.push({ level: "warning", title: "Reconciliation: no materials calculated", tab: "materials" });
-    else if (matUnpriced > 0) items.push({ level: "warning", title: `Reconciliation: ${matUnpriced} items missing pricing`, tab: "materials" });
+    if (mats.length === 0) items.push({ level: "warning", title: "Material Reconciliation: no items yet", tab: "materials" });
+    else if (matUnpriced > 0) items.push({ level: "warning", title: `Material Reconciliation: ${matUnpriced} items missing pricing`, tab: "materials" });
     if (!pricingDone) items.push({ level: "warning", title: "Pricing not complete", tab: "pricing" });
 
     items.sort((a, b) => ({ blocker: 0, warning: 1, info: 2 }[a.level]) - ({ blocker: 0, warning: 1, info: 2 }[b.level]));
@@ -332,7 +332,7 @@ function ProjectDetail() {
 
         {/* Section nav — icons + label + status dot */}
         <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5">
-          {BROWSE_ITEMS.map(({ id, label, Icon }) => {
+          {BROWSE_ITEMS.map(({ id, label, shortLabel, Icon }) => {
             const sectionScore = scores[id as keyof typeof scores];
             const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
             const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
@@ -372,7 +372,7 @@ function ProjectDetail() {
               >
                 <div className="flex items-center gap-2.5">
                   <Icon size={17} strokeWidth={1.75} />
-                  <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>{label}</span>
+                  <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>{shortLabel ?? label}</span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span title={dotLabel} style={{ width: 8, height: 8, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default", flexShrink: 0 }} />
@@ -566,7 +566,7 @@ function ProjectDetail() {
               <div className="p-6 max-w-2xl">
                 {/* Mobile section nav */}
                 <div className="lg:hidden flex flex-wrap gap-2 mb-6">
-                  {BROWSE_ITEMS.map(({ id, label, Icon }) => {
+                  {BROWSE_ITEMS.map(({ id, label, shortLabel, Icon }) => {
                     const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
                     const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
                     const dot = hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#10b981";
@@ -578,7 +578,7 @@ function ProjectDetail() {
                         style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: "8px 12px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
                       >
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
-                        <span style={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>{label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>{shortLabel ?? label}</span>
                       </button>
                     );
                   })}
@@ -657,8 +657,8 @@ function ProjectDetail() {
                       return (
                         <button key={id} onClick={() => openTab(id)} className="flex items-center gap-3 group">
                           <span
-                            className="group-hover:text-slate-900 transition-colors"
-                            style={{ fontSize: 12, color: "#6b7280", width: 72, textAlign: "left", flexShrink: 0 }}
+                            className="group-hover:text-slate-900 transition-colors truncate"
+                            style={{ fontSize: 12, color: "#6b7280", width: 112, textAlign: "left", flexShrink: 0 }}
                           >
                             {label}
                           </span>
