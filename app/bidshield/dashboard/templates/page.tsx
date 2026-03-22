@@ -133,9 +133,9 @@ function TemplatesContent() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-semibold text-slate-900">📊 Estimating Templates</h2>
+        <h2 className="text-xl font-semibold text-slate-900">📊 Bid Starter Templates</h2>
         <p className="text-sm text-slate-400 mt-1">
-          Pre-built Excel estimators for every roofing system
+          Pre-built Excel workbooks for every roofing system — use as a starting point alongside BidShield
         </p>
       </div>
 

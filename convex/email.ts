@@ -200,8 +200,7 @@ export const sendOnboardingEmail = internalAction({
         const text = await res.text();
         console.error(`Resend error sending day ${day} email to ${email}:`, text);
       } else {
-        console.log(`Onboarding day ${day} email sent to ${email}`);
-      }
+        }
     } catch (err) {
       console.error(`Failed to send day ${day} onboarding email to ${email}:`, err);
     }
