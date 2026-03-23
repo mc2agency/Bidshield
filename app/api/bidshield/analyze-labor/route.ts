@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { auth } from "@clerk/nextjs/server";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!checkRateLimit(userId)) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Please wait before trying again." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
     const {

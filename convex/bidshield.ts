@@ -26,7 +26,11 @@ export const getProjects = query({
 export const getProject = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.projectId);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const project = await ctx.db.get(args.projectId);
+    if (!project || project.userId !== identity.subject) return null;
+    return project;
   },
 });
 
@@ -1198,6 +1202,10 @@ export const deleteTakeoffLineItem = mutation({
 export const getProjectMaterials = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const project = await ctx.db.get(args.projectId);
+    if (!project || project.userId !== identity.subject) return [];
     const items = await ctx.db
       .query("bidshield_project_materials")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2197,6 +2205,10 @@ export const saveLaborAnalysis = mutation({
 export const getLaborTasks = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const project = await ctx.db.get(args.projectId);
+    if (!project || project.userId !== identity.subject) return [];
     const tasks = await ctx.db
       .query("bidshield_laborTasks")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2315,6 +2327,9 @@ export const clearLaborTasks = mutation({
 export const getVendors = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    if (identity.subject !== args.userId) throw new Error("Unauthorized");
     return await ctx.db
       .query("bidshield_vendors")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -2583,6 +2598,10 @@ export const deleteGcBidFormDocument = mutation({
 export const getGcBidFormDocuments = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const project = await ctx.db.get(args.projectId);
+    if (!project || project.userId !== identity.subject) return [];
     const docs = await ctx.db
       .query("bidshield_gcBidFormDocuments")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
