@@ -161,10 +161,27 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user_project", ["userId", "projectId"]),
 
+  // Account-level vendor address book
+  bidshield_vendors: defineTable({
+    userId: v.string(), // Clerk user ID
+    companyName: v.string(),
+    repName: v.optional(v.string()),
+    repPhone: v.optional(v.string()),
+    repEmail: v.optional(v.string()),
+    territory: v.optional(v.string()),
+    categories: v.array(v.string()), // "membrane", "insulation", "fasteners", etc.
+    notes: v.optional(v.string()),
+    active: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_active", ["userId", "active"]),
+
   // Vendor quotes
   bidshield_quotes: defineTable({
     userId: v.string(),
     projectId: v.optional(v.id("bidshield_projects")), // Can be project-specific or general
+    vendorId: v.optional(v.id("bidshield_vendors")), // Link to vendor record
     vendorName: v.string(),
     vendorEmail: v.optional(v.string()),
     vendorPhone: v.optional(v.string()),
