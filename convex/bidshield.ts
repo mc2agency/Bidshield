@@ -10,6 +10,16 @@ async function validateAuth(ctx: any, userId: string) {
   if (!identity) throw new Error("Not authenticated");
 }
 
+async function requirePro(ctx: any, userId: string) {
+  if (userId.startsWith("demo_")) return; // demo always allowed
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", userId))
+    .first();
+  const isPro = user?.membershipLevel === "bidshield" || user?.membershipLevel === "pro";
+  if (!isPro) throw new Error("Pro subscription required");
+}
+
 // ===== PROJECTS =====
 
 export const getProjects = query({
@@ -652,6 +662,7 @@ export const deleteRFI = mutation({
 export const getStats = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    await requirePro(ctx, args.userId);
     const projects = await ctx.db
       .query("bidshield_projects")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -727,6 +738,7 @@ export const getStats = query({
 export const getComparisonData = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    await requirePro(ctx, args.userId);
     const projects = await ctx.db
       .query("bidshield_projects")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

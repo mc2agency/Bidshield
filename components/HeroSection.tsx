@@ -95,51 +95,10 @@ export default function HeroSection() {
             role="list"
             aria-label="Key statistics"
           >
-            {/* Stat 1: Active Users */}
+            {/* Stat 1: Phases */}
             <div className="group text-center" role="listitem">
               <div
                 className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-emerald-500/20 rounded-xl text-emerald-400 group-hover:scale-110 transition-transform"
-                aria-hidden="true"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-              </div>
-              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">
-                2,500+
-              </div>
-              <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">
-                Active Users
-              </div>
-            </div>
-
-            {/* Stat 2: Average Rating */}
-            <div className="group text-center" role="listitem">
-              <div
-                className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-yellow-500/20 rounded-xl text-yellow-400 group-hover:scale-110 transition-transform"
-                aria-hidden="true"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              </div>
-              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-yellow-400 transition-colors">
-                4.9/5
-              </div>
-              <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">
-                Average Rating
-              </div>
-            </div>
-
-            {/* Stat 3: Satisfaction */}
-            <div className="group text-center" role="listitem">
-              <div
-                className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-teal-500/20 rounded-xl text-teal-400 group-hover:scale-110 transition-transform"
                 aria-hidden="true"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,11 +110,57 @@ export default function HeroSection() {
                   />
                 </svg>
               </div>
-              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-teal-400 transition-colors">
-                100%
+              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-emerald-400 transition-colors">
+                18
               </div>
               <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">
-                Satisfaction
+                Bid Phases Covered
+              </div>
+            </div>
+
+            {/* Stat 2: Check Items */}
+            <div className="group text-center" role="listitem">
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-yellow-500/20 rounded-xl text-yellow-400 group-hover:scale-110 transition-transform"
+                aria-hidden="true"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                  />
+                </svg>
+              </div>
+              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-yellow-400 transition-colors">
+                100+
+              </div>
+              <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">
+                QA Check Items
+              </div>
+            </div>
+
+            {/* Stat 3: Experience */}
+            <div className="group text-center" role="listitem">
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-teal-500/20 rounded-xl text-teal-400 group-hover:scale-110 transition-transform"
+                aria-hidden="true"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+              </div>
+              <div className="text-3xl sm:text-4xl font-bold text-white group-hover:text-teal-400 transition-colors">
+                12 yrs
+              </div>
+              <div className="text-slate-400 text-sm mt-1 group-hover:text-slate-300 transition-colors">
+                Field Experience
               </div>
             </div>
           </div>

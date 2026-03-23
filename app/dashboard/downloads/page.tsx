@@ -1,6 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
+
+export const dynamic = "force-dynamic";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -182,7 +184,7 @@ function DownloadsContent() {
   );
 }
 
-export default dynamic(() => Promise.resolve(DownloadsContent), {
+export default dynamicImport(() => Promise.resolve(DownloadsContent), {
   ssr: false,
   loading: () => (
     <main className="min-h-screen flex items-center justify-center bg-slate-50">

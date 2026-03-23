@@ -1,6 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
+
+export const dynamic = "force-dynamic";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -199,7 +201,7 @@ function DashboardContent() {
 }
 
 // Page component - skip SSR to avoid Clerk/Convex provider issues during prerender
-export default dynamic(() => Promise.resolve(DashboardContent), {
+export default dynamicImport(() => Promise.resolve(DashboardContent), {
   ssr: false,
   loading: () => <DashboardLoading />,
 });

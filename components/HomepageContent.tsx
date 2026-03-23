@@ -7,23 +7,23 @@ const mistakeScenarios = [
   {
     icon: '🔩',
     cost: '$47,000',
-    title: 'Missed Mechanical Curbs',
-    scenario: 'TPO job, 2.8M SF. Estimator skipped the mechanical plan. 14 curbs not in scope. GC back-charges the sub after installation.',
-    phase: 'Caught in Phase 9 — Mechanical Review',
+    title: 'Mechanical Plan Review',
+    scenario: 'Every mechanical plan reviewed for curbs, equipment supports, and dunnage before takeoff. Quantities verified against the plan set.',
+    phase: 'Covered in Phase 5 — Mechanical Review',
   },
   {
     icon: '📋',
     cost: '$31,000',
-    title: 'Missed Addendum',
-    scenario: 'Addendum 3 added 18,000 SF of coverboard. Estimator missed it. Won the bid, now eating the material cost.',
-    phase: 'Caught in Phase 10 — Addenda Review',
+    title: 'Addenda Tracking',
+    scenario: 'Every addendum logged, reviewed for scope impact, and confirmed incorporated before submission. No surprises on bid day.',
+    phase: 'Covered in Phase 2 — Addenda Review',
   },
   {
     icon: '📁',
     cost: '$22,000',
-    title: 'Wrong Submittal Requirements',
-    scenario: 'Spec required 3rd-party submittal package. Estimator excluded it. Owner deducts the full package cost from final payment.',
-    phase: 'Caught in Phase 9 — Specification Review',
+    title: 'Specification Review',
+    scenario: 'Spec sections reviewed for submittal requirements, special inspections, and compliance items that affect your scope and cost.',
+    phase: 'Covered in Phase 9 — Specification Review',
   },
 ];
 
@@ -52,19 +52,19 @@ export default function HomepageContent() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            The Bidding Command Center for Commercial Roofing
+            The Bid Workflow Tool for Commercial Roofing Estimators
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            One mistake on bid day
+            Every bid. Every phase.
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-              costs $30,000–$80,000.
+              Every time.
             </span>
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-            BidShield is the pre-submission review layer that works alongside The EDGE, STACK, and Excel — built by a 12-year commercial roofing estimator for the mistakes those tools can&apos;t catch.
+            BidShield is the structured workflow commercial roofing estimators run from first plan review to final submission. Works alongside The EDGE, STACK, and Excel — built by a 12-year estimator who needed it.
           </p>
           <p className="text-sm text-emerald-400 font-medium mb-10">
             Works alongside The EDGE, STACK, and Excel — no replacement required.
@@ -110,13 +110,13 @@ export default function HomepageContent() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              These mistakes happen{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-400">
-                every week.
+              What BidShield{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                covers.
               </span>
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              BidShield runs each one through 18 phases before you submit.
+              18 phases from project setup to bid submission. Every discipline. Every item.
             </p>
           </div>
 
@@ -145,8 +145,8 @@ export default function HomepageContent() {
       <section className="py-20 bg-slate-900 border-t border-slate-800">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-lg sm:text-xl text-slate-300 leading-relaxed">
-            After 12 years estimating commercial roofing, I built the review process I always wished existed.
-            Every phase, every discipline, every item that costs you money when you miss it.
+            After 12 years estimating commercial roofing, I built the workflow I always ran on paper — finally
+            in one place. Every phase, every discipline, every item that needs to be verified before you submit.
           </p>
           <p className="mt-6 text-sm text-slate-500">
             — Founder, MC2 Estimating
@@ -183,6 +183,112 @@ export default function HomepageContent() {
         </div>
       </section>
 
+      {/* How It Works — Screenshots + Demo Video */}
+      <section className="py-24 bg-slate-900 border-t border-slate-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              See it in{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                60 seconds
+              </span>
+            </h2>
+            <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+              Walk through an actual bid review. No sign-up required.
+            </p>
+          </div>
+
+          {/* Loom embed — replace REPLACE_WITH_YOUR_LOOM_ID with your actual Loom video ID */}
+          <div
+            className="relative w-full mb-16 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl"
+            style={{ paddingTop: '56.25%' }}
+          >
+            <iframe
+              src="https://www.loom.com/embed/REPLACE_WITH_YOUR_LOOM_ID"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+              title="BidShield 60-second walkthrough"
+            />
+          </div>
+
+          {/* Screenshots */}
+          <div className="space-y-16">
+            {/* Screenshot 1 — Project list */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <div className="text-xs text-emerald-500 font-semibold uppercase tracking-wide mb-2">Dashboard</div>
+                <h3 className="text-xl font-bold text-white mb-3">All your bids in one place</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Each project shows status, bid date, and readiness score at a glance.
+                  Free plan: 1 active project. Pro: unlimited.
+                </p>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-slate-700 shadow-lg bg-slate-800 aspect-video flex items-center justify-center">
+                {/* Replace with: <img src="/screenshots/dashboard-project-list.png" alt="BidShield project list dashboard" className="w-full block" /> */}
+                <p className="text-slate-500 text-sm text-center px-4">
+                  Add screenshot: /public/screenshots/dashboard-project-list.png<br />
+                  Capture from /bidshield/demo
+                </p>
+              </div>
+            </div>
+
+            {/* Screenshot 2 — Checklist in progress */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="order-2 md:order-1 rounded-xl overflow-hidden border border-slate-700 shadow-lg bg-slate-800 aspect-video flex items-center justify-center">
+                {/* Replace with: <img src="/screenshots/checklist-in-progress.png" alt="BidShield 18-phase checklist" className="w-full block" /> */}
+                <p className="text-slate-500 text-sm text-center px-4">
+                  Add screenshot: /public/screenshots/checklist-in-progress.png<br />
+                  Capture ChecklistTab mid-review from /bidshield/demo
+                </p>
+              </div>
+              <div className="order-1 md:order-2">
+                <div className="text-xs text-emerald-500 font-semibold uppercase tracking-wide mb-2">18-Phase Checklist</div>
+                <h3 className="text-xl font-bold text-white mb-3">Every discipline. Every item.</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Flag items as done, RFI, N/A, or blocked. Add notes per item.
+                  Phase progress updates in real time as you work through the bid.
+                </p>
+              </div>
+            </div>
+
+            {/* Screenshot 3 — Bid Readiness Score */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <div className="text-xs text-emerald-500 font-semibold uppercase tracking-wide mb-2">Bid Validator</div>
+                <h3 className="text-xl font-bold text-white mb-3">Submit with confidence, not gut feel</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  The Bid Readiness Score checks checklist completion, critical phase status,
+                  quote expiration, open RFIs, and addenda acknowledgment — before you click submit.
+                </p>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-slate-700 shadow-lg bg-slate-800 aspect-video flex items-center justify-center">
+                {/* Replace with: <img src="/screenshots/bid-readiness-score.png" alt="BidShield bid readiness score" className="w-full block" /> */}
+                <p className="text-slate-500 text-sm text-center px-4">
+                  Add screenshot: /public/screenshots/bid-readiness-score.png<br />
+                  Capture ValidatorTab from /bidshield/demo
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA after screenshots */}
+          <div className="text-center mt-16 flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/bidshield/demo"
+              className="inline-flex items-center justify-center px-8 py-4 border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 rounded-xl font-semibold text-lg transition-all duration-300"
+            >
+              Try Demo — No Sign-Up
+            </a>
+            <a
+              href="/sign-up"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all"
+            >
+              Start Free Trial
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section className="py-24 bg-slate-900 border-t border-slate-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -193,7 +299,7 @@ export default function HomepageContent() {
             </span>
           </h2>
           <p className="text-xl text-slate-400 mb-12">
-            One missed line item can cost you thousands. BidShield pays for itself on the first bid.
+            One tool. Every bid phase. Built for commercial roofing estimators who run a process.
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
@@ -223,21 +329,26 @@ export default function HomepageContent() {
                 </span>
               </div>
               <div className="text-sm text-slate-400 mb-2">Pro</div>
-              <div className="text-5xl font-bold text-white mb-1">$249</div>
-              <div className="text-slate-500 mb-6">/month</div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-5xl font-bold text-white">$149</span>
+                <span className="text-slate-500">/mo</span>
+              </div>
+              <div className="text-xs text-emerald-400 font-medium mb-6">
+                or $1,490/year — save $298 (2 months free)
+              </div>
               <ul className="space-y-3 text-sm text-slate-300 mb-8 text-left">
                 <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Unlimited projects</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Full material calculator</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Bid comparison analytics</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Scope gap checker</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> PDF export</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> PDF bid package export</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Win/loss analytics &amp; $/SF benchmarks</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> All 8 Excel templates included</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Material price book &amp; quote tracking</li>
                 <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Priority support</li>
               </ul>
               <Link
                 href="/bidshield/pricing"
                 className="block w-full text-center px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all"
               >
-                Start 14-Day Free Trial
+                Start 14-Day Free Trial — No Card Required
               </Link>
             </div>
           </div>
@@ -260,14 +371,14 @@ export default function HomepageContent() {
       <section className="py-24 bg-gradient-to-b from-slate-950 to-slate-900 border-t border-slate-800">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Stop Losing Money on{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-400">
-              Missed Line Items
+            Submit every bid{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+              with confidence.
             </span>
           </h2>
           <p className="text-xl text-slate-300 mb-10">
-            One forgotten curb flashing, one expired quote, one wrong coverage rate — that&apos;s thousands off your bottom line.
-            BidShield catches what you miss.
+            Material Reconciliation, Labor Verification, Scope tracking, GC Bid Forms — every part of your
+            pre-submission process in one place. Run your workflow, not a checklist of what might go wrong.
           </p>
           <Link
             href="/sign-up"

@@ -1,9 +1,11 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -63,16 +65,11 @@ const NAV_ITEMS = [
   },
 ];
 
-function Sidebar({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
+function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: string; isPro: boolean }) {
   // Project pages have their own sidebar — hide the outer one entirely
   if (pathname.startsWith("/bidshield/dashboard/project")) return null;
 
   const { userId, isSignedIn } = useAuth();
-  const subscription = useQuery(
-    api.users.getUserSubscription,
-    !isDemo && userId ? { clerkId: userId } : "skip"
-  );
-  const isPro = isDemo || (subscription?.isPro ?? false);
   const demoSuffix = isDemo ? "?demo=true" : "";
 
   const isActive = (href: string, exact: boolean) => {
@@ -224,9 +221,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const existingUser = useQuery(api.users.getCurrentUser, userId ? { clerkId: userId } : "skip");
   const subscription = useQuery(
     api.users.getUserSubscription,
-    !isDemo && userId ? { clerkId: userId } : "skip"
+    !isDemo && isSignedIn && userId ? { clerkId: userId } : "skip"
   );
   const isPro = isDemo || (subscription?.isPro ?? false);
+
+  const [showTrialBanner, setShowTrialBanner] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && !isDemo) {
@@ -241,6 +240,18 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     localStorage.setItem(key, "1");
     gtagEvent("sign_up");
   }, [userId, isSignedIn]);
+
+  useEffect(() => {
+    if (!userId || !isSignedIn || isPro || isDemo) return;
+    const seenKey = `bs_trial_banner_dismissed_${userId}`;
+    if (localStorage.getItem(seenKey)) return;
+    setShowTrialBanner(true);
+  }, [userId, isSignedIn, isPro, isDemo]);
+
+  const dismissTrialBanner = () => {
+    if (userId) localStorage.setItem(`bs_trial_banner_dismissed_${userId}`, "1");
+    setShowTrialBanner(false);
+  };
 
   // Ensure user row exists in Convex (needed for subscription checks)
   useEffect(() => {
@@ -267,13 +278,35 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "#f8fafc" }}>
-      <Sidebar isDemo={isDemo} pathname={pathname} />
+    <div className="flex bg-slate-50" style={{ minHeight: "calc(100vh - 4rem)" }}>
+      <Sidebar isDemo={isDemo} pathname={pathname} isPro={isPro} />
 
       <div className="flex-1 flex flex-col min-w-0">
         {isDemo && (
           <div className="bg-emerald-600 text-white text-center py-2.5 text-sm font-medium shrink-0">
             🎯 Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
+          </div>
+        )}
+        {showTrialBanner && !isDemo && !isPro && (
+          <div className="bg-emerald-900/60 border-b border-emerald-700/50 px-4 py-2.5 flex items-center justify-between gap-4 shrink-0">
+            <p className="text-sm text-emerald-100">
+              <strong>14-day Pro trial available.</strong> Unlimited projects, PDF export, win/loss analytics — no card required.
+            </p>
+            <div className="flex items-center gap-3 shrink-0">
+              <Link
+                href="/bidshield/pricing"
+                className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors whitespace-nowrap"
+              >
+                Start Free Trial
+              </Link>
+              <button
+                onClick={dismissTrialBanner}
+                className="text-emerald-400 hover:text-white transition-colors text-xl leading-none"
+                aria-label="Dismiss"
+              >
+                &times;
+              </button>
+            </div>
           </div>
         )}
         <main className="flex-1 min-w-0 overflow-auto p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>

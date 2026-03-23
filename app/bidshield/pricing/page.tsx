@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
@@ -127,7 +129,7 @@ export default function PricingPage() {
       {/* Hero */}
       <div className="max-w-3xl mx-auto px-6 pt-16 pb-10 text-center">
         <h1 className="text-4xl font-bold text-slate-900 mb-4">
-          One prevented mistake pays for years of BidShield
+          The professional workflow for commercial roofing estimators.
         </h1>
         <p className="text-lg text-slate-600 mb-2">
           The bid review tool built for commercial roofing estimators. Catches scope gaps, missed addenda, and pricing errors before you submit.

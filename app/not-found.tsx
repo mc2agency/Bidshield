@@ -1,11 +1,19 @@
-export const dynamic = "force-dynamic";
+// Prevent static prerendering — Navigation uses Clerk hooks which require
+// ClerkProvider to be hydrated. Force dynamic rendering avoids the
+// "useClerk can only be used within <ClerkProvider>" build error.
+export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
   return (
-    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "2rem" }}>
-      <h1 style={{ fontSize: "4rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>404</h1>
-      <p style={{ fontSize: "1.25rem", color: "#64748b", marginTop: "0.5rem" }}>Page not found</p>
-      <a href="/" style={{ marginTop: "1.5rem", color: "#10b981", textDecoration: "underline" }}>Go home</a>
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+      <h1 className="text-6xl font-bold text-slate-900 mb-4">404</h1>
+      <p className="text-xl text-slate-600 mb-8">Page not found</p>
+      <a
+        href="/"
+        className="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+      >
+        Go home
+      </a>
     </div>
   );
 }

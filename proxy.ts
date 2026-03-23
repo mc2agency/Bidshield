@@ -1,9 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Routes that require authentication
-// Note: /bidshield/dashboard is intentionally excluded — the layout handles
-// auth at the component level to allow ?demo=true access without login.
+// Note: /bidshield/dashboard supports ?demo=true so we protect it here
+// but the layout also checks isDemo to allow unauthenticated demo access.
 const isProtectedRoute = createRouteMatcher([
+  "/bidshield/dashboard(.*)",
+  "/bidshield/export(.*)",
   "/bidshield/projects(.*)",
   "/bidshield/checklist(.*)",
   "/bidshield/analytics(.*)",

@@ -51,6 +51,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
   const [gc, setGc] = useState("");
   const [sqft, setSqft] = useState("");
   const [creating, setCreating] = useState(false);
+  const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
 
   const createProject = useMutation(api.bidshield.createProject);
 
@@ -70,7 +71,8 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
         sqft: sqft ? parseInt(sqft) : undefined,
         assemblies: systemType ? [systemType.toUpperCase()] : [],
       });
-      onComplete(projectId);
+      setCreatedProjectId(projectId);
+      setStep(4); // success + upgrade nudge screen
     } catch (err) {
       console.error("Failed to create project:", err);
       setCreating(false);
@@ -84,7 +86,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
         <div className="h-1 bg-slate-100">
           <div
             className="h-full bg-emerald-500 transition-all duration-300"
-            style={{ width: `${((step + 1) / 4) * 100}%` }}
+            style={{ width: step === 4 ? "100%" : `${((step + 1) / 4) * 100}%` }}
           />
         </div>
 
@@ -296,6 +298,38 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                 >
                   Next
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Success + Upgrade nudge */}
+          {step === 4 && (
+            <div className="text-center">
+              <div className="text-5xl mb-4">🎉</div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                Your bid review is ready
+              </h3>
+              <p className="text-sm text-slate-500 mb-6">
+                <strong>{projectName}</strong> is set up with your 18-phase checklist, takeoff tracker, scope gap checker, and bid readiness scoring.
+              </p>
+
+              <button
+                onClick={() => createdProjectId && onComplete(createdProjectId)}
+                className="w-full py-3 px-8 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors mb-4"
+              >
+                Start Reviewing My Bid →
+              </button>
+
+              <div className="mt-2 pt-5 border-t border-slate-200">
+                <p className="text-xs text-slate-500 mb-3">
+                  Bidding more than one job? Upgrade for unlimited projects, PDF export, and win/loss analytics.
+                </p>
+                <a
+                  href="/bidshield/pricing"
+                  className="block w-full text-center py-2.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-sm font-semibold rounded-xl transition-colors"
+                >
+                  Start 14-Day Pro Trial — No Card Required
+                </a>
               </div>
             </div>
           )}

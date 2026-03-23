@@ -44,7 +44,13 @@ const STATUS_COLOR: Record<string, string> = {
 function AnalyticsInner() {
   const searchParams = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
-  const { userId } = useAuth();
+  const { userId, isLoaded, isSignedIn } = useAuth();
+
+  const subscription = useQuery(
+    api.users.getUserSubscription,
+    !isDemo && isLoaded && isSignedIn && userId ? { clerkId: userId } : "skip"
+  );
+  const isPro = isDemo || (subscription?.isPro ?? false);
 
   const convexStats = useQuery(
     api.bidshield.getStats,
@@ -54,6 +60,37 @@ function AnalyticsInner() {
     api.bidshield.getComparisonData,
     !isDemo && userId ? { userId } : "skip"
   );
+
+  // Gate: Pro only (demo bypasses)
+  if (!isDemo) {
+    if (!isLoaded || subscription === undefined) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-slate-400 text-sm">Loading...</div>
+        </div>
+      );
+    }
+    if (!isPro) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <div className="text-5xl mb-4">📊</div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Analytics is a Pro feature</h2>
+            <p className="text-slate-500 text-sm mb-2">
+              Track win rate, $/SF by system type, GC hit rate, and pipeline value over time.
+            </p>
+            <p className="text-slate-400 text-xs mb-6">14-day free trial — no card required.</p>
+            <a
+              href="/bidshield/pricing"
+              className="inline-block px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Start Free Trial
+            </a>
+          </div>
+        </div>
+      );
+    }
+  }
 
   const rawProjects: any[] = isDemo ? DEMO_PROJECTS : (comparisonData?.projects ?? []);
   const stats = isDemo

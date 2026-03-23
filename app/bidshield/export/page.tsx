@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { Suspense, useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
@@ -15,7 +17,12 @@ function ExportContent() {
   const [printed, setPrinted] = useState(false);
   const [reviewerName, setReviewerName] = useState("");
 
-  const { userId } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
+  const subscription = useQuery(
+    api.users.getUserSubscription,
+    isLoaded && isSignedIn && userId ? { clerkId: userId } : "skip"
+  );
+  const isPro = isDemo || (subscription?.isPro ?? false);
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
   const projectData = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const checklist = useQuery(api.bidshield.getChecklist, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -23,6 +30,39 @@ function ExportContent() {
   const quotes = useQuery(api.bidshield.getQuotes, !isDemo && isValidConvexId && userId ? { userId, projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const rfis = useQuery(api.bidshield.getRFIs, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addenda = useQuery(api.bidshield.getAddenda, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+
+  // Gate: require auth and Pro subscription (demo mode bypasses)
+  if (!isDemo) {
+    if (!isLoaded || subscription === undefined) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <div className="text-slate-400 text-sm">Loading...</div>
+        </div>
+      );
+    }
+    if (!isSignedIn) {
+      return null; // middleware handles redirect
+    }
+    if (!isPro) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="text-center max-w-md px-4">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">PDF Export is a Pro feature</h2>
+            <p className="text-slate-500 text-sm mb-6">
+              Upgrade to Pro to export bid packages as PDF. 14-day free trial — no card required.
+            </p>
+            <a
+              href="/bidshield/pricing"
+              className="inline-block px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Start Free Trial
+            </a>
+          </div>
+        </div>
+      );
+    }
+  }
 
   // Demo data
   const project = isDemo ? {
