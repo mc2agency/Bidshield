@@ -393,6 +393,50 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_category", ["userId", "category"]),
 
+  // AI-generated labor task breakdown per project
+  bidshield_laborTasks: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    category: v.string(),           // "membrane", "insulation", "flashing", "tearoff", "accessories", "other"
+    task: v.string(),               // e.g. "TPO Membrane Install"
+    unit: v.string(),               // "SF", "LF", "EA", "Day"
+    quantity: v.number(),
+    ratePerUnit: v.number(),        // loaded rate per unit
+    totalCost: v.number(),
+    crewSize: v.number(),
+    days: v.optional(v.number()),   // duration estimate
+    notes: v.optional(v.string()),
+    rateFlag: v.optional(v.string()),  // "low" | "high" | "ok" — vs user rate DB
+    detailType: v.optional(v.string()), // "SF_based" | "LF_based" | "count" | "lump_sum"
+    verified: v.boolean(),          // user-confirmed
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // AI labor analysis metadata per project (one record per analysis run)
+  bidshield_laborAnalysis: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    inputSummary: v.string(),       // what the user described
+    laborType: v.string(),          // "open_shop" | "prevailing_wage" | "union"
+    baseWage: v.number(),           // $/hr
+    burdenMultiplier: v.number(),   // 1.35 | 1.55 | 1.65
+    loadedRate: v.number(),         // baseWage * burdenMultiplier * 8
+    totalLaborCost: v.number(),
+    totalDays: v.optional(v.number()),
+    laborPerSf: v.optional(v.number()),
+    scheduleConflict: v.optional(v.boolean()),
+    scheduleNote: v.optional(v.string()),
+    assumptions: v.array(v.string()),  // AI-stated assumptions
+    warnings: v.array(v.string()),     // AI-stated warnings / Gen. Conds flags
+    analyzedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
   // General Conditions line items per project
   bidshield_gc_items: defineTable({
     projectId: v.id("bidshield_projects"),

@@ -27,7 +27,7 @@ const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React
   { id: "takeoff",           label: "Takeoff",                Icon: Ruler },
   { id: "materials",         label: "Material Reconciliation", shortLabel: "Reconciliation", Icon: Package },
   { id: "pricing",           label: "Pricing",                Icon: DollarSign },
-  { id: "labor",             label: "Labor",        Icon: Users },
+  { id: "labor",             label: "Labor Verification", shortLabel: "Labor", Icon: Users },
   { id: "generalconditions", label: "Gen. Conds",   Icon: Briefcase },
   { id: "quotes",            label: "Quotes",       Icon: Quote },
   { id: "addenda",           label: "Addenda",      Icon: FileText },
@@ -80,6 +80,7 @@ function ProjectDetail() {
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const bidQuals = useQuery(api.bidshield.getBidQuals, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const decisions = useQuery(api.bidshield.getDecisions, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const unverifiedLaborCount = useQuery(api.bidshield.getUnverifiedLaborCount, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addDecision = useMutation(api.bidshield.addDecision);
   const subscription = useQuery(api.users.getUserSubscription, !isDemo && userId ? { clerkId: userId } : "skip");
   const isPro = isDemo || (subscription?.isPro ?? false);
@@ -373,6 +374,15 @@ function ProjectDetail() {
                 <div className="flex items-center gap-2.5">
                   <Icon size={17} strokeWidth={1.75} />
                   <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>{shortLabel ?? label}</span>
+                  {id === "labor" && unverifiedLaborCount !== null && unverifiedLaborCount !== undefined && (
+                    unverifiedLaborCount > 0 ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
+                        {unverifiedLaborCount}
+                      </span>
+                    ) : (
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", display: "inline-block", flexShrink: 0 }} title="All tasks verified" />
+                    )
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span title={dotLabel} style={{ width: 8, height: 8, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default", flexShrink: 0 }} />

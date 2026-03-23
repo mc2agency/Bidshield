@@ -89,6 +89,7 @@ function getLabelGroup(label: string): TabId | "__meta__" {
     "Material Pricing": "materials" as any,
     "Coverage Rates": "materials" as any,
     "Waste Factors": "materials" as any,
+    "Labor Verification": "labor" as any,
   };
   return map[label] ?? "__meta__";
 }
@@ -139,6 +140,14 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
   const datasheets = useQuery(
     api.bidshield.getDatasheets,
     !isDemo && userId ? { userId } : "skip"
+  );
+  const laborTasks = useQuery(
+    api.bidshield.getLaborTasks,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const laborAnalysis = useQuery(
+    api.bidshield.getLaborAnalysis,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
 
   const [hasRun] = useState(true);
@@ -423,6 +432,26 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
         });
       } else if (projectMaterials.filter((m: any) => WASTE_REQUIRED.has(m.category)).length > 0) {
         items.push({ label: "Waste Factors", status: "pass", message: "Waste factors applied to all membrane, insulation, and fastener items" });
+      }
+    }
+
+    // 13. LABOR VERIFICATION
+    if (isDemo) {
+      items.push({ label: "Labor Verification", status: "warn", message: "3 of 8 labor tasks unverified — review before submitting", tabLink: "labor" });
+    } else if (laborTasks !== undefined) {
+      const total = laborTasks?.length ?? 0;
+      if (total === 0) {
+        items.push({ label: "Labor Verification", status: "warn", message: "No labor analysis run — open Labor Verification to build your estimate", tabLink: "labor" });
+      } else {
+        const unverified = (laborTasks ?? []).filter((t: any) => !t.verified).length;
+        const hasConflict = !!(laborAnalysis as any)?.scheduleConflict;
+        if (hasConflict) {
+          items.push({ label: "Labor Verification", status: "fail", message: `Schedule conflict — estimated duration exceeds bid requirement. Review Labor Verification.`, tabLink: "labor" });
+        } else if (unverified > 0) {
+          items.push({ label: "Labor Verification", status: "warn", message: `${unverified} of ${total} labor task${total !== 1 ? "s" : ""} not yet verified`, tabLink: "labor" });
+        } else {
+          items.push({ label: "Labor Verification", status: "pass", message: `All ${total} labor tasks verified` });
+        }
       }
     }
 
