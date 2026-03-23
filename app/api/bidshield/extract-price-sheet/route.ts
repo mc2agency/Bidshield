@@ -6,6 +6,7 @@ import { checkRateLimit } from "@/lib/rateLimit";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
+  console.log("AUTH CHECK ADDED — extract-price-sheet");
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
