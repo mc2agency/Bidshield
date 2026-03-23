@@ -330,7 +330,7 @@ export default function HomepageContent() {
               </div>
               <div className="text-sm text-slate-400 mb-2">Pro</div>
               <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-5xl font-bold text-white">$149</span>
+                <span className="text-5xl font-bold text-white">$249</span>
                 <span className="text-slate-500">/mo</span>
               </div>
               <div className="text-xs text-emerald-400 font-medium mb-6">

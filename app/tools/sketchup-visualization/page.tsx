@@ -676,7 +676,7 @@ export default function SketchUpVisualizationPage() {
               <div className="flex flex-col items-center gap-4 mt-6">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
-                  <span>Included with BidShield Pro — $149/month</span>
+                  <span>Included with BidShield Pro — $249/month</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span className="text-green-500">✓</span>
