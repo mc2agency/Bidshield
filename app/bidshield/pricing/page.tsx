@@ -35,7 +35,7 @@ const plans = [
     name: "Pro",
     price: 149,
     interval: "/mo",
-    description: "For active estimators bidding weekly",
+    description: "For estimators who run a process on every bid",
     features: [
       "Unlimited projects",
       "Everything in Free, plus:",
@@ -135,12 +135,11 @@ export default function PricingPage() {
       {/* Hero */}
       <div className="max-w-6xl mx-auto px-6 py-16 text-center">
         <h1 className="text-4xl font-bold text-slate-900 mb-4">
-          One prevented mistake pays for years of BidShield
+          The professional workflow for commercial roofing estimators.
         </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-2">
-          The 18-phase pre-submission review built for commercial roofing subcontractors.
-          Catches what estimating software can&apos;t — addenda scope changes, mechanical curb mismatches,
-          submittal risks, and missed sections.
+          From first plan review to final submission — Material Reconciliation, Labor Verification,
+          GC Bid Forms, and a 134-item checklist built by someone who has done this for 12 years.
         </p>
         <p className="text-sm text-slate-400 mt-3">
           Works alongside The EDGE, STACK, Excel, or whatever you use today. No replacement required.
@@ -151,10 +150,10 @@ export default function PricingPage() {
       <div className="max-w-2xl mx-auto px-6 mb-12">
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
           <p className="text-sm font-semibold text-amber-800">
-            A single missed mechanical curb section on a $3M bid costs $30,000–$80,000.
+            Pro at $249/mo. On a $3M bid, a structured pre-submission process takes 2–3 hours and protects months of work.
           </p>
           <p className="text-sm text-amber-700 mt-1">
-            Pro at $149/month = $1,788/year. One prevented error pays for 16+ years of the tool.
+            That&apos;s why professional estimators run one every time.
           </p>
         </div>
       </div>
@@ -291,7 +290,7 @@ export default function PricingPage() {
             {[
               {
                 q: "Does this replace my estimating software?",
-                a: "No. BidShield is the last step before you submit — not a replacement for The EDGE, STACK, or your spreadsheets. It reviews your completed bid for things estimating software can't catch."
+                a: "No. BidShield is the workflow layer that runs alongside your estimating software. The EDGE tells you what's in your bid. BidShield gives you the structured process to verify it — scope, pricing, labor, addenda, GC forms — before you submit."
               },
               {
                 q: "What does the free trial include?",

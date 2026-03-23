@@ -56,7 +56,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Protecting contractors from costly bidding errors.
+              The bid workflow tool for commercial roofing estimators.
             </p>
             <div className="flex gap-4 pt-2">
               <a href="https://www.linkedin.com/company/mc2-estimating" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors" aria-label="LinkedIn">

@@ -7,23 +7,23 @@ const mistakeScenarios = [
   {
     icon: '🔩',
     cost: '$47,000',
-    title: 'Missed Mechanical Curbs',
-    scenario: 'TPO job, 2.8M SF. Estimator skipped the mechanical plan. 14 curbs not in scope. GC back-charges the sub after installation.',
-    phase: 'Caught in Phase 9 — Mechanical Review',
+    title: 'Mechanical Plan Review',
+    scenario: 'Every mechanical plan reviewed for curbs, equipment supports, and dunnage before takeoff. Quantities verified against the plan set.',
+    phase: 'Covered in Phase 5 — Mechanical Review',
   },
   {
     icon: '📋',
     cost: '$31,000',
-    title: 'Missed Addendum',
-    scenario: 'Addendum 3 added 18,000 SF of coverboard. Estimator missed it. Won the bid, now eating the material cost.',
-    phase: 'Caught in Phase 10 — Addenda Review',
+    title: 'Addenda Tracking',
+    scenario: 'Every addendum logged, reviewed for scope impact, and confirmed incorporated before submission. No surprises on bid day.',
+    phase: 'Covered in Phase 2 — Addenda Review',
   },
   {
     icon: '📁',
     cost: '$22,000',
-    title: 'Wrong Submittal Requirements',
-    scenario: 'Spec required 3rd-party submittal package. Estimator excluded it. Owner deducts the full package cost from final payment.',
-    phase: 'Caught in Phase 9 — Specification Review',
+    title: 'Specification Review',
+    scenario: 'Spec sections reviewed for submittal requirements, special inspections, and compliance items that affect your scope and cost.',
+    phase: 'Covered in Phase 9 — Specification Review',
   },
 ];
 
@@ -52,19 +52,19 @@ export default function HomepageContent() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            The Bidding Command Center for Commercial Roofing
+            The Bid Workflow Tool for Commercial Roofing Estimators
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            One mistake on bid day
+            Every bid. Every phase.
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-              costs $30,000–$80,000.
+              Every time.
             </span>
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-            BidShield is the pre-submission review layer that works alongside The EDGE, STACK, and Excel — built by a 12-year commercial roofing estimator for the mistakes those tools can&apos;t catch.
+            BidShield is the structured workflow commercial roofing estimators run from first plan review to final submission. Works alongside The EDGE, STACK, and Excel — built by a 12-year estimator who needed it.
           </p>
           <p className="text-sm text-emerald-400 font-medium mb-10">
             Works alongside The EDGE, STACK, and Excel — no replacement required.
@@ -110,13 +110,13 @@ export default function HomepageContent() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              These mistakes happen{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-400">
-                every week.
+              What BidShield{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                covers.
               </span>
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              BidShield runs each one through 18 phases before you submit.
+              18 phases from project setup to bid submission. Every discipline. Every item.
             </p>
           </div>
 
@@ -145,8 +145,8 @@ export default function HomepageContent() {
       <section className="py-20 bg-slate-900 border-t border-slate-800">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-lg sm:text-xl text-slate-300 leading-relaxed">
-            After 12 years estimating commercial roofing, I built the review process I always wished existed.
-            Every phase, every discipline, every item that costs you money when you miss it.
+            After 12 years estimating commercial roofing, I built the workflow I always ran on paper — finally
+            in one place. Every phase, every discipline, every item that needs to be verified before you submit.
           </p>
           <p className="mt-6 text-sm text-slate-500">
             — Founder, MC2 Estimating
@@ -299,7 +299,7 @@ export default function HomepageContent() {
             </span>
           </h2>
           <p className="text-xl text-slate-400 mb-12">
-            One missed line item can cost you thousands. BidShield pays for itself on the first bid.
+            One tool. Every bid phase. Built for commercial roofing estimators who run a process.
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
@@ -372,14 +372,14 @@ export default function HomepageContent() {
       <section className="py-24 bg-gradient-to-b from-slate-950 to-slate-900 border-t border-slate-800">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Stop Losing Money on{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-400">
-              Missed Line Items
+            Submit every bid{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+              with confidence.
             </span>
           </h2>
           <p className="text-xl text-slate-300 mb-10">
-            One forgotten curb flashing, one expired quote, one wrong coverage rate — that&apos;s thousands off your bottom line.
-            BidShield catches what you miss.
+            Material Reconciliation, Labor Verification, Scope tracking, GC Bid Forms — every part of your
+            pre-submission process in one place. Run your workflow, not a checklist of what might go wrong.
           </p>
           <Link
             href="/sign-up"
