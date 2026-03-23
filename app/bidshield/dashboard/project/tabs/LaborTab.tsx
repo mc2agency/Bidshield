@@ -359,7 +359,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
 • Tear-off details (existing system, gravel, overlay vs. full tear)
 • Flashing scope (counterflashing, edge metal, curbs)
 • Penetrations (count of pipes, drains, HVAC curbs)
-• Any special conditions (phasing, schedule constraints, access)`}
+• Any special conditions (phasing, schedule restrictions, access)`}
               rows={7}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-slate-900 text-sm resize-none font-mono"
             />

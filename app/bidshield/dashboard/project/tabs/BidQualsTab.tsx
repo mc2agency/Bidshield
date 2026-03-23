@@ -920,12 +920,12 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabPro
           />
         </Field>
         {(data.insuranceProgram === "ccip" || data.insuranceProgram === "ocip") && (
-          <Field label="Wrap-up enrollment / admin contact">
+          <Field label="Wrap-up admin contact">
             <input
               type="text"
               className={INPUT_CLS}
               defaultValue={data.wrapUpNotes ?? ""}
-              placeholder="Contact name, portal URL, or enrollment notes"
+              placeholder="Contact name, portal URL, or admin notes"
               onBlur={e => saveField("wrapUpNotes", e.target.value)}
             />
           </Field>
@@ -998,7 +998,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabPro
                 onBlur={e => saveField("mbeGoalPct", e.target.value)}
               />
             </Field>
-            <Field label="Certifications held">
+            <Field label="MBE/WBE credentials">
               <input
                 type="text"
                 className={INPUT_CLS}
