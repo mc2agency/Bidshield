@@ -80,13 +80,13 @@ export default function ProductsContent() {
                   <div>
                     <p className="text-lg text-emerald-100 mb-6">
                       {isEs
-                        ? 'Todos los sistemas de techos cubiertos. Accede a todas las plantillas más la plataforma completa de estimación de BidShield por $249/mes.'
-                        : 'Every roofing system covered. Access all templates plus the full BidShield estimating platform for $249/month.'}
+                        ? 'Todos los sistemas de techos cubiertos. Accede a todas las plantillas más la plataforma completa de estimación de BidShield por $149/mes.'
+                        : 'Every roofing system covered. Access all templates plus the full BidShield estimating platform for $149/month.'}
                     </p>
 
                     <div className="mb-6">
                       <div className="flex items-baseline gap-3 mb-2">
-                        <span className="text-5xl font-bold">$249</span>
+                        <span className="text-5xl font-bold">$149</span>
                         <span className="text-2xl text-emerald-200">{isEs ? '/mes' : '/month'}</span>
                       </div>
                       <p className="text-sm text-emerald-200">
@@ -216,7 +216,7 @@ export default function ProductsContent() {
               href="/bidshield/pricing"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
             >
-              {isEs ? 'Ver BidShield Pro — $249/mes' : 'See BidShield Pro — $249/month'}
+              {isEs ? 'Ver BidShield Pro — $149/mes' : 'See BidShield Pro — $149/month'}
             </Link>
           </div>
         </section>

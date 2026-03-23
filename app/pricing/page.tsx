@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'BidShield Pro — commercial roofing estimating platform. $249/month, 14-day free trial.',
+  description: 'BidShield Pro — commercial roofing estimating platform. $149/month, 14-day free trial.',
   keywords: 'roofing estimating pricing, BidShield Pro, commercial roofing software',
 };
 
@@ -33,8 +33,8 @@ export default function PricingPage() {
           <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-2xl p-10 text-white text-center">
             <div className="text-5xl mb-4">🛡️</div>
             <h2 className="text-3xl font-bold mb-2">BidShield Pro</h2>
-            <div className="text-5xl font-bold mb-2">$249<span className="text-2xl font-normal">/mo</span></div>
-            <p className="text-emerald-100 mb-8">or $2,490/year — save 2 months</p>
+            <div className="text-5xl font-bold mb-2">$149<span className="text-2xl font-normal">/mo</span></div>
+            <p className="text-emerald-100 mb-8">or $1,490/year — save 2 months</p>
 
             <ul className="text-left space-y-3 mb-10">
               {[

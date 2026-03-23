@@ -23,7 +23,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         <div className="text-center">
           <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached your free plan limit</h2>
-          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $249/month</p>
+          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $149/month</p>
           <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm">
             Upgrade to Pro &rarr;
           </a>
