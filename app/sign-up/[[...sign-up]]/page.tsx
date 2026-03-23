@@ -23,6 +23,7 @@ export default function SignUpPage() {
         </div>
         {isClient ? (
           <SignUp
+            afterSignUpUrl="/bidshield/dashboard?signup=1"
             appearance={{
               elements: {
                 rootBox: "mx-auto",

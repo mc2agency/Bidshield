@@ -2,6 +2,7 @@
 import { DEMO_MATERIALS as IMPORTED_MATERIALS } from "@/lib/bidshield/demo-data";
 
 import React, { useState, useMemo, useCallback, useRef } from "react";
+import { track } from "@vercel/analytics";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -485,6 +486,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         if (!data.items?.length) { setIsUploading(false); return; }
 
         // Show preview modal — don't save yet
+        track("material_report_uploaded");
         setPreviewItems(data.items);
         setPreviewFilename(file.name);
       } catch (err) {

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { gtagEvent } from "@/lib/gtag";
+import { track } from "@vercel/analytics";
 
 // Items prefixed with "## " render as section headers, not feature rows
 const PRO_FEATURES = [
@@ -64,6 +65,7 @@ export default function PricingPage() {
 
   useEffect(() => {
     gtagEvent("view_pricing");
+    track("pricing_viewed");
   }, []);
 
   const planId = annual ? "pro_annual" : "pro_monthly";
@@ -72,6 +74,7 @@ export default function PricingPage() {
 
   const handleCheckout = async () => {
     gtagEvent("begin_checkout", { plan: planId });
+    track("trial_started", { source: "pricing_page", plan: "pro", price: annual ? 2490 : 249 });
 
     if (!isSignedIn) {
       window.location.href = `/sign-up?redirect=/bidshield/pricing`;

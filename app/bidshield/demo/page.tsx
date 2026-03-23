@@ -577,7 +577,7 @@ export default function BidShieldDemoPage() {
                 Most Popular
               </div>
               <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#34d399" }}>Pro</div>
-              <div className="text-2xl font-extrabold text-white mb-4">$149<span className="text-base font-normal" style={{ color: "#64748b" }}>/mo</span></div>
+              <div className="text-2xl font-extrabold text-white mb-4">$249<span className="text-base font-normal" style={{ color: "#64748b" }}>/mo</span></div>
               <ul className="flex flex-col gap-2.5 mb-6">
                 {[
                   "Everything in Free",
@@ -600,7 +600,7 @@ export default function BidShieldDemoPage() {
               <Link href="/bidshield/pricing"
                 className="block w-full py-3 rounded-xl text-sm font-bold text-center transition-all hover:scale-[1.02] active:scale-[0.98]"
                 style={{ background: "#10b981", color: "#fff" }}>
-                Go Pro — $149/mo
+                Go Pro — $249/mo
               </Link>
             </div>
           </div>

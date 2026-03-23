@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import OnboardingWizard from "./OnboardingWizard";
 import NewBidWizard from "./NewBidWizard";
+import { track } from "@vercel/analytics";
 
 // ============================================================
 // UPGRADE MODAL
@@ -22,7 +23,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         <div className="text-center">
           <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached your free plan limit</h2>
-          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $149/month</p>
+          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $249/month</p>
           <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm">
             Upgrade to Pro &rarr;
           </a>
@@ -341,12 +342,23 @@ function DashboardContent() {
       setShowOnboarding(true);
     }
   }, [isDemo, convexProjects, userId]);
+
+  // Track demo views
+  useEffect(() => {
+    if (isDemo) track("demo_viewed");
+  }, [isDemo]);
+
+  // Track sign-up completions — Clerk redirects here with ?signup=1 after registration
+  useEffect(() => {
+    if (searchParams.get("signup") === "1") track("signup_completed");
+  }, [searchParams]);
   const isLoading = !isDemo && convexProjects === undefined;
 
   const handleCreateProject = async (np: any) => {
     if (!np.name || !np.location || !np.bidDate) return;
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
     if (!userId) return;
+    const isFirst = (convexProjects?.length ?? 0) === 0;
     const projectId = await createProjectMut({
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
       trade: np.trade || "roofing",
@@ -358,6 +370,7 @@ function DashboardContent() {
       estimatedValue: np.estimatedValue ? parseInt(np.estimatedValue) : undefined,
       assemblies: np.assemblies ? np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean) : [],
     });
+    if (isFirst) track("first_project_created");
     setShowNewProject(false);
     router.push(`/bidshield/dashboard/project?id=${projectId}`);
   };
