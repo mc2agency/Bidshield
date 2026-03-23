@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'BuildingConnected Guide: How to Find & Win Construction Bids [2025]',
-  description: 'Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.',
+export const metadata: Metadata = {
+  title: "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
+  description: "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",
+  openGraph: {
+    title: "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
+    description: "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",
+    type: "article",
+    publishedTime: "2025-12-10",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=BuildingConnected Guide: How to Find & Win Construction Bids [2025]&type=article",
+        width: 1200,
+        height: 630,
+        alt: "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
+    description: "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",
+    images: ["/api/og?title=BuildingConnected Guide: How to Find & Win Construction Bids [2025]&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
+  "description": "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2025-12-10",
+  "dateModified": "2025-12-10",
+  "image": "https://mc2estimating.com/api/og?title=BuildingConnected Guide: How to Find & Win Construction Bids [2025]&type=article",
+  "url": "https://mc2estimating.com/blog/buildingconnected-guide",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/buildingconnected-guide"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "BuildingConnected Guide: How to Find & Win Construction Bids [2025]", "item": "https://mc2estimating.com/blog/buildingconnected-guide" }
+  ]
 };
 
 export default function BuildingConnectedArticle() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

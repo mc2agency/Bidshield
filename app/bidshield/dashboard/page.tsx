@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import OnboardingWizard from "./OnboardingWizard";
 import NewBidWizard from "./NewBidWizard";
+import { track } from "@vercel/analytics";
 
 // ============================================================
 // UPGRADE MODAL
@@ -22,7 +23,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         <div className="text-center">
           <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached your free plan limit</h2>
-          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $149/month</p>
+          <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $249/month</p>
           <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm">
             Upgrade to Pro &rarr;
           </a>
@@ -80,24 +81,41 @@ const demoStats = {
 // ============================================================
 // STAT CARD
 // ============================================================
-function StatCard({ value, label, icon, accent }: {
+function StatCard({ value, label, dimmed }: {
   value: string | number;
   label: string;
-  icon: string;
-  accent: "emerald" | "blue" | "amber" | "slate";
+  dimmed?: boolean;
 }) {
-  const styles = {
-    emerald: { card: "bg-emerald-50 border-emerald-100", value: "text-emerald-700", icon: "bg-emerald-100 text-emerald-600" },
-    blue: { card: "bg-blue-50 border-blue-100", value: "text-blue-700", icon: "bg-blue-100 text-blue-600" },
-    amber: { card: "bg-amber-50 border-amber-100", value: "text-amber-700", icon: "bg-amber-100 text-amber-600" },
-    slate: { card: "bg-white border-slate-100", value: "text-slate-800", icon: "bg-slate-100 text-slate-600" },
-  };
-  const s = styles[accent];
   return (
-    <div className={`rounded-xl p-5 border ${s.card} transition-all hover:shadow-md`}>
-      <span className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${s.icon} mb-3`}>{icon}</span>
-      <div className={`text-3xl font-bold tracking-tight ${s.value}`}>{value}</div>
-      <div className="text-sm text-slate-500 mt-1 font-medium">{label}</div>
+    <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 20, opacity: dimmed ? 0.5 : 1 }}>
+      <div style={{ fontSize: 30, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em", lineHeight: 1 }}>{dimmed ? "—" : value}</div>
+      <div style={{ fontSize: 13, color: "#6b7280", marginTop: 6, fontWeight: 500 }}>{label}</div>
+    </div>
+  );
+}
+
+// ============================================================
+// WELCOME CARD (zero-project state)
+// ============================================================
+function WelcomeCard({ onNewBid }: { onNewBid: () => void }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-8 py-10 text-center">
+      <h2 className="text-xl font-bold text-slate-900 mb-2">Welcome to BidShield</h2>
+      <p className="text-slate-500 text-sm mb-6">Start your first bid review to catch what estimating software misses.</p>
+      <button
+        onClick={onNewBid}
+        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+        + New Bid
+      </button>
+      <div className="flex items-center justify-center flex-wrap gap-x-2 gap-y-1 mt-6 text-xs text-slate-400">
+        <span>1. Create a project</span>
+        <span className="text-slate-300">→</span>
+        <span>2. Run through the checklist</span>
+        <span className="text-slate-300">→</span>
+        <span>3. Validate before you submit</span>
+      </div>
     </div>
   );
 }
@@ -120,7 +138,9 @@ function ProjectRow({ project, isDemo, onStatusChange, router }: {
   const daysUntil = Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const isUrgent = daysUntil <= 3 && daysUntil >= 0;
   const isPastDue = daysUntil < 0;
-  const dpsf = (project.estimatedValue && project.sqft) ? (project.estimatedValue / project.sqft).toFixed(2) : null;
+  const totalBid = (project as any).totalBidAmount ?? project.estimatedValue;
+  const roofArea = (project as any).grossRoofArea ?? project.sqft;
+  const dpsf = (totalBid && roofArea) ? (totalBid / roofArea).toFixed(2) : null;
   const systemType = (project as any).systemType as string | undefined;
 
   return (
@@ -141,7 +161,7 @@ function ProjectRow({ project, isDemo, onStatusChange, router }: {
       </td>
       <td className="px-4 py-3">
         {systemType ? (
-          <span className="text-[10px] font-semibold bg-violet-50 text-violet-600 px-2 py-0.5 rounded-md uppercase">{systemType}</span>
+          <span style={{ fontSize: 12, fontWeight: 500, background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: 4 }}>{systemType.toUpperCase()}</span>
         ) : project.assemblies && project.assemblies.length > 0 ? (
           <span className="text-xs text-slate-500 truncate max-w-[100px] block">{project.assemblies[0]}</span>
         ) : <span className="text-xs text-slate-400">—</span>}
@@ -322,12 +342,23 @@ function DashboardContent() {
       setShowOnboarding(true);
     }
   }, [isDemo, convexProjects, userId]);
+
+  // Track demo views
+  useEffect(() => {
+    if (isDemo) track("demo_viewed");
+  }, [isDemo]);
+
+  // Track sign-up completions — Clerk redirects here with ?signup=1 after registration
+  useEffect(() => {
+    if (searchParams.get("signup") === "1") track("signup_completed");
+  }, [searchParams]);
   const isLoading = !isDemo && convexProjects === undefined;
 
   const handleCreateProject = async (np: any) => {
     if (!np.name || !np.location || !np.bidDate) return;
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
     if (!userId) return;
+    const isFirst = (convexProjects?.length ?? 0) === 0;
     const projectId = await createProjectMut({
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
       trade: np.trade || "roofing",
@@ -335,9 +366,11 @@ function DashboardContent() {
       deckType: np.deckType || undefined,
       gc: np.gc || undefined,
       sqft: np.sqft ? parseInt(np.sqft) : undefined,
+      grossRoofArea: np.sqft ? parseInt(np.sqft) : undefined,
       estimatedValue: np.estimatedValue ? parseInt(np.estimatedValue) : undefined,
       assemblies: np.assemblies ? np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean) : [],
     });
+    if (isFirst) track("first_project_created");
     setShowNewProject(false);
     router.push(`/bidshield/dashboard/project?id=${projectId}`);
   };
@@ -407,13 +440,25 @@ function DashboardContent() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard value={stats.activeProjects} label="Active Bids" icon="📋" accent="slate" />
-        <StatCard value={`${stats.winRate}%`} label="Win Rate" icon="🎯" accent={stats.winRate >= 50 ? "emerald" : "amber"} />
-        <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" icon="✅" accent="emerald" />
-        <StatCard value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`} label="Pipeline Value" icon="💰" accent="blue" />
-      </div>
+      {/* Stats / Welcome */}
+      {!isDemo && projects.length === 0 ? (
+        <WelcomeCard onNewBid={handleNewBidClick} />
+      ) : (
+        <div className="grid grid-cols-4 gap-4">
+          <StatCard value={stats.activeProjects} label="Active Bids" />
+          <StatCard
+            value={`${stats.winRate}%`}
+            label="Win Rate"
+            dimmed={stats.winRate === 0 && stats.wonProjects + stats.lostProjects === 0}
+          />
+          <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" />
+          <StatCard
+            value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`}
+            label="Pipeline Value"
+            dimmed={stats.pipelineValue === 0}
+          />
+        </div>
+      )}
 
       {/* Alerts */}
       {(stats.expiringQuotes > 0 || stats.openRFIs > 0) && (
@@ -439,21 +484,6 @@ function DashboardContent() {
           )}
         </div>
       )}
-
-      {/* Templates Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl shrink-0">📊</div>
-          <div>
-            <p className="font-semibold text-white">Speed up your estimates with BidShield Templates</p>
-            <p className="text-sm text-emerald-100">Material takeoffs, labor calcs &amp; professional proposals &mdash; all pre-built</p>
-          </div>
-        </div>
-        <div className="flex gap-3 shrink-0">
-          <a href={isDemo ? "/bidshield/dashboard/datasheets?demo=true" : "/bidshield/dashboard/datasheets"} className="px-4 py-2 border border-white/30 text-white hover:bg-white/10 font-medium rounded-lg text-sm whitespace-nowrap transition-colors">Material Database</a>
-          <a href="/bidshield/pricing" className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold rounded-lg text-sm whitespace-nowrap transition-colors">Upgrade to Pro &rarr;</a>
-        </div>
-      </div>
 
       {/* Active Bids — table on desktop, cards on mobile */}
       <div>
@@ -504,17 +534,14 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Free tier banner */}
+      {/* Free tier — subtle bottom notice */}
       {!isDemo && !isPro && (
-        <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
-          <div className="flex items-center gap-3">
-            <span className="text-amber-500 text-lg">⚡</span>
-            <p className="text-sm text-amber-800 font-medium">
-              You&apos;re on the free plan &mdash; {activeProjects.length} of 1 project{activeProjects.length !== 1 ? "s" : ""} used
-            </p>
-          </div>
-          <a href="/bidshield/pricing" className="shrink-0 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors">
-            Upgrade to Pro
+        <div style={{ textAlign: "center", paddingBottom: 8 }}>
+          <span style={{ fontSize: 13, color: "#9ca3af" }}>
+            Free plan · {activeProjects.length} of 1 project used ·{" "}
+          </span>
+          <a href="/bidshield/pricing" style={{ fontSize: 13, color: "#10b981", fontWeight: 500 }} className="hover:opacity-80 transition-opacity">
+            Upgrade to Pro →
           </a>
         </div>
       )}

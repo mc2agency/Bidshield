@@ -7,8 +7,9 @@ import { useSearchParams, usePathname } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
 import { gtagEvent } from "@/lib/gtag";
 
 const NAV_ITEMS = [
@@ -33,6 +34,16 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: "/bidshield/dashboard/vendors",
+    label: "Vendors",
+    exact: false,
+    icon: (
+      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+      </svg>
+    ),
+  },
+  {
     href: "/bidshield/dashboard/templates",
     label: "Templates",
     exact: false,
@@ -44,7 +55,7 @@ const NAV_ITEMS = [
   },
   {
     href: "/bidshield/dashboard/datasheets",
-    label: "Datasheets",
+    label: "Quotes & Pricing",
     exact: false,
     icon: (
       <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -55,6 +66,9 @@ const NAV_ITEMS = [
 ];
 
 function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: string; isPro: boolean }) {
+  // Project pages have their own sidebar — hide the outer one entirely
+  if (pathname.startsWith("/bidshield/dashboard/project")) return null;
+
   const { userId, isSignedIn } = useAuth();
   const demoSuffix = isDemo ? "?demo=true" : "";
 
@@ -64,7 +78,7 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-60 bg-slate-900 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="hidden lg:flex flex-col w-60 bg-slate-900 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-slate-800">
         <div className="flex items-center gap-2.5">
@@ -99,16 +113,13 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
         })}
       </nav>
 
-      {/* Upgrade nudge — free users only, hidden inside project pages */}
-      {!isDemo && !isPro && isSignedIn && !pathname.startsWith("/bidshield/dashboard/project") && (
-        <div className="px-3 pb-3">
-          <div className="bg-slate-800 rounded-xl p-3">
-            <p className="text-xs text-slate-300 font-semibold mb-0.5">Free plan</p>
-            <p className="text-[10px] text-slate-500 mb-2">1 project limit. Upgrade for unlimited bids.</p>
-            <Link href="/bidshield/pricing" className="block text-center py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors">
-              Upgrade to Pro
-            </Link>
-          </div>
+      {/* Free plan — subtle single-line at sidebar bottom */}
+      {!isDemo && !isPro && isSignedIn && (
+        <div className="px-4 pb-2">
+          <span className="text-[12px] text-slate-500">Free plan · </span>
+          <Link href="/bidshield/pricing" className="text-[12px] text-emerald-500 hover:text-emerald-400 transition-colors font-medium">
+            Upgrade →
+          </Link>
         </div>
       )}
 
@@ -147,30 +158,50 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
   );
 }
 
-function MobileBottomNav({ isDemo, pathname }: { isDemo: boolean; pathname: string }) {
-  const demoSuffix = isDemo ? "?demo=true" : "";
+function MobileNav({ pathname, isDemo, isPro }: { pathname: string; isDemo: boolean; isPro: boolean }) {
+  // Project pages have their own mobile bottom bar
+  if (pathname.startsWith("/bidshield/dashboard/project")) return null;
 
-  const isActive = (href: string, exact: boolean) => {
-    if (exact) return pathname === href;
-    return pathname.startsWith(href);
-  };
+  const demoSuffix = isDemo ? "?demo=true" : "";
+  const tabs = [
+    { href: "/bidshield/dashboard", label: "Dashboard", exact: true, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+      </svg>
+    )},
+    { href: "/bidshield/dashboard/analytics", label: "Analytics", exact: false, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+      </svg>
+    )},
+    { href: "/bidshield/dashboard/vendors", label: "Vendors", exact: false, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+      </svg>
+    )},
+    { href: "/bidshield/dashboard/templates", label: "Templates", exact: false, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+      </svg>
+    )},
+    { href: "/bidshield/dashboard/datasheets", label: "Pricing", exact: false, icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.25v2.625c0 2.278-3.694 4.125-8.25 4.125S3.75 13.522 3.75 11.25V8.625m16.5 2.625v2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125v-2.625" />
+      </svg>
+    )},
+  ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900 border-t border-slate-800 flex items-stretch h-16 safe-area-inset-bottom">
-      {NAV_ITEMS.map(({ href, label, exact, icon }) => {
-        const active = isActive(href, exact);
-        const fullHref = href + demoSuffix;
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center bg-slate-900 border-t border-slate-800" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      {tabs.map(({ href, label, exact, icon }) => {
+        const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link
             key={href}
-            href={fullHref}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors ${
-              active ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"
-            }`}
+            href={href + demoSuffix}
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${active ? "text-emerald-400" : "text-slate-500"}`}
           >
-            <span className={`w-5 h-5 flex items-center justify-center ${active ? "[&_svg]:stroke-emerald-400" : ""}`}>
-              {icon}
-            </span>
+            {icon}
             {label}
           </Link>
         );
@@ -181,11 +212,13 @@ function MobileBottomNav({ isDemo, pathname }: { isDemo: boolean; pathname: stri
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn, userId } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const isDemo = searchParams.get("demo") === "true";
-
+  const getOrCreateUser = useMutation(api.users.getOrCreateUser);
+  const existingUser = useQuery(api.users.getCurrentUser, userId ? { clerkId: userId } : "skip");
   const subscription = useQuery(
     api.users.getUserSubscription,
     !isDemo && isSignedIn && userId ? { clerkId: userId } : "skip"
@@ -219,6 +252,18 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     if (userId) localStorage.setItem(`bs_trial_banner_dismissed_${userId}`, "1");
     setShowTrialBanner(false);
   };
+
+  // Ensure user row exists in Convex (needed for subscription checks)
+  useEffect(() => {
+    if (!user || !isSignedIn || existingUser === undefined) return;
+    if (existingUser === null) {
+      getOrCreateUser({
+        clerkId: user.id,
+        email: user.emailAddresses[0]?.emailAddress ?? "",
+        name: user.fullName ?? user.emailAddresses[0]?.emailAddress ?? "",
+      });
+    }
+  }, [user, isSignedIn, existingUser, getOrCreateUser]);
 
   if (!isLoaded && !isDemo) {
     return (
@@ -264,10 +309,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         )}
-        <main className="flex-1 min-w-0 overflow-auto p-6 pb-20 md:pb-6">{children}</main>
+        <main className="flex-1 min-w-0 overflow-auto p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
       </div>
 
-      <MobileBottomNav isDemo={isDemo} pathname={pathname} />
+      <MobileNav pathname={pathname} isDemo={isDemo} isPro={isPro} />
     </div>
   );
 }

@@ -66,6 +66,7 @@ export default defineSchema({
       v.literal("submitted"),
       v.literal("won"),
       v.literal("lost"),
+      v.literal("no_award"),
       v.literal("no_bid")
     ),
     trade: v.optional(v.string()), // "roofing", "concrete", etc.
@@ -95,6 +96,12 @@ export default defineSchema({
     actualOtherCost: v.optional(v.number()),
     postJobStatus: v.optional(v.string()), // "in_progress", "completed", "actuals_entered"
     postJobNotes: v.optional(v.string()), // Lessons learned, variance explanations
+    fmGlobal: v.optional(v.boolean()), // Is this building FM Global insured?
+    pre1990: v.optional(v.boolean()), // Was this building constructed before 1990?
+    competitorName: v.optional(v.string()), // Who won when you lost
+    competitorPrice: v.optional(v.number()), // Competitor's bid price
+    energyCode: v.optional(v.boolean()), // Does project replace >50% roof area or >2,000 SF?
+    climateZone: v.optional(v.string()), // ASHRAE climate zone (1-8)
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -154,10 +161,27 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user_project", ["userId", "projectId"]),
 
+  // Account-level vendor address book
+  bidshield_vendors: defineTable({
+    userId: v.string(), // Clerk user ID
+    companyName: v.string(),
+    repName: v.optional(v.string()),
+    repPhone: v.optional(v.string()),
+    repEmail: v.optional(v.string()),
+    territory: v.optional(v.string()),
+    categories: v.array(v.string()), // "membrane", "insulation", "fasteners", etc.
+    notes: v.optional(v.string()),
+    active: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_active", ["userId", "active"]),
+
   // Vendor quotes
   bidshield_quotes: defineTable({
     userId: v.string(),
     projectId: v.optional(v.id("bidshield_projects")), // Can be project-specific or general
+    vendorId: v.optional(v.id("bidshield_vendors")), // Link to vendor record
     vendorName: v.string(),
     vendorEmail: v.optional(v.string()),
     vendorPhone: v.optional(v.string()),
@@ -176,6 +200,9 @@ export default defineSchema({
     ),
     notes: v.optional(v.string()),
     attachmentUrl: v.optional(v.string()),
+    sourcePdf: v.optional(v.string()),
+    isExtracted: v.optional(v.boolean()),
+    globalQuoteId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -274,6 +301,13 @@ export default defineSchema({
     takeoffItemType: v.optional(v.string()), // links to takeoff line item type for linear/count
     notes: v.optional(v.string()),
     sortOrder: v.number(),
+    // Verification fields
+    coverageRate: v.optional(v.string()),   // e.g. "100 SF/RL" — from report, AI, or manual
+    coverageSource: v.optional(v.string()), // "report" | "ai_estimated" | "manual"
+    extractedFromPdf: v.optional(v.boolean()),
+    pricingVerified: v.optional(v.boolean()),
+    coverageVerified: v.optional(v.boolean()),
+    wasteVerified: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -303,6 +337,52 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Bid Qualifications tracker per project (one document per project)
+  bidshield_bid_quals: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    plansDated: v.optional(v.string()),
+    planRevision: v.optional(v.string()),
+    specSections: v.optional(v.string()),
+    addendaThrough: v.optional(v.number()),
+    drawingSheets: v.optional(v.string()),
+    laborType: v.optional(v.union(v.literal("open_shop"), v.literal("prevailing_wage"), v.literal("union"))),
+    wageDeterminationNum: v.optional(v.string()),
+    wageDeterminationDate: v.optional(v.string()),
+    unionLocal: v.optional(v.string()),
+    laborBurdenRate: v.optional(v.string()),
+    estimatedDuration: v.optional(v.string()),
+    earliestStart: v.optional(v.string()),
+    materialLeadTime: v.optional(v.string()),
+    submittalTurnaround: v.optional(v.string()),
+    bidGoodFor: v.optional(v.string()),
+    insuranceProgram: v.optional(v.union(v.literal("own"), v.literal("ccip"), v.literal("ocip"))),
+    wrapUpNotes: v.optional(v.string()),
+    additionalInsuredRequired: v.optional(v.boolean()),
+    buildersRiskBy: v.optional(v.union(v.literal("owner"), v.literal("gc"), v.literal("included"))),
+    bondRequired: v.optional(v.boolean()),
+    bondTypes: v.optional(v.string()),
+    emr: v.optional(v.string()),
+    mbeGoals: v.optional(v.boolean()),
+    mbeGoalPct: v.optional(v.string()),
+    mbeCertifications: v.optional(v.string()),
+    certifiedPayrollRequired: v.optional(v.boolean()),
+    safetyPlanRequired: v.optional(v.boolean()),
+    backgroundChecksRequired: v.optional(v.boolean()),
+    qualificationsNotes: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"]),
+
+  // Scope clarifications & assumptions per project
+  bidshield_scope_clarifications: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    text: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_project", ["projectId"]),
+
   // User-saved material prices (personal price book)
   bidshield_user_material_prices: defineTable({
     userId: v.string(),
@@ -329,4 +409,135 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_category", ["userId", "category"]),
+
+  // AI-generated labor task breakdown per project
+  bidshield_laborTasks: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    category: v.string(),           // "membrane", "insulation", "flashing", "tearoff", "accessories", "other"
+    task: v.string(),               // e.g. "TPO Membrane Install"
+    unit: v.string(),               // "SF", "LF", "EA", "Day"
+    quantity: v.number(),
+    ratePerUnit: v.number(),        // loaded rate per unit
+    totalCost: v.number(),
+    crewSize: v.number(),
+    days: v.optional(v.number()),   // duration estimate
+    notes: v.optional(v.string()),
+    rateFlag: v.optional(v.string()),  // "low" | "high" | "ok" — vs user rate DB
+    detailType: v.optional(v.string()), // "SF_based" | "LF_based" | "count" | "lump_sum"
+    verified: v.boolean(),          // user-confirmed
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // GC bid form documents (uploaded per project)
+  bidshield_gcBidFormDocuments: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    label: v.string(),
+    uploadedAt: v.number(),
+    processed: v.boolean(),
+    itemCount: v.number(),
+    confirmedCount: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // Items extracted from GC bid form documents
+  bidshield_gcBidFormItems: defineTable({
+    documentId: v.id("bidshield_gcBidFormDocuments"),
+    projectId: v.id("bidshield_projects"),
+    questionText: v.string(),
+    itemType: v.union(v.literal("fill-in"), v.literal("scope-item")),
+    autoConfirmed: v.boolean(),
+    confirmedValue: v.optional(v.string()),
+    matchedField: v.optional(v.string()),
+    foundInScope: v.optional(v.boolean()),
+    foundInChecklist: v.optional(v.boolean()),
+    manuallyChecked: v.boolean(),
+    notes: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_document", ["documentId"])
+    .index("by_project", ["projectId"]),
+
+  // AI labor analysis metadata per project (one record per analysis run)
+  bidshield_laborAnalysis: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    inputSummary: v.string(),       // what the user described
+    laborType: v.string(),          // "open_shop" | "prevailing_wage" | "union"
+    baseWage: v.number(),           // $/hr
+    burdenMultiplier: v.number(),   // 1.35 | 1.55 | 1.65
+    loadedRate: v.number(),         // baseWage * burdenMultiplier * 8
+    totalLaborCost: v.number(),
+    totalDays: v.optional(v.number()),
+    laborPerSf: v.optional(v.number()),
+    scheduleConflict: v.optional(v.boolean()),
+    scheduleNote: v.optional(v.string()),
+    assumptions: v.array(v.string()),  // AI-stated assumptions
+    warnings: v.array(v.string()),     // AI-stated warnings / Gen. Conds flags
+    analyzedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // General Conditions line items per project
+  bidshield_gc_items: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    category: v.string(), // "bidding", "site", "safety", "supervision", "insurance", "markup"
+    description: v.string(),
+    quantity: v.optional(v.number()),
+    unit: v.optional(v.string()),
+    unitCost: v.optional(v.number()),
+    total: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    isMarkup: v.optional(v.boolean()), // true = percentage-based markup row
+    markupPct: v.optional(v.number()), // e.g. 10 = 10%
+    sortOrder: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // Master material/product datasheet library (global, per user)
+  bidshield_datasheets: defineTable({
+    userId: v.string(),
+    productName: v.string(),
+    category: v.string(),
+    unit: v.string(),
+    unitPrice: v.number(),
+    coverage: v.optional(v.number()),      // SF per unit (e.g. 1000 SF/RL)
+    coverageUnit: v.optional(v.string()),  // e.g. "SF/RL"
+    vendorName: v.optional(v.string()),
+    quoteDate: v.optional(v.string()),     // YYYY-MM-DD — the date on the price list
+    pdfUrl: v.optional(v.string()),        // External URL for manually-added spec sheets
+    sourcePdf: v.optional(v.string()),     // Convex storage ID for uploaded PDFs
+    isExtracted: v.optional(v.boolean()), // true = AI-extracted from price sheet
+    quoteId: v.optional(v.id("bidshield_quotes")), // source quote (if auto-populated)
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_created", ["userId", "createdAt"]),
+
+  // Decision log — paper trail for estimating decisions per project
+  bidshield_decisions: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    text: v.string(),
+    who: v.optional(v.string()),
+    section: v.string(),
+    timestamp: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_project_section", ["projectId", "section"]),
 });

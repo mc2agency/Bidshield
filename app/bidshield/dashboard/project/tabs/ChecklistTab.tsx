@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -9,14 +9,6 @@ import type { TabProps } from "../tab-types";
 
 type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
 type FilterMode = "all" | "incomplete" | "flagged" | "rfi" | "done";
-
-const statusConfig: Record<ChecklistStatus, { icon: string; color: string; bg: string; ring: string }> = {
-  done:    { icon: "✓", color: "text-emerald-600", bg: "bg-emerald-50",  ring: "ring-emerald-200" },
-  pending: { icon: "○", color: "text-slate-400",   bg: "bg-slate-50",    ring: "ring-slate-200"   },
-  rfi:     { icon: "?", color: "text-amber-600",   bg: "bg-amber-50",    ring: "ring-amber-200"   },
-  warning: { icon: "⚠", color: "text-red-600",     bg: "bg-red-50",      ring: "ring-red-200"     },
-  na:      { icon: "—", color: "text-slate-400",   bg: "bg-slate-50",    ring: "ring-slate-200"   },
-};
 
 function matchesFilter(status: ChecklistStatus, filter: FilterMode): boolean {
   if (filter === "all") return true;
@@ -27,9 +19,14 @@ function matchesFilter(status: ChecklistStatus, filter: FilterMode): boolean {
   return true;
 }
 
+function formatNoteDate(ts: number | null): string | null {
+  if (!ts) return null;
+  return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 const demoChecklist = getChecklistForTrade("roofing", "tpo", "steel");
 const demoItems = (() => {
-  const items: { phaseKey: string; itemId: string; status: ChecklistStatus; notes: string }[] = [];
+  const items: { phaseKey: string; itemId: string; status: ChecklistStatus; notes: string; updatedAt: number }[] = [];
   const doneIds = ["p1-1", "p1-2", "p1-3", "p2-1", "p2-2", "p2-3", "p3-1", "p3-2"];
   const rfiIds  = ["p3-4", "p5-1"];
   for (const [phaseKey, phase] of Object.entries(demoChecklist)) {
@@ -37,7 +34,7 @@ const demoItems = (() => {
       let status: ChecklistStatus = "pending";
       if (doneIds.includes(item.id)) status = "done";
       if (rfiIds.includes(item.id))  status = "rfi";
-      items.push({ phaseKey, itemId: item.id, status, notes: "" });
+      items.push({ phaseKey, itemId: item.id, status, notes: item.id === "p3-1" ? "Confirmed — drawings received 3/10" : "", updatedAt: Date.now() - 86400000 });
     }
   }
   return items;
@@ -55,14 +52,61 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const [filter, setFilter]           = useState<FilterMode>("incomplete");
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText]       = useState("");
+  const [savedNoteFlash, setSavedNoteFlash] = useState<string | null>(null);
+  const [rfiDrawerKey, setRfiDrawerKey] = useState<string | null>(null);
+  const [rfiQuestion, setRfiQuestion]   = useState("");
+  const [flashedItem, setFlashedItem]   = useState<string | null>(null);
+  const prevPhasePcts = useRef<Record<string, number>>({});
   const touchStartX = useRef<number>(0);
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
+  const [expandedHelp, setExpandedHelp] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const selKey = (pk: string, id: string) => `${pk}__${id}`;
+
+  const toggleSelect = useCallback((key: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
 
   const trade             = project?.trade || "roofing";
   const systemType        = project?.systemType;
   const deckType          = project?.deckType;
-  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType);
+  const fmGlobal          = project?.fmGlobal ?? false;
+  const pre1990           = project?.pre1990 ?? false;
+  const energyCode        = project?.energyCode ?? false;
+  const climateZone       = project?.climateZone ?? "";
+  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal, pre1990, energyCode);
   const resolvedItems     = isDemo ? demoState : (checklistItems ?? []);
+
+  const bulkSetStatus = useCallback(async (target: ChecklistStatus) => {
+    const updates = [...selected].map(key => {
+      const idx = key.indexOf("__");
+      return { phaseKey: key.slice(0, idx), itemId: key.slice(idx + 2) };
+    });
+    if (isDemo) {
+      setDemoState(prev => prev.map(i => {
+        const hit = updates.find(u => u.phaseKey === i.phaseKey && u.itemId === i.itemId);
+        return hit ? { ...i, status: target, updatedAt: Date.now() } : i;
+      }));
+    } else {
+      await Promise.all(updates.map(({ phaseKey, itemId }) =>
+        updateChecklist({
+          projectId: projectId as Id<"bidshield_projects">,
+          phaseKey,
+          itemId,
+          status: target,
+          notes: (resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId) as any)?.notes || "",
+        })
+      ));
+    }
+    clearSelection();
+  }, [selected, isDemo, updateChecklist, projectId, resolvedItems, clearSelection]);
 
   const overall = isDemo
     ? (() => { const d = demoState.filter(i => i.status === "done" || i.status === "na").length; return demoState.length > 0 ? Math.round((d / demoState.length) * 100) : 0; })()
@@ -76,9 +120,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     ((resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId) as any)?.notes) || "",
   [resolvedItems]);
 
+  const getItemUpdatedAt = useCallback((phaseKey: string, itemId: string): number | null =>
+    ((resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId) as any)?.updatedAt) || null,
+  [resolvedItems]);
+
   const setStatus = useCallback(async (phaseKey: string, itemId: string, target: ChecklistStatus) => {
     if (isDemo) {
-      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: target } : i));
+      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, status: target, updatedAt: Date.now() } : i));
     } else {
       const current = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
       await updateChecklist({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: target, notes: (current as any)?.notes });
@@ -86,19 +134,30 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   }, [isDemo, resolvedItems, projectId, updateChecklist]);
 
   const cycleStatus = useCallback(async (phaseKey: string, itemId: string) => {
-    const order: ChecklistStatus[] = ["pending", "done", "rfi", "na"];
+    const order: ChecklistStatus[] = ["pending", "done", "na"];
     const current = getItemStatus(phaseKey, itemId);
-    await setStatus(phaseKey, itemId, order[(order.indexOf(current) + 1) % order.length]);
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    await setStatus(phaseKey, itemId, next);
+    if (next === "done" || next === "na") {
+      const rk = `${phaseKey}-${itemId}`;
+      setFlashedItem(rk);
+      setTimeout(() => setFlashedItem(f => f === rk ? null : f), 500);
+    }
   }, [getItemStatus, setStatus]);
 
   const saveNote = useCallback(async (phaseKey: string, itemId: string, note: string) => {
+    const rk = `${phaseKey}-${itemId}`;
     if (isDemo) {
-      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, notes: note } : i));
+      setDemoState(p => p.map(i => i.phaseKey === phaseKey && i.itemId === itemId ? { ...i, notes: note, updatedAt: Date.now() } : i));
     } else {
       const current = resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId);
       await updateChecklist({ projectId: projectId as Id<"bidshield_projects">, phaseKey, itemId, status: (current as any)?.status || "pending", notes: note });
     }
     setEditingNote(null);
+    if (note.trim()) {
+      setSavedNoteFlash(rk);
+      setTimeout(() => setSavedNoteFlash(f => f === rk ? null : f), 1500);
+    }
   }, [isDemo, resolvedItems, projectId, updateChecklist]);
 
   const getPhaseStats = useCallback((phaseKey: string) => {
@@ -125,11 +184,19 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   }, [checklistTemplate, resolvedItems, getItemStatus]);
 
   const visiblePhases = useMemo(() => {
-    return Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
+    const phases = Object.entries(checklistTemplate).map(([phaseKey, phase]) => {
       const p = phase as any;
-      const items = p.items.filter((item: any) => matchesFilter(getItemStatus(phaseKey, item.id), filter));
-      return { phaseKey, phase: p, items };
+      // Sort: critical items first within each phase
+      const sortedItems = [...p.items].sort((a: any, b: any) => (b.critical ? 1 : 0) - (a.critical ? 1 : 0));
+      const items = sortedItems.filter((item: any) => matchesFilter(getItemStatus(phaseKey, item.id), filter));
+      return { phaseKey, phase: p, items, sortedItems };
     }).filter(({ items }) => items.length > 0);
+    // Always anchor Phase 1 at top in filtered views even if fully complete
+    if (filter !== "all" && !phases.some(p => p.phaseKey === "phase1") && checklistTemplate["phase1"]) {
+      const p1 = checklistTemplate["phase1"] as any;
+      phases.unshift({ phaseKey: "phase1", phase: p1, items: [], sortedItems: [...p1.items] });
+    }
+    return phases;
   }, [checklistTemplate, filter, resolvedItems, getItemStatus]);
 
   const bidDate  = project?.bidDate ? new Date(project.bidDate) : null;
@@ -142,10 +209,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     Object.entries(checklistTemplate).reduce((sum, [phaseKey]) => sum + getPhaseStats(phaseKey).rfis, 0),
   [checklistTemplate, getPhaseStats]);
 
-  // Build quick action items dynamically
   const quickActions = useMemo(() => {
     const actions: { label: string; onClick: () => void }[] = [];
-    // Top incomplete phases
     const phaseIncomplete = Object.entries(checklistTemplate)
       .map(([phaseKey, phase]) => {
         const p = phase as any;
@@ -167,6 +232,19 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
     return actions;
   }, [checklistTemplate, resolvedItems, getItemStatus, rfiCount, onNavigateTab]);
 
+  // Detect when phase just reached 100% → auto-collapse
+  useEffect(() => {
+    for (const [phaseKey] of Object.entries(checklistTemplate)) {
+      const stats = getPhaseStats(phaseKey);
+      const prev = prevPhasePcts.current[phaseKey] ?? 0;
+      if (stats.total > 0 && stats.pct === 100 && prev < 100) {
+        // Auto-collapse when phase completes
+        setExpanded(p => ({ ...p, [phaseKey]: false }));
+      }
+      prevPhasePcts.current[phaseKey] = stats.pct;
+    }
+  }, [resolvedItems]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const dpsf = (project as any)?.totalBidAmount && (project as any)?.grossRoofArea
     ? Math.round(((project as any).totalBidAmount / (project as any).grossRoofArea) * 100) / 100
     : null;
@@ -180,31 +258,39 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   ];
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
 
       {/* ── LEFT: Checklist ── */}
       <div className="flex flex-col gap-3 min-w-0">
 
-        {/* Filter tabs — 32px, 13px, 6px radius */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Filter tabs */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f3f4f6", padding: 4, borderRadius: 8 }}>
           {FILTERS.map(({ id, label }) => (
             <button
               key={id}
               onClick={() => setFilter(id)}
-              className="transition-colors font-medium"
               style={{
-                height: 32,
-                padding: "0 12px",
-                borderRadius: 6,
-                fontSize: 13,
-                background: filter === id ? "#0f1117" : "transparent",
-                color: filter === id ? "#ffffff" : "#64748b",
-                border: filter === id ? "none" : "1px solid #e2e8f0",
+                height: 30, padding: "0 12px", borderRadius: 6, fontSize: 13,
+                fontWeight: filter === id ? 500 : 400,
+                background: filter === id ? "#ffffff" : "transparent",
+                color: filter === id ? "#111827" : "#6b7280",
+                boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+                transition: "all 0.15s", whiteSpace: "nowrap",
               }}
             >
               {label}
             </button>
           ))}
+        </div>
+
+        {/* Status legend — inline pills below filters */}
+        <div className="flex items-center gap-2 flex-wrap px-1">
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>Click to mark:</span>
+          <span style={{ fontSize: 11, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>✓ Done</span>
+          <span style={{ fontSize: 11, background: "#f8fafc", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>N/A</span>
+          <span style={{ fontSize: 11, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>⚑ Flag</span>
+          <span style={{ fontSize: 11, background: "#fffbeb", color: "#d97706", border: "1px solid #fde68a", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>? RFI</span>
         </div>
 
         {/* Empty state */}
@@ -218,52 +304,88 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         {/* Phase cards */}
         <div className="flex flex-col gap-2">
           {visiblePhases.map(({ phaseKey, phase, items }) => {
-            const stats          = getPhaseStats(phaseKey);
-            const isOpen         = expanded[phaseKey] ?? (filter !== "done" && stats.pct < 100);
-            const isHighRisk     = !!phase.critical;
-            const allItemsInPhase = (phase as any).items;
-            const pctColor       = stats.pct >= 80 ? "#10b981" : stats.pct > 0 ? "#f59e0b" : "#94a3b8";
+            const stats       = getPhaseStats(phaseKey);
+            const isComplete  = stats.total > 0 && stats.pct === 100;
+            // Auto-collapse completed phases; expand incomplete ones by default
+            const isOpen      = expanded[phaseKey] ?? (filter !== "done" && !isComplete);
+            const isHighRisk  = !!phase.critical;
+            const pctColor    = stats.pct === 100 ? "#10b981" : stats.pct >= 67 ? "#3b82f6" : stats.pct >= 34 ? "#f59e0b" : "#ef4444";
+            const incompleteInPhase = (phase as any).items.filter((item: any) => {
+              const s = getItemStatus(phaseKey, item.id);
+              return s === "pending" || s === "rfi" || s === "warning";
+            });
+            const allPhaseSelected = incompleteInPhase.length > 0 && incompleteInPhase.every((item: any) => selected.has(selKey(phaseKey, item.id)));
+            const somePhaseSelected = !allPhaseSelected && incompleteInPhase.some((item: any) => selected.has(selKey(phaseKey, item.id)));
 
             return (
               <div
                 key={phaseKey}
                 className="overflow-hidden"
                 style={{
-                  background: "#fafafa",
-                  border: `1px solid ${isHighRisk ? "#fca5a5" : "#e2e8f0"}`,
-                  borderRadius: 8,
-                  borderLeft: isHighRisk ? "3px solid #f87171" : undefined,
+                  background: "white",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 10,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                  borderLeft: `3px solid ${pctColor}`,
                 }}
               >
                 {/* Phase header */}
-                <button
-                  onClick={() => setExpanded(p => ({ ...p, [phaseKey]: !isOpen }))}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-100/60 transition-colors text-left"
-                >
-                  <span className="text-base shrink-0">{phase.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13px] font-semibold text-slate-800">{phase.title}</span>
-                      {isHighRisk && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CRITICAL</span>}
-                      {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
-                      {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
-                    </div>
-                    {/* Mini inline progress bar — replaces dot strip */}
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[11px] text-slate-400 shrink-0">{allItemsInPhase.length} items</span>
-                      <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${stats.pct}%`, background: pctColor }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-bold shrink-0" style={{ color: pctColor }}>{stats.pct}%</span>
-                    </div>
+                <div className="flex items-center" style={{ background: "#f8fafc" }}>
+                  {/* Select-all checkbox */}
+                  <div
+                    className="pl-4 flex items-center justify-center self-stretch"
+                    style={{ minWidth: 36 }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelected(prev => {
+                        const next = new Set(prev);
+                        if (allPhaseSelected) {
+                          incompleteInPhase.forEach((item: any) => next.delete(selKey(phaseKey, item.id)));
+                        } else {
+                          incompleteInPhase.forEach((item: any) => next.add(selKey(phaseKey, item.id)));
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allPhaseSelected}
+                      ref={el => { if (el) el.indeterminate = somePhaseSelected; }}
+                      onChange={() => {}}
+                      style={{ width: 13, height: 13, cursor: "pointer", accentColor: "#64748b", flexShrink: 0 }}
+                      title={allPhaseSelected ? "Deselect all" : "Select all incomplete"}
+                    />
                   </div>
-                  <svg className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
+                  <button
+                    onClick={() => setExpanded(p => ({ ...p, [phaseKey]: !isOpen }))}
+                    className="flex-1 flex items-center gap-3 px-3 py-3 transition-colors text-left"
+                    onMouseEnter={e => { (e.currentTarget.parentElement as HTMLElement).style.background = "#f1f5f9"; }}
+                    onMouseLeave={e => { (e.currentTarget.parentElement as HTMLElement).style.background = "#f8fafc"; }}
+                  >
+                    <span className="text-base shrink-0">{phase.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{phase.title}</span>
+                        {isHighRisk && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CRITICAL</span>}
+                        {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
+                        {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
+                        {isComplete && (
+                          <span style={{ fontSize: 11, color: "#059669", fontWeight: 600, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 99, padding: "1px 8px" }}>✓ Complete</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span style={{ fontSize: 12, color: "#9ca3af" }} className="shrink-0">{(phase as any).items.length} items · {stats.pct}%</span>
+                        <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${stats.pct}%`, background: pctColor }} />
+                        </div>
+                      </div>
+                    </div>
+                    <svg className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                </div>
 
                 {/* Critical rule banner */}
                 {phase.criticalRule && isOpen && (
@@ -272,29 +394,54 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                   </div>
                 )}
 
-                {/* Items — 40px rows, note hover-only */}
-                {isOpen && (
+                {/* No system selected note — spec review only */}
+                {phaseKey === "phase9" && !systemType && isOpen && (
+                  <div className="px-4 py-2 bg-amber-50 border-t border-amber-100 text-xs text-amber-700">
+                    💡 Select a roof system in Project Settings to filter spec items to your system type. All items are shown until then.
+                  </div>
+                )}
+
+                {/* All complete state */}
+                {isOpen && items.length === 0 && (
+                  <div className="px-4 py-2.5 border-t border-[#e2e8f0] text-xs text-emerald-600 font-medium flex items-center gap-1.5">
+                    <span>✓</span> All items complete
+                  </div>
+                )}
+
+                {/* Items */}
+                {isOpen && items.length > 0 && (
                   <div className="border-t border-[#e2e8f0] divide-y divide-[#f1f5f9]">
                     {items.map((item: any) => {
-                      const status           = getItemStatus(phaseKey, item.id);
-                      const note             = getItemNote(phaseKey, item.id);
-                      const config           = statusConfig[status];
-                      const rowKey           = `${phaseKey}-${item.id}`;
-                      const isDone           = status === "done" || status === "na";
-                      const isSwipe          = swipeActive === rowKey;
+                      const status            = getItemStatus(phaseKey, item.id);
+                      const note              = getItemNote(phaseKey, item.id);
+                      const noteTs            = getItemUpdatedAt(phaseKey, item.id);
+                      const rowKey            = `${phaseKey}-${item.id}`;
+                      const isDone            = status === "done" || status === "na";
+                      const isFlagged         = status === "warning";
+                      const isSwipe           = swipeActive === rowKey;
                       const isEditingThisNote = editingNote === rowKey;
+                      const isRfiDrawerOpen   = rfiDrawerKey === rowKey;
+                      const noteSaved         = savedNoteFlash === rowKey;
+                      const itemIsHighRisk    = isHighRisk || !!item.critical;
+                      const isOptional        = item.text.includes("(if applicable)");
 
                       return (
                         <div
                           key={item.id}
                           className={`group transition-colors ${isSwipe ? "bg-slate-100" : ""}`}
-                          style={{ background: isSwipe ? undefined : undefined }}
                         >
                           {/* Main row */}
                           <div
-                            className="flex items-center gap-3 px-4 cursor-pointer select-none hover:bg-[#f8fafc]"
-                            style={{ padding: "10px 16px" }}
+                            className="flex items-center gap-3 cursor-pointer select-none"
+                            style={{
+                              padding: "10px 16px",
+                              background: flashedItem === rowKey ? "#f0fdf4" : undefined,
+                              transition: "background 0.5s",
+                              borderLeft: itemIsHighRisk && !isDone ? "2px solid #fca5a5" : "2px solid transparent",
+                            }}
                             onClick={() => cycleStatus(phaseKey, item.id)}
+                            onMouseEnter={e => { if (flashedItem !== rowKey) (e.currentTarget as HTMLElement).style.background = itemIsHighRisk ? "#fef2f2" : "#f8fafc"; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = flashedItem === rowKey ? "#f0fdf4" : ""; }}
                             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; setSwipeActive(rowKey); }}
                             onTouchEnd={(e) => {
                               const dx = e.changedTouches[0].clientX - touchStartX.current;
@@ -302,45 +449,133 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               if (Math.abs(dx) > 60) setStatus(phaseKey, item.id, dx > 0 ? "done" : "na");
                             }}
                           >
-                            {/* Status badge */}
-                            <span className={`w-6 h-6 flex items-center justify-center rounded-md text-xs font-bold ring-1 shrink-0 ${config.color} ${config.bg} ${config.ring}`}>
-                              {config.icon}
-                            </span>
-
+                            {/* Selection checkbox */}
+                            <input
+                              type="checkbox"
+                              checked={selected.has(selKey(phaseKey, item.id))}
+                              onChange={e => { e.stopPropagation(); toggleSelect(selKey(phaseKey, item.id)); }}
+                              onClick={e => e.stopPropagation()}
+                              style={{ width: 13, height: 13, accentColor: "#64748b", flexShrink: 0, cursor: "pointer" }}
+                            />
                             {/* Item text */}
                             <div className="flex-1 min-w-0">
-                              <span className={`text-[13px] leading-snug ${isDone ? "text-slate-400 line-through" : isHighRisk ? "font-medium text-slate-900" : "text-slate-700"}`}>
-                                {item.text}
-                              </span>
-                              {note && !isEditingThisNote && (
-                                <p className="text-[11px] text-slate-400 mt-0.5 truncate">📝 {note.slice(0, 60)}{note.length > 60 ? "…" : ""}</p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : itemIsHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : itemIsHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
+                                  {item.id === "p9-ec1" && climateZone
+                                    ? `${item.text} ${climateZone}`
+                                    : item.text}
+                                </span>
+                                {/* Optional badge */}
+                                {isOptional && !isDone && (
+                                  <span style={{ fontSize: 9, background: "#f1f5f9", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 4, padding: "1px 5px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
+                                    Optional
+                                  </span>
+                                )}
+                              </div>
+                              {item.helpUrl && !isDone && (
+                                <a
+                                  href={item.helpUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
+                                  style={{ fontSize: 11, color: "#6366f1", marginTop: 2, display: "block", textDecoration: "none" }}
+                                  className="hover:underline"
+                                >
+                                  ASHRAE 90.1 Climate Zone Table ↗
+                                </a>
+                              )}
+                              {item.helpText && !isDone && (
+                                <div style={{ marginTop: 3 }}>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); setExpandedHelp(prev => prev === rowKey ? null : rowKey); }}
+                                    style={{ fontSize: 11, color: "#f59e0b", fontWeight: 500, background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
+                                  >
+                                    <span>{expandedHelp === rowKey ? "▲" : "▼"}</span>
+                                    <span>Why this matters</span>
+                                  </button>
+                                  {expandedHelp === rowKey && (
+                                    <p style={{ fontSize: 12, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, padding: "8px 10px", marginTop: 5, lineHeight: 1.5 }}>
+                                      {item.helpText}
+                                    </p>
+                                  )}
+                                </div>
                               )}
                             </div>
 
-                            {/* RFI badge */}
+                            {/* RFI badge — opens inline drawer */}
                             {status === "rfi" && (
                               <button
-                                onClick={(e) => { e.stopPropagation(); onNavigateTab?.("rfis"); }}
-                                className="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-semibold shrink-0 transition-colors"
+                                onClick={(e) => { e.stopPropagation(); setRfiDrawerKey(prev => prev === rowKey ? null : rowKey); setRfiQuestion(item.text); }}
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 transition-colors ${isRfiDrawerOpen ? "bg-amber-200 text-amber-800" : "bg-amber-100 hover:bg-amber-200 text-amber-700"}`}
                               >
-                                RFI →
+                                RFI {isRfiDrawerOpen ? "▲" : "▼"}
                               </button>
                             )}
 
-                            {/* + Note button — hover only, fades in on right */}
+                            {/* Flag button — hover only */}
+                            {!isEditingThisNote && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, isFlagged ? "pending" : "warning"); }}
+                                className={`transition-all shrink-0 text-sm ${isFlagged ? "text-orange-500" : "opacity-0 group-hover:opacity-100 text-slate-300 hover:text-orange-400"}`}
+                                title={isFlagged ? "Unflag" : "Flag for review"}
+                              >
+                                ⚑
+                              </button>
+                            )}
+
+                            {/* 📝 Add note button — hover only */}
                             {!isEditingThisNote && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] text-slate-400 hover:text-emerald-600 shrink-0 ml-1"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] text-slate-400 hover:text-amber-600 shrink-0 whitespace-nowrap"
                               >
-                                {note ? "Edit note" : "+ Note"}
+                                {note ? "📝 Edit" : "📝 Add note"}
+                              </button>
+                            )}
+
+                            {/* Status pill — RIGHT side */}
+                            {status !== "rfi" && status !== "warning" && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); cycleStatus(phaseKey, item.id); }}
+                                className={`
+                                  shrink-0 rounded-full text-[11px] font-medium px-3 py-1 border transition-all whitespace-nowrap
+                                  ${status === "done"
+                                    ? "bg-[#f0fdf4] text-[#16a34a] border-[#86efac]"
+                                    : status === "na"
+                                    ? "bg-[#f8fafc] text-[#94a3b8] border-[#e2e8f0]"
+                                    : "bg-white text-[#9ca3af] border-[#e2e8f0] hover:bg-[#f0fdf4] hover:text-[#16a34a] hover:border-[#86efac]"}
+                                `}
+                              >
+                                {status === "done" ? "✓ Done" : status === "na" ? "N/A" : "Mark Done"}
                               </button>
                             )}
                           </div>
 
+                          {/* Note display — styled amber callout */}
+                          {note && !isEditingThisNote && (
+                            <div
+                              className="mx-4 mb-2 flex items-start justify-between cursor-pointer"
+                              style={{ background: "#fffbeb", borderLeft: "3px solid #fbbf24", borderRadius: 4, padding: "6px 10px" }}
+                              onClick={e => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
+                            >
+                              <p style={{ fontSize: 12, color: "#92400e", lineHeight: 1.4, flex: 1 }}>
+                                <span style={{ fontWeight: 600 }}>📝 Note: </span>{note}
+                              </p>
+                              <span style={{ fontSize: 10, color: "#d97706", marginLeft: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
+                                {formatNoteDate(noteTs) ? `· ${formatNoteDate(noteTs)}` : ""}
+                              </span>
+                              {noteSaved && (
+                                <span className="text-[10px] text-emerald-600 font-semibold shrink-0 ml-1">Saved ✓</span>
+                              )}
+                            </div>
+                          )}
+                          {noteSaved && !note && (
+                            <div className="mx-4 mb-2 text-[11px] text-emerald-600 font-medium px-2">Saved ✓</div>
+                          )}
+
                           {/* Note editing textarea */}
                           {isEditingThisNote && (
-                            <div className="px-4 pb-3 pt-1 ml-9" onClick={e => e.stopPropagation()}>
+                            <div className="px-4 pb-3 pt-1 ml-4" onClick={e => e.stopPropagation()}>
                               <textarea
                                 autoFocus
                                 value={noteText}
@@ -349,9 +584,37 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 onKeyDown={e => { if (e.key === "Escape") setEditingNote(null); if (e.key === "Enter" && e.metaKey) saveNote(phaseKey, item.id, noteText); }}
                                 placeholder="Add a note..."
                                 rows={2}
-                                className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
+                                className="w-full text-xs text-slate-700 bg-white border border-amber-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-200"
                               />
                               <p className="text-[10px] text-slate-400 mt-0.5">Blur or ⌘↵ to save · Esc to cancel</p>
+                            </div>
+                          )}
+
+                          {/* RFI inline drawer */}
+                          {isRfiDrawerOpen && (
+                            <div className="mx-4 mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg" onClick={e => e.stopPropagation()}>
+                              <div className="text-[11px] font-semibold text-amber-800 mb-2">RFI Details</div>
+                              <textarea
+                                value={rfiQuestion}
+                                onChange={e => setRfiQuestion(e.target.value)}
+                                placeholder="Describe your question or clarification needed..."
+                                rows={2}
+                                className="w-full text-xs text-slate-700 bg-white border border-amber-200 rounded px-3 py-2 resize-none focus:outline-none focus:border-amber-400"
+                              />
+                              <div className="flex items-center gap-2 mt-2">
+                                <button
+                                  onClick={() => { setRfiDrawerKey(null); onNavigateTab?.("rfis"); }}
+                                  className="text-[11px] bg-amber-600 text-white px-3 py-1.5 rounded font-medium hover:bg-amber-700 transition-colors"
+                                >
+                                  + Create RFI
+                                </button>
+                                <button
+                                  onClick={() => setRfiDrawerKey(null)}
+                                  className="text-[11px] text-slate-500 hover:text-slate-700 transition-colors"
+                                >
+                                  Close
+                                </button>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -363,36 +626,20 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             );
           })}
         </div>
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-3 px-3 py-2 rounded-lg border border-slate-100">
-          <span className="text-[10px] text-slate-400 self-center">Tap to cycle:</span>
-          {Object.entries(statusConfig).map(([status, config]) => (
-            <div key={status} className="flex items-center gap-1">
-              <span className={`w-4 h-4 flex items-center justify-center rounded ring-1 text-[8px] font-bold ${config.color} ${config.bg} ${config.ring}`}>{config.icon}</span>
-              <span className="text-[10px] text-slate-500 capitalize">{status}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ── RIGHT: Sticky panel ── */}
       <div className="hidden lg:flex flex-col gap-3 sticky top-4">
 
-        {/* Bid readiness — progress bar, no donut */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
+        {/* Bid readiness */}
+        <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Bid Readiness</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Bid Readiness</div>
             <span className="text-2xl font-bold text-slate-900">{overall}%</span>
           </div>
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${overall}%`, background: "#10b981" }}
-            />
+            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${overall}%`, background: "#10b981" }} />
           </div>
-
-          {/* Project info */}
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
             <div className="text-[13px] font-semibold text-slate-900 leading-snug">{project?.name || "—"}</div>
             {(project as any)?.gc && <div className="text-[11px] text-slate-500">GC: {(project as any).gc}</div>}
@@ -405,8 +652,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           </div>
         </div>
 
-        {/* Compact stats — single inline row, no boxes */}
-        <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
+        {/* Compact stats */}
+        <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: "12px 16px" }}>
           <div className="text-[14px]" style={{ color: "#64748b" }}>
             <span>{filterCounts.incomplete} incomplete</span>
             {rfiCount > 0 && <span> · <span className="text-amber-600 font-medium">{rfiCount} RFI{rfiCount !== 1 ? "s" : ""}</span></span>}
@@ -415,17 +662,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           </div>
         </div>
 
-        {/* Quick actions — clean text links, no colored boxes */}
+        {/* Quick actions */}
         {quickActions.length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Actions</div>
+          <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Quick Actions</div>
             <div className="flex flex-col gap-2.5">
               {quickActions.map((action, i) => (
-                <button
-                  key={i}
-                  onClick={action.onClick}
-                  className="text-[13px] text-slate-600 hover:text-emerald-600 text-left transition-colors flex items-start gap-1.5"
-                >
+                <button key={i} onClick={action.onClick} className="text-[13px] text-slate-600 hover:text-emerald-600 text-left transition-colors flex items-start gap-1.5">
                   <span className="shrink-0 mt-px">→</span>
                   <span>{action.label}</span>
                 </button>
@@ -435,5 +678,68 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         )}
       </div>
     </div>
+
+    {/* Floating bulk action bar */}
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        left: "50%",
+        transform: selected.size > 0 ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(80px)",
+        opacity: selected.size > 0 ? 1 : 0,
+        pointerEvents: selected.size > 0 ? "auto" : "none",
+        transition: "transform 0.25s ease-out, opacity 0.2s",
+        background: "#1e293b",
+        color: "white",
+        borderRadius: 12,
+        padding: "10px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+        zIndex: 50,
+        minWidth: 360,
+        maxWidth: 560,
+        width: "calc(100vw - 48px)",
+      }}
+    >
+      <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8", flexShrink: 0, marginRight: 4 }}>
+        {selected.size} selected
+      </span>
+      <div style={{ flex: 1 }} />
+      <button
+        onClick={() => bulkSetStatus("done")}
+        style={{ fontSize: 12, fontWeight: 600, background: "#10b981", color: "white", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#059669"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#10b981"}
+      >
+        Mark Done
+      </button>
+      <button
+        onClick={() => bulkSetStatus("na")}
+        style={{ fontSize: 12, fontWeight: 500, background: "#334155", color: "#94a3b8", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#475569"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#334155"}
+      >
+        Mark N/A
+      </button>
+      <button
+        onClick={() => bulkSetStatus("warning")}
+        style={{ fontSize: 12, fontWeight: 500, background: "#334155", color: "#fb923c", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#475569"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#334155"}
+      >
+        Flag
+      </button>
+      <button
+        onClick={clearSelection}
+        style={{ fontSize: 12, fontWeight: 500, color: "#64748b", background: "none", border: "none", padding: "6px 8px", cursor: "pointer", whiteSpace: "nowrap" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#94a3b8"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#64748b"}
+      >
+        ✕ Clear
+      </button>
+    </div>
+    </>
   );
 }

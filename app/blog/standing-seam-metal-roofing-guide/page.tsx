@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation',
-  description: 'Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.',
+export const metadata: Metadata = {
+  title: "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
+  description: "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
+  openGraph: {
+    title: "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
+    description: "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
+    type: "article",
+    publishedTime: "2025-10-01",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation&type=article",
+        width: 1200,
+        height: 630,
+        alt: "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
+    description: "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
+    images: ["/api/og?title=Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
+  "description": "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2025-10-01",
+  "dateModified": "2025-10-01",
+  "image": "https://mc2estimating.com/api/og?title=Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation&type=article",
+  "url": "https://mc2estimating.com/blog/standing-seam-metal-roofing-guide",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/standing-seam-metal-roofing-guide"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation", "item": "https://mc2estimating.com/blog/standing-seam-metal-roofing-guide" }
+  ]
 };
 
 export default function StandingSeamMetalRoofingArticle() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

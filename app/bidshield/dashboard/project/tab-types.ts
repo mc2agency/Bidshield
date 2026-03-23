@@ -17,7 +17,10 @@ export type TabId =
   | "rfis"
   | "addenda"
   | "labor"
-  | "validator";
+  | "generalconditions"
+  | "validator"
+  | "bidquals"
+  | "decisions";
 
 export type TabBadge = {
   label: string;
@@ -34,6 +37,7 @@ export type TabConfig = {
 export interface TabProps {
   projectId: string;
   isDemo: boolean;
+  isPro?: boolean;
   project: any;
   userId?: string;
   onNavigateTab?: (tab: TabId) => void;
@@ -77,7 +81,7 @@ export const PHASES: Phase[] = [
     id: "price",
     label: "Pricing & Costs",
     shortLabel: "Price",
-    tabs: ["pricing", "labor", "quotes"],
+    tabs: ["pricing", "labor", "generalconditions", "quotes"],
     defaultTab: "pricing",
   },
   {
@@ -91,7 +95,7 @@ export const PHASES: Phase[] = [
     id: "submit",
     label: "Validate & Submit",
     shortLabel: "Submit",
-    tabs: ["validator"],
+    tabs: ["validator", "bidquals"],
     defaultTab: "validator",
   },
 ];

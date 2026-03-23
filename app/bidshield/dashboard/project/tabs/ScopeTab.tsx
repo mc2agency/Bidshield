@@ -62,21 +62,33 @@ function SegmentedPill({
   );
 }
 
-export default function ScopeTab({ projectId, isDemo, project, userId }: TabProps) {
+export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const scopeItems = useQuery(
     api.bidshield.getScopeItems,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const initScope  = useMutation(api.bidshield.initScopeItems);
-  const updateItem = useMutation(api.bidshield.updateScopeItem);
+  const clarifications = useQuery(
+    api.bidshield.getScopeClarifications,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const initScope        = useMutation(api.bidshield.initScopeItems);
+  const updateItem       = useMutation(api.bidshield.updateScopeItem);
+  const addClarification = useMutation(api.bidshield.addScopeClarification);
+  const deleteClarification = useMutation(api.bidshield.deleteScopeClarification);
 
   const [demoState, setDemoState]         = useState<any[]>(DEMO_SCOPE_ITEMS);
   const [filter, setFilter]               = useState<FilterMode>("all");
   const [expandedId, setExpandedId]       = useState<string | null>(null);
   const [copiedExclusions, setCopied]     = useState(false);
+  const [demoClarifications, setDemoClarifications] = useState<{ _id: string; text: string; createdAt: number }[]>([]);
+  const [newClarText, setNewClarText]     = useState("");
   const debounceRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const [aiExclusionsLoading, setAiExclusionsLoading] = useState(false);
+  const [aiExclusionsText, setAiExclusionsText]       = useState<string | null>(null);
+
+  const resolvedClarifications = isDemo ? demoClarifications : (clarifications ?? []);
 
   const items = isDemo ? demoState : (scopeItems ?? []);
 
@@ -168,10 +180,59 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
       lines.push("BY OTHERS:");
       others.forEach((i: any) => lines.push(`• ${i.name}${i.note ? ` — ${i.note}` : ""}`));
     }
+    if (resolvedClarifications.length > 0) {
+      if (lines.length) lines.push("");
+      lines.push("CLARIFICATIONS & ASSUMPTIONS:");
+      resolvedClarifications.forEach((c: any) => lines.push(`• ${c.text}`));
+    }
     navigator.clipboard.writeText(lines.join("\n"));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleGenerateExclusions = async () => {
+    if (!isPro && !isDemo) return;
+    setAiExclusionsLoading(true);
+    setAiExclusionsText(null);
+    try {
+      const excl   = items.filter((i: any) => i.status === "excluded");
+      const others = items.filter((i: any) => i.status === "by_others");
+      const res = await fetch("/api/bidshield/generate-exclusions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          excludedItems: excl.map((i: any) => ({ name: i.name, note: i.note })),
+          byOthersItems: others.map((i: any) => ({ name: i.name, note: i.note })),
+          clarifications: resolvedClarifications.map((c: any) => ({ text: c.text })),
+        }),
+      });
+      const data = await res.json();
+      setAiExclusionsText(data.text ?? "");
+    } catch {
+      setAiExclusionsText("Error generating exclusions. Please try again.");
+    } finally {
+      setAiExclusionsLoading(false);
+    }
+  };
+
+  const handleAddClarification = useCallback(async () => {
+    const text = newClarText.trim();
+    if (!text) return;
+    if (isDemo) {
+      setDemoClarifications(prev => [...prev, { _id: `demo_c_${Date.now()}`, text, createdAt: Date.now() }]);
+    } else if (isValidConvexId && userId) {
+      await addClarification({ projectId: projectId as Id<"bidshield_projects">, userId, text });
+    }
+    setNewClarText("");
+  }, [newClarText, isDemo, isValidConvexId, userId, projectId, addClarification]);
+
+  const handleDeleteClarification = useCallback(async (id: string) => {
+    if (isDemo) {
+      setDemoClarifications(prev => prev.filter(c => c._id !== id));
+    } else {
+      await deleteClarification({ id: id as Id<"bidshield_scope_clarifications"> });
+    }
+  }, [isDemo, deleteClarification]);
 
   const handleInitialize = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
@@ -231,22 +292,23 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
         </div>
       </div>
 
-      {/* Filter tabs — 32px, 13px, 6px radius */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Filter tabs — segmented control (Linear/Vercel pattern) */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f3f4f6", padding: 4, borderRadius: 8 }}>
         {FILTERS.map(({ id, label, count }) => (
           <button
             key={id}
             onClick={() => setFilter(id)}
-            className="transition-colors"
             style={{
-              height: 32,
+              height: 30,
               padding: "0 12px",
               borderRadius: 6,
               fontSize: 13,
-              fontWeight: filter === id ? 600 : 400,
-              background: filter === id ? "#0f1117" : "transparent",
-              color: filter === id ? "#ffffff" : "#64748b",
-              border: filter === id ? "none" : "1px solid #e2e8f0",
+              fontWeight: filter === id ? 500 : 400,
+              background: filter === id ? "#ffffff" : "transparent",
+              color: filter === id ? "#111827" : "#6b7280",
+              boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+              transition: "all 0.15s",
+              whiteSpace: "nowrap",
             }}
           >
             {label} ({count})
@@ -365,14 +427,118 @@ export default function ScopeTab({ projectId, isDemo, project, userId }: TabProp
         </div>
       )}
 
-      {/* Copy exclusions */}
-      {(excludedCount > 0 || byOthersCount > 0) && (
-        <button
-          onClick={handleCopyExclusions}
-          className="w-full py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition-all"
-        >
-          {copiedExclusions ? "✓ Copied to clipboard" : "📋 Copy exclusions for proposal"}
-        </button>
+      {/* Clarifications & Assumptions */}
+      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
+        <div className="px-4 py-3 flex items-center justify-between" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+          <div>
+            <span className="text-[13px] font-semibold text-slate-700">Clarifications &amp; Assumptions</span>
+            <span className="ml-2 text-[11px] text-slate-400">{resolvedClarifications.length} entries</span>
+          </div>
+          {!isPro && !isDemo && (
+            <a href="/bidshield/pricing" className="text-[11px] font-medium text-emerald-600 hover:text-emerald-500">
+              Pro feature · Upgrade →
+            </a>
+          )}
+        </div>
+
+        {!isPro && !isDemo ? (
+          <div className="p-6 text-center">
+            <div className="text-2xl mb-2">🔒</div>
+            <p className="text-sm font-medium text-slate-700 mb-1">Clarifications &amp; Assumptions</p>
+            <p className="text-xs text-slate-500 mb-3">Document your scope assumptions to prevent change orders. Available on Pro.</p>
+            <a href="/bidshield/pricing" className="inline-block px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors">
+              Upgrade to Pro
+            </a>
+          </div>
+        ) : (
+          <div className="p-4 flex flex-col gap-2">
+            {resolvedClarifications.length === 0 && (
+              <p className="text-xs text-slate-400 py-2">No clarifications yet. Assumptions that aren&apos;t documented become change orders.</p>
+            )}
+            {resolvedClarifications.map((c: any) => (
+              <div key={c._id} className="flex items-start gap-2 group">
+                <span className="mt-0.5 text-slate-300 text-[11px] shrink-0">•</span>
+                <span className="flex-1 text-[13px] text-slate-700 leading-snug">{c.text}</span>
+                <span className="text-[10px] text-slate-300 shrink-0 mt-0.5">
+                  {new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+                <button
+                  onClick={() => handleDeleteClarification(c._id)}
+                  className="text-slate-300 hover:text-red-400 transition-colors text-[12px] shrink-0 opacity-0 group-hover:opacity-100"
+                  title="Delete"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+            <div className="flex gap-2 mt-1">
+              <input
+                type="text"
+                value={newClarText}
+                onChange={e => setNewClarText(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") handleAddClarification(); }}
+                placeholder="e.g., Assume single-layer tear-off"
+                className="flex-1 text-[13px] rounded-lg px-3 py-2 border border-slate-200 focus:border-slate-400 focus:outline-none"
+                style={{ background: "white" }}
+              />
+              <button
+                onClick={handleAddClarification}
+                disabled={!newClarText.trim()}
+                className="px-3 py-2 text-[12px] font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+              >
+                + Add
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      {(excludedCount > 0 || byOthersCount > 0 || resolvedClarifications.length > 0) && (
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleCopyExclusions}
+            className="w-full py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition-all"
+          >
+            {copiedExclusions ? "✓ Copied to clipboard" : "📋 Copy exclusions for proposal"}
+          </button>
+
+          {(isPro || isDemo) ? (
+            <button
+              onClick={handleGenerateExclusions}
+              disabled={aiExclusionsLoading}
+              className="w-full py-3 rounded-xl text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg, #059669 0%, #0d9488 100%)", color: "white" }}
+            >
+              {aiExclusionsLoading ? "✨ Generating..." : "✨ Generate Exclusions with AI"}
+            </button>
+          ) : (
+            <a
+              href="/bidshield/pricing"
+              className="w-full py-3 rounded-xl text-sm font-medium text-center block transition-all"
+              style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#94a3b8" }}
+            >
+              🔒 Generate Exclusions with AI · Pro
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* AI Exclusions result */}
+      {aiExclusionsText && (
+        <div className="rounded-xl p-4 border border-emerald-200" style={{ background: "#f0fdf4" }}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-emerald-700">✨ AI-Generated Exclusions</span>
+            <button
+              onClick={() => { navigator.clipboard.writeText(aiExclusionsText); }}
+              className="text-[11px] text-emerald-600 hover:text-emerald-500 font-medium"
+            >
+              Copy
+            </button>
+          </div>
+          <pre className="text-[13px] text-slate-700 whitespace-pre-wrap leading-relaxed font-sans">{aiExclusionsText}</pre>
+        </div>
       )}
     </div>
   );

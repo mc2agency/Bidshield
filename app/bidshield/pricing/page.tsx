@@ -6,101 +6,90 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { gtagEvent } from "@/lib/gtag";
+import { track } from "@vercel/analytics";
 
-const plans = [
-  {
-    id: "free",
-    name: "Free",
-    price: 0,
-    interval: "",
-    description: "Try BidShield on one project",
-    features: [
-      "1 active project",
-      "18-phase bid checklist",
-      "Takeoff reconciliation",
-      "Bid readiness score",
-      "Scope gap checker",
-      "Bid validator",
-    ],
-    limitations: [
-      "No PDF export",
-      "No historical analytics",
-      "No material price book",
-    ],
-    cta: "Start Free",
-    popular: false,
-  },
-  {
-    id: "pro_monthly",
-    name: "Pro",
-    price: 149,
-    interval: "/mo",
-    description: "For estimators who run a process on every bid",
-    features: [
-      "Unlimited projects",
-      "Everything in Free, plus:",
-      "PDF bid package export",
-      "Win/loss analytics & $/SF benchmarks",
-      "Material price book (saved prices)",
-      "Quote expiration alerts",
-      "GC relationship tracking",
-      "All 8 Excel estimating templates included",
-      "Priority support",
-    ],
-    limitations: [],
-    cta: "Start 14-Day Free Trial",
-    popular: true,
-  },
-  {
-    id: "pro_annual",
-    name: "Pro Annual",
-    price: 124,
-    interval: "/mo",
-    annualNote: "Billed $1,490/year — save $298",
-    description: "Best value for committed estimators",
-    features: [
-      "Everything in Pro Monthly",
-      "2 months free",
-      "Early access to new features",
-      "Annual business review report",
-    ],
-    limitations: [],
-    cta: "Start 14-Day Free Trial",
-    popular: false,
-  },
+// Items prefixed with "## " render as section headers, not feature rows
+const PRO_FEATURES = [
+  "## Core Workflow",
+  "Unlimited active projects",
+  "134-item bid review checklist",
+  "Scope tracker — Included / Excluded / By Others",
+  "Takeoff & quantities reconciliation",
+  "## Pricing & Costs",
+  "Material Reconciliation — verify pricing vs quotes",
+  "Labor Verification — AI scope analysis",
+  "General Conditions tracker",
+  "Full Bid Summary with $/SF",
+  "## Vendors & Quotes",
+  "Vendor address book",
+  "Quotes & Pricing library",
+  "✨ AI Quote Extraction (PDF upload)",
+  "## Bid Management",
+  "Addenda & RFI tracking",
+  "Bid Qualifications tracker",
+  "GC Bid Forms — Exhibit A/B prep",
+  "Unlimited Decision Log",
+  "## AI Features",
+  "✨ AI Material Report Extraction",
+  "✨ AI Labor Verification (scope analysis)",
+  "✨ AI GC Bid Form Auto-Confirm",
+  "✨ Generate Exclusions with AI",
+  "✨ Draft RFI with AI",
+  "✨ Addendum Impact Check",
+  "## Support",
+  "14-day free trial",
+  "Priority support",
+];
+
+const FREE_FEATURES = [
+  "1 active project",
+  "134-item bid checklist",
+  "Scope tracker (read-only edits)",
+  "Takeoff & Materials (read-only)",
+  "RFIs & Addenda tracking",
+  "Up to 5 Decision Log entries",
+];
+
+const FREE_LIMITS = [
+  "No AI features",
+  "No Labor Verification",
+  "No Gen. Conds / Bid Quals",
+  "No GC Bid Forms",
+  "No Vendor address book",
+  "No full Bid Summary",
+  "No Material Reconciliation editing",
 ];
 
 export default function PricingPage() {
   const { isSignedIn } = useAuth();
-  const [loading, setLoading] = useState<string | null>(null);
+  const [annual, setAnnual] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     gtagEvent("view_pricing");
+    track("pricing_viewed");
   }, []);
 
-  const handleCheckout = async (planId: string) => {
-    if (planId !== "free") {
-      gtagEvent("begin_checkout", { plan: planId });
-    }
-    if (planId === "free") {
-      window.location.href = isSignedIn ? "/bidshield/dashboard" : "/sign-up";
-      return;
-    }
+  const planId = annual ? "pro_annual" : "pro_monthly";
+  const monthlyDisplay = annual ? "$208" : "$249";
+  const billingNote = annual ? "Billed $2,490/year" : "Billed monthly";
+
+  const handleCheckout = async () => {
+    gtagEvent("begin_checkout", { plan: planId });
+    track("trial_started", { source: "pricing_page", plan: "pro", price: annual ? 2490 : 249 });
 
     if (!isSignedIn) {
       window.location.href = `/sign-up?redirect=/bidshield/pricing`;
       return;
     }
 
-    setLoading(planId);
-
+    setLoading(true);
     try {
       const res = await fetch("/api/bidshield/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId }),
       });
-
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
@@ -110,176 +99,197 @@ export default function PricingPage() {
     } catch {
       alert("Something went wrong. Please try again.");
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
+
+      {/* Nav */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl">🛡️</span>
-            <span className="text-xl font-bold text-slate-900">BidShield</span>
+            <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+              </svg>
+            </div>
+            <span className="text-lg font-bold text-slate-900">BidShield</span>
           </Link>
           <Link
             href={isSignedIn ? "/bidshield/dashboard" : "/sign-in"}
             className="text-sm text-slate-600 hover:text-emerald-600 transition-colors"
           >
-            {isSignedIn ? "Dashboard" : "Sign In"}
+            {isSignedIn ? "Dashboard →" : "Sign In"}
           </Link>
         </div>
       </div>
 
       {/* Hero */}
-      <div className="max-w-6xl mx-auto px-6 py-16 text-center">
+      <div className="max-w-3xl mx-auto px-6 pt-16 pb-10 text-center">
         <h1 className="text-4xl font-bold text-slate-900 mb-4">
           The professional workflow for commercial roofing estimators.
         </h1>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-2">
-          From first plan review to final submission — Material Reconciliation, Labor Verification,
-          GC Bid Forms, and a 134-item checklist built by someone who has done this for 12 years.
+        <p className="text-lg text-slate-600 mb-2">
+          The bid review tool built for commercial roofing estimators. Catches scope gaps, missed addenda, and pricing errors before you submit.
         </p>
-        <p className="text-sm text-slate-400 mt-3">
-          Works alongside The EDGE, STACK, Excel, or whatever you use today. No replacement required.
+        <p className="text-sm text-slate-400">
+          Works alongside The EDGE, STACK, Excel, or any estimating tool you already use.
         </p>
       </div>
 
       {/* Value callout */}
-      <div className="max-w-2xl mx-auto px-6 mb-12">
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
+      <div className="max-w-xl mx-auto px-6 mb-10">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
           <p className="text-sm font-semibold text-amber-800">
-            Pro at $249/mo. On a $3M bid, a structured pre-submission process takes 2–3 hours and protects months of work.
+            A single missed mechanical curb on a $3M bid = $30,000–$80,000 loss.
           </p>
           <p className="text-sm text-amber-700 mt-1">
-            That&apos;s why professional estimators run one every time.
+            Pro at $249/mo = $2,988/year. One prevented underbid on a $2M job covers 8+ years of the tool.
           </p>
         </div>
       </div>
 
-      {/* Plans */}
-      <div className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-white rounded-2xl border ${
-                plan.popular
-                  ? "border-emerald-300 ring-2 ring-emerald-100 shadow-lg"
-                  : "border-slate-200 shadow-sm"
-              } p-8 flex flex-col`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="bg-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
-                    Most Popular
-                  </span>
-                </div>
-              )}
+      {/* Billing toggle */}
+      <div className="flex items-center justify-center gap-4 mb-10">
+        <span className={`text-sm font-medium ${!annual ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
+        <button
+          onClick={() => setAnnual(a => !a)}
+          className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
+          style={{ background: annual ? "#10b981" : "#cbd5e1" }}
+          aria-label="Toggle billing period"
+        >
+          <span
+            className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+            style={{ transform: annual ? "translateX(22px)" : "translateX(2px)" }}
+          />
+        </button>
+        <span className={`text-sm font-medium ${annual ? "text-slate-900" : "text-slate-400"}`}>
+          Annual
+        </span>
+        {annual && (
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+            Save $498 · 2 months free
+          </span>
+        )}
+      </div>
 
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-slate-900">{plan.name}</h3>
-                <p className="text-sm text-slate-500 mt-1">{plan.description}</p>
-              </div>
+      {/* Cards */}
+      <div className="max-w-4xl mx-auto px-6 pb-20">
+        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
 
-              <div className="mb-6">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-slate-900">
-                    ${plan.price}
-                  </span>
-                  {plan.interval && (
-                    <span className="text-slate-500">{plan.interval}</span>
-                  )}
-                </div>
-                {(plan as { annualNote?: string }).annualNote && (
-                  <p className="text-xs text-emerald-600 font-medium mt-1">
-                    {(plan as { annualNote?: string }).annualNote}
-                  </p>
-                )}
-              </div>
-
-              <ul className="flex-1 space-y-3 mb-8">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                    <svg
-                      className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2.5}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-                {plan.limitations.map((limitation, i) => (
-                  <li
-                    key={`lim-${i}`}
-                    className="flex items-start gap-2 text-sm text-slate-400"
-                  >
-                    <svg
-                      className="w-4 h-4 text-slate-300 mt-0.5 shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18 18 6M6 6l12 12"
-                      />
-                    </svg>
-                    {limitation}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handleCheckout(plan.id)}
-                disabled={loading === plan.id}
-                className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
-                  plan.popular
-                    ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md"
-                    : plan.price === 0
-                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    : "bg-slate-900 text-white hover:bg-slate-800"
-                } ${loading === plan.id ? "opacity-50 cursor-wait" : ""}`}
-              >
-                {loading === plan.id ? "Redirecting..." : plan.cta}
-              </button>
+          {/* Free */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex flex-col">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">Free</h3>
+              <p className="text-sm text-slate-500 mt-1">Try BidShield on one project</p>
             </div>
-          ))}
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-slate-900">$0</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">No credit card required</p>
+            </div>
+            <ul className="flex-1 space-y-2.5 mb-8">
+              {FREE_FEATURES.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-slate-700">
+                  <svg className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  {f}
+                </li>
+              ))}
+              {FREE_LIMITS.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-slate-400">
+                  <svg className="w-4 h-4 text-slate-300 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={isSignedIn ? "/bidshield/dashboard" : "/sign-up"}
+              className="w-full py-3 rounded-xl text-sm font-semibold text-center bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+            >
+              {isSignedIn ? "Go to Dashboard" : "Start Free"}
+            </Link>
+          </div>
+
+          {/* Pro */}
+          <div className="relative bg-white rounded-2xl border-2 border-emerald-400 shadow-lg ring-4 ring-emerald-50 p-8 flex flex-col">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+              <span className="bg-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
+                Most Popular
+              </span>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">Pro</h3>
+              <p className="text-sm text-slate-500 mt-1">For active estimators bidding weekly</p>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-slate-900">{monthlyDisplay}</span>
+                <span className="text-slate-500">/mo</span>
+              </div>
+              <p className="text-xs mt-1 font-medium" style={{ color: annual ? "#059669" : "#94a3b8" }}>
+                {billingNote}
+                {annual && <span className="ml-2 font-bold text-emerald-600">· Save $498</span>}
+              </p>
+            </div>
+
+            <ul className="flex-1 space-y-2 mb-8">
+              {PRO_FEATURES.map((f, i) => {
+                if (f.startsWith("## ")) {
+                  return (
+                    <li key={f} className={`text-[10px] font-bold uppercase tracking-widest text-slate-400 ${i > 0 ? "pt-3" : ""}`}>
+                      {f.slice(3)}
+                    </li>
+                  );
+                }
+                const isAI = f.startsWith("✨");
+                return (
+                  <li key={f} className={`flex items-start gap-2 text-sm ${isAI ? "text-emerald-700 font-medium" : "text-slate-700"}`}>
+                    <svg className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    {f}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <button
+              onClick={handleCheckout}
+              disabled={loading}
+              className="w-full py-3 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-wait"
+            >
+              {loading ? "Redirecting…" : "Start 14-Day Free Trial"}
+            </button>
+            <p className="text-xs text-center text-slate-400 mt-3">No credit card required · Cancel anytime</p>
+          </div>
         </div>
 
         {/* Trust signals */}
         <div className="mt-16 text-center">
           <p className="text-sm text-slate-500 mb-6">
-            Built by an estimator with 12 years of commercial roofing experience. 14-day free trial. Cancel anytime.
+            Built by an estimator with 12 years of commercial roofing experience.
           </p>
-          <div className="flex justify-center gap-12 text-center">
-            <div>
-              <div className="text-2xl font-bold text-slate-900">18</div>
-              <div className="text-xs text-slate-500">Phase checklist</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-900">100+</div>
-              <div className="text-xs text-slate-500">QA check items</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-900">40</div>
-              <div className="text-xs text-slate-500">Scope gap items</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-900">8</div>
-              <div className="text-xs text-slate-500">Excel templates included</div>
-            </div>
+          <div className="flex flex-wrap justify-center gap-10 text-center">
+            {[
+              { n: "134", label: "Checklist items" },
+              { n: "17",  label: "Bid phases" },
+              { n: "40+", label: "Scope gap items" },
+              { n: "14d", label: "Free trial" },
+            ].map(({ n, label }) => (
+              <div key={label}>
+                <div className="text-2xl font-bold text-slate-900">{n}</div>
+                <div className="text-xs text-slate-500">{label}</div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -290,19 +300,19 @@ export default function PricingPage() {
             {[
               {
                 q: "Does this replace my estimating software?",
-                a: "No. BidShield is the workflow layer that runs alongside your estimating software. The EDGE tells you what's in your bid. BidShield gives you the structured process to verify it — scope, pricing, labor, addenda, GC forms — before you submit."
+                a: "No. BidShield is the last step before you submit — not a replacement for The EDGE, STACK, or your spreadsheets. It reviews your completed bid for things estimating software can't catch.",
+              },
+              {
+                q: "What's the difference between monthly and annual?",
+                a: "Same Pro features either way. Annual billing is $2,490/year — that's ~$208/mo effective, saving you $498 versus paying monthly. You're prepaying 12 months at the price of 10.",
               },
               {
                 q: "What does the free trial include?",
-                a: "Full Pro access for 14 days. No credit card required to start. You can run a real bid through the complete 18-phase checklist before you decide."
-              },
-              {
-                q: "What are the 8 Excel templates?",
-                a: "System-specific estimating templates for TPO, EPDM, BUR, Metal, SBS, Spray Foam, Tile, and Asphalt — each with takeoff, material, labor, and proposal tabs. Included free with Pro."
+                a: "Full Pro access for 14 days, no credit card required. Run a real bid through the complete checklist, AI quote extraction, and all Pro features before you decide.",
               },
               {
                 q: "Can I cancel anytime?",
-                a: "Yes. Cancel from your account settings at any time. Your data stays accessible until the end of your billing period."
+                a: "Yes. Cancel from your account settings at any time. Your data stays accessible until the end of your billing period.",
               },
             ].map((item, i) => (
               <div key={i} className="bg-white rounded-xl border border-slate-200 p-5">

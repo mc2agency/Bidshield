@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'How to Read Construction Specifications [Complete Guide 2025]',
-  description: 'Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.',
+export const metadata: Metadata = {
+  title: "How to Read Construction Specifications [Complete Guide 2025]",
+  description: "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
+  openGraph: {
+    title: "How to Read Construction Specifications [Complete Guide 2025]",
+    description: "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
+    type: "article",
+    publishedTime: "2025-11-15",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=How to Read Construction Specifications [Complete Guide 2025]&type=article",
+        width: 1200,
+        height: 630,
+        alt: "How to Read Construction Specifications [Complete Guide 2025]",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Read Construction Specifications [Complete Guide 2025]",
+    description: "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
+    images: ["/api/og?title=How to Read Construction Specifications [Complete Guide 2025]&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Read Construction Specifications [Complete Guide 2025]",
+  "description": "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2025-11-15",
+  "dateModified": "2025-11-15",
+  "image": "https://mc2estimating.com/api/og?title=How to Read Construction Specifications [Complete Guide 2025]&type=article",
+  "url": "https://mc2estimating.com/blog/how-to-read-construction-specifications",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/how-to-read-construction-specifications"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "How to Read Construction Specifications [Complete Guide 2025]", "item": "https://mc2estimating.com/blog/how-to-read-construction-specifications" }
+  ]
 };
 
 export default function ReadConstructionSpecsArticle() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

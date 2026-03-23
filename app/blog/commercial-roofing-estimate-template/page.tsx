@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Commercial Roofing Estimate Template: What Every Bid Must Include [2026]',
-  description: 'The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.',
+export const metadata: Metadata = {
+  title: "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
+  description: "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
+  openGraph: {
+    title: "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
+    description: "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
+    type: "article",
+    publishedTime: "2026-01-15",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=Commercial Roofing Estimate Template: What Every Bid Must Include [2026]&type=article",
+        width: 1200,
+        height: 630,
+        alt: "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
+    description: "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
+    images: ["/api/og?title=Commercial Roofing Estimate Template: What Every Bid Must Include [2026]&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
+  "description": "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2026-01-15",
+  "dateModified": "2026-01-15",
+  "image": "https://mc2estimating.com/api/og?title=Commercial Roofing Estimate Template: What Every Bid Must Include [2026]&type=article",
+  "url": "https://mc2estimating.com/blog/commercial-roofing-estimate-template",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/commercial-roofing-estimate-template"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]", "item": "https://mc2estimating.com/blog/commercial-roofing-estimate-template" }
+  ]
 };
 
 export default function CommercialRoofingEstimateTemplatePage() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-4">

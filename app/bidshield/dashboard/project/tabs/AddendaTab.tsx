@@ -30,7 +30,7 @@ function cardBorderColor(add: any): string {
   return "border-l-4 border-l-emerald-500";
 }
 
-export default function AddendaTab({ projectId, isDemo, project, userId }: TabProps) {
+export default function AddendaTab({ projectId, isDemo, isPro, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const addenda = useQuery(
@@ -48,6 +48,8 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
     priority: "normal",
     notes: "",
   });
+  const [impactCheckLoading, setImpactCheckLoading] = useState(false);
+  const [impactCheckResults, setImpactCheckResults] = useState<{ section: string; action: string }[] | null>(null);
 
   // Demo data with enhanced fields
   const [demoAddendaState, setDemoAddendaState] = useState([
@@ -100,7 +102,28 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
       notes: newAddendum.notes || undefined,
     });
     setNewAddendum({ title: "", receivedDate: new Date().toISOString().split("T")[0], priority: "normal", notes: "" });
+    setImpactCheckResults(null);
     setShowAdd(false);
+  };
+
+  const handleImpactCheck = async () => {
+    const desc = [newAddendum.title, newAddendum.notes].filter(Boolean).join(". ");
+    if (!desc.trim()) return;
+    setImpactCheckLoading(true);
+    setImpactCheckResults(null);
+    try {
+      const res = await fetch("/api/bidshield/check-addendum-impact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: desc }),
+      });
+      const data = await res.json();
+      setImpactCheckResults(data.impacts ?? []);
+    } catch {
+      setImpactCheckResults([]);
+    } finally {
+      setImpactCheckLoading(false);
+    }
   };
 
   const handleUpdate = useCallback(async (addendumId: Id<"bidshield_addenda">, updates: Record<string, any>) => {
@@ -204,6 +227,41 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
               <label className="block text-xs text-slate-500 mb-1">Notes (optional)</label>
               <textarea value={newAddendum.notes} onChange={(e) => setNewAddendum({ ...newAddendum, notes: e.target.value })} placeholder="What does this addendum cover?" rows={2} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm resize-none" />
             </div>
+
+            {(isPro || isDemo) && newAddendum.title && (
+              <div>
+                <button
+                  onClick={handleImpactCheck}
+                  disabled={impactCheckLoading}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  style={{ background: "linear-gradient(135deg, #059669 0%, #0d9488 100%)", color: "white" }}
+                >
+                  {impactCheckLoading ? "✨ Checking..." : "✨ Check Addendum Impact"}
+                </button>
+                {impactCheckResults && impactCheckResults.length > 0 && (
+                  <div className="mt-2 rounded-lg p-3 border border-emerald-200" style={{ background: "#f0fdf4" }}>
+                    <p className="text-[11px] font-semibold text-emerald-700 mb-2">Affected bid sections:</p>
+                    <ul className="flex flex-col gap-1">
+                      {impactCheckResults.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                          <span className="text-emerald-500 shrink-0 mt-0.5">•</span>
+                          <span><strong>{item.section}:</strong> {item.action}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {impactCheckResults && impactCheckResults.length === 0 && (
+                  <p className="mt-2 text-xs text-slate-500">No significant bid sections identified. Review manually.</p>
+                )}
+              </div>
+            )}
+            {!isPro && !isDemo && newAddendum.title && (
+              <a href="/bidshield/pricing" className="inline-block text-xs text-slate-400 hover:text-emerald-600 transition-colors">
+                🔒 ✨ Check Addendum Impact — Pro feature
+              </a>
+            )}
+
             <div className="flex gap-3">
               <button onClick={handleAdd} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">Save</button>
               <button onClick={() => setShowAdd(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Cancel</button>
@@ -229,7 +287,8 @@ export default function AddendaTab({ projectId, isDemo, project, userId }: TabPr
         <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
           <div className="text-4xl mb-3">📁</div>
           <p className="text-sm text-slate-500 mb-2">No addenda logged for this project</p>
-          <p className="text-xs text-slate-500">Click "+ Add Addendum" when you receive one from the GC</p>
+          <p className="text-xs text-slate-500">Click &quot;+ Add Addendum&quot; when you receive one from the GC</p>
+          <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">Missed addenda are one of the most common bid-day errors — BidShield tracks each one so nothing falls through.</p>
         </div>
       )}
     </div>

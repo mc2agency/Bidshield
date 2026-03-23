@@ -7,6 +7,12 @@ export interface ChecklistItemDef {
   text: string;
   systems?: string[]; // Only show for these system types. Omit = show for all.
   decks?: string[];   // Only show for these deck types. Omit = show for all.
+  fmGlobal?: boolean;   // Only show when building is FM Global insured.
+  pre1990?: boolean;    // Only show when building was constructed before 1990.
+  energyCode?: boolean; // Only show when project triggers energy code (>50% or >2,000 SF replaced).
+  critical?: boolean;   // Item-level critical flag (red border + bold text).
+  helpUrl?: string;     // Optional reference link shown next to the item.
+  helpText?: string;    // Expandable "why this matters" explanation shown under item text.
 }
 
 export interface ChecklistPhaseDef {
@@ -87,7 +93,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p2-1", text: "All addenda received" },
       { id: "p2-2", text: "Drawing set complete (A, S, M, P, E)" },
       { id: "p2-3", text: "Specifications received" },
-      { id: "p2-4", text: "Geotechnical report (if applicable)" },
+      { id: "p2-4", text: "Owner's Project Requirements (OPR) received" },
       { id: "p2-5", text: "Bid form received" },
       { id: "p2-6", text: "Number of addenda confirmed with GC" },
       { id: "p2-7", text: "All addenda acknowledged on bid form" },
@@ -109,6 +115,9 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p3-8", text: "Roof slope direction confirmed" },
       { id: "p3-9", text: "Green roof areas identified (if applicable)" },
       { id: "p3-10", text: "Paver/walking pad areas identified" },
+      { id: "p3-11", text: "Skylight locations and curb details identified" },
+      { id: "p3-12", text: "Existing roof assembly confirmed (recover vs full tearoff)" },
+      { id: "p3-pre90", text: "Designated Substance Survey required before pricing any tear-off scope", pre1990: true, critical: true },
     ],
   },
   phase4: {
@@ -134,9 +143,10 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
     title: "Mechanical Review",
     icon: "⚙️",
     critical: true,
-    criticalRule: "ALWAYS trust the equipment schedule over plan graphics for curb sizes!",
+    criticalRule: "Mechanical curb misses cost $30K–$80K on average — verify every RTU curb height and dimensions against structural drawings",
     items: [
       { id: "p5-1", text: "RTU locations & curb sizes from schedule" },
+      { id: "p5-7", text: "Mechanical curb heights confirmed (min 8\" above finished roof)", critical: true, helpText: "RTU curbs must be minimum 8 inches above finished roof surface per NRCA standards. Under-height curbs require costly field modifications averaging $800–$2,400 per unit. On a 20-RTU building that's $16K–$48K in change orders — absorbed by the contractor." },
       { id: "p5-2", text: "Exhaust fans counted & curb sizes noted" },
       { id: "p5-3", text: "Kitchen hoods & grease exhaust identified" },
       { id: "p5-4", text: "Ductwork penetrations noted" },
@@ -166,6 +176,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p7-3", text: "Lightning protection requirements noted" },
       { id: "p7-4", text: "Photovoltaic provisions identified" },
       { id: "p7-5", text: "Emergency power equipment noted" },
+      { id: "p7-6", text: "Data, comm, and low-voltage penetrations counted" },
     ],
   },
   phase8: {
@@ -178,6 +189,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p8-3", text: "Crane/equipment placement noted" },
       { id: "p8-4", text: "DOT requirements checked (if applicable)" },
       { id: "p8-5", text: "Adjacent property constraints noted" },
+      { id: "p8-6", text: "Working hours restrictions confirmed" },
+      { id: "p8-7", text: "Delivery access and loading dock availability confirmed" },
     ],
   },
   phase9: {
@@ -194,11 +207,43 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-5", text: "Installation requirements noted" },
       { id: "p9-6", text: "Testing requirements (flood, adhesion)" },
       { id: "p9-7", text: "Special inspections required?" },
-      { id: "p9-8", text: "Weld test / seam test requirements noted", systems: ["tpo", "pvc"] },
+      { id: "p9-13", text: "Mock-up / test area required per spec?" },
+      // TPO / PVC
+      { id: "p9-tpo1", text: "Membrane thickness confirmed (45, 60, or 80 mil)", systems: ["tpo"] },
+      { id: "p9-tpo2", text: "Seam width minimum 1.5\" per spec confirmed", systems: ["tpo"] },
+      { id: "p9-tpo3", text: "Ambient temp limitations for welding noted", systems: ["tpo"] },
+      { id: "p9-tpo4", text: "Attachment method confirmed (mech attached, fully adhered, or induction)", systems: ["tpo"] },
+      { id: "p9-tpopvc1", text: "Weld temperature & speed requirements noted", systems: ["tpo", "pvc"] },
+      { id: "p9-tpopvc2", text: "Seam testing method documented (spark test, vacuum, air lance)", systems: ["tpo", "pvc"] },
+      { id: "p9-pvc1", text: "Grease exhaust proximity confirmed (restaurant/kitchen hoods)", systems: ["pvc"] },
+      { id: "p9-pvc2", text: "Asphalt-impregnated material separation noted", systems: ["pvc"] },
+      { id: "p9-pvc3", text: "Cold-weather brittleness for climate zone reviewed", systems: ["pvc"] },
+      // EPDM
+      { id: "p9-epdm1", text: "Attachment method confirmed (ballasted adds 10+ psf — verify structural)", systems: ["epdm"] },
+      { id: "p9-epdm2", text: "Chemical incompatibility with bitumen noted", systems: ["epdm"] },
+      { id: "p9-epdm3", text: "Shrinkage allowance in flashing details confirmed", systems: ["epdm"] },
+      { id: "p9-epdm4", text: "Adhesive application temperature requirements noted", systems: ["epdm"] },
+      { id: "p9-epdm5", text: "Seam primer and splice tape requirements documented", systems: ["epdm"] },
+      // SBS / APP / BUR
       { id: "p9-9", text: "Torch application safety requirements", systems: ["sbs", "app", "bur"] },
-      { id: "p9-10", text: "Metal panel gauge, profile & finish specified", systems: ["metal"] },
+      { id: "p9-sbs1", text: "Torch application fire code restrictions checked", systems: ["sbs", "app", "bur"] },
+      { id: "p9-sbs2", text: "Hot work permit required?", systems: ["sbs", "app", "bur"] },
+      { id: "p9-sbs3", text: "Interply mopping temp range confirmed", systems: ["sbs", "app", "bur"] },
+      // SPF
       { id: "p9-11", text: "SPF density, thickness & coating requirements", systems: ["spf"] },
+      { id: "p9-spf1", text: "Substrate moisture testing required", systems: ["spf"] },
+      { id: "p9-spf2", text: "Coating mil thickness requirements noted", systems: ["spf"] },
+      // Metal
+      { id: "p9-10", text: "Metal panel gauge, profile & finish specified", systems: ["metal"] },
+      { id: "p9-metal1", text: "Panel clip spacing and fastener schedule noted", systems: ["metal"] },
+      { id: "p9-metal2", text: "Thermal movement allowance requirements documented", systems: ["metal"] },
+      // EPDM legacy catch-all (kept for backward compat)
       { id: "p9-12", text: "EPDM adhesive & seam tape requirements", systems: ["epdm"] },
+      // Energy code
+      { id: "p9-ec1", text: "Energy code compliance required — verify minimum R-value for Climate Zone", energyCode: true, critical: true, helpUrl: "https://www.energycodes.gov/climate-zones" },
+      { id: "p9-fm1", text: "System verified via RoofNav before specifying", fmGlobal: true },
+      { id: "p9-fm2", text: "FM rating confirmed (1-60, 1-90, or 1-120)", fmGlobal: true },
+      { id: "p9-fm3", text: "No mixing components between FM-approved assemblies", fmGlobal: true },
     ],
   },
   phase10: {
@@ -274,6 +319,9 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p13-7", text: "Asphalt/bitumen quantities calculated", systems: ["sbs", "app", "bur"] },
       { id: "p13-8", text: "Metal panel clips & fastener quantities", systems: ["metal"] },
       { id: "p13-9", text: "SPF foam & coating quantities calculated", systems: ["spf"] },
+      { id: "p13-10", text: "Material lead times checked (note if >3 weeks)" },
+      { id: "p13-11", text: "Sales tax exemption verified (if applicable)" },
+      { id: "p13-12", text: "Material price escalation clause considered (if applicable)" },
     ],
   },
   phase14: {
@@ -293,24 +341,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p14-8", text: "Torch crew rates and hot work permit time", systems: ["sbs", "app", "bur"] },
       { id: "p14-9", text: "Metal panel install crew rates", systems: ["metal"] },
       { id: "p14-10", text: "SPF spray crew rates & overspray protection time", systems: ["spf"] },
-    ],
-  },
-  // General conditions — after pricing, before submission
-  phase18: {
-    key: "phase18",
-    title: "General Conditions & Overhead",
-    icon: "📊",
-    items: [
-      { id: "p18-1", text: "Dumpster / disposal costs included" },
-      { id: "p18-2", text: "Crane / hoist rental costs included" },
-      { id: "p18-3", text: "Temporary weather protection included" },
-      { id: "p18-4", text: "Permit costs included" },
-      { id: "p18-5", text: "Builders risk / additional insured requirements" },
-      { id: "p18-6", text: "Project-specific insurance costs" },
-      { id: "p18-7", text: "Mobilization / demobilization costs" },
-      { id: "p18-8", text: "Daily cleanup & protection of adjacent work" },
-      { id: "p18-9", text: "Overhead & profit markup applied" },
-      { id: "p18-10", text: "Bond premium included (if required)" },
+      { id: "p14-11", text: "Prevailing wage / Davis-Bacon requirements checked (if applicable)" },
+      { id: "p14-12", text: "Subcontractor quotes received — sheet metal, caulking, etc. (if applicable)" },
     ],
   },
   phase15: {
@@ -325,6 +357,9 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p15-5", text: "Bond requirements addressed" },
       { id: "p15-6", text: "Insurance requirements reviewed" },
       { id: "p15-7", text: "Bid form completed correctly" },
+      { id: "p15-8", text: "Retainage terms reviewed (typical 5-10%)" },
+      { id: "p15-9", text: "Liquidated damages clause reviewed" },
+      { id: "p15-10", text: "Bid form completed per GC requirements" },
     ],
   },
   phase16: {
@@ -336,6 +371,7 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p16-2", text: "Bid submitted before deadline" },
       { id: "p16-3", text: "Confirmation of receipt obtained" },
       { id: "p16-4", text: "Copy saved to project file" },
+      { id: "p16-5", text: "Sub-bid deadline confirmed (if using subcontractors)" },
     ],
   },
 };
@@ -369,6 +405,7 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p2-6", text: "Number of addenda confirmed with GC" },
       { id: "p2-7", text: "All addenda acknowledged on bid form" },
       { id: "p2-8", text: "Addenda changes incorporated into estimate" },
+      { id: "p2-pre90", text: "Designated Substance Survey required before pricing any tear-off scope", pre1990: true, critical: true },
     ],
   },
   phase9: {
@@ -385,6 +422,9 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p9-5", text: "Installation requirements noted" },
       { id: "p9-6", text: "Testing requirements noted" },
       { id: "p9-7", text: "Special inspections required?" },
+      { id: "p9-fm1", text: "System verified via RoofNav before specifying", fmGlobal: true },
+      { id: "p9-fm2", text: "FM rating confirmed (1-60, 1-90, or 1-120)", fmGlobal: true },
+      { id: "p9-fm3", text: "No mixing components between FM-approved assemblies", fmGlobal: true },
     ],
   },
   phase17: {
@@ -407,6 +447,8 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p13-2", text: "Waste factors applied" },
       { id: "p13-3", text: "Freight costs included" },
       { id: "p13-4", text: "Tax calculated correctly" },
+      { id: "p13-11", text: "Sales tax exemption verified (if applicable)" },
+      { id: "p13-12", text: "Material price escalation clause considered (if applicable)" },
     ],
   },
   phase14: {
@@ -420,18 +462,8 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p14-2", text: "Labor burden calculated (WC, FICA, UI)" },
       { id: "p14-3", text: "Overtime considered if needed" },
       { id: "p14-4", text: "Mobilization included" },
-    ],
-  },
-  phase18: {
-    key: "phase18",
-    title: "General Conditions & Overhead",
-    icon: "📊",
-    items: [
-      { id: "p18-1", text: "Dumpster / disposal costs included" },
-      { id: "p18-4", text: "Permit costs included" },
-      { id: "p18-5", text: "Insurance requirements reviewed" },
-      { id: "p18-9", text: "Overhead & profit markup applied" },
-      { id: "p18-10", text: "Bond premium included (if required)" },
+      { id: "p14-11", text: "Prevailing wage / Davis-Bacon requirements checked (if applicable)" },
+      { id: "p14-12", text: "Subcontractor quotes received — sheet metal, caulking, etc. (if applicable)" },
     ],
   },
   phase15: {
@@ -446,6 +478,9 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p15-5", text: "Bond requirements addressed" },
       { id: "p15-6", text: "Insurance requirements reviewed" },
       { id: "p15-7", text: "Bid form completed correctly" },
+      { id: "p15-8", text: "Retainage terms reviewed (typical 5-10%)" },
+      { id: "p15-9", text: "Liquidated damages clause reviewed" },
+      { id: "p15-10", text: "Bid form completed per GC requirements" },
     ],
   },
   phase16: {
@@ -457,6 +492,7 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p16-2", text: "Bid submitted before deadline" },
       { id: "p16-3", text: "Confirmation of receipt obtained" },
       { id: "p16-4", text: "Copy saved to project file" },
+      { id: "p16-5", text: "Sub-bid deadline confirmed (if using subcontractors)" },
     ],
   },
 };
@@ -466,16 +502,33 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
 function filterItems(
   items: ChecklistItemDef[],
   systemType?: string,
-  deckType?: string
+  deckType?: string,
+  fmGlobal?: boolean,
+  pre1990?: boolean,
+  energyCode?: boolean
 ): ChecklistItemDef[] {
   return items.filter(item => {
-    // If item is system-specific, only include when matching system is selected
-    if (item.systems) {
-      if (!systemType || !item.systems.includes(systemType)) return false;
+    // If item is system-specific:
+    // - When systemType IS set: only include items matching that system
+    // - When systemType is NOT set: show all items (UI adds "select a system" note)
+    if (item.systems && systemType) {
+      if (!item.systems.includes(systemType)) return false;
     }
     // If item is deck-specific, only include when matching deck is selected
     if (item.decks) {
       if (!deckType || !item.decks.includes(deckType)) return false;
+    }
+    // FM Global items only shown when building is FM Global insured
+    if (item.fmGlobal) {
+      if (!fmGlobal) return false;
+    }
+    // Pre-1990 items only shown when building was constructed before 1990
+    if (item.pre1990) {
+      if (!pre1990) return false;
+    }
+    // Energy code items only shown when project triggers energy code compliance
+    if (item.energyCode) {
+      if (!energyCode) return false;
     }
     return true;
   });
@@ -484,7 +537,10 @@ function filterItems(
 export function getChecklistForTrade(
   trade: string,
   systemType?: string,
-  deckType?: string
+  deckType?: string,
+  fmGlobal?: boolean,
+  pre1990?: boolean,
+  energyCode?: boolean
 ): Record<string, ChecklistPhaseDef> {
   let sourcePhases: Record<string, ChecklistPhaseDef>;
 
@@ -499,7 +555,7 @@ export function getChecklistForTrade(
 
   const result: Record<string, ChecklistPhaseDef> = {};
   for (const [key, phase] of Object.entries(sourcePhases)) {
-    const filteredItems = filterItems(phase.items, systemType, deckType);
+    const filteredItems = filterItems(phase.items, systemType, deckType, fmGlobal, pre1990, energyCode);
     if (filteredItems.length > 0) {
       result[key] = { ...phase, items: filteredItems };
     }

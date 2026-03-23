@@ -26,7 +26,7 @@ function varianceBg(pct: number): string {
   return "bg-red-50 border-red-500/30";
 }
 
-export default function PricingTab({ projectId, isDemo, project, userId }: TabProps) {
+export default function PricingTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
   const updateProject = useMutation(api.bidshield.updateProject);
   const [editing, setEditing] = useState(false);
@@ -43,6 +43,21 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
   const computedMaterialTotal = Math.round(
     (projectMaterials ?? []).reduce((sum: number, m: any) => sum + (m.totalCost || 0), 0)
   );
+
+  const laborTotal = useQuery(
+    api.bidshield.getLaborTotal,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const computedLaborTotal = isDemo ? 77430 : (laborTotal ?? 0);
+
+  const gcItems = useQuery(
+    api.bidshield.getGCItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const gcLineItemsTotal = (gcItems ?? []).filter((i: any) => !i.isMarkup).reduce((s: number, i: any) => s + (i.total ?? 0), 0);
+  const gcMarkupBase = computedMaterialTotal + computedLaborTotal + gcLineItemsTotal;
+  const gcMarkupTotal = (gcItems ?? []).filter((i: any) => i.isMarkup).reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0);
+  const computedGCTotal = Math.round(gcLineItemsTotal + gcMarkupTotal);
 
   const grossRoofArea: number | null = isDemo ? 68000 : (project?.grossRoofArea ?? null);
 
@@ -67,7 +82,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   const [form, setForm] = useState({
-    totalBidAmount: "", materialCost: "", laborCost: "", otherCost: "",
+    totalBidAmount: "", otherCost: "",
     primaryAssembly: "", lossReason: "", lossReasonNote: "",
   });
 
@@ -78,9 +93,10 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
   const startEdit = () => {
     setForm({
-      totalBidAmount: pricing.totalBidAmount?.toString() ?? "", materialCost: pricing.materialCost?.toString() ?? "",
-      laborCost: pricing.laborCost?.toString() ?? "", otherCost: pricing.otherCost?.toString() ?? "",
-      primaryAssembly: pricing.primaryAssembly ?? "", lossReason: pricing.lossReason ?? "",
+      totalBidAmount: pricing.totalBidAmount?.toString() ?? "",
+      otherCost: pricing.otherCost?.toString() ?? "",
+      primaryAssembly: pricing.primaryAssembly ?? "",
+      lossReason: pricing.lossReason ?? "",
       lossReasonNote: pricing.lossReasonNote ?? "",
     });
     setEditing(true);
@@ -99,14 +115,14 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
   const handleSave = async () => {
     const parse = (s: string) => { const n = parseFloat(s); return isNaN(n) ? undefined : n; };
     if (isDemo) {
-      setDemoPricing(p => ({ ...p, totalBidAmount: parse(form.totalBidAmount) ?? p.totalBidAmount, materialCost: parse(form.materialCost) ?? p.materialCost, laborCost: parse(form.laborCost) ?? p.laborCost, otherCost: parse(form.otherCost) ?? p.otherCost, primaryAssembly: form.primaryAssembly || p.primaryAssembly, lossReason: form.lossReason || undefined, lossReasonNote: form.lossReasonNote || undefined }));
+      setDemoPricing(p => ({ ...p, totalBidAmount: parse(form.totalBidAmount) ?? p.totalBidAmount, otherCost: parse(form.otherCost) ?? p.otherCost, primaryAssembly: form.primaryAssembly || p.primaryAssembly, lossReason: form.lossReason || undefined, lossReasonNote: form.lossReasonNote || undefined }));
       setEditing(false); return;
     }
     if (!isValidConvexId) { setEditing(false); return; }
     await updateProject({
       projectId: projectId as Id<"bidshield_projects">,
-      totalBidAmount: parse(form.totalBidAmount), materialCost: parse(form.materialCost),
-      laborCost: parse(form.laborCost), otherCost: parse(form.otherCost),
+      totalBidAmount: parse(form.totalBidAmount),
+      otherCost: parse(form.otherCost),
       primaryAssembly: form.primaryAssembly || undefined, lossReason: form.lossReason || undefined,
       lossReasonNote: form.lossReasonNote || undefined,
     });
@@ -152,10 +168,12 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
   const hasActuals = !!(pricing.actualCost);
   const totalVariance = hasActuals && pricing.totalBidAmount ? pricing.actualCost! - pricing.totalBidAmount : null;
   const totalVariancePct = hasActuals && pricing.totalBidAmount ? ((pricing.actualCost! - pricing.totalBidAmount) / pricing.totalBidAmount) * 100 : null;
-  const matVariance = pricing.actualMaterialCost && pricing.materialCost ? pricing.actualMaterialCost - pricing.materialCost : null;
-  const matVariancePct = pricing.actualMaterialCost && pricing.materialCost ? ((pricing.actualMaterialCost - pricing.materialCost) / pricing.materialCost) * 100 : null;
-  const labVariance = pricing.actualLaborCost && pricing.laborCost ? pricing.actualLaborCost - pricing.laborCost : null;
-  const labVariancePct = pricing.actualLaborCost && pricing.laborCost ? ((pricing.actualLaborCost - pricing.laborCost) / pricing.laborCost) * 100 : null;
+  const effectiveMaterialCost = computedMaterialTotal > 0 ? computedMaterialTotal : (pricing.materialCost ?? 0);
+  const matVariance = pricing.actualMaterialCost && effectiveMaterialCost ? pricing.actualMaterialCost - effectiveMaterialCost : null;
+  const matVariancePct = pricing.actualMaterialCost && effectiveMaterialCost ? ((pricing.actualMaterialCost - effectiveMaterialCost) / effectiveMaterialCost) * 100 : null;
+  const effectiveLaborCost = computedLaborTotal > 0 ? computedLaborTotal : (pricing.laborCost ?? 0);
+  const labVariance = pricing.actualLaborCost && effectiveLaborCost ? pricing.actualLaborCost - effectiveLaborCost : null;
+  const labVariancePct = pricing.actualLaborCost && effectiveLaborCost ? ((pricing.actualLaborCost - effectiveLaborCost) / effectiveLaborCost) * 100 : null;
   const othVariance = pricing.actualOtherCost && pricing.otherCost ? pricing.actualOtherCost - pricing.otherCost : null;
   const othVariancePct = pricing.actualOtherCost && pricing.otherCost ? ((pricing.actualOtherCost - pricing.otherCost) / pricing.otherCost) * 100 : null;
   const actualDpsf = pricing.actualCost && grossRoofArea && grossRoofArea > 0 ? pricing.actualCost / grossRoofArea : null;
@@ -175,9 +193,13 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
       <div className="bg-white rounded-xl p-5 border border-slate-200">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm font-semibold text-slate-900">Bid Pricing & Outcome</h3>
-          <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
-            {editing ? "Save" : "Edit"}
-          </button>
+          {(isPro || isDemo) ? (
+            <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
+              {editing ? "Save" : "Edit"}
+            </button>
+          ) : (
+            <a href="/bidshield/pricing" className="text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">🔒 Edit · Pro</a>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
@@ -186,25 +208,81 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
             <div className="text-[10px] text-slate-500">Total Bid</div>
           </div>
           <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+            {computedMaterialTotal > 0 ? (
+              <div className="text-lg font-bold text-blue-600">
+                {fmtDollar(computedMaterialTotal)}
+                <span className="text-[10px] text-blue-400 font-normal ml-1">(auto)</span>
+              </div>
+            ) : (
+              <div className="text-base font-bold text-slate-400">—</div>
+            )}
+            <div className="text-[10px] text-slate-500">Material</div>
+            {computedMaterialTotal > 0 ? (
+              <button
+                type="button"
+                onClick={() => onNavigateTab?.("materials")}
+                className="text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 block w-full text-center"
+              >
+                → Material Reconciliation
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onNavigateTab?.("materials")}
+                className="text-[9px] text-amber-500 hover:text-amber-700 mt-0.5 block w-full text-center leading-tight"
+              >
+                Upload report in Material Reconciliation
+              </button>
+            )}
+          </div>
+          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+            {computedLaborTotal > 0 ? (
+              <div className="text-lg font-bold text-emerald-600">
+                {fmtDollar(computedLaborTotal)}
+                <span className="text-[10px] text-emerald-400 font-normal ml-1">(auto)</span>
+              </div>
+            ) : (
+              <div className="text-base font-bold text-slate-400">—</div>
+            )}
+            <div className="text-[10px] text-slate-500">Labor</div>
+            {computedLaborTotal > 0 ? (
+              <button
+                type="button"
+                onClick={() => onNavigateTab?.("labor")}
+                className="text-[9px] text-emerald-500 hover:text-emerald-700 mt-0.5 block w-full text-center"
+              >
+                → Labor Verification
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onNavigateTab?.("labor")}
+                className="text-[9px] text-amber-500 hover:text-amber-700 mt-0.5 block w-full text-center leading-tight"
+              >
+                Run analysis in Labor
+              </button>
+            )}
+          </div>
+          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
             {editing ? (
-              <>
-                <input type="number" value={form.materialCost} onChange={(e) => setForm({ ...form, materialCost: e.target.value })} placeholder="Material" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" />
-                {!isDemo && computedMaterialTotal > 0 && (
-                  <button type="button" onClick={() => setForm({ ...form, materialCost: computedMaterialTotal.toString() })} className="text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 block w-full text-center whitespace-nowrap">
-                    ↑ Use Materials tab: {fmtDollar(computedMaterialTotal)}
+              <div>
+                <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" />
+                {computedGCTotal > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, otherCost: computedGCTotal.toString() }))}
+                    className="mt-1 text-[10px] text-amber-600 underline cursor-pointer bg-transparent border-none p-0"
+                  >
+                    Pull from GC ({fmtDollar(computedGCTotal)})
                   </button>
                 )}
-              </>
-            ) : <div className="text-lg font-bold text-blue-600">{pricing.materialCost ? fmtDollar(pricing.materialCost) : "—"}</div>}
-            <div className="text-[10px] text-slate-500">Material</div>
-          </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-            {editing ? <input type="number" value={form.laborCost} onChange={(e) => setForm({ ...form, laborCost: e.target.value })} placeholder="Labor" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-emerald-600">{pricing.laborCost ? fmtDollar(pricing.laborCost) : "—"}</div>}
-            <div className="text-[10px] text-slate-500">Labor</div>
-          </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-            {editing ? <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-slate-600">{pricing.otherCost ? fmtDollar(pricing.otherCost) : "—"}</div>}
-            <div className="text-[10px] text-slate-500">Other</div>
+              </div>
+            ) : (
+              <div className="text-lg font-bold text-slate-600">
+                {pricing.otherCost ? fmtDollar(pricing.otherCost) : computedGCTotal > 0 ? <span title="Computed from Gen. Conditions tab">{fmtDollar(computedGCTotal)} <span className="text-[10px] text-slate-400">(GC)</span></span> : "—"}
+              </div>
+            )}
+            <div className="text-[10px] text-slate-500">Gen. Conds</div>
           </div>
           <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200 col-span-2 sm:col-span-1">
             <div className={`text-lg font-bold ${healthColor}`}>{dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
@@ -263,7 +341,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
 
         {editing && (
           <div className="mt-4 flex gap-2">
-            <button onClick={handleSave} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Changes</button>
+            <button onClick={handleSave} style={{ background: "#10b981" }} className="text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors hover:opacity-90">Save Changes</button>
             <button onClick={() => setEditing(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
           </div>
         )}
@@ -317,7 +395,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
                 <textarea value={actualsForm.postJobNotes} onChange={(e) => setActualsForm({ ...actualsForm, postJobNotes: e.target.value })} placeholder="What caused variances? Lessons for future bids..." rows={2} className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm resize-none focus:outline-none focus:border-amber-500" />
               </div>
               <div className="flex gap-2">
-                <button onClick={handleSaveActuals} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Save Actuals</button>
+                <button onClick={handleSaveActuals} style={{ background: "#10b981" }} className="text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors hover:opacity-90">Save Actuals</button>
                 <button onClick={() => setEditingActuals(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
               </div>
             </div>
@@ -375,7 +453,7 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
               </thead>
               <tbody>
                 <ComparisonRow label="Total" estimated={pricing.totalBidAmount} actual={pricing.actualCost} varianceAmt={totalVariance} variancePct={totalVariancePct} bold />
-                {pricing.materialCost && <ComparisonRow label="Material" estimated={pricing.materialCost} actual={pricing.actualMaterialCost} varianceAmt={matVariance} variancePct={matVariancePct} />}
+                {effectiveMaterialCost > 0 && <ComparisonRow label="Material" estimated={effectiveMaterialCost} actual={pricing.actualMaterialCost} varianceAmt={matVariance} variancePct={matVariancePct} />}
                 {pricing.laborCost && <ComparisonRow label="Labor" estimated={pricing.laborCost} actual={pricing.actualLaborCost} varianceAmt={labVariance} variancePct={labVariancePct} />}
                 {pricing.otherCost && <ComparisonRow label="Other" estimated={pricing.otherCost} actual={pricing.actualOtherCost} varianceAmt={othVariance} variancePct={othVariancePct} />}
                 {dollarPerSf && actualDpsf && (
@@ -437,7 +515,15 @@ export default function PricingTab({ projectId, isDemo, project, userId }: TabPr
       {/* Info callout */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
         <p className="text-sm text-slate-500">
-          To update your bid total, edit costs directly in the Materials, Labor, and Gen. Conds sections. Changes reflect here automatically.
+          Material cost pulls automatically from{" "}
+          <button onClick={() => onNavigateTab?.("materials")} className="text-blue-500 hover:text-blue-700 underline underline-offset-2 font-medium">
+            Material Reconciliation
+          </button>
+          {" "}and labor cost from{" "}
+          <button onClick={() => onNavigateTab?.("labor")} className="text-emerald-600 hover:text-emerald-800 underline underline-offset-2 font-medium">
+            Labor Verification
+          </button>
+          . Add Gen. Conds costs to complete your bid total.
         </p>
       </div>
     </div>

@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Commercial Roofing Scope of Work: 40-Item Checklist for Estimators',
-  description: 'A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.',
+export const metadata: Metadata = {
+  title: "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
+  description: "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",
+  openGraph: {
+    title: "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
+    description: "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",
+    type: "article",
+    publishedTime: "2026-01-20",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=Commercial Roofing Scope of Work: 40-Item Checklist for Estimators&type=article",
+        width: 1200,
+        height: 630,
+        alt: "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
+    description: "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",
+    images: ["/api/og?title=Commercial Roofing Scope of Work: 40-Item Checklist for Estimators&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
+  "description": "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2026-01-20",
+  "dateModified": "2026-01-20",
+  "image": "https://mc2estimating.com/api/og?title=Commercial Roofing Scope of Work: 40-Item Checklist for Estimators&type=article",
+  "url": "https://mc2estimating.com/blog/commercial-roofing-scope-of-work-checklist",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/commercial-roofing-scope-of-work-checklist"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators", "item": "https://mc2estimating.com/blog/commercial-roofing-scope-of-work-checklist" }
+  ]
 };
 
 export default function CommercialRoofingScopeOfWorkArticle() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

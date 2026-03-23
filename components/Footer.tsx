@@ -21,7 +21,7 @@ export default function Footer() {
     {
       title: 'Resources',
       links: [
-        { href: '/products', label: 'Templates' },
+        { href: '/bidshield/dashboard/templates', label: 'Templates' },
         { href: '/updates', label: 'Product Updates' },
         { href: '/support', label: 'Support' },
       ],

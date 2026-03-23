@@ -1,13 +1,73 @@
+import { Metadata } from "next";
 import Link from 'next/link';
 
-export const metadata = {
-  title: '7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]',
-  description: 'The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.',
+export const metadata: Metadata = {
+  title: "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
+  description: "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
+  openGraph: {
+    title: "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
+    description: "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
+    type: "article",
+    publishedTime: "2026-01-10",
+    authors: ["MC2 Estimating"],
+    images: [
+      {
+        url: "/api/og?title=7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]&type=article",
+        width: 1200,
+        height: 630,
+        alt: "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
+    description: "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
+    images: ["/api/og?title=7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]&type=article"],
+  },
+};
+
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
+  "description": "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
+  "author": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MC2 Estimating",
+    "url": "https://mc2estimating.com"
+  },
+  "datePublished": "2026-01-10",
+  "dateModified": "2026-01-10",
+  "image": "https://mc2estimating.com/api/og?title=7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]&type=article",
+  "url": "https://mc2estimating.com/blog/roofing-takeoff-mistakes",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://mc2estimating.com/blog/roofing-takeoff-mistakes"
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]", "item": "https://mc2estimating.com/blog/roofing-takeoff-mistakes" }
+  ]
 };
 
 export default function RoofingTakeoffMistakesPage() {
   return (
     <main className="min-h-screen bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-4">
