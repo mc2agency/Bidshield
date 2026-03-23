@@ -146,7 +146,7 @@ export default function PricingPage() {
             A single missed mechanical curb on a $3M bid = $30,000–$80,000 loss.
           </p>
           <p className="text-sm text-amber-700 mt-1">
-            Pro at $249/mo = $2,988/year. One prevented underbid on a $2M job covers 8+ years of the tool.
+            Pro at $149/mo = $1,490/year. One prevented underbid on a $2M job covers 10+ years of the tool.
           </p>
         </div>
       </div>
