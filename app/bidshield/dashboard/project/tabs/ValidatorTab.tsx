@@ -90,6 +90,7 @@ function getLabelGroup(label: string): TabId | "__meta__" {
     "Coverage Rates": "materials" as any,
     "Waste Factors": "materials" as any,
     "Labor Verification": "labor" as any,
+    "GC Bid Forms": "bidquals",
   };
   return map[label] ?? "__meta__";
 }
@@ -147,6 +148,14 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
   );
   const laborAnalysis = useQuery(
     api.bidshield.getLaborAnalysis,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const gcFormDocuments = useQuery(
+    api.bidshield.getGcBidFormDocuments,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const unconfirmedGcFormCount = useQuery(
+    api.bidshield.getUnconfirmedGcBidFormCount,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
 
@@ -432,6 +441,20 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
         });
       } else if (projectMaterials.filter((m: any) => WASTE_REQUIRED.has(m.category)).length > 0) {
         items.push({ label: "Waste Factors", status: "pass", message: "Waste factors applied to all membrane, insulation, and fastener items" });
+      }
+    }
+
+    // 14. GC BID FORMS (optional — only shown if docs have been uploaded)
+    if (!isDemo && gcFormDocuments !== undefined && (gcFormDocuments?.length ?? 0) > 0) {
+      if (unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0) {
+        items.push({
+          label: "GC Bid Forms",
+          status: "warn",
+          message: `${unconfirmedGcFormCount} GC bid form item${unconfirmedGcFormCount !== 1 ? "s" : ""} need confirmation before submission`,
+          tabLink: "bidquals",
+        });
+      } else if (unconfirmedGcFormCount === 0) {
+        items.push({ label: "GC Bid Forms", status: "pass", message: "All GC bid form items confirmed" });
       }
     }
 

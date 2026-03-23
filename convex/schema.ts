@@ -433,6 +433,39 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // GC bid form documents (uploaded per project)
+  bidshield_gcBidFormDocuments: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    label: v.string(),
+    uploadedAt: v.number(),
+    processed: v.boolean(),
+    itemCount: v.number(),
+    confirmedCount: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // Items extracted from GC bid form documents
+  bidshield_gcBidFormItems: defineTable({
+    documentId: v.id("bidshield_gcBidFormDocuments"),
+    projectId: v.id("bidshield_projects"),
+    questionText: v.string(),
+    itemType: v.union(v.literal("fill-in"), v.literal("scope-item")),
+    autoConfirmed: v.boolean(),
+    confirmedValue: v.optional(v.string()),
+    matchedField: v.optional(v.string()),
+    foundInScope: v.optional(v.boolean()),
+    foundInChecklist: v.optional(v.boolean()),
+    manuallyChecked: v.boolean(),
+    notes: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_document", ["documentId"])
+    .index("by_project", ["projectId"]),
+
   // AI labor analysis metadata per project (one record per analysis run)
   bidshield_laborAnalysis: defineTable({
     projectId: v.id("bidshield_projects"),

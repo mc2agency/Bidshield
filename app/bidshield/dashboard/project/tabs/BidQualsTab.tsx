@@ -6,6 +6,506 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 
+// ── Demo GC Bid Form fixtures ──────────────────────────────────────────────────
+
+const DEMO_GC_DOCS = [
+  {
+    _id: "demo_doc_1",
+    label: "Exhibit A — Scope Confirmation",
+    uploadedAt: Date.now() - 1000 * 60 * 60 * 6,
+    processed: true,
+    itemCount: 9,
+    confirmedCount: 5,
+  },
+];
+
+const DEMO_GC_ITEMS: Record<string, any[]> = {
+  demo_doc_1: [
+    { _id: "di1", questionText: "Confirm labor type (open shop, prevailing wage, or union)", itemType: "fill-in", autoConfirmed: true, confirmedValue: "Open Shop", matchedField: "laborType", manuallyChecked: false },
+    { _id: "di2", questionText: "Confirm addenda incorporated through #", itemType: "fill-in", autoConfirmed: true, confirmedValue: "Addenda 1, 2", matchedField: "addendaThrough", manuallyChecked: false },
+    { _id: "di3", questionText: "Insurance program (own GL/WC, CCIP, or OCIP)", itemType: "fill-in", autoConfirmed: true, confirmedValue: "Provide own GL/WC", matchedField: "insuranceProgram", manuallyChecked: false },
+    { _id: "di4", questionText: "Bond required — confirm type", itemType: "fill-in", autoConfirmed: true, confirmedValue: "No bond required", matchedField: "bondRequired", manuallyChecked: false },
+    { _id: "di5", questionText: "Bid valid for how many days from bid date", itemType: "fill-in", autoConfirmed: true, confirmedValue: "30 days", matchedField: "bidGoodFor", manuallyChecked: false },
+    { _id: "di6", questionText: "Confirm roofing scope includes single-ply membrane installation", itemType: "scope-item", autoConfirmed: false, confirmedValue: null, matchedField: null, foundInScope: true, foundInChecklist: false, manuallyChecked: false },
+    { _id: "di7", questionText: "Confirm tear-off and disposal of existing roofing system", itemType: "scope-item", autoConfirmed: false, confirmedValue: null, matchedField: null, foundInScope: true, foundInChecklist: false, manuallyChecked: true },
+    { _id: "di8", questionText: "Provide unit price per SF for additional roofing area", itemType: "fill-in", autoConfirmed: false, confirmedValue: null, matchedField: null, manuallyChecked: false },
+    { _id: "di9", questionText: "Confirm MBE/WBE participation plan", itemType: "fill-in", autoConfirmed: false, confirmedValue: null, matchedField: null, manuallyChecked: false },
+  ],
+};
+
+// ── GCBidFormsPanel ───────────────────────────────────────────────────────────
+
+function GCBidFormsPanel({ projectId, userId, isDemo, isPro }: { projectId: string; userId: string | null; isDemo: boolean; isPro?: boolean }) {
+  const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
+
+  // Queries
+  const gcDocs = useQuery(
+    api.bidshield.getGcBidFormDocuments,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const bidQuals = useQuery(
+    api.bidshield.getBidQuals,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const checklist = useQuery(
+    api.bidshield.getChecklist,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+
+  // Mutations
+  const saveGcBidForm = useMutation(api.bidshield.saveGcBidForm);
+  const reanalyzeGcBidForm = useMutation(api.bidshield.reanalyzeGcBidForm);
+  const updateItem = useMutation(api.bidshield.updateGcBidFormItem);
+  const updateLabel = useMutation(api.bidshield.updateGcBidFormLabel);
+  const deleteDoc = useMutation(api.bidshield.deleteGcBidFormDocument);
+
+  // State
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [expandedDocs, setExpandedDocs] = useState<Set<string>>(new Set());
+  const [collapsedConfirmed, setCollapsedConfirmed] = useState<Set<string>>(new Set());
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const [reanalyzeTargetId, setReanalyzeTargetId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const reanalFileRef = useRef<HTMLInputElement>(null);
+  const labelDebounceRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  // Demo state
+  const [demoDocs, setDemoDocs] = useState(DEMO_GC_DOCS);
+  const [demoItems, setDemoItems] = useState<typeof DEMO_GC_ITEMS>(DEMO_GC_ITEMS);
+
+  const resolvedDocs = isDemo ? demoDocs : (gcDocs ?? []);
+
+  // Per-doc items query wrapper — we need a component for each
+  const [expandedDocItemsCache, setExpandedDocItemsCache] = useState<Record<string, any[]>>({});
+
+  const buildProjectContext = useCallback(() => {
+    const q = bidQuals ?? {};
+    return {
+      laborType: (q as any).laborType ?? null,
+      addendaNumbers: (q as any).addendaThrough ? Array.from({ length: (q as any).addendaThrough }, (_, i) => i + 1) : [],
+      specSections: (q as any).specSections ? [(q as any).specSections] : [],
+      insuranceProgram: (q as any).insuranceProgram ?? null,
+      bidValidDays: (q as any).bidGoodFor ?? null,
+      drawingDate: (q as any).plansDated ?? null,
+      planRevision: (q as any).planRevision ?? null,
+      bondRequired: (q as any).bondRequired ?? null,
+      prevailingWage: (q as any).laborType === "prevailing_wage",
+      mbeWbeGoals: (q as any).mbeGoals ?? null,
+      scopeItems: (scopeItems ?? []).map((s: any) => ({ text: s.name, status: s.status })),
+      checklistItems: (checklist ?? []).map((c: any) => ({ text: c.itemId, status: c.status })),
+    };
+  }, [bidQuals, scopeItems, checklist]);
+
+  const processFile = useCallback(async (file: File, existingDocId?: string) => {
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const base64 = dataUrl.split(",")[1];
+      const projectContext = buildProjectContext();
+
+      const res = await fetch("/api/bidshield/extract-gc-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64, projectContext }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error ?? "Extraction failed");
+
+      const items = data.items ?? [];
+
+      if (existingDocId) {
+        await reanalyzeGcBidForm({
+          documentId: existingDocId as Id<"bidshield_gcBidFormDocuments">,
+          items,
+        });
+        setReanalyzeTargetId(null);
+      } else {
+        if (!isValidConvexId || !userId) throw new Error("Project not saved — cannot store results");
+        const label = file.name.replace(/\.pdf$/i, "").replace(/[-_]/g, " ");
+        await saveGcBidForm({
+          projectId: projectId as Id<"bidshield_projects">,
+          userId,
+          label,
+          items,
+        });
+      }
+    } catch (err: any) {
+      setUploadError(err?.message ?? "Upload failed — try again");
+    } finally {
+      setUploading(false);
+    }
+  }, [buildProjectContext, isValidConvexId, userId, projectId, saveGcBidForm, reanalyzeGcBidForm]);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, existingDocId?: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    if (isDemo) return;
+    processFile(file, existingDocId);
+  }, [isDemo, processFile]);
+
+  const handleLabelChange = useCallback((docId: string, value: string) => {
+    if (isDemo) {
+      setDemoDocs(p => p.map(d => d._id === docId ? { ...d, label: value } : d));
+      return;
+    }
+    const t = labelDebounceRefs.current.get(docId);
+    if (t) clearTimeout(t);
+    labelDebounceRefs.current.set(docId, setTimeout(() => {
+      updateLabel({ documentId: docId as Id<"bidshield_gcBidFormDocuments">, label: value });
+    }, 600));
+  }, [isDemo, updateLabel]);
+
+  const handleDelete = useCallback(async (docId: string) => {
+    if (isDemo) {
+      setDemoDocs(p => p.filter(d => d._id !== docId));
+      return;
+    }
+    await deleteDoc({ documentId: docId as Id<"bidshield_gcBidFormDocuments"> });
+  }, [isDemo, deleteDoc]);
+
+  const handleToggleItem = useCallback(async (item: any, docId: string) => {
+    if (isDemo) {
+      setDemoItems(prev => {
+        const items = prev[docId] ?? [];
+        return {
+          ...prev,
+          [docId]: items.map(i => i._id === item._id ? { ...i, manuallyChecked: !i.manuallyChecked } : i),
+        };
+      });
+      return;
+    }
+    await updateItem({ itemId: item._id, manuallyChecked: !item.manuallyChecked });
+  }, [isDemo, updateItem]);
+
+  const handleNoteChange = useCallback((item: any, notes: string) => {
+    if (isDemo) return;
+    updateItem({ itemId: item._id, notes });
+  }, [isDemo, updateItem]);
+
+  // ── Render a single document card ──
+  function DocCard({ doc }: { doc: any }) {
+    const isExpanded = expandedDocs.has(doc._id);
+    const isConfirmedCollapsed = collapsedConfirmed.has(doc._id);
+
+    // For real data, use a child component that can useQuery
+    const items = isDemo
+      ? (demoItems[doc._id] ?? [])
+      : (expandedDocItemsCache[doc._id] ?? []);
+
+    const confirmedItems = items.filter((i: any) => i.autoConfirmed);
+    const needsReviewItems = items.filter((i: any) => !i.autoConfirmed);
+    const totalConfirmed = confirmedItems.length + needsReviewItems.filter((i: any) => i.manuallyChecked).length;
+    const totalItems = items.length;
+
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        {/* Card header */}
+        <div className="px-5 py-4 flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <input
+              type="text"
+              defaultValue={doc.label}
+              onChange={e => handleLabelChange(doc._id, e.target.value)}
+              placeholder="e.g. Exhibit A, Exhibit B, Bid Form"
+              className="w-full text-[14px] font-semibold text-slate-900 bg-transparent border-0 border-b border-transparent hover:border-slate-200 focus:border-slate-400 focus:outline-none pb-0.5 transition-colors"
+            />
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-[11px] text-slate-400">
+                {new Date(doc.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </span>
+              {doc.processed ? (
+                <span className="text-[11px] text-slate-500">
+                  {doc.confirmedCount} auto-confirmed · {doc.itemCount - doc.confirmedCount} need review
+                </span>
+              ) : (
+                <span className="text-[11px] text-amber-500">Processing…</span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {!isDemo && (
+              <>
+                <button
+                  onClick={() => { setReanalyzeTargetId(doc._id); reanalFileRef.current?.click(); }}
+                  className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Re-upload
+                </button>
+                <button
+                  onClick={() => handleDelete(doc._id)}
+                  className="text-[11px] text-slate-400 hover:text-red-600 transition-colors"
+                >
+                  Remove
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setExpandedDocs(prev => {
+                const next = new Set(prev);
+                if (next.has(doc._id)) next.delete(doc._id); else next.add(doc._id);
+                return next;
+              })}
+              className="text-[11px] text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors"
+            >
+              {isExpanded ? "Collapse" : "Expand"}
+              <svg className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="border-t border-slate-100">
+            {/* Status bar */}
+            {items.length > 0 && (
+              <div className="px-5 py-3 flex items-center justify-between bg-slate-50/50 border-b border-slate-100">
+                <span className="text-[12px] text-slate-500 font-medium">{totalConfirmed} of {totalItems} items confirmed</span>
+                {!isDemo && (
+                  <button
+                    onClick={() => { setReanalyzeTargetId(doc._id); reanalFileRef.current?.click(); }}
+                    className="text-[11px] text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    ✨ Re-analyze
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Section A: Auto-Confirmed */}
+            {confirmedItems.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setCollapsedConfirmed(prev => {
+                    const next = new Set(prev);
+                    if (next.has(doc._id)) next.delete(doc._id); else next.add(doc._id);
+                    return next;
+                  })}
+                  className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                >
+                  <span className="text-[12px] font-semibold text-emerald-700">✓ Auto-Confirmed ({confirmedItems.length})</span>
+                  <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isConfirmedCollapsed ? "" : "rotate-180"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
+                {!isConfirmedCollapsed && (
+                  <div className="flex flex-col divide-y divide-slate-100">
+                    {confirmedItems.map((item: any) => (
+                      <div key={item._id} className="flex items-start gap-3 px-5 py-3 bg-emerald-50/40 border-l-2 border-emerald-500">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          onChange={() => handleToggleItem(item, doc._id)}
+                          style={{ marginTop: 2, width: 14, height: 14, accentColor: "#10b981", flexShrink: 0 }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] text-slate-800">{item.questionText}</p>
+                          {item.confirmedValue && (
+                            <p className="text-[12px] text-emerald-700 mt-0.5 font-medium">
+                              {item.confirmedValue}
+                              {item.matchedField && <span className="text-[10px] text-emerald-500 ml-1">(matched from {item.matchedField})</span>}
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-100 text-teal-700 font-semibold shrink-0">✨ AI</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Section B: Needs Review */}
+            {needsReviewItems.length > 0 && (
+              <div>
+                <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/30">
+                  <span className="text-[12px] font-semibold text-slate-600">Needs Review ({needsReviewItems.length})</span>
+                </div>
+                <div className="flex flex-col divide-y divide-slate-100">
+                  {needsReviewItems.map((item: any) => {
+                    const inScope = item.foundInScope || item.foundInChecklist;
+                    const showNotes = expandedNotes.has(item._id);
+                    return (
+                      <div key={item._id} className="px-5 py-3 flex flex-col gap-2">
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={!!item.manuallyChecked}
+                            onChange={() => handleToggleItem(item, doc._id)}
+                            style={{ marginTop: 2, width: 14, height: 14, accentColor: "#1e293b", flexShrink: 0 }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] text-slate-800">{item.questionText}</p>
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              {item.itemType === "fill-in" ? (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Fill-in</span>
+                              ) : (
+                                <>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Scope Item</span>
+                                  {item.foundInScope !== undefined || item.foundInChecklist !== undefined ? (
+                                    inScope ? (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">✓ In Scope</span>
+                                    ) : (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">⚠ Not in Scope</span>
+                                    )
+                                  ) : null}
+                                </>
+                              )}
+                              <button
+                                onClick={() => setExpandedNotes(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(item._id)) next.delete(item._id); else next.add(item._id);
+                                  return next;
+                                })}
+                                className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors"
+                              >
+                                {showNotes ? "Hide notes" : "+ Note"}
+                              </button>
+                            </div>
+                            {showNotes && (
+                              <textarea
+                                defaultValue={item.notes ?? ""}
+                                onBlur={e => handleNoteChange(item, e.target.value)}
+                                placeholder="Add a note…"
+                                rows={2}
+                                className="mt-2 w-full text-[12px] rounded-lg px-3 py-2 border border-slate-200 focus:border-slate-400 focus:outline-none bg-white text-slate-700 resize-none"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {items.length === 0 && (
+              <div className="px-5 py-8 text-center">
+                <p className="text-sm text-slate-400">No items extracted — try re-uploading the document.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Real-mode: component to load items per doc when expanded
+  function DocItemsLoader({ docId }: { docId: string }) {
+    const items = useQuery(
+      api.bidshield.getGcBidFormItems,
+      { documentId: docId as Id<"bidshield_gcBidFormDocuments"> }
+    );
+    useEffect(() => {
+      if (items !== undefined) {
+        setExpandedDocItemsCache(prev => ({ ...prev, [docId]: items }));
+      }
+    }, [items, docId]);
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Hidden file inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        onChange={e => handleFileChange(e)}
+      />
+      <input
+        ref={reanalFileRef}
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        onChange={e => handleFileChange(e, reanalyzeTargetId ?? undefined)}
+      />
+
+      {/* Load items for expanded real docs */}
+      {!isDemo && resolvedDocs.map((doc: any) =>
+        expandedDocs.has(doc._id) ? <DocItemsLoader key={doc._id} docId={doc._id} /> : null
+      )}
+
+      {/* Empty state */}
+      {resolvedDocs.length === 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 px-6 py-12 text-center flex flex-col items-center gap-4">
+          <div className="text-4xl">📋</div>
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">Upload GC Bid Documents</h3>
+            <p className="text-sm text-slate-500 mt-1 max-w-md">
+              Exhibit A, Exhibit B, Bid Form — whatever your GC calls it. AI extracts every requirement, auto-confirms what it can from your bid data, and flags the rest for review.
+            </p>
+          </div>
+          <button
+            onClick={() => { if (!isDemo) fileInputRef.current?.click(); }}
+            disabled={uploading || isDemo}
+            style={{ background: "#0f172a" }}
+            className="px-5 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-80 disabled:opacity-50 transition-colors flex items-center gap-2"
+          >
+            {uploading ? (
+              <>
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Analyzing…
+              </>
+            ) : "✨ Upload Document"}
+          </button>
+          <p className="text-[11px] text-slate-400">Not all GCs require these forms — only upload if provided. Upload is optional.</p>
+        </div>
+      )}
+
+      {/* Document list */}
+      {resolvedDocs.length > 0 && (
+        <>
+          {resolvedDocs.map((doc: any) => (
+            <DocCard key={doc._id} doc={doc} />
+          ))}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => { if (!isDemo) fileInputRef.current?.click(); }}
+              disabled={uploading || isDemo}
+              style={{ background: "#0f172a" }}
+              className="px-4 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-80 disabled:opacity-50 transition-colors flex items-center gap-2"
+            >
+              {uploading ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Analyzing…
+                </>
+              ) : "✨ Upload Another Document"}
+            </button>
+          </div>
+        </>
+      )}
+
+      {uploadError && (
+        <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {uploadError}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
@@ -152,6 +652,8 @@ type QualFields = {
 export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
+  const [activeSubTab, setActiveSubTab] = useState<"quals" | "forms">("quals");
+
   const qualsData = useQuery(
     api.bidshield.getBidQuals,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
@@ -210,6 +712,39 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabPro
         </p>
       </div>
 
+      {/* Sub-tab switcher */}
+      <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden", display: "inline-flex" }}>
+        {(["quals", "forms"] as const).map((tab, i) => (
+          <button
+            key={tab}
+            onClick={() => setActiveSubTab(tab)}
+            style={{
+              padding: "7px 18px",
+              fontSize: 13,
+              fontWeight: activeSubTab === tab ? 600 : 400,
+              background: activeSubTab === tab ? "#1e293b" : "transparent",
+              color: activeSubTab === tab ? "#ffffff" : "#6b7280",
+              borderLeft: i > 0 ? "1px solid #e2e8f0" : "none",
+              transition: "all 0.15s",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {tab === "quals" ? "Bid Qualifications" : "GC Bid Forms"}
+          </button>
+        ))}
+      </div>
+
+      {activeSubTab === "forms" && (
+        <GCBidFormsPanel
+          projectId={projectId ?? ""}
+          userId={userId ?? null}
+          isDemo={isDemo}
+          isPro={isPro}
+        />
+      )}
+
+      {activeSubTab === "quals" && (
+      <>
       {/* Section 1: Basis of Bid */}
       <SectionCard title="📄 Basis of Bid — Documents">
         <div className="grid grid-cols-2 gap-4">
@@ -508,6 +1043,8 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabPro
           💡 These notes will appear in your Pre-Submission checklist for final review.
         </p>
       </SectionCard>
+      </>
+      )}
 
     </div>
   );
