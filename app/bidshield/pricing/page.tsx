@@ -5,23 +5,35 @@ import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { gtagEvent } from "@/lib/gtag";
 
+// Items prefixed with "## " render as section headers, not feature rows
 const PRO_FEATURES = [
-  "Unlimited projects",
-  "134-item bid checklist",
+  "## Core Workflow",
+  "Unlimited active projects",
+  "134-item bid review checklist",
   "Scope tracker — Included / Excluded / By Others",
   "Takeoff & quantities reconciliation",
-  "Materials cost tracking",
-  "Labor rate database",
+  "## Pricing & Costs",
+  "Material Reconciliation — verify pricing vs quotes",
+  "Labor Verification — AI scope analysis",
   "General Conditions tracker",
-  "Bid Qualifications tracker",
-  "Quotes & Pricing library",
-  "Addenda & RFI tracking",
-  "Unlimited Decision Log",
   "Full Bid Summary with $/SF",
+  "## Vendors & Quotes",
+  "Vendor address book",
+  "Quotes & Pricing library",
   "✨ AI Quote Extraction (PDF upload)",
-  "✨ AI Generate Exclusions",
+  "## Bid Management",
+  "Addenda & RFI tracking",
+  "Bid Qualifications tracker",
+  "GC Bid Forms — Exhibit A/B prep",
+  "Unlimited Decision Log",
+  "## AI Features",
+  "✨ AI Material Report Extraction",
+  "✨ AI Labor Verification (scope analysis)",
+  "✨ AI GC Bid Form Auto-Confirm",
+  "✨ Generate Exclusions with AI",
   "✨ Draft RFI with AI",
   "✨ Addendum Impact Check",
+  "## Support",
   "14-day free trial",
   "Priority support",
 ];
@@ -37,8 +49,12 @@ const FREE_FEATURES = [
 
 const FREE_LIMITS = [
   "No AI features",
-  "No Labor / Gen. Conds / Bid Quals",
+  "No Labor Verification",
+  "No Gen. Conds / Bid Quals",
+  "No GC Bid Forms",
+  "No Vendor address book",
   "No full Bid Summary",
+  "No Material Reconciliation editing",
 ];
 
 export default function PricingPage() {
@@ -51,8 +67,8 @@ export default function PricingPage() {
   }, []);
 
   const planId = annual ? "pro_annual" : "pro_monthly";
-  const monthlyDisplay = annual ? "$124" : "$149";
-  const billingNote = annual ? "Billed $1,490/year" : "Billed monthly";
+  const monthlyDisplay = annual ? "$208" : "$249";
+  const billingNote = annual ? "Billed $2,490/year" : "Billed monthly";
 
   const handleCheckout = async () => {
     gtagEvent("begin_checkout", { plan: planId });
@@ -125,7 +141,7 @@ export default function PricingPage() {
             A single missed mechanical curb on a $3M bid = $30,000–$80,000 loss.
           </p>
           <p className="text-sm text-amber-700 mt-1">
-            Pro at $149/mo = $1,788/year. One prevented error covers 16+ years of the tool.
+            Pro at $249/mo = $2,988/year. One prevented underbid on a $2M job covers 8+ years of the tool.
           </p>
         </div>
       </div>
@@ -149,7 +165,7 @@ export default function PricingPage() {
         </span>
         {annual && (
           <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-            Save $298 · 2 months free
+            Save $498 · 2 months free
           </span>
         )}
       </div>
@@ -216,19 +232,29 @@ export default function PricingPage() {
               </div>
               <p className="text-xs mt-1 font-medium" style={{ color: annual ? "#059669" : "#94a3b8" }}>
                 {billingNote}
-                {annual && <span className="ml-2 font-bold text-emerald-600">· Save $298</span>}
+                {annual && <span className="ml-2 font-bold text-emerald-600">· Save $498</span>}
               </p>
             </div>
 
-            <ul className="flex-1 space-y-2.5 mb-8">
-              {PRO_FEATURES.map((f) => (
-                <li key={f} className={`flex items-start gap-2 text-sm ${f.startsWith("✨") ? "text-emerald-700 font-medium" : "text-slate-700"}`}>
-                  <svg className={`w-4 h-4 mt-0.5 shrink-0 ${f.startsWith("✨") ? "text-emerald-500" : "text-emerald-500"}`} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
+            <ul className="flex-1 space-y-2 mb-8">
+              {PRO_FEATURES.map((f, i) => {
+                if (f.startsWith("## ")) {
+                  return (
+                    <li key={f} className={`text-[10px] font-bold uppercase tracking-widest text-slate-400 ${i > 0 ? "pt-3" : ""}`}>
+                      {f.slice(3)}
+                    </li>
+                  );
+                }
+                const isAI = f.startsWith("✨");
+                return (
+                  <li key={f} className={`flex items-start gap-2 text-sm ${isAI ? "text-emerald-700 font-medium" : "text-slate-700"}`}>
+                    <svg className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    {f}
+                  </li>
+                );
+              })}
             </ul>
 
             <button
@@ -273,7 +299,7 @@ export default function PricingPage() {
               },
               {
                 q: "What's the difference between monthly and annual?",
-                a: "Same Pro features either way. Annual billing is $1,490/year — that's $124/mo effective, saving you $298 versus paying monthly. You're prepaying 12 months at the price of 10.",
+                a: "Same Pro features either way. Annual billing is $2,490/year — that's ~$208/mo effective, saving you $498 versus paying monthly. You're prepaying 12 months at the price of 10.",
               },
               {
                 q: "What does the free trial include?",
