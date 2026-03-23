@@ -81,15 +81,24 @@ const demoStats = {
 // ============================================================
 // STAT CARD
 // ============================================================
-function StatCard({ value, label, dimmed }: {
+function StatCard({ value, label, icon, accent }: {
   value: string | number;
   label: string;
-  dimmed?: boolean;
+  icon: string;
+  accent: "emerald" | "blue" | "amber" | "slate";
 }) {
+  const styles = {
+    emerald: { card: "bg-emerald-50 border-emerald-100", value: "text-emerald-700", icon: "bg-emerald-100 text-emerald-600" },
+    blue: { card: "bg-blue-50 border-blue-100", value: "text-blue-700", icon: "bg-blue-100 text-blue-600" },
+    amber: { card: "bg-amber-50 border-amber-100", value: "text-amber-700", icon: "bg-amber-100 text-amber-600" },
+    slate: { card: "bg-white border-slate-100", value: "text-slate-800", icon: "bg-slate-100 text-slate-600" },
+  };
+  const s = styles[accent];
   return (
-    <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 20, opacity: dimmed ? 0.5 : 1 }}>
-      <div style={{ fontSize: 30, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em", lineHeight: 1 }}>{dimmed ? "—" : value}</div>
-      <div style={{ fontSize: 13, color: "#6b7280", marginTop: 6, fontWeight: 500 }}>{label}</div>
+    <div className={`rounded-xl p-5 border ${s.card} transition-all hover:shadow-md`}>
+      <span className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${s.icon} mb-3`}>{icon}</span>
+      <div className={`text-3xl font-bold tracking-tight ${s.value}`}>{value}</div>
+      <div className="text-sm text-slate-500 mt-1 font-medium">{label}</div>
     </div>
   );
 }
@@ -399,7 +408,7 @@ function DashboardContent() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => (
             <div key={i} className="bg-white rounded-xl p-6 border border-slate-100 animate-pulse">
               <div className="h-9 w-9 bg-slate-100 rounded-lg mb-3" />
@@ -444,19 +453,11 @@ function DashboardContent() {
       {!isDemo && projects.length === 0 ? (
         <WelcomeCard onNewBid={handleNewBidClick} />
       ) : (
-        <div className="grid grid-cols-4 gap-4">
-          <StatCard value={stats.activeProjects} label="Active Bids" />
-          <StatCard
-            value={`${stats.winRate}%`}
-            label="Win Rate"
-            dimmed={stats.winRate === 0 && stats.wonProjects + stats.lostProjects === 0}
-          />
-          <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" />
-          <StatCard
-            value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`}
-            label="Pipeline Value"
-            dimmed={stats.pipelineValue === 0}
-          />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <StatCard value={stats.activeProjects} label="Active Bids" icon="📋" accent="slate" />
+          <StatCard value={`${stats.winRate}%`} label="Win Rate" icon="🎯" accent={stats.winRate >= 50 ? "emerald" : "amber"} />
+          <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" icon="✅" accent="emerald" />
+          <StatCard value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`} label="Pipeline Value" icon="💰" accent="blue" />
         </div>
       )}
 

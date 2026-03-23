@@ -71,12 +71,12 @@ export default function PricingPage() {
   }, []);
 
   const planId = annual ? "pro_annual" : "pro_monthly";
-  const monthlyDisplay = annual ? "$208" : "$249";
-  const billingNote = annual ? "Billed $2,490/year" : "Billed monthly";
+  const monthlyDisplay = annual ? "$124" : "$149";
+  const billingNote = annual ? "Billed $1,490/year — save $298" : "Billed monthly";
 
   const handleCheckout = async () => {
     gtagEvent("begin_checkout", { plan: planId });
-    track("trial_started", { source: "pricing_page", plan: "pro", price: annual ? 2490 : 249 });
+    track("trial_started", { source: "pricing_page", plan: "pro", price: annual ? 1490 : 149 });
 
     if (!isSignedIn) {
       window.location.href = `/sign-up?redirect=/bidshield/pricing`;
@@ -170,7 +170,7 @@ export default function PricingPage() {
         </span>
         {annual && (
           <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-            Save $498 · 2 months free
+            Save $298 · 2 months free
           </span>
         )}
       </div>
@@ -237,7 +237,7 @@ export default function PricingPage() {
               </div>
               <p className="text-xs mt-1 font-medium" style={{ color: annual ? "#059669" : "#94a3b8" }}>
                 {billingNote}
-                {annual && <span className="ml-2 font-bold text-emerald-600">· Save $498</span>}
+                {annual && <span className="ml-2 font-bold text-emerald-600">· Save $298</span>}
               </p>
             </div>
 
@@ -304,7 +304,7 @@ export default function PricingPage() {
               },
               {
                 q: "What's the difference between monthly and annual?",
-                a: "Same Pro features either way. Annual billing is $2,490/year — that's ~$208/mo effective, saving you $498 versus paying monthly. You're prepaying 12 months at the price of 10.",
+                a: "Same Pro features either way. Annual billing is $1,490/year — that's ~$124/mo effective, saving you $298 versus paying monthly. You're prepaying 12 months at the price of 10.",
               },
               {
                 q: "What does the free trial include?",
