@@ -31,7 +31,14 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
   const seedGCMut    = useMutation(api.bidshield.seedGCItems);
   const upsertGCMut  = useMutation(api.bidshield.upsertGCItem);
   const deleteGCMut  = useMutation(api.bidshield.deleteGCItem);
-  const updateProjectMut = useMutation(api.bidshield.updateProject);
+  const projectMaterialsList = useQuery(
+    api.bidshield.getProjectMaterials,
+    isValidProjectId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const laborTotalQuery = useQuery(
+    api.bidshield.getLaborTotal,
+    isValidProjectId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const [collapsed,     setCollapsed]     = useState<Record<string, boolean>>({});
   const [editingId,     setEditingId]     = useState<string | null>(null);
@@ -63,9 +70,13 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
 
   const resolvedItems = isDemo ? demoItems : items;
 
-  const materialCost  = project?.materialCost ?? (isDemo ? 612000 : 0);
-  const laborCost     = project?.laborCost    ?? (isDemo ? 488000 : 0);
-  const base          = materialCost + laborCost;
+  const computedMaterialCost = isDemo
+    ? 612000
+    : (() => { const s = (projectMaterialsList ?? []).reduce((a: number, m: any) => a + (m.totalCost || 0), 0); return s > 0 ? s : (project?.materialCost ?? 0); })();
+  const computedLaborCost = isDemo
+    ? 488000
+    : ((laborTotalQuery && laborTotalQuery > 0) ? laborTotalQuery : (project?.laborCost ?? 0));
+  const base = computedMaterialCost + computedLaborCost;
 
   const lineItemsTotal = resolvedItems
     .filter((i: any) => !i.isMarkup)
@@ -142,14 +153,6 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
     setShowAddRow(null);
   }
 
-  async function pullGCTotal() {
-    if (isDemo || !isValidProjectId) return;
-    await updateProjectMut({
-      projectId: projectId as Id<"bidshield_projects">,
-      otherCost: Math.round(gcTotal),
-    });
-  }
-
   if (!isPro && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
@@ -176,12 +179,6 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
             Track all indirect costs — site logistics, safety, fees, and markups.
           </p>
         </div>
-        <button
-          onClick={pullGCTotal}
-          className="text-sm font-semibold px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer border-0"
-        >
-          Push to Pricing →
-        </button>
       </div>
 
       {/* Summary cards */}

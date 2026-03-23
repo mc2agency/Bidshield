@@ -81,6 +81,7 @@ function ProjectDetail() {
   const bidQuals = useQuery(api.bidshield.getBidQuals, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const decisions = useQuery(api.bidshield.getDecisions, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const unverifiedLaborCount = useQuery(api.bidshield.getUnverifiedLaborCount, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const laborTasks = useQuery(api.bidshield.getLaborTasks, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const unconfirmedGcFormCount = useQuery(api.bidshield.getUnconfirmedGcBidFormCount, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addDecision = useMutation(api.bidshield.addDecision);
   const subscription = useQuery(api.users.getUserSubscription, !isDemo && userId ? { clerkId: userId } : "skip");
@@ -248,8 +249,16 @@ function ProjectDetail() {
       rfis: rPending,
     };
 
+    // Labor Verification score
+    const demoLaborTotal = 8, demoLaborVerified = 3;
+    const taskList = isDemo ? Array.from({ length: demoLaborTotal }, (_, i) => ({ verified: i < demoLaborVerified })) : (laborTasks ?? []);
+    const ltTotal = taskList.length;
+    const ltVerified = taskList.filter((t: any) => t.verified).length;
+    const laborScore = ltTotal === 0 ? 0 : ltVerified === 0 ? 25 : ltVerified === ltTotal ? 100 : Math.round((ltVerified / ltTotal) * 100);
+    (scores as any).labor = laborScore;
+
     return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining };
-  }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis]);
+  }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis, laborTasks]);
 
   if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
   if (!isDemo && !projectData) return <div className="text-center py-20"><div className="text-slate-400 text-sm">Loading...</div></div>;
@@ -674,7 +683,7 @@ function ProjectDetail() {
                         <button key={id} onClick={() => openTab(id)} className="flex items-center gap-3 group">
                           <span
                             className="group-hover:text-slate-900 transition-colors truncate"
-                            style={{ fontSize: 12, color: "#6b7280", width: 112, textAlign: "left", flexShrink: 0 }}
+                            style={{ fontSize: 12, color: "#6b7280", width: 140, textAlign: "left", flexShrink: 0 }}
                           >
                             {label}
                           </span>

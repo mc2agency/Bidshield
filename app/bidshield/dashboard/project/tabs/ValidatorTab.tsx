@@ -158,6 +158,10 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
     api.bidshield.getUnconfirmedGcBidFormCount,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const laborTotal = useQuery(
+    api.bidshield.getLaborTotal,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   const [hasRun] = useState(true);
   const projectData = project;
@@ -684,7 +688,7 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
         // Materials: prefer computed from projectMaterials, fall back to project field
         const computedMat = (projectMaterials ?? []).reduce((s: number, m: any) => s + (m.totalCost || 0), 0);
         const sumMaterial: number | null = isDemo ? 612000 : (computedMat > 0 ? Math.round(computedMat) : (pd?.materialCost ?? null));
-        const sumLabor: number | null    = isDemo ? 488000 : (pd?.laborCost ?? null);
+        const sumLabor: number | null    = isDemo ? 488000 : (laborTotal ?? pd?.laborCost ?? null);
 
         // GC breakdown from gcItems
         const gcLineItems   = isDemo ? [] : (gcItems ?? []);

@@ -137,7 +137,9 @@ function ProjectRow({ project, isDemo, onStatusChange, router }: {
   const daysUntil = Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const isUrgent = daysUntil <= 3 && daysUntil >= 0;
   const isPastDue = daysUntil < 0;
-  const dpsf = (project.estimatedValue && project.sqft) ? (project.estimatedValue / project.sqft).toFixed(2) : null;
+  const totalBid = (project as any).totalBidAmount ?? project.estimatedValue;
+  const roofArea = (project as any).grossRoofArea ?? project.sqft;
+  const dpsf = (totalBid && roofArea) ? (totalBid / roofArea).toFixed(2) : null;
   const systemType = (project as any).systemType as string | undefined;
 
   return (
