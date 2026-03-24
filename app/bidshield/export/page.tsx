@@ -49,16 +49,54 @@ interface ScopeItem {
 }
 
 interface Quote {
+  vendorName?: string;
+  category?: string;
+  products?: string[];
+  quoteAmount?: number;
   expirationDate?: string;
+  status?: string;
+  notes?: string;
 }
 
 interface RFI {
+  question?: string;
   status: string;
+  sentTo?: string;
+  response?: string;
 }
 
 interface Addendum {
   affectsScope?: boolean | null;
   repriced?: boolean;
+}
+
+interface GCItem {
+  category?: string;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  unitCost?: number;
+  total?: number;
+  isMarkup?: boolean;
+  markupPct?: number;
+  notes?: string;
+  sortOrder?: number;
+}
+
+interface BidQuals {
+  laborType?: string;
+  plansDated?: string;
+  planRevision?: string;
+  specSections?: string;
+  addendaThrough?: number;
+  bidGoodFor?: string;
+  insuranceProgram?: string;
+  bondRequired?: boolean;
+  bondTypes?: string;
+  mbeGoals?: boolean;
+  mbeGoalPct?: string;
+  estimatedDuration?: string;
+  earliestStart?: string;
 }
 
 function ExportContent() {
@@ -81,6 +119,8 @@ function ExportContent() {
   const quotes = useQuery(api.bidshield.getQuotes, !isDemo && isValidConvexId && userId ? { userId, projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const rfis = useQuery(api.bidshield.getRFIs, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addenda = useQuery(api.bidshield.getAddenda, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const gcItems = useQuery(api.bidshield.getGCItems, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const bidQuals = useQuery(api.bidshield.getBidQuals, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
 
   // Gate: require auth and Pro subscription (demo mode bypasses)
   if (!isDemo) {
@@ -154,6 +194,8 @@ function ExportContent() {
   const quoteList: Quote[] = isDemo ? [] : (quotes ?? []) as Quote[];
   const rfiList: RFI[] = isDemo ? [] : (rfis ?? []) as RFI[];
   const addendaList: Addendum[] = isDemo ? [] : (addenda ?? []) as Addendum[];
+  const gcItemsList: GCItem[] = isDemo ? [] : (gcItems ?? []) as GCItem[];
+  const bidQualsData: BidQuals | null = isDemo ? null : (bidQuals ?? null) as BidQuals | null;
 
   // Build checklist template map for item labels
   const checklistTemplate = useMemo(() => {
@@ -528,6 +570,170 @@ function ExportContent() {
             );
           })()}
         </div>
+
+        {/* ── QUOTES ── */}
+        {quoteList.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4 pb-2 border-b border-slate-200">
+              Vendor Quotes ({quoteList.length})
+            </h2>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-slate-50">
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vendor</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Category</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Products</th>
+                  <th className="py-1.5 px-2 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Expires</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quoteList.map((q, i) => (
+                  <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                    <td className="py-1.5 px-2 font-medium text-slate-800">{q.vendorName ?? "—"}</td>
+                    <td className="py-1.5 px-2 text-slate-500 capitalize">{q.category ?? "—"}</td>
+                    <td className="py-1.5 px-2 text-slate-600">{(q.products ?? []).join(", ") || "—"}</td>
+                    <td className="py-1.5 px-2 text-right text-slate-700">{q.quoteAmount ? `$${q.quoteAmount.toLocaleString()}` : "—"}</td>
+                    <td className="py-1.5 px-2 text-slate-500">{q.expirationDate ?? "—"}</td>
+                    <td className="py-1.5 px-2">
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        q.status === "expired" ? "bg-red-100 text-red-600" :
+                        q.status === "expiring" ? "bg-amber-100 text-amber-600" :
+                        q.status === "received" || q.status === "valid" ? "bg-emerald-100 text-emerald-600" :
+                        "bg-slate-100 text-slate-500"
+                      }`}>
+                        {q.status ?? "—"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ── RFIs ── */}
+        {rfiList.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4 pb-2 border-b border-slate-200">
+              RFIs — Requests for Information ({rfiList.length})
+            </h2>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-slate-50">
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest w-8">#</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Question</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sent To</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="py-1.5 px-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Response</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rfiList.map((r, i) => (
+                  <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                    <td className="py-1.5 px-2 text-slate-400">{i + 1}</td>
+                    <td className="py-1.5 px-2 text-slate-700">{r.question ?? "—"}</td>
+                    <td className="py-1.5 px-2 text-slate-500">{r.sentTo ?? "—"}</td>
+                    <td className="py-1.5 px-2">
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded capitalize ${
+                        r.status === "answered" || r.status === "closed" ? "bg-emerald-100 text-emerald-600" :
+                        r.status === "sent" ? "bg-blue-100 text-blue-600" :
+                        "bg-slate-100 text-slate-500"
+                      }`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-500 italic">{r.response ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ── GENERAL CONDITIONS ── */}
+        {gcItemsList.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4 pb-2 border-b border-slate-200">
+              General Conditions
+            </h2>
+            {(() => {
+              const byCategory: Record<string, GCItem[]> = {};
+              for (const item of gcItemsList) {
+                const cat = item.category ?? "other";
+                if (!byCategory[cat]) byCategory[cat] = [];
+                byCategory[cat].push(item);
+              }
+              const gcTotal = gcItemsList.reduce((sum, i) => sum + (i.total ?? 0), 0);
+              return (
+                <>
+                  {Object.entries(byCategory).map(([cat, items]) => (
+                    <div key={cat} className="mb-3">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 capitalize">{cat}</div>
+                      <table className="w-full text-xs">
+                        <tbody>
+                          {items.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map((item, i) => (
+                            <tr key={i} className={i % 2 === 0 ? "bg-slate-50" : "bg-white"}>
+                              <td className="py-1 px-2 text-slate-700">{item.description}</td>
+                              <td className="py-1 px-2 text-slate-400 text-right w-20">{item.quantity ? `${item.quantity} ${item.unit ?? ""}` : ""}</td>
+                              <td className="py-1 px-2 text-right text-slate-600 w-24">
+                                {item.isMarkup && item.markupPct ? `${item.markupPct}%` : item.total ? `$${item.total.toLocaleString()}` : "—"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                  {gcTotal > 0 && (
+                    <div className="flex justify-end pt-2 border-t border-slate-200">
+                      <span className="text-xs font-bold text-slate-700">Total Gen. Conds: ${gcTotal.toLocaleString()}</span>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ── BID QUALIFICATIONS ── */}
+        {bidQualsData && (
+          <div className="mb-8">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4 pb-2 border-b border-slate-200">
+              Bid Qualifications
+            </h2>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-xs">
+              {bidQualsData.plansDated && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Plans Dated</span><span className="text-slate-700">{bidQualsData.plansDated}{bidQualsData.planRevision ? ` Rev. ${bidQualsData.planRevision}` : ""}</span></div>
+              )}
+              {bidQualsData.specSections && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Spec Sections</span><span className="text-slate-700">{bidQualsData.specSections}</span></div>
+              )}
+              {bidQualsData.laborType && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Labor Type</span><span className="text-slate-700 capitalize">{bidQualsData.laborType.replace("_", " ")}</span></div>
+              )}
+              {bidQualsData.bidGoodFor && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Bid Valid For</span><span className="text-slate-700">{bidQualsData.bidGoodFor} days</span></div>
+              )}
+              {bidQualsData.insuranceProgram && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Insurance</span><span className="text-slate-700 uppercase">{bidQualsData.insuranceProgram}</span></div>
+              )}
+              {bidQualsData.bondRequired !== undefined && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Bond Required</span><span className="text-slate-700">{bidQualsData.bondRequired ? `Yes${bidQualsData.bondTypes ? ` — ${bidQualsData.bondTypes}` : ""}` : "No"}</span></div>
+              )}
+              {bidQualsData.estimatedDuration && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Est. Duration</span><span className="text-slate-700">{bidQualsData.estimatedDuration}</span></div>
+              )}
+              {bidQualsData.earliestStart && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">Earliest Start</span><span className="text-slate-700">{bidQualsData.earliestStart}</span></div>
+              )}
+              {bidQualsData.mbeGoals && (
+                <div><span className="text-slate-400 uppercase tracking-widest text-[10px] font-bold block">MBE/WBE Goal</span><span className="text-slate-700">{bidQualsData.mbeGoalPct ? `${bidQualsData.mbeGoalPct}%` : "Yes"}</span></div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── PROJECT NOTES ── */}
         {project?.notes && (
