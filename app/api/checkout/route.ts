@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = getStripe();
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mc2estimating.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.bidshield.co';
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({

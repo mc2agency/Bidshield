@@ -676,7 +676,7 @@ export default function EstimatingSoftwarePage() {
 
           <div className="mt-8 text-center">
             <p className="text-blue-200 mb-4">
-              Questions? Email us at support@mc2estimating.com
+              Questions? Email us at support@bidshield.co
             </p>
             <Link href="/membership" className="text-yellow-400 hover:text-yellow-300 font-semibold">
               Or get this tool + everything else with MC2 Pro membership →

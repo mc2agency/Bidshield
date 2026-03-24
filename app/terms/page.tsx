@@ -205,7 +205,7 @@ export default function TermsPage() {
               </p>
               <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
                 <p className="text-gray-800 mb-2"><strong>MC2 Estimating (BidShield)</strong></p>
-                <p className="text-gray-700">Email: legal@mc2estimating.com</p>
+                <p className="text-gray-700">Email: legal@bidshield.co</p>
                 <p className="text-gray-700">Phone: (800) 555-1234</p>
               </div>
 

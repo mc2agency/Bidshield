@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://mc2estimating.com';
+  const baseUrl = 'https://www.bidshield.co';
 
   const staticPages: Array<{ path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'] }> = [
     { path: '',                   priority: 1.0, changeFrequency: 'weekly' },

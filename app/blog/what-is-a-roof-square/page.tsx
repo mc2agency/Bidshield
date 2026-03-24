@@ -36,20 +36,20 @@ const articleSchema = {
   "author": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-12-15",
   "dateModified": "2025-12-15",
-  "image": "https://mc2estimating.com/api/og?title=What is a Roof Square? Complete Guide to Roofing Measurements [2025]&type=article",
-  "url": "https://mc2estimating.com/blog/what-is-a-roof-square",
+  "image": "https://www.bidshield.co/api/og?title=What is a Roof Square? Complete Guide to Roofing Measurements [2025]&type=article",
+  "url": "https://www.bidshield.co/blog/what-is-a-roof-square",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://mc2estimating.com/blog/what-is-a-roof-square"
+    "@id": "https://www.bidshield.co/blog/what-is-a-roof-square"
   }
 };
 
@@ -57,9 +57,9 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
-    { "@type": "ListItem", "position": 3, "name": "What is a Roof Square? Complete Guide to Roofing Measurements [2025]", "item": "https://mc2estimating.com/blog/what-is-a-roof-square" }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bidshield.co" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.bidshield.co/blog" },
+    { "@type": "ListItem", "position": 3, "name": "What is a Roof Square? Complete Guide to Roofing Measurements [2025]", "item": "https://www.bidshield.co/blog/what-is-a-roof-square" }
   ]
 };
 

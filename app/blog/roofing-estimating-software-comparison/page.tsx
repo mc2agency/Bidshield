@@ -36,20 +36,20 @@ const articleSchema = {
   "author": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-09-20",
   "dateModified": "2025-09-20",
-  "image": "https://mc2estimating.com/api/og?title=Best Roofing Estimating Software 2025: Compare Top Platforms&type=article",
-  "url": "https://mc2estimating.com/blog/roofing-estimating-software-comparison",
+  "image": "https://www.bidshield.co/api/og?title=Best Roofing Estimating Software 2025: Compare Top Platforms&type=article",
+  "url": "https://www.bidshield.co/blog/roofing-estimating-software-comparison",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://mc2estimating.com/blog/roofing-estimating-software-comparison"
+    "@id": "https://www.bidshield.co/blog/roofing-estimating-software-comparison"
   }
 };
 
@@ -57,9 +57,9 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
-    { "@type": "ListItem", "position": 3, "name": "Best Roofing Estimating Software 2025: Compare Top Platforms", "item": "https://mc2estimating.com/blog/roofing-estimating-software-comparison" }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bidshield.co" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.bidshield.co/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Best Roofing Estimating Software 2025: Compare Top Platforms", "item": "https://www.bidshield.co/blog/roofing-estimating-software-comparison" }
   ]
 };
 

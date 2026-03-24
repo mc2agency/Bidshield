@@ -139,7 +139,7 @@ export default function SupportPage() {
             />
             <FAQItem
               question="How do I request a refund?"
-              answer="Email support@mc2estimating.com within 30 days of purchase. We offer a no-questions-asked refund policy on all products."
+              answer="Email support@bidshield.co within 30 days of purchase. We offer a no-questions-asked refund policy on all products."
             />
             <FAQItem
               question="Do you offer phone support?"
@@ -165,7 +165,7 @@ export default function SupportPage() {
             Contact Support
           </Link>
           <p className="mt-6 text-slate-400">
-            Email: support@mc2estimating.com
+            Email: support@bidshield.co
           </p>
         </div>
       </section>

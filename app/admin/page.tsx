@@ -43,7 +43,7 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-          <p className="text-slate-500 text-sm mt-1">mc2estimating.com — internal only</p>
+          <p className="text-slate-500 text-sm mt-1">bidshield.co — internal only</p>
         </div>
 
         {/* Stats row */}

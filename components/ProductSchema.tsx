@@ -17,7 +17,7 @@ export default function ProductSchema({ name, description, price, image, url }: 
     '@type': 'Product',
     name,
     description,
-    image: image || 'https://mc2estimating.com/mc2-logo.jpg',
+    image: image || 'https://www.bidshield.co/mc2-logo.jpg',
     url,
     brand: {
       '@type': 'Brand',
@@ -57,8 +57,8 @@ export function BundleSchema() {
     '@type': 'Product',
     name: 'MC2 Complete Template Bundle - All 8 Roofing Estimating Templates',
     description: 'Professional roofing estimating templates for 8 systems: Asphalt Shingle, TPO, EPDM, Metal, Tile, BUR, SBS Modified Bitumen, and Spray Foam. Includes material takeoff, labor calculator, cost recap, and professional proposals.',
-    image: 'https://mc2estimating.com/mc2-logo.jpg',
-    url: 'https://mc2estimating.com/products/template-bundle',
+    image: 'https://www.bidshield.co/mc2-logo.jpg',
+    url: 'https://www.bidshield.co/products/template-bundle',
     brand: {
       '@type': 'Brand',
       name: 'MC2 Estimating',

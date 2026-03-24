@@ -84,10 +84,10 @@ function ContactPageContent() {
                   General inquiries and product support
                 </p>
                 <a
-                  href="mailto:support@mc2estimating.com"
+                  href="mailto:support@bidshield.co"
                   className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
                 >
-                  support@mc2estimating.com
+                  support@bidshield.co
                 </a>
                 <p className="text-sm text-slate-500 mt-4">
                   Response time: 24-48 hours

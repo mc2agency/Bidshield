@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const FROM = 'BidShield <hello@mc2estimating.com>';
-const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://mc2estimating.com';
+const FROM = 'BidShield <hello@bidshield.co>';
+const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://www.bidshield.co';
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY not configured');
@@ -103,7 +103,7 @@ async function sendPurchaseEmail(session: Stripe.Checkout.Session) {
     <p style="color: #475569;">— Carlos, MC2 Estimating</p>
   </div>
   <div class="footer">
-    <p>MC2 Estimating &middot; <a href="${BASE_URL}" style="color: #94a3b8;">mc2estimating.com</a></p>
+    <p>MC2 Estimating &middot; <a href="${BASE_URL}" style="color: #94a3b8;">bidshield.co</a></p>
     <p style="margin-top: 6px;">You're receiving this because you purchased a template from MC2 Estimating.</p>
   </div>
 </div>

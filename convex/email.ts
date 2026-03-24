@@ -1,9 +1,9 @@
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 
-const FROM = "BidShield <hello@mc2estimating.com>";
-const DASHBOARD_URL = "https://mc2estimating.com/bidshield/dashboard";
-const PRICING_URL = "https://mc2estimating.com/bidshield/pricing";
+const FROM = "BidShield <hello@bidshield.co>";
+const DASHBOARD_URL = "https://www.bidshield.co/bidshield/dashboard";
+const PRICING_URL = "https://www.bidshield.co/bidshield/pricing";
 
 function emailWrapper(content: string): string {
   return `<!DOCTYPE html>
@@ -38,7 +38,7 @@ function emailWrapper(content: string): string {
     ${content}
   </div>
   <div class="footer">
-    <p>BidShield by MC2 Estimating &middot; <a href="https://mc2estimating.com" style="color:#94a3b8;">mc2estimating.com</a></p>
+    <p>BidShield &middot; <a href="https://www.bidshield.co" style="color:#94a3b8;">bidshield.co</a></p>
     <p style="margin-top:6px;">You're receiving this because you created a BidShield account.</p>
   </div>
 </div>

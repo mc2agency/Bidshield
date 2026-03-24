@@ -174,7 +174,7 @@ export default function PrivacyPage() {
               </p>
               <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200 mb-4">
                 <p className="text-gray-800 mb-2"><strong>Privacy Requests:</strong></p>
-                <p className="text-gray-700">Email: privacy@mc2estimating.com</p>
+                <p className="text-gray-700">Email: privacy@bidshield.co</p>
                 <p className="text-gray-700">Subject line: "Privacy Request - [Your Request Type]"</p>
               </div>
               <p className="text-gray-700 mb-4">
@@ -229,8 +229,8 @@ export default function PrivacyPage() {
               </p>
               <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
                 <p className="text-gray-800 mb-2"><strong>MC2 Estimating (BidShield)</strong></p>
-                <p className="text-gray-700">Email: privacy@mc2estimating.com</p>
-                <p className="text-gray-700">Support: support@mc2estimating.com</p>
+                <p className="text-gray-700">Email: privacy@bidshield.co</p>
+                <p className="text-gray-700">Support: support@bidshield.co</p>
                 <p className="text-gray-700">Phone: (800) 555-1234</p>
               </div>
 
@@ -239,7 +239,7 @@ export default function PrivacyPage() {
                   <strong>Summary:</strong> We collect information to provide and improve our services.
                   We do not sell your personal information. You have rights to access, correct, and delete
                   your data. We use industry-standard security measures to protect your information.
-                  For questions or to exercise your rights, contact privacy@mc2estimating.com.
+                  For questions or to exercise your rights, contact privacy@bidshield.co.
                 </p>
               </div>
             </div>

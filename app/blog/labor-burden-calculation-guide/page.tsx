@@ -36,20 +36,20 @@ const articleSchema = {
   "author": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-10-15",
   "dateModified": "2025-10-15",
-  "image": "https://mc2estimating.com/api/og?title=Labor Burden Calculation for Contractors [Complete Guide 2025]&type=article",
-  "url": "https://mc2estimating.com/blog/labor-burden-calculation-guide",
+  "image": "https://www.bidshield.co/api/og?title=Labor Burden Calculation for Contractors [Complete Guide 2025]&type=article",
+  "url": "https://www.bidshield.co/blog/labor-burden-calculation-guide",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://mc2estimating.com/blog/labor-burden-calculation-guide"
+    "@id": "https://www.bidshield.co/blog/labor-burden-calculation-guide"
   }
 };
 
@@ -57,9 +57,9 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
-    { "@type": "ListItem", "position": 3, "name": "Labor Burden Calculation for Contractors [Complete Guide 2025]", "item": "https://mc2estimating.com/blog/labor-burden-calculation-guide" }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bidshield.co" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.bidshield.co/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Labor Burden Calculation for Contractors [Complete Guide 2025]", "item": "https://www.bidshield.co/blog/labor-burden-calculation-guide" }
   ]
 };
 

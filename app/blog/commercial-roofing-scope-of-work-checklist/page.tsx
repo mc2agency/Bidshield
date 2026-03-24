@@ -36,20 +36,20 @@ const articleSchema = {
   "author": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "datePublished": "2026-01-20",
   "dateModified": "2026-01-20",
-  "image": "https://mc2estimating.com/api/og?title=Commercial Roofing Scope of Work: 40-Item Checklist for Estimators&type=article",
-  "url": "https://mc2estimating.com/blog/commercial-roofing-scope-of-work-checklist",
+  "image": "https://www.bidshield.co/api/og?title=Commercial Roofing Scope of Work: 40-Item Checklist for Estimators&type=article",
+  "url": "https://www.bidshield.co/blog/commercial-roofing-scope-of-work-checklist",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://mc2estimating.com/blog/commercial-roofing-scope-of-work-checklist"
+    "@id": "https://www.bidshield.co/blog/commercial-roofing-scope-of-work-checklist"
   }
 };
 
@@ -57,9 +57,9 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
-    { "@type": "ListItem", "position": 3, "name": "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators", "item": "https://mc2estimating.com/blog/commercial-roofing-scope-of-work-checklist" }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bidshield.co" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.bidshield.co/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators", "item": "https://www.bidshield.co/blog/commercial-roofing-scope-of-work-checklist" }
   ]
 };
 

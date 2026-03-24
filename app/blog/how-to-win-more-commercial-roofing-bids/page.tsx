@@ -36,20 +36,20 @@ const articleSchema = {
   "author": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "datePublished": "2026-02-01",
   "dateModified": "2026-02-01",
-  "image": "https://mc2estimating.com/api/og?title=How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]&type=article",
-  "url": "https://mc2estimating.com/blog/how-to-win-more-commercial-roofing-bids",
+  "image": "https://www.bidshield.co/api/og?title=How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]&type=article",
+  "url": "https://www.bidshield.co/blog/how-to-win-more-commercial-roofing-bids",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://mc2estimating.com/blog/how-to-win-more-commercial-roofing-bids"
+    "@id": "https://www.bidshield.co/blog/how-to-win-more-commercial-roofing-bids"
   }
 };
 
@@ -57,9 +57,9 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
-    { "@type": "ListItem", "position": 3, "name": "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]", "item": "https://mc2estimating.com/blog/how-to-win-more-commercial-roofing-bids" }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bidshield.co" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.bidshield.co/blog" },
+    { "@type": "ListItem", "position": 3, "name": "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]", "item": "https://www.bidshield.co/blog/how-to-win-more-commercial-roofing-bids" }
   ]
 };
 

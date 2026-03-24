@@ -7,13 +7,20 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "mc2estimating-1.vercel.app"
-        }
-      ],
-      "destination": "https://mc2estimating.com/$1",
+      "has": [{ "type": "host", "value": "mc2estimating.com" }],
+      "destination": "https://www.bidshield.co/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.mc2estimating.com" }],
+      "destination": "https://www.bidshield.co/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "mc2estimating-1.vercel.app" }],
+      "destination": "https://www.bidshield.co/$1",
       "permanent": true
     },
     { "source": "/membership", "destination": "/products", "permanent": true },
@@ -52,7 +59,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.mc2estimating.com https://*.clerk.accounts.dev https://va.vercel-scripts.com https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.convex.cloud https://*.clerk.accounts.dev https://clerk.mc2estimating.com https://api.gumroad.com https://api.heygen.com wss://*.convex.cloud; frame-src 'self' https://*.clerk.accounts.dev https://clerk.mc2estimating.com https://gumroad.com https://player.vimeo.com https://www.youtube.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://gumroad.com;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.bidshield.co https://*.clerk.accounts.dev https://va.vercel-scripts.com https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.convex.cloud https://*.clerk.accounts.dev https://clerk.bidshield.co https://api.gumroad.com https://api.heygen.com wss://*.convex.cloud; frame-src 'self' https://*.clerk.accounts.dev https://clerk.bidshield.co https://gumroad.com https://player.vimeo.com https://www.youtube.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://gumroad.com;"
         }
       ]
     }

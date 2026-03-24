@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
             {title}
           </div>
           <div style={{ color: "#64748b", fontSize: "20px", fontWeight: 500 }}>
-            mc2estimating.com
+            bidshield.co
           </div>
         </div>
 

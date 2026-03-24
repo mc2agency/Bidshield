@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://mc2estimating.com';
+  const baseUrl = 'https://www.bidshield.co';
 
   return {
     rules: [

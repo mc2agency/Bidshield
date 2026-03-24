@@ -37,11 +37,11 @@ export const metadata: Metadata = {
   authors: [{ name: "MC2 Estimating" }],
   creator: "MC2 Estimating",
   publisher: "MC2 Estimating",
-  metadataBase: new URL("https://mc2estimating.com"),
+  metadataBase: new URL("https://www.bidshield.co"),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://mc2estimating.com",
+    url: "https://www.bidshield.co",
     siteName: "BidShield",
     title: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
     description: "The structured workflow commercial roofing estimators run from first plan review to final submission. 18-phase checklist, AI material extraction, labor verification, and GC bid form prep.",
@@ -100,14 +100,14 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "BidShield",
-              "url": "https://mc2estimating.com",
-              "logo": "https://mc2estimating.com/api/og",
+              "url": "https://www.bidshield.co",
+              "logo": "https://www.bidshield.co/api/og",
               "description": "Bid workflow tool for commercial roofing estimators.",
               "sameAs": [],
               "contactPoint": {
                 "@type": "ContactPoint",
                 "contactType": "customer service",
-                "url": "https://mc2estimating.com/contact"
+                "url": "https://www.bidshield.co/contact"
               }
             })
           }}
@@ -121,9 +121,9 @@ export default function RootLayout({
               "name": "BidShield",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
-              "url": "https://mc2estimating.com",
+              "url": "https://www.bidshield.co",
               "description": "Bid workflow tool for commercial roofing estimators. 18-phase checklist, material reconciliation, labor verification, and GC bid form preparation.",
-              "screenshot": "https://mc2estimating.com/api/og",
+              "screenshot": "https://www.bidshield.co/api/og",
               "offers": [
                 {
                   "@type": "Offer",
@@ -147,7 +147,7 @@ export default function RootLayout({
               "publisher": {
                 "@type": "Organization",
                 "name": "MC2 Estimating",
-                "url": "https://mc2estimating.com"
+                "url": "https://www.bidshield.co"
               }
             })
           }}

@@ -36,20 +36,20 @@ const articleSchema = {
   "author": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
     "name": "MC2 Estimating",
-    "url": "https://mc2estimating.com"
+    "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-10-01",
   "dateModified": "2025-10-01",
-  "image": "https://mc2estimating.com/api/og?title=Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation&type=article",
-  "url": "https://mc2estimating.com/blog/standing-seam-metal-roofing-guide",
+  "image": "https://www.bidshield.co/api/og?title=Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation&type=article",
+  "url": "https://www.bidshield.co/blog/standing-seam-metal-roofing-guide",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://mc2estimating.com/blog/standing-seam-metal-roofing-guide"
+    "@id": "https://www.bidshield.co/blog/standing-seam-metal-roofing-guide"
   }
 };
 
@@ -57,9 +57,9 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mc2estimating.com" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://mc2estimating.com/blog" },
-    { "@type": "ListItem", "position": 3, "name": "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation", "item": "https://mc2estimating.com/blog/standing-seam-metal-roofing-guide" }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bidshield.co" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.bidshield.co/blog" },
+    { "@type": "ListItem", "position": 3, "name": "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation", "item": "https://www.bidshield.co/blog/standing-seam-metal-roofing-guide" }
   ]
 };
 
