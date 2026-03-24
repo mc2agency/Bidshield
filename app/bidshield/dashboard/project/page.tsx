@@ -11,6 +11,7 @@ import {
   LayoutList, AlignLeft, Ruler, Package,
   DollarSign, Users, Briefcase, Quote, FileText,
   HelpCircle, CheckSquare, ClipboardList, History,
+  Send, CalendarDays,
 } from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
@@ -19,6 +20,7 @@ import type { TabId } from "./tab-types";
 import {
   ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
+  SubmissionTab, PreBidMeetingsTab,
 } from "./tabs";
 
 const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
@@ -32,8 +34,10 @@ const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React
   { id: "quotes",            label: "Quotes",       Icon: Quote },
   { id: "addenda",           label: "Addenda",      Icon: FileText },
   { id: "rfis",              label: "RFIs",         Icon: HelpCircle },
-  { id: "bidquals",          label: "Bid Quals",    Icon: ClipboardList },
-  { id: "decisions",         label: "Decision Log", Icon: History },
+  { id: "bidquals",          label: "Bid Quals",       Icon: ClipboardList },
+  { id: "decisions",         label: "Decision Log",    Icon: History },
+  { id: "submission",        label: "Submission",      Icon: Send },
+  { id: "prebidmeetings",    label: "Pre-Bid Meetings", shortLabel: "Pre-Bid", Icon: CalendarDays },
 ];
 
 function scoreDot(s: number): string {
@@ -584,6 +588,8 @@ function ProjectDetail() {
                   {activeTab === "validator"         && <ValidatorTab         {...tabProps} />}
                   {activeTab === "bidquals"  && <BidQualsTab  {...tabProps} />}
                   {activeTab === "decisions" && <DecisionLogTab {...tabProps} />}
+                  {activeTab === "submission"     && <SubmissionTab     {...tabProps} />}
+                  {activeTab === "prebidmeetings" && <PreBidMeetingsTab {...tabProps} />}
                 </div>
               </>
             ) : (
