@@ -3,14 +3,14 @@ import Link from 'next/link';
 /**
  * HeroSection Component
  *
- * Product-first hero for MC2 Estimating homepage.
+ * Product-first hero for BidShield homepage.
  * Features: gradient headline, dual CTAs, stats display, dark theme with grid overlay.
  * Fully responsive and accessible.
  */
 export default function HeroSection() {
   return (
     <section
-      aria-label="MC2 Estimating hero"
+      aria-label="BidShield hero"
       className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden"
     >
       {/* Subtle grid pattern overlay */}

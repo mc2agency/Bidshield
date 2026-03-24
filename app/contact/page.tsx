@@ -66,7 +66,7 @@ function ContactPageContent() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Us</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300">
-              Questions about our tools, templates, or MC2 Pro access? We&apos;re here to help.
+              Questions about our tools, templates, or BidShield Pro access? We&apos;re here to help.
             </p>
           </div>
         </div>
@@ -112,7 +112,7 @@ function ContactPageContent() {
                 <div className="text-5xl mb-4">📞</div>
                 <h3 className="text-xl font-bold mb-3 text-slate-900">Phone Support</h3>
                 <p className="text-slate-600 mb-4">
-                  MC2 Pro members only
+                  BidShield Pro members only
                 </p>
                 <a
                   href="tel:+18005551234"
@@ -219,7 +219,7 @@ function ContactPageContent() {
                       <option value="">Select a subject...</option>
                       <option value="template">Template Question</option>
                       <option value="product">Product Question</option>
-                      <option value="mc2pro">MC2 Pro Access</option>
+                      <option value="bidshieldpro">BidShield Pro Access</option>
                       <option value="enterprise">Enterprise Licensing</option>
                       <option value="technical">Technical Support</option>
                       <option value="billing">Billing Question</option>
@@ -284,8 +284,8 @@ function ContactPageContent() {
             </h2>
             <div className="space-y-6">
               <FAQItem
-                question="What's the difference between buying individual tools and MC2 Pro access?"
-                answer="Individual tools give you lifetime access to specific templates. MC2 Pro access ($197/month) gives you unlimited access to ALL tools, templates, and resources, plus ongoing updates and new products as released. If you plan to use 3+ tools, Pro access is more cost-effective."
+                question="What's the difference between buying individual tools and BidShield Pro access?"
+                answer="Individual tools give you lifetime access to specific templates. BidShield Pro access ($197/month) gives you unlimited access to ALL tools, templates, and resources, plus ongoing updates and new products as released. If you plan to use 3+ tools, Pro access is more cost-effective."
               />
               <FAQItem
                 question="Do you offer enterprise licensing for teams?"
@@ -293,7 +293,7 @@ function ContactPageContent() {
               />
               <FAQItem
                 question="Can I get a refund if I'm not satisfied?"
-                answer="All products have a 30-day money-back guarantee. MC2 Pro access can be canceled anytime - we'll refund the current month if you cancel within the first 14 days of joining."
+                answer="All products have a 30-day money-back guarantee. BidShield Pro access can be canceled anytime - we'll refund the current month if you cancel within the first 14 days of joining."
               />
               <FAQItem
                 question="How do I access my purchases?"
@@ -322,7 +322,7 @@ function ContactPageContent() {
               href="/membership"
               className="inline-flex items-center justify-center px-8 py-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-slate-100 transition-colors text-lg"
             >
-              Explore MC2 Pro Access
+              Explore BidShield Pro Access
             </Link>
             <Link
               href="/products"

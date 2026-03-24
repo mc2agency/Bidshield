@@ -68,7 +68,7 @@ function getEmailContent(day: number, firstName: string): { subject: string; htm
             <p><strong>Works alongside your existing tools.</strong> BidShield doesn't replace The EDGE, STACK, or Excel — it reviews the completed bid for the mistakes those tools can't catch.</p>
           </div>
           <p>If you have questions, reply to this email. I read every one.</p>
-          <p style="color:#475569;">— Carlos, MC2 Estimating</p>
+          <p style="color:#475569;">— Carlos, BidShield</p>
         `),
       };
 

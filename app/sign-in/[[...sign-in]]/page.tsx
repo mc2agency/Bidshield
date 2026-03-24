@@ -18,7 +18,7 @@ export default function SignInPage() {
             Sign in to BidShield
           </h2>
           <p className="mt-2 text-slate-600">
-            A product of MC2 Estimating
+            A product of BidShield
           </p>
         </div>
         {isClient ? (

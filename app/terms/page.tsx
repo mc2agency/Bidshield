@@ -40,7 +40,7 @@ export default function TermsPage() {
               <ul className="list-disc pl-6 mb-4 text-gray-700">
                 <li>Downloadable templates, calculators, and checklists</li>
                 <li>Proposal and documentation templates</li>
-                <li>MC2 Pro access with all tools and updates</li>
+                <li>BidShield Pro access with all tools and updates</li>
                 <li>Reference guides and documentation</li>
                 <li>Enterprise licensing packages</li>
               </ul>
@@ -83,7 +83,7 @@ export default function TermsPage() {
               <ul className="list-disc pl-6 mb-4 text-gray-700">
                 <li><strong>Digital Products:</strong> 30-day money-back guarantee.
                 Request a refund within 30 days of purchase for any reason.</li>
-                <li><strong>MC2 Pro Access:</strong> Cancel anytime. If you cancel within 14 days
+                <li><strong>BidShield Pro Access:</strong> Cancel anytime. If you cancel within 14 days
                 of initial signup, we&apos;ll refund the current month.</li>
                 <li><strong>Enterprise Licensing:</strong> Custom refund terms in enterprise agreement.</li>
               </ul>
@@ -93,7 +93,7 @@ export default function TermsPage() {
               <h3 className="text-xl font-bold mt-6 mb-3 text-gray-800">5.1 Our Content</h3>
               <p className="text-gray-700 mb-4">
                 All content on BidShield - including templates, guides, calculators,
-                text, graphics, logos, and software - is owned by MC2 Estimating and protected
+                text, graphics, logos, and software - is owned by BidShield and protected
                 by copyright, trademark, and other intellectual property laws.
               </p>
 
@@ -156,7 +156,7 @@ export default function TermsPage() {
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">9. Limitation of Liability</h2>
               <p className="text-gray-700 mb-4">
-                TO THE MAXIMUM EXTENT PERMITTED BY LAW, MC2 ESTIMATING SHALL NOT BE LIABLE FOR
+                TO THE MAXIMUM EXTENT PERMITTED BY LAW, BIDSHIELD SHALL NOT BE LIABLE FOR
                 ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF
                 PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE,
                 GOODWILL, OR OTHER INTANGIBLE LOSSES.
@@ -168,7 +168,7 @@ export default function TermsPage() {
 
               <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900">10. Indemnification</h2>
               <p className="text-gray-700 mb-4">
-                You agree to indemnify and hold harmless MC2 Estimating from any claims,
+                You agree to indemnify and hold harmless BidShield from any claims,
                 damages, losses, liabilities, and expenses (including legal fees) arising from your
                 use of our services or violation of these Terms.
               </p>
@@ -204,7 +204,7 @@ export default function TermsPage() {
                 For questions about these Terms of Service, please contact us:
               </p>
               <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
-                <p className="text-gray-800 mb-2"><strong>MC2 Estimating (BidShield)</strong></p>
+                <p className="text-gray-800 mb-2"><strong>BidShield (BidShield)</strong></p>
                 <p className="text-gray-700">Email: legal@bidshield.co</p>
                 <p className="text-gray-700">Phone: (800) 555-1234</p>
               </div>
@@ -212,7 +212,7 @@ export default function TermsPage() {
               <div className="mt-12 p-6 bg-gray-100 rounded-lg border-2 border-gray-300">
                 <p className="text-sm text-gray-600">
                   <strong>Legal Notice:</strong> These Terms of Service constitute a legally binding
-                  agreement between you and MC2 Estimating. Please read them carefully and
+                  agreement between you and BidShield. Please read them carefully and
                   contact us if you have any questions before using our services.
                 </p>
               </div>

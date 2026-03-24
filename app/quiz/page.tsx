@@ -77,14 +77,14 @@ export default function QuizPage() {
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-8 text-white text-center">
                 <h3 className="text-2xl font-bold mb-3">Want Everything?</h3>
                 <p className="text-blue-100 mb-6">
-                  Join MC2 Pro and get access to all 7 tools, templates, and live Q&A sessions.
+                  Join BidShield Pro and get access to all 7 tools, templates, and live Q&A sessions.
                 </p>
                 <div className="text-4xl font-bold mb-2">$197<span className="text-xl text-blue-200">/month</span></div>
                 <Link
                   href="/membership"
                   className="inline-block px-8 py-3 bg-white text-blue-900 rounded-lg font-semibold hover:bg-blue-50 transition-colors mt-4"
                 >
-                  View MC2 Pro Membership →
+                  View BidShield Pro Membership →
                 </Link>
               </div>
 

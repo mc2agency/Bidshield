@@ -681,7 +681,7 @@ export default function EstimatingEssentialsPage() {
               Questions? Email us at support@bidshield.co
             </p>
             <Link href="/membership" className="text-yellow-400 hover:text-yellow-300 font-semibold">
-              Or get this tool + everything else with MC2 Pro membership →
+              Or get this tool + everything else with BidShield Pro membership →
             </Link>
           </div>
         </div>

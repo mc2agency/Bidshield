@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
     type: "article",
     publishedTime: "2026-01-15",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=Commercial Roofing Estimate Template: What Every Bid Must Include [2026]&type=article",
@@ -35,12 +35,12 @@ const articleSchema = {
   "description": "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2026-01-15",
@@ -89,7 +89,7 @@ export default function CommercialRoofingEstimateTemplatePage() {
           <div className="mt-6 flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center font-bold text-lg">MC</div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>

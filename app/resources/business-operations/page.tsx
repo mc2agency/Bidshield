@@ -279,14 +279,14 @@ export default function BusinessOperationsPage() {
             Build a Professional Roofing Business
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Get access to all our business operations templates, guides, and tools with MC2 Pro membership.
+            Get access to all our business operations templates, guides, and tools with BidShield Pro membership.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/membership"
               className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-900 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg"
             >
-              Join MC2 Pro - $197/mo →
+              Join BidShield Pro - $197/mo →
             </Link>
             <Link
               href="/products"

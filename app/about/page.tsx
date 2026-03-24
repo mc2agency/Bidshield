@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'About BidShield',
   description: 'BidShield is the pre-submission bid review platform built for commercial roofing estimators. Built by a 12-year estimator to catch what The EDGE, STACK, and Excel miss.',
-  keywords: 'about BidShield, commercial roofing estimating, bid QA, pre-submission review, MC2 Estimating',
+  keywords: 'about BidShield, commercial roofing estimating, bid QA, pre-submission review, BidShield',
 };
 
 export default function AboutPage() {

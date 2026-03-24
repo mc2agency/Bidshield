@@ -265,7 +265,7 @@ export default function PlansAndSpecsPage() {
               href="/membership"
               className="inline-flex items-center justify-center px-8 py-4 bg-blue-800 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg border-2 border-blue-600"
             >
-              Get MC2 Pro Membership
+              Get BidShield Pro Membership
             </Link>
           </div>
         </div>

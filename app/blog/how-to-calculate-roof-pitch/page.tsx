@@ -49,7 +49,7 @@ export default function RoofPitchArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
@@ -372,7 +372,7 @@ export default function RoofPitchArticle() {
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-600">Comments are coming soon! For now, share your questions in our community.</p>
             <Link href="/membership" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">
-              Join MC2 Pro Community →
+              Join BidShield Pro Community →
             </Link>
           </div>
         </div>

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
     type: "article",
     publishedTime: "2025-09-20",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=Best Roofing Estimating Software 2025: Compare Top Platforms&type=article",
@@ -35,12 +35,12 @@ const articleSchema = {
   "description": "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-09-20",
@@ -92,7 +92,7 @@ export default function RoofingEstimatingSoftwareArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
@@ -596,7 +596,7 @@ export default function RoofingEstimatingSoftwareArticle() {
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-600">Comments are coming soon! For now, share your questions in our community.</p>
             <Link href="/membership" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">
-              Join MC2 Pro Community →
+              Join BidShield Pro Community →
             </Link>
           </div>
         </div>

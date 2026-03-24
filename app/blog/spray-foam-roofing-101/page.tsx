@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "Learn everything about spray polyurethane foam (SPF) roofing systems. Installation, costs, pros and cons, and how to estimate foam roofing projects.",
     type: "article",
     publishedTime: "2025-11-01",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=Spray Foam Roofing 101: Complete Guide to SPF Systems [2025]&type=article",
@@ -35,12 +35,12 @@ const articleSchema = {
   "description": "Learn everything about spray polyurethane foam (SPF) roofing systems. Installation, costs, pros and cons, and how to estimate foam roofing projects.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-11-01",
@@ -92,7 +92,7 @@ export default function SprayFoamRoofingArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
@@ -471,7 +471,7 @@ export default function SprayFoamRoofingArticle() {
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-600">Comments are coming soon! For now, share your questions in our community.</p>
             <Link href="/membership" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">
-              Join MC2 Pro Community →
+              Join BidShield Pro Community →
             </Link>
           </div>
         </div>

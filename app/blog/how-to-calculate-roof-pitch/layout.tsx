@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: "Learn how to calculate roof pitch using the rise-over-run formula. Includes pitch multiplier chart, angle conversions, and interactive calculator for roofing estimates.",
     type: "article",
     publishedTime: "2025-12-01",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=How%20to%20Calculate%20Roof%20Pitch%3A%20Formula%2C%20Chart%20%26%20Calculator&type=article",

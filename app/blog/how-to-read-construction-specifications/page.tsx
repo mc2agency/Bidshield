@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
     type: "article",
     publishedTime: "2025-11-15",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=How to Read Construction Specifications [Complete Guide 2025]&type=article",
@@ -35,12 +35,12 @@ const articleSchema = {
   "description": "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-11-15",
@@ -92,7 +92,7 @@ export default function ReadConstructionSpecsArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
@@ -621,7 +621,7 @@ export default function ReadConstructionSpecsArticle() {
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-600">Comments are coming soon! For now, share your questions in our community.</p>
             <Link href="/membership" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">
-              Join MC2 Pro Community →
+              Join BidShield Pro Community →
             </Link>
           </div>
         </div>

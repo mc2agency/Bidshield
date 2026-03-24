@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# MC2 Estimating - Forbidden Terms Checker
+# BidShield - Forbidden Terms Checker
 # ========================================
 # This script scans the codebase for education-related terminology
-# that violates the product-only positioning of MC2 Estimating.
+# that violates the product-only positioning of BidShield.
 #
 # Run this in CI to prevent regression of the product positioning.
 #
@@ -19,7 +19,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo "=============================================="
-echo "MC2 Estimating - Forbidden Terms Checker"
+echo "BidShield - Forbidden Terms Checker"
 echo "=============================================="
 echo ""
 
@@ -153,7 +153,7 @@ echo "=============================================="
 if [ $VIOLATIONS_FOUND -eq 1 ]; then
     echo -e "${RED}FAILED:${NC} Found $TOTAL_VIOLATIONS forbidden term(s)"
     echo ""
-    echo "MC2 Estimating is a PRODUCT company, NOT an education platform."
+    echo "BidShield is a PRODUCT company, NOT an education platform."
     echo "Please remove or replace the forbidden terms above."
     echo ""
     echo "Allowed alternatives:"
