@@ -83,7 +83,6 @@ function getProductFamily(s: string): number {
 }
 
 // Match a material name against quote line items with strict confidence rules
-let _quoteMatchLogCount = 0;
 function findBestQuoteMatch(
   materialName: string,
   lineItems: { m: string; u: string; p: number }[]
@@ -117,14 +116,6 @@ function findBestQuoteMatch(
     if (confidence > (best?.confidence ?? 0)) {
       best = { item: li, confidence };
     }
-  }
-
-  // Debug: log top matches for first 5 materials processed
-  if (_quoteMatchLogCount < 5 && lineItems.length > 0) {
-    _quoteMatchLogCount++;
-    console.log(
-      `[QuoteMatch] "${materialName}" → ${best ? `"${best.item.m}" (${best.confidence.toFixed(0)}% confidence, $${best.item.p})` : "NO MATCH"}`
-    );
   }
 
   return best && best.confidence >= 65 ? best : null;
@@ -929,7 +920,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               <select
                 value={selectedQuoteId ?? "__no_compare__"}
                 onChange={e => {
-                  _quoteMatchLogCount = 0;
                   const v = e.target.value;
                   setSelectedQuoteId(v === "__no_compare__" ? null : v);
                 }}

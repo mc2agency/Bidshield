@@ -6,7 +6,6 @@ import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
-  console.log("AUTH CHECK ADDED — analyze-labor");
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
