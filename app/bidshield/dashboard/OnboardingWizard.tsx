@@ -30,8 +30,7 @@ const DECKS = [
   { id: "steel", label: "Steel Deck" },
   { id: "concrete", label: "Concrete Deck" },
   { id: "wood", label: "Wood Deck" },
-  { id: "gypsum", label: "Gypsum" },
-  { id: "tectum", label: "Tectum" },
+  { id: "lightweight", label: "Lightweight Concrete" },
 ];
 
 interface Props {
@@ -99,7 +98,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                 Welcome to BidShield
               </h2>
               <p className="text-slate-600 mb-8">
-                Your bid-day assistant. Let&apos;s set up your first project in 60 seconds.
+                Your bid QA and workflow tool. Let&apos;s set up your first project in 60 seconds.
               </p>
               <button
                 onClick={() => setStep(1)}
@@ -310,7 +309,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                 Your bid review is ready
               </h3>
               <p className="text-sm text-slate-500 mb-6">
-                <strong>{projectName}</strong> is set up with your 18-phase checklist, takeoff tracker, scope gap checker, and bid readiness scoring.
+                <strong>{projectName}</strong> is set up with your 17-phase checklist, takeoff tracker, scope gap checker, and bid readiness scoring.
               </p>
 
               <button
@@ -374,7 +373,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               <div className="space-y-2 mb-8">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <span className="text-emerald-600">✓</span>
-                  16-phase bid checklist customized for {systemType?.toUpperCase() || "roofing"}
+                  17-phase bid QA checklist customized for {systemType?.toUpperCase() || "roofing"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <span className="text-emerald-600">✓</span>

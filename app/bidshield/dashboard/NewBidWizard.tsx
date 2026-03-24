@@ -26,7 +26,6 @@ const DECKS = [
   { id: "concrete", label: "Concrete Deck" },
   { id: "wood", label: "Wood / Plywood" },
   { id: "lightweight", label: "Lightweight Concrete" },
-  { id: "tectum", label: "Tectum" },
 ];
 
 // What BidShield auto-configures based on selections
@@ -34,7 +33,7 @@ function getConfigSummary(projectType: string, system: string) {
   const configs: string[] = [];
 
   // Common to all
-  configs.push("16-phase bid QA checklist");
+  configs.push("17-phase bid QA checklist");
   configs.push("Bid readiness scoring");
 
   // Project-type specific
