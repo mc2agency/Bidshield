@@ -150,12 +150,19 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const fmtDollar = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
   const assembly = pricing.primaryAssembly;
-  const similarProjects = (allProjects ?? []).filter(
-    (p: any) => p.primaryAssembly === assembly && p.totalBidAmount && p.sqft && p.sqft > 0 && p._id !== projectId
-  );
+  const similarProjects = (allProjects ?? []).filter((p: any) => {
+    const area = p.grossRoofArea ?? p.sqft;
+    return p.primaryAssembly === assembly && p.totalBidAmount && area && area > 0 && p._id !== projectId;
+  });
   const avgDollarPerSf = similarProjects.length >= 3
-    ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / p.sqft, 0) / similarProjects.length
+    ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / (p.grossRoofArea ?? p.sqft), 0) / similarProjects.length
     : null;
+
+  // Sanity check: components should sum to total bid
+  const effectiveGC = pricing.otherCost ?? (computedGCTotal > 0 ? computedGCTotal : 0);
+  const componentSum = computedMaterialTotal + computedLaborTotal + effectiveGC;
+  const totalBid = pricing.totalBidAmount ?? 0;
+  const componentSumMismatch = totalBid > 0 && componentSum > 0 && Math.abs(componentSum - totalBid) / totalBid > 0.01;
   const variance = dollarPerSf && avgDollarPerSf ? ((dollarPerSf - avgDollarPerSf) / avgDollarPerSf) * 100 : null;
   const healthColor = variance === null ? "text-slate-500" : Math.abs(variance) <= 5 ? "text-emerald-600" : Math.abs(variance) <= 15 ? "text-amber-600" : "text-red-600";
   const healthLabel = !dollarPerSf ? "Enter bid amount" : !assembly ? "Set assembly type" : similarProjects.length < 3 ? "Need more data" : Math.abs(variance!) <= 5 ? "On Target" : Math.abs(variance!) <= 15 ? "Watch" : "Off Target";
@@ -188,6 +195,19 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
       <p className="text-sm text-slate-500 -mb-1">
         Your bid total rollup — material, labor, and general conditions costs flow in automatically from their respective sections.
       </p>
+
+      {/* Sanity check warning */}
+      {componentSumMismatch && (
+        <div className="bg-amber-50 border border-amber-400/50 rounded-xl px-4 py-3 flex items-start gap-2">
+          <span className="text-amber-500 text-base mt-0.5">⚠</span>
+          <div>
+            <div className="text-xs font-semibold text-amber-700">Cost components don&rsquo;t add up to Total Bid</div>
+            <div className="text-xs text-amber-600 mt-0.5">
+              Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}) = {fmtDollar(componentSum)}, but Total Bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} difference).
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bid Pricing Card */}
       <div className="bg-white rounded-xl p-5 border border-slate-200">
