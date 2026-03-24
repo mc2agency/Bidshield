@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
   "description": "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
   "author": {

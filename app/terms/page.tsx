@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'BidShield Terms of Service. Read our terms before using BidShield tools and services.',
+  description: 'BidShield terms of service. Learn about your rights and responsibilities when using BidShield, the bid workflow tool for commercial roofing estimators.',
   alternates: { canonical: 'https://www.bidshield.co/terms' },
 };
 
@@ -17,7 +17,7 @@ export default function TermsPage() {
               Terms of Service
             </h1>
             <p className="text-xl text-slate-300">
-              Last updated: December 2024
+              Last updated: March 2026
             </p>
           </div>
         </div>

@@ -53,10 +53,11 @@ export default function HomepageContent() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            Every bid. Every phase.
+            Every Commercial Roofing Bid.
             <br />
+            Every Phase.{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-              Every time.
+              Every Time.
             </span>
           </h1>
 
@@ -81,6 +82,9 @@ export default function HomepageContent() {
               See Live Demo
             </Link>
           </div>
+          <p className="mt-4 text-sm text-slate-500">
+            No credit card required · Cancel anytime · 14-day money-back guarantee
+          </p>
 
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             <div className="group">
@@ -176,6 +180,73 @@ export default function HomepageContent() {
         </div>
       </section>
 
+
+      {/* Social Proof */}
+      <section className="py-24 bg-slate-900 border-t border-slate-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Trusted by Commercial Roofing{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                Estimators
+              </span>
+            </h2>
+            <p className="text-xl text-slate-400">
+              Built by estimators. Used by estimators.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 text-emerald-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                &ldquo;Finally a tool that matches how I actually run bids. The phase-by-phase checklist catches everything I used to track on sticky notes.&rdquo;
+              </p>
+              <div className="text-sm">
+                <div className="font-semibold text-white">[Estimator Name]</div>
+                <div className="text-slate-500">[Roofing Company], [City]</div>
+              </div>
+            </div>
+            <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 text-emerald-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                &ldquo;Material Reconciliation alone is worth the subscription. I caught a $14k discrepancy on a TPO job before it hit the GC.&rdquo;
+              </p>
+              <div className="text-sm">
+                <div className="font-semibold text-white">[Estimator Name]</div>
+                <div className="text-slate-500">[Roofing Company], [City]</div>
+              </div>
+            </div>
+            <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 text-emerald-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                &ldquo;I run every bid through BidShield now. It&rsquo;s the pre-submission review I always knew I needed but never had a system for.&rdquo;
+              </p>
+              <div className="text-sm">
+                <div className="font-semibold text-white">[Estimator Name]</div>
+                <div className="text-slate-500">[Roofing Company], [City]</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Pricing */}
       <section className="py-24 bg-slate-900 border-t border-slate-800">

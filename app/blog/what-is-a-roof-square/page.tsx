@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "What is a Roof Square? Complete Guide to Roofing Measurements [2025]",
   "description": "Learn what a roof square is, how to calculate roof squares, and why this measurement matters for roofing estimates. Includes calculators and conversion charts.",
   "author": {

@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Support',
-  description: 'Get help with BidShield tools and templates. Documentation, FAQs, and contact support.',
-  keywords: 'BidShield support, estimating tools help, template support, customer service',
+  title: 'Support & Help Center',
+  description: 'Get help with BidShield, the bid workflow tool for commercial roofing estimators. Browse documentation, FAQs, and contact our support team.',
+  keywords: 'BidShield support, commercial roofing estimator help, bid workflow tool docs, BidShield FAQ',
   alternates: { canonical: 'https://www.bidshield.co/support' },
 };
 

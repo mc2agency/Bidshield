@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "How to Read Construction Specifications [Complete Guide 2025]",
   "description": "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
   "author": {

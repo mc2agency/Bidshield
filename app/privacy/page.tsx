@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'BidShield Privacy Policy. Learn how we collect, use, and protect your information.',
+  description: 'BidShield privacy policy. Learn how we collect, use, and protect your data when you use BidShield, the bid workflow tool for commercial roofing estimators.',
   alternates: { canonical: 'https://www.bidshield.co/privacy' },
 };
 
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
               Privacy Policy
             </h1>
             <p className="text-xl text-slate-300">
-              Last updated: December 2024
+              Last updated: March 2026
             </p>
           </div>
         </div>

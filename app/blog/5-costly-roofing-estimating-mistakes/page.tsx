@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "5 Costly Roofing Estimating Mistakes (And How to Avoid Them)",
   "description": "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
   "author": {

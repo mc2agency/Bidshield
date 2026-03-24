@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "Labor Burden Calculation for Contractors [Complete Guide 2025]",
   "description": "Learn how to accurately calculate labor burden including FICA, Medicare, workers comp, and all hidden costs. Avoid losing money on every job.",
   "author": {

@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Product Updates',
-  description: 'Latest updates to BidShield tools and templates. New features, improvements, and additions to the tool vault.',
-  keywords: 'BidShield updates, estimating tools updates, template updates, changelog',
+  title: 'Product Updates & Changelog',
+  description: 'Latest BidShield product updates. New features, improvements, and additions to the commercial roofing bid workflow tool — including checklist updates, AI extraction, and GC bid form enhancements.',
+  keywords: 'BidShield updates, commercial roofing software updates, bid workflow tool changelog, estimating software features',
   alternates: { canonical: 'https://www.bidshield.co/updates' },
 };
 

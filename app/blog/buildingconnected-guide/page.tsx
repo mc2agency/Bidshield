@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
   "description": "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",
   "author": {

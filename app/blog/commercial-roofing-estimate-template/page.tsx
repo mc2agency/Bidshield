@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
   "description": "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
   "author": {

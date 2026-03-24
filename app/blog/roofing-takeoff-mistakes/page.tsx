@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
   "description": "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
   "author": {
