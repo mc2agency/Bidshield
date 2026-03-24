@@ -34,6 +34,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No materialName provided" }, { status: 400 });
     }
 
+    // Short-circuit for well-known materials — no AI call needed
+    const name = materialName.toLowerCase();
+    if (/sbs|app/.test(name) && /(cap|base)\s*sheet/.test(name)) {
+      return NextResponse.json({ coverageRate: "100 SF/RL", confidence: "high" });
+    }
+    if (/polyiso|poly\s*iso/.test(name) && /4\s*[xX×]\s*8/.test(name)) {
+      return NextResponse.json({ coverageRate: "32 SF/BD", confidence: "high" });
+    }
+    if (/(tpo|pvc|epdm)/.test(name) && /10['\s]*wide|10\s*ft/.test(name)) {
+      return NextResponse.json({ coverageRate: "1000 SF/RL", confidence: "high" });
+    }
+    if (/(tpo|pvc|epdm)/.test(name) && /5['\s]*wide|5\s*ft/.test(name)) {
+      return NextResponse.json({ coverageRate: "500 SF/RL", confidence: "high" });
+    }
+    if (/(densdeck|coverboard|cover\s*board)/.test(name) && /4\s*[xX×]\s*8/.test(name)) {
+      return NextResponse.json({ coverageRate: "32 SF/BD", confidence: "high" });
+    }
+    if (/(fastener|screw)/.test(name) && /500/.test(name)) {
+      return NextResponse.json({ coverageRate: "500 EA/BX", confidence: "high" });
+    }
+    if (/(bond|bonding)\s*(adhesive|adh)/.test(name) && /5\s*gal/.test(name)) {
+      return NextResponse.json({ coverageRate: "250 SF/GL", confidence: "high" });
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
     let message: Awaited<ReturnType<typeof client.messages.create>>;
