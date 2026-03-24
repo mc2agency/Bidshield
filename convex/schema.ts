@@ -367,6 +367,12 @@ export default defineSchema({
     buildersRiskBy: v.optional(v.union(v.literal("owner"), v.literal("gc"), v.literal("included"))),
     bondRequired: v.optional(v.boolean()),
     bondTypes: v.optional(v.string()),
+    bondAmount: v.optional(v.number()),       // dollar amount
+    bondAmountPct: v.optional(v.number()),    // percentage of bid (e.g. 100 = 100%)
+    bondAmountType: v.optional(v.string()),   // "dollar" | "percentage"
+    suretyCompany: v.optional(v.string()),
+    suretyAgent: v.optional(v.string()),
+    bondStatus: v.optional(v.string()),       // "not_started" | "in_progress" | "obtained" | "waived"
     emr: v.optional(v.string()),
     mbeGoals: v.optional(v.boolean()),
     mbeGoalPct: v.optional(v.string()),
@@ -533,6 +539,58 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_created", ["userId", "createdAt"]),
+
+  // Submission tracking — records how/when a bid was submitted
+  bidshield_submissions: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    method: v.union(
+      v.literal("email"),
+      v.literal("portal"),
+      v.literal("hand_delivered"),
+      v.literal("mail"),
+      v.literal("fax"),
+      v.literal("other")
+    ),
+    portalOrRecipient: v.optional(v.string()), // portal URL or recipient name/email
+    confirmationNumber: v.optional(v.string()),
+    submittedAt: v.number(), // unix ms timestamp of submission
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // Pre-bid meeting tracker
+  bidshield_prebid_meetings: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    meetingDate: v.string(), // YYYY-MM-DD
+    mandatory: v.boolean(),
+    location: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    attendees: v.optional(v.string()), // comma-separated or free text
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
+
+  // Alternate pricing line items per project
+  bidshield_alternates: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    label: v.string(), // e.g. "Alt 1 — Add TPO over metal"
+    type: v.union(v.literal("add"), v.literal("deduct")),
+    amount: v.optional(v.number()),
+    description: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"]),
 
   // Processed webhook events — idempotency guard for Stripe/Gumroad webhooks.
   // Before processing any webhook, check this table by stripeEventId. If found,

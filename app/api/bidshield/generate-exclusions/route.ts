@@ -59,7 +59,12 @@ Return only the numbered list. No preamble, no closing remarks.`;
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
-        { model: "claude-haiku-4-5-20251001", max_tokens: 1024, messages: [{ role: "user", content: prompt }] },
+        {
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1024,
+          system: "You are BidShield, a QA assistant for commercial roofing estimators. Your role is to help estimators produce clear, professional bid exclusions sections. You have deep knowledge of commercial roofing scope — membrane systems (TPO, EPDM, SBS, PVC), insulation, metal work, specialties — and understand what is typically included vs. excluded in a roofing subcontractor's scope. Write in direct, trade-standard language suitable for a formal bid proposal.",
+          messages: [{ role: "user", content: prompt }],
+        },
         { signal: controller.signal }
       );
     } finally {

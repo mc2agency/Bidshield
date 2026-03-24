@@ -12,3 +12,5 @@ export { default as GeneralConditionsTab } from "./GeneralConditionsTab";
 export { default as ValidatorTab } from "./ValidatorTab";
 export { default as BidQualsTab } from "./BidQualsTab";
 export { default as DecisionLogTab } from "./DecisionLogTab";
+export { default as SubmissionTab } from "./SubmissionTab";
+export { default as PreBidMeetingsTab } from "./PreBidMeetingsTab";

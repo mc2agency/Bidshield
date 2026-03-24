@@ -11,6 +11,7 @@ import {
   LayoutList, AlignLeft, Ruler, Package,
   DollarSign, Users, Briefcase, Quote, FileText,
   HelpCircle, CheckSquare, ClipboardList, History, LayoutDashboard,
+  Send, CalendarDays,
 } from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
@@ -19,6 +20,7 @@ import type { TabId } from "./tab-types";
 import {
   OverviewTab, ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
+  SubmissionTab, PreBidMeetingsTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -34,9 +36,11 @@ const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React
   { id: "quotes",            label: "Quotes",       Icon: Quote },
   { id: "addenda",           label: "Addenda",      Icon: FileText },
   { id: "rfis",              label: "RFIs",         Icon: HelpCircle },
-  { id: "bidquals",          label: "Bid Quals",    Icon: ClipboardList },
-  { id: "validator",         label: "Validator",    Icon: CheckSquare },
-  { id: "decisions",         label: "Decision Log", Icon: History },
+  { id: "bidquals",          label: "Bid Quals",        Icon: ClipboardList },
+  { id: "validator",         label: "Validator",        Icon: CheckSquare },
+  { id: "decisions",         label: "Decision Log",     Icon: History },
+  { id: "submission",        label: "Submission",       Icon: Send },
+  { id: "prebidmeetings",    label: "Pre-Bid Meetings", shortLabel: "Pre-Bid", Icon: CalendarDays },
 ];
 
 function scoreDot(s: number): string {
@@ -588,6 +592,8 @@ function ProjectDetail() {
                   {activeTab === "validator"         && <TabErrorBoundary tabLabel="Validator"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "decisions" && <TabErrorBoundary tabLabel="Decision Log"><DecisionLogTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "submission"     && <TabErrorBoundary tabLabel="Submission"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "prebidmeetings" && <TabErrorBoundary tabLabel="Pre-Bid Meetings"><PreBidMeetingsTab {...tabProps} /></TabErrorBoundary>}
                 </div>
               </>
             ) : (
