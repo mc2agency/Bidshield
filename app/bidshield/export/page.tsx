@@ -9,6 +9,57 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
+import type { ChecklistPhaseDef } from "@/lib/bidshield/checklist-data";
+
+interface BidProject {
+  name: string;
+  location?: string;
+  bidDate?: string;
+  gc?: string;
+  sqft?: number;
+  grossRoofArea?: number;
+  totalBidAmount?: number;
+  systemType?: string;
+  deckType?: string;
+  trade?: string;
+  assemblies?: string[];
+  materialCost?: number;
+  laborCost?: number;
+  notes?: string;
+  fmGlobal?: boolean;
+  pre1990?: boolean;
+  energyCode?: boolean;
+  climateZone?: string;
+}
+
+interface ChecklistItem {
+  phaseKey: string;
+  itemId: string;
+  status: string;
+  notes?: string;
+}
+
+interface ScopeItem {
+  item?: string;
+  name?: string;
+  status: string;
+  cost?: number;
+  notes?: string;
+  category?: string;
+}
+
+interface Quote {
+  expirationDate?: string;
+}
+
+interface RFI {
+  status: string;
+}
+
+interface Addendum {
+  affectsScope?: boolean | null;
+  repriced?: boolean;
+}
 
 function ExportContent() {
   const searchParams = useSearchParams();
@@ -65,7 +116,7 @@ function ExportContent() {
   }
 
   // Demo data
-  const project = isDemo ? {
+  const project: BidProject | null | undefined = isDemo ? {
     name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
     gc: "Skanska USA", sqft: 68000, grossRoofArea: 68000, totalBidAmount: 2400000,
     systemType: "tpo", deckType: "steel", trade: "roofing",
@@ -76,11 +127,11 @@ function ExportContent() {
 
   const demoChecklist = useMemo(() => {
     const template = getChecklistForTrade("roofing", "tpo", "steel");
-    const items: any[] = [];
+    const items: ChecklistItem[] = [];
     const doneIds = ["p1-1","p1-2","p1-3","p2-1","p2-2","p2-3","p3-1","p3-2","p3-3","p4-1","p4-2","p5-1","p5-2","p6-1","p6-2","p6-3","p9-1","p9-2","p9-3"];
     const rfiIds = ["p3-4","p5-3"];
-    for (const [phaseKey, phase] of Object.entries(template)) {
-      for (const item of (phase as any).items) {
+    for (const [phaseKey, phase] of Object.entries(template) as [string, ChecklistPhaseDef][]) {
+      for (const item of phase.items) {
         let status = "pending";
         if (doneIds.includes(item.id)) status = "done";
         if (rfiIds.includes(item.id)) status = "rfi";
@@ -98,53 +149,52 @@ function ExportContent() {
     notes: i < 27 ? "" : "Excluded per addendum #2",
   })), []);
 
-  const checklistData: any[] = isDemo ? demoChecklist : (checklist ?? []);
-  const scopeData: any[] = isDemo ? demoScope : (scopeItems ?? []);
-  const quoteList: any[] = isDemo ? [] : (quotes ?? []);
-  const rfiList: any[] = isDemo ? [] : (rfis ?? []);
-  const addendaList: any[] = isDemo ? [] : (addenda ?? []);
+  const checklistData: ChecklistItem[] = isDemo ? demoChecklist : (checklist ?? []) as ChecklistItem[];
+  const scopeData: ScopeItem[] = isDemo ? demoScope : (scopeItems ?? []) as ScopeItem[];
+  const quoteList: Quote[] = isDemo ? [] : (quotes ?? []) as Quote[];
+  const rfiList: RFI[] = isDemo ? [] : (rfis ?? []) as RFI[];
+  const addendaList: Addendum[] = isDemo ? [] : (addenda ?? []) as Addendum[];
 
   // Build checklist template map for item labels
   const checklistTemplate = useMemo(() => {
     if (!project) return {};
-    const trade = (project as any).trade || "roofing";
-    const sysType = (project as any).systemType;
-    const deckType = (project as any).deckType;
-    const fmGlobal = (project as any).fmGlobal;
-    const pre1990 = (project as any).pre1990;
-    const energyCode = (project as any).energyCode;
-    const climateZone = (project as any).climateZone;
+    const trade = project.trade || "roofing";
+    const sysType = project.systemType;
+    const deckType = project.deckType;
+    const fmGlobal = project.fmGlobal;
+    const pre1990 = project.pre1990;
+    const energyCode = project.energyCode;
     return getChecklistForTrade(trade, sysType, deckType, fmGlobal, pre1990, energyCode);
   }, [project]);
 
   // Stats
   const totalChecklist = checklistData.length;
-  const doneChecklist = checklistData.filter((i: any) => i.status === "done" || i.status === "na").length;
+  const doneChecklist = checklistData.filter((i) => i.status === "done" || i.status === "na").length;
   const checklistPct = totalChecklist > 0 ? Math.round((doneChecklist / totalChecklist) * 100) : 0;
 
-  const includedScope = scopeData.filter((s: any) => s.status === "included");
-  const excludedScope = scopeData.filter((s: any) => s.status === "excluded");
-  const byOthersScope = scopeData.filter((s: any) => s.status === "by_others");
-  const unaddressedScope = scopeData.filter((s: any) => s.status === "unaddressed");
+  const includedScope = scopeData.filter((s) => s.status === "included");
+  const excludedScope = scopeData.filter((s) => s.status === "excluded");
+  const byOthersScope = scopeData.filter((s) => s.status === "by_others");
+  const unaddressedScope = scopeData.filter((s) => s.status === "unaddressed");
 
-  const bidAmt = (project as any)?.totalBidAmount;
-  const grossArea = (project as any)?.grossRoofArea || (project as any)?.sqft;
+  const bidAmt = project?.totalBidAmount;
+  const grossArea = project?.grossRoofArea || project?.sqft;
   const dpsf = bidAmt && grossArea ? (bidAmt / grossArea).toFixed(2) : null;
 
   // Readiness score (mirrors page.tsx logic)
   const readinessScore = useMemo(() => {
     const sc = scopeData;
     const scTotal = sc.length;
-    const scUnaddressed = sc.filter((s: any) => s.status === "unaddressed").length;
+    const scUnaddressed = sc.filter((s) => s.status === "unaddressed").length;
     const scPct = scTotal > 0 ? Math.round(((scTotal - scUnaddressed) / scTotal) * 100) : 100;
 
-    const expired = quoteList.filter((q: any) => q.expirationDate && new Date(q.expirationDate) < new Date()).length;
-    const expiring = quoteList.filter((q: any) => { const d = q.expirationDate; if (!d) return false; const days = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000); return days > 0 && days <= 14; }).length;
-    const adNotReviewed = addendaList.filter((a: any) => a.affectsScope === undefined || a.affectsScope === null).length;
-    const adNotRepriced = addendaList.filter((a: any) => a.affectsScope === true && !a.repriced).length;
-    const rPending = rfiList.filter((r: any) => r.status === "sent" || r.status === "draft").length;
-    const matCost = (project as any)?.materialCost;
-    const labCost = (project as any)?.laborCost;
+    const expired = quoteList.filter((q) => q.expirationDate && new Date(q.expirationDate) < new Date()).length;
+    const expiring = quoteList.filter((q) => { const d = q.expirationDate; if (!d) return false; const days = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000); return days > 0 && days <= 14; }).length;
+    const adNotReviewed = addendaList.filter((a) => a.affectsScope === undefined || a.affectsScope === null).length;
+    const adNotRepriced = addendaList.filter((a) => a.affectsScope === true && !a.repriced).length;
+    const rPending = rfiList.filter((r) => r.status === "sent" || r.status === "draft").length;
+    const matCost = project?.materialCost;
+    const labCost = project?.laborCost;
     const pricingDone = !!(bidAmt && bidAmt > 0 && matCost && labCost);
 
     const scores = {
@@ -162,11 +212,10 @@ function ExportContent() {
   // Merge checklist data with template for labels
   const checklistWithLabels = useMemo(() => {
     const map: Record<string, { phaseName: string; items: { id: string; label: string; status: string; notes: string }[] }> = {};
-    for (const [phaseKey, phase] of Object.entries(checklistTemplate)) {
-      const p = phase as any;
-      map[phaseKey] = { phaseName: p.title, items: [] };
-      for (const item of p.items) {
-        const record = checklistData.find((c: any) => c.phaseKey === phaseKey && c.itemId === item.id);
+    for (const [phaseKey, phase] of Object.entries(checklistTemplate) as [string, ChecklistPhaseDef][]) {
+      map[phaseKey] = { phaseName: phase.title, items: [] };
+      for (const item of phase.items) {
+        const record = checklistData.find((c) => c.phaseKey === phaseKey && c.itemId === item.id);
         if (record) {
           map[phaseKey].items.push({ id: item.id, label: item.text, status: record.status, notes: record.notes ?? "" });
         }
@@ -223,8 +272,8 @@ function ExportContent() {
         <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-emerald-600">
           <div>
             <div className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">BID REVIEW SUMMARY</div>
-            <h1 className="text-2xl font-bold text-slate-900">{(project as any).name}</h1>
-            <div className="text-sm text-slate-500 mt-1">{(project as any).location}</div>
+            <h1 className="text-2xl font-bold text-slate-900">{project?.name}</h1>
+            <div className="text-sm text-slate-500 mt-1">{project?.location}</div>
           </div>
           <div className="text-right">
             <div className="text-lg font-bold text-slate-900">🛡️ BidShield</div>
@@ -234,16 +283,16 @@ function ExportContent() {
 
         {/* ── PROJECT INFO GRID ── */}
         <div className="grid grid-cols-3 gap-x-8 gap-y-4 mb-8 p-6 bg-slate-50 rounded-xl">
-          {(project as any).gc && (
+          {project?.gc && (
             <div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">General Contractor</div>
-              <div className="text-sm font-semibold text-slate-900 mt-0.5">{(project as any).gc}</div>
+              <div className="text-sm font-semibold text-slate-900 mt-0.5">{project?.gc}</div>
             </div>
           )}
-          {(project as any).bidDate && (
+          {project?.bidDate && (
             <div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bid Date</div>
-              <div className="text-sm font-semibold text-slate-900 mt-0.5">{(project as any).bidDate}</div>
+              <div className="text-sm font-semibold text-slate-900 mt-0.5">{project?.bidDate}</div>
             </div>
           )}
           {grossArea && (
@@ -252,22 +301,22 @@ function ExportContent() {
               <div className="text-sm font-semibold text-slate-900 mt-0.5">{grossArea.toLocaleString()} SF</div>
             </div>
           )}
-          {(project as any).systemType && (
+          {project?.systemType && (
             <div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Type</div>
-              <div className="text-sm font-semibold text-slate-900 mt-0.5">{((project as any).systemType as string).toUpperCase()}</div>
+              <div className="text-sm font-semibold text-slate-900 mt-0.5">{project?.systemType?.toUpperCase()}</div>
             </div>
           )}
-          {(project as any).materialCost && (
+          {project?.materialCost && (
             <div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Material Cost</div>
-              <div className="text-sm font-semibold text-slate-900 mt-0.5">${(project as any).materialCost.toLocaleString()}</div>
+              <div className="text-sm font-semibold text-slate-900 mt-0.5">${project?.materialCost.toLocaleString()}</div>
             </div>
           )}
-          {(project as any).laborCost && (
+          {project?.laborCost && (
             <div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Labor Cost</div>
-              <div className="text-sm font-semibold text-slate-900 mt-0.5">${(project as any).laborCost.toLocaleString()}</div>
+              <div className="text-sm font-semibold text-slate-900 mt-0.5">${project?.laborCost.toLocaleString()}</div>
             </div>
           )}
         </div>
@@ -307,7 +356,7 @@ function ExportContent() {
               <div className="text-center">
                 <div className="text-xs text-slate-400 uppercase tracking-wide">Pricing</div>
                 <div className="text-sm font-bold text-slate-700">
-                  {bidAmt && (project as any)?.materialCost && (project as any)?.laborCost ? "Complete" : bidAmt ? "Partial" : "Missing"}
+                  {bidAmt && project?.materialCost && project?.laborCost ? "Complete" : bidAmt ? "Partial" : "Missing"}
                 </div>
               </div>
             </div>
@@ -359,7 +408,7 @@ function ExportContent() {
               <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">✓ Included in This Bid</div>
               <table className="w-full text-xs">
                 <tbody>
-                  {includedScope.map((item: any, i: number) => (
+                  {includedScope.map((item, i) => (
                     <tr key={i} className={i % 2 === 0 ? "bg-slate-50" : "bg-white"}>
                       <td className="py-1.5 px-2 text-slate-700">{item.item || item.name}</td>
                       {item.cost && <td className="py-1.5 px-2 text-right text-slate-500 w-24">${item.cost.toLocaleString()}</td>}
@@ -375,7 +424,7 @@ function ExportContent() {
               <div className="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-2">✗ Excluded from This Bid</div>
               <table className="w-full text-xs">
                 <tbody>
-                  {excludedScope.map((item: any, i: number) => (
+                  {excludedScope.map((item, i) => (
                     <tr key={i} className={i % 2 === 0 ? "bg-slate-50" : "bg-white"}>
                       <td className="py-1.5 px-2 text-slate-700">{item.item || item.name}</td>
                       {item.notes && <td className="py-1.5 px-2 text-right text-slate-400 italic">{item.notes}</td>}
@@ -390,7 +439,7 @@ function ExportContent() {
             <div className="mb-4">
               <div className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">● By Others</div>
               <div className="flex flex-wrap gap-2">
-                {byOthersScope.map((item: any, i: number) => (
+                {byOthersScope.map((item, i) => (
                   <span key={i} className="text-xs bg-blue-50 border border-blue-200 text-blue-700 rounded px-2 py-1">{item.item || item.name}</span>
                 ))}
               </div>
@@ -468,7 +517,7 @@ function ExportContent() {
 
           {/* Pending items warning */}
           {(() => {
-            const pendingCount = checklistData.filter((i: any) => i.status === "pending").length;
+            const pendingCount = checklistData.filter((i) => i.status === "pending").length;
             if (pendingCount === 0) return null;
             return (
               <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
@@ -481,12 +530,12 @@ function ExportContent() {
         </div>
 
         {/* ── PROJECT NOTES ── */}
-        {(project as any).notes && (
+        {project?.notes && (
           <div className="mb-8">
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3 pb-2 border-b border-slate-200">
               Project Notes
             </h2>
-            <p className="text-sm text-slate-600 leading-relaxed">{(project as any).notes}</p>
+            <p className="text-sm text-slate-600 leading-relaxed">{project?.notes}</p>
           </div>
         )}
 
@@ -518,7 +567,7 @@ function ExportContent() {
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between text-[10px] text-slate-400">
           <span>BidShield • bidshield.co</span>
-          <span>Confidential — {(project as any).name} — {today}</span>
+          <span>Confidential — {project?.name} — {today}</span>
         </div>
       </div>
 
