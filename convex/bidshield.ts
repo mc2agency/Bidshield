@@ -1785,6 +1785,12 @@ export const upsertBidQuals = mutation({
     buildersRiskBy: v.optional(v.union(v.literal("owner"), v.literal("gc"), v.literal("included"))),
     bondRequired: v.optional(v.boolean()),
     bondTypes: v.optional(v.string()),
+    bondAmount: v.optional(v.number()),
+    bondAmountPct: v.optional(v.number()),
+    bondAmountType: v.optional(v.string()),
+    suretyCompany: v.optional(v.string()),
+    suretyAgent: v.optional(v.string()),
+    bondStatus: v.optional(v.string()),
     emr: v.optional(v.string()),
     mbeGoals: v.optional(v.boolean()),
     mbeGoalPct: v.optional(v.string()),
@@ -2651,3 +2657,168 @@ export const getUnconfirmedGcBidFormCount = query({
   },
 });
 
+// ===== SUBMISSIONS =====
+
+export const getSubmissions = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    return await ctx.db
+      .query("bidshield_submissions")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const addSubmission = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    method: v.union(
+      v.literal("email"), v.literal("portal"), v.literal("hand_delivered"),
+      v.literal("mail"), v.literal("fax"), v.literal("other")
+    ),
+    portalOrRecipient: v.optional(v.string()),
+    confirmationNumber: v.optional(v.string()),
+    submittedAt: v.number(),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_submissions", { ...args, createdAt: now, updatedAt: now });
+  },
+});
+
+export const deleteSubmission = mutation({
+  args: { submissionId: v.id("bidshield_submissions"), userId: v.string() },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const doc = await ctx.db.get(args.submissionId);
+    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await ctx.db.delete(args.submissionId);
+  },
+});
+
+// ===== PRE-BID MEETINGS =====
+
+export const getPreBidMeetings = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    return await ctx.db
+      .query("bidshield_prebid_meetings")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("asc")
+      .collect();
+  },
+});
+
+export const addPreBidMeeting = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    meetingDate: v.string(),
+    mandatory: v.boolean(),
+    location: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    attendees: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_prebid_meetings", { ...args, createdAt: now, updatedAt: now });
+  },
+});
+
+export const updatePreBidMeeting = mutation({
+  args: {
+    meetingId: v.id("bidshield_prebid_meetings"),
+    userId: v.string(),
+    meetingDate: v.optional(v.string()),
+    mandatory: v.optional(v.boolean()),
+    location: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    attendees: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const { meetingId, userId: _uid, ...fields } = args;
+    const doc = await ctx.db.get(meetingId);
+    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await ctx.db.patch(meetingId, { ...fields, updatedAt: Date.now() });
+  },
+});
+
+export const deletePreBidMeeting = mutation({
+  args: { meetingId: v.id("bidshield_prebid_meetings"), userId: v.string() },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const doc = await ctx.db.get(args.meetingId);
+    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await ctx.db.delete(args.meetingId);
+  },
+});
+
+// ===== ALTERNATES =====
+
+export const getAlternates = query({
+  args: { projectId: v.id("bidshield_projects") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const items = await ctx.db
+      .query("bidshield_alternates")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    return items.sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+});
+
+export const addAlternate = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    label: v.string(),
+    type: v.union(v.literal("add"), v.literal("deduct")),
+    amount: v.optional(v.number()),
+    description: v.optional(v.string()),
+    sortOrder: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_alternates", { ...args, createdAt: now, updatedAt: now });
+  },
+});
+
+export const updateAlternate = mutation({
+  args: {
+    alternateId: v.id("bidshield_alternates"),
+    userId: v.string(),
+    label: v.optional(v.string()),
+    type: v.optional(v.union(v.literal("add"), v.literal("deduct"))),
+    amount: v.optional(v.number()),
+    description: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const { alternateId, userId: _uid, ...fields } = args;
+    const doc = await ctx.db.get(alternateId);
+    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await ctx.db.patch(alternateId, { ...fields, updatedAt: Date.now() });
+  },
+});
+
+export const deleteAlternate = mutation({
+  args: { alternateId: v.id("bidshield_alternates"), userId: v.string() },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const doc = await ctx.db.get(args.alternateId);
+    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await ctx.db.delete(args.alternateId);
+  },
+});
