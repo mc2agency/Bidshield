@@ -3,7 +3,7 @@ import { AuthConfig } from "convex/server";
 export default {
   providers: [
     {
-      domain: "https://clerk.bidshield.co",
+      domain: "https://clerk.mc2estimating.com",
       applicationID: "convex",
     },
   ]
