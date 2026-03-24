@@ -10,18 +10,20 @@ import Link from "next/link";
 import {
   LayoutList, AlignLeft, Ruler, Package,
   DollarSign, Users, Briefcase, Quote, FileText,
-  HelpCircle, CheckSquare, ClipboardList, History,
+  HelpCircle, CheckSquare, ClipboardList, History, LayoutDashboard,
 } from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
 
 import type { TabId } from "./tab-types";
 import {
-  ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
+  OverviewTab, ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
 } from "./tabs";
+import TabErrorBoundary from "./TabErrorBoundary";
 
 const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
+  { id: "overview",          label: "Overview",               Icon: LayoutDashboard },
   { id: "checklist",         label: "Checklist",              Icon: LayoutList },
   { id: "scope",             label: "Scope",                  Icon: AlignLeft },
   { id: "takeoff",           label: "Takeoff",                Icon: Ruler },
@@ -33,6 +35,7 @@ const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React
   { id: "addenda",           label: "Addenda",      Icon: FileText },
   { id: "rfis",              label: "RFIs",         Icon: HelpCircle },
   { id: "bidquals",          label: "Bid Quals",    Icon: ClipboardList },
+  { id: "validator",         label: "Validator",    Icon: CheckSquare },
   { id: "decisions",         label: "Decision Log", Icon: History },
 ];
 
@@ -571,19 +574,20 @@ function ProjectDetail() {
                   <h2 style={{ fontSize: 22, fontWeight: 700, color: "#0f172a" }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
-                  {activeTab === "checklist" && <ChecklistTab {...tabProps} />}
-                  {activeTab === "takeoff"   && <TakeoffTab   {...tabProps} />}
-                  {activeTab === "pricing"   && <PricingTab   {...tabProps} />}
-                  {activeTab === "materials" && <MaterialsTab {...tabProps} />}
-                  {activeTab === "scope"     && <ScopeTab     {...tabProps} />}
-                  {activeTab === "quotes"    && <QuotesTab    {...tabProps} />}
-                  {activeTab === "rfis"      && <RFIsTab      {...tabProps} />}
-                  {activeTab === "addenda"   && <AddendaTab   {...tabProps} />}
-                  {activeTab === "labor"              && <LaborTab             {...tabProps} />}
-                  {activeTab === "generalconditions" && <GeneralConditionsTab {...tabProps} />}
-                  {activeTab === "validator"         && <ValidatorTab         {...tabProps} />}
-                  {activeTab === "bidquals"  && <BidQualsTab  {...tabProps} />}
-                  {activeTab === "decisions" && <DecisionLogTab {...tabProps} />}
+                  {activeTab === "overview"  && <TabErrorBoundary tabLabel="Overview"><OverviewTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "checklist" && <TabErrorBoundary tabLabel="Checklist"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "takeoff"   && <TabErrorBoundary tabLabel="Takeoff"><TakeoffTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "pricing"   && <TabErrorBoundary tabLabel="Pricing"><PricingTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "materials" && <TabErrorBoundary tabLabel="Materials"><MaterialsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "scope"     && <TabErrorBoundary tabLabel="Scope"><ScopeTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "quotes"    && <TabErrorBoundary tabLabel="Quotes"><QuotesTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "rfis"      && <TabErrorBoundary tabLabel="RFIs"><RFIsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "addenda"   && <TabErrorBoundary tabLabel="Addenda"><AddendaTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "labor"              && <TabErrorBoundary tabLabel="Labor"><LaborTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "generalconditions" && <TabErrorBoundary tabLabel="Gen. Conds"><GeneralConditionsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "validator"         && <TabErrorBoundary tabLabel="Validator"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "decisions" && <TabErrorBoundary tabLabel="Decision Log"><DecisionLogTab {...tabProps} /></TabErrorBoundary>}
                 </div>
               </>
             ) : (

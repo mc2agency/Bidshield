@@ -399,7 +399,7 @@ function DashboardContent() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => (
             <div key={i} className="bg-white rounded-xl p-6 border border-slate-100 animate-pulse">
               <div className="h-9 w-9 bg-slate-100 rounded-lg mb-3" />
@@ -444,7 +444,7 @@ function DashboardContent() {
       {!isDemo && projects.length === 0 ? (
         <WelcomeCard onNewBid={handleNewBidClick} />
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard value={stats.activeProjects} label="Active Bids" />
           <StatCard
             value={`${stats.winRate}%`}

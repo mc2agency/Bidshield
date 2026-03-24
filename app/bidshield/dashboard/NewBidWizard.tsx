@@ -26,7 +26,6 @@ const DECKS = [
   { id: "concrete", label: "Concrete Deck" },
   { id: "wood", label: "Wood / Plywood" },
   { id: "lightweight", label: "Lightweight Concrete" },
-  { id: "tectum", label: "Tectum" },
 ];
 
 // What BidShield auto-configures based on selections

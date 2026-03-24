@@ -52,7 +52,7 @@ export interface TabProps {
 }
 
 // ── Phase definitions ──
-export type PhaseId = "setup" | "takeoff" | "price" | "qa" | "submit";
+export type PhaseId = "qa" | "setup" | "takeoff" | "price" | "submit";
 
 export interface Phase {
   id: PhaseId;
@@ -62,34 +62,37 @@ export interface Phase {
   defaultTab: TabId;
 }
 
+// Addenda and RFIs are cross-phase: accessible from the sidebar in any phase
+export const CROSS_PHASE_TABS: TabId[] = ["addenda", "rfis"];
+
 export const PHASES: Phase[] = [
+  {
+    id: "qa",
+    label: "Checklist & Scope",
+    shortLabel: "Checklist",
+    tabs: ["checklist", "scope", "decisions"],
+    defaultTab: "checklist",
+  },
   {
     id: "setup",
     label: "Project Setup",
     shortLabel: "Setup",
-    tabs: ["overview", "addenda", "rfis"],
+    tabs: ["overview"],
     defaultTab: "overview",
   },
   {
     id: "takeoff",
     label: "Takeoff & Quantities",
     shortLabel: "Takeoff",
-    tabs: ["takeoff", "materials"],
+    tabs: ["takeoff"],
     defaultTab: "takeoff",
   },
   {
     id: "price",
     label: "Pricing & Costs",
     shortLabel: "Price",
-    tabs: ["pricing", "labor", "generalconditions", "quotes"],
+    tabs: ["pricing", "labor", "generalconditions", "quotes", "materials"],
     defaultTab: "pricing",
-  },
-  {
-    id: "qa",
-    label: "Scope & Quality",
-    shortLabel: "QA",
-    tabs: ["checklist", "scope"],
-    defaultTab: "checklist",
   },
   {
     id: "submit",

@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
+import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 
 // ── Demo GC Bid Form fixtures ──────────────────────────────────────────────────
 
@@ -35,7 +36,7 @@ const DEMO_GC_ITEMS: Record<string, any[]> = {
 
 // ── GCBidFormsPanel ───────────────────────────────────────────────────────────
 
-function GCBidFormsPanel({ projectId, userId, isDemo, isPro }: { projectId: string; userId: string | null; isDemo: boolean; isPro?: boolean }) {
+function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projectId: string; userId: string | null; isDemo: boolean; isPro?: boolean; project?: any }) {
   const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
 
   // Queries
@@ -53,6 +54,10 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro }: { projectId: stri
   );
   const checklist = useQuery(
     api.bidshield.getChecklist,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const addenda = useQuery(
+    api.bidshield.getAddenda,
     isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
 
@@ -85,9 +90,25 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro }: { projectId: stri
 
   const buildProjectContext = useCallback(() => {
     const q = bidQuals ?? {};
+
+    // Build checklist item ID → human-readable label map
+    const trade = project?.trade || "roofing";
+    const sysType = project?.systemType;
+    const deckType = project?.deckType;
+    const checklistTemplate = getChecklistForTrade(trade, sysType, deckType);
+    const labelMap: Record<string, string> = {};
+    for (const phase of Object.values(checklistTemplate)) {
+      for (const item of (phase as any).items ?? []) {
+        labelMap[item.id] = item.text;
+      }
+    }
+
+    // Use actual addenda numbers from records rather than sequential generation
+    const addendaNumbers = (addenda ?? []).map((a: any) => a.number).filter(Boolean).sort((a: number, b: number) => a - b);
+
     return {
       laborType: (q as any).laborType ?? null,
-      addendaNumbers: (q as any).addendaThrough ? Array.from({ length: (q as any).addendaThrough }, (_, i) => i + 1) : [],
+      addendaNumbers,
       specSections: (q as any).specSections ? [(q as any).specSections] : [],
       insuranceProgram: (q as any).insuranceProgram ?? null,
       bidValidDays: (q as any).bidGoodFor ?? null,
@@ -97,9 +118,12 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro }: { projectId: stri
       prevailingWage: (q as any).laborType === "prevailing_wage",
       mbeWbeGoals: (q as any).mbeGoals ?? null,
       scopeItems: (scopeItems ?? []).map((s: any) => ({ text: s.name, status: s.status })),
-      checklistItems: (checklist ?? []).map((c: any) => ({ text: c.itemId, status: c.status })),
+      checklistItems: (checklist ?? []).map((c: any) => ({
+        text: labelMap[c.itemId] ?? c.itemId, // human-readable label, fallback to ID
+        status: c.status,
+      })),
     };
-  }, [bidQuals, scopeItems, checklist]);
+  }, [bidQuals, scopeItems, checklist, addenda, project]);
 
   const processFile = useCallback(async (file: File, existingDocId?: string) => {
     setUploading(true);
@@ -740,6 +764,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabPro
           userId={userId ?? null}
           isDemo={isDemo}
           isPro={isPro}
+          project={project}
         />
       )}
 
