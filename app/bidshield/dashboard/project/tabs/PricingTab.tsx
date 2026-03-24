@@ -7,6 +7,11 @@ import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
 
+const DEMO_ALTERNATES = [
+  { _id: "alt_1", label: "Alt 1 — Add 4\" Tapered Polyiso", type: "add" as const, amount: 42500, description: "Full tearoff and re-insulate NE quadrant with tapered system" },
+  { _id: "alt_2", label: "Alt 2 — Deduct TPO to 45mil", type: "deduct" as const, amount: 18200, description: "Substitute 60mil TPO for 45mil on RT-1 field only" },
+];
+
 const LOSS_REASONS = [
   "Price too high", "Scope issue", "Missed deadline", "GC preference",
   "Bonding issue", "Schedule conflict", "Incomplete bid", "Other",
@@ -31,6 +36,20 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const updateProject = useMutation(api.bidshield.updateProject);
   const [editing, setEditing] = useState(false);
   const [editingActuals, setEditingActuals] = useState(false);
+
+  // Alternates
+  const alternates = useQuery(
+    api.bidshield.getAlternates,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const addAlternate = useMutation(api.bidshield.addAlternate);
+  const updateAlternate = useMutation(api.bidshield.updateAlternate);
+  const deleteAlternate = useMutation(api.bidshield.deleteAlternate);
+  const altList = isDemo ? DEMO_ALTERNATES : (alternates ?? []);
+  const [showAltForm, setShowAltForm] = useState(false);
+  const [editingAltId, setEditingAltId] = useState<string | null>(null);
+  const [altForm, setAltForm] = useState({ label: "", type: "add" as "add" | "deduct", amount: "", description: "" });
+  const [altSaving, setAltSaving] = useState(false);
 
   const allProjects = useQuery(
     api.bidshield.getProjects,
@@ -188,6 +207,51 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const dpsfVariancePct = actualDpsf && dollarPerSf ? ((actualDpsf - dollarPerSf) / dollarPerSf) * 100 : null;
 
   const postJobStatus = pricing.postJobStatus || (hasActuals ? "actuals_entered" : "in_progress");
+
+  const saveAlt = async () => {
+    if (!altForm.label.trim()) return;
+    const amt = parseFloat(altForm.amount);
+    setAltSaving(true);
+    try {
+      if (editingAltId) {
+        await updateAlternate({
+          alternateId: editingAltId as Id<"bidshield_alternates">,
+          userId: userId!,
+          label: altForm.label,
+          type: altForm.type,
+          amount: isNaN(amt) ? undefined : amt,
+          description: altForm.description || undefined,
+        });
+        setEditingAltId(null);
+      } else {
+        await addAlternate({
+          projectId: projectId as Id<"bidshield_projects">,
+          userId: userId!,
+          label: altForm.label,
+          type: altForm.type,
+          amount: isNaN(amt) ? undefined : amt,
+          description: altForm.description || undefined,
+          sortOrder: altList.length,
+        });
+        setShowAltForm(false);
+      }
+      setAltForm({ label: "", type: "add", amount: "", description: "" });
+    } finally {
+      setAltSaving(false);
+    }
+  };
+
+  const startEditAlt = (a: any) => {
+    setAltForm({ label: a.label, type: a.type, amount: a.amount?.toString() ?? "", description: a.description ?? "" });
+    setEditingAltId(a._id);
+    setShowAltForm(false);
+  };
+
+  const cancelAlt = () => {
+    setShowAltForm(false);
+    setEditingAltId(null);
+    setAltForm({ label: "", type: "add", amount: "", description: "" });
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -532,6 +596,93 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
         </div>
       )}
 
+      {/* Alternate Pricing */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-sm font-semibold text-slate-900">Alternate Pricing</h3>
+          {(isPro || isDemo) && !showAltForm && !editingAltId && (
+            <button
+              onClick={() => { if (!isDemo) setShowAltForm(true); }}
+              className="text-xs text-emerald-600 hover:text-emerald-800 font-medium transition-colors"
+            >
+              + Add Alternate
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-slate-500 mb-3 -mt-2">
+          Base bid add/deduct alternates requested by the GC. These are listed separately from the base bid total.
+        </p>
+
+        {altList.length > 0 && (
+          <div className="mb-3">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left py-1.5 px-2 text-xs text-slate-400 font-medium">Label</th>
+                  <th className="text-center py-1.5 px-2 text-xs text-slate-400 font-medium">Type</th>
+                  <th className="text-right py-1.5 px-2 text-xs text-slate-400 font-medium">Amount</th>
+                  {!isDemo && <th className="w-10" />}
+                </tr>
+              </thead>
+              <tbody>
+                {altList.map((a: any) => (
+                  editingAltId === a._id ? (
+                    <tr key={a._id}>
+                      <td colSpan={4} className="py-2 px-1">
+                        <AltForm form={altForm} setForm={setAltForm} saving={altSaving} onSave={saveAlt} onCancel={cancelAlt} fmtDollar={fmtDollar} />
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={a._id} className="border-b border-slate-50 hover:bg-slate-50/50 group">
+                      <td className="py-2 px-2">
+                        <div className="text-xs font-medium text-slate-800">{a.label}</div>
+                        {a.description && <div className="text-[10px] text-slate-400 mt-0.5">{a.description}</div>}
+                      </td>
+                      <td className="py-2 px-2 text-center">
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase ${a.type === "add" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+                          {a.type === "add" ? "Add" : "Deduct"}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-right tabular-nums text-xs text-slate-700">
+                        {a.amount != null ? (
+                          <span className={a.type === "add" ? "text-emerald-700 font-semibold" : "text-red-600 font-semibold"}>
+                            {a.type === "add" ? "+" : "-"}{fmtDollar(a.amount)}
+                          </span>
+                        ) : "—"}
+                      </td>
+                      {!isDemo && (
+                        <td className="py-2 px-1">
+                          <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => startEditAlt(a)} className="text-xs text-slate-400 hover:text-slate-700 px-1">✎</button>
+                            <button onClick={() => deleteAlternate({ alternateId: a._id as Id<"bidshield_alternates">, userId: userId! })} className="text-xs text-slate-400 hover:text-red-500 px-1">✕</button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  )
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {altList.length === 0 && !showAltForm && (
+          <div className="text-center py-4 text-xs text-slate-400">
+            No alternates — add one if the GC requested add/deduct pricing.
+          </div>
+        )}
+
+        {showAltForm && !editingAltId && (
+          <AltForm form={altForm} setForm={setAltForm} saving={altSaving} onSave={saveAlt} onCancel={cancelAlt} fmtDollar={fmtDollar} />
+        )}
+
+        {!(isPro || isDemo) && (
+          <a href="/bidshield/pricing" className="text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">
+            🔒 Alternate Pricing · Pro
+          </a>
+        )}
+      </div>
+
       {/* Info callout */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
         <p className="text-sm text-slate-500">
@@ -545,6 +696,64 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           </button>
           . Add Gen. Conds costs to complete your bid total.
         </p>
+      </div>
+    </div>
+  );
+}
+
+function AltForm({ form, setForm, saving, onSave, onCancel, fmtDollar }: {
+  form: { label: string; type: "add" | "deduct"; amount: string; description: string };
+  setForm: (f: any) => void;
+  saving: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+  fmtDollar: (n: number) => string;
+}) {
+  return (
+    <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+        <div className="sm:col-span-2">
+          <input
+            type="text"
+            value={form.label}
+            onChange={(e) => setForm({ ...form, label: e.target.value })}
+            placeholder="Label (e.g. Alt 1 — Add tapered ISO)"
+            className="w-full bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+        <div className="flex gap-2">
+          {(["add", "deduct"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setForm({ ...form, type: t })}
+              className={`flex-1 text-xs font-semibold py-1.5 rounded transition-colors ${form.type === t ? (t === "add" ? "bg-emerald-600 text-white" : "bg-red-500 text-white") : "bg-white border border-slate-300 text-slate-500"}`}
+            >
+              {t === "add" ? "Add" : "Deduct"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+        <input
+          type="number"
+          value={form.amount}
+          onChange={(e) => setForm({ ...form, amount: e.target.value })}
+          placeholder="Amount ($)"
+          className="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+        />
+        <input
+          type="text"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          placeholder="Description (optional)"
+          className="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+        />
+      </div>
+      <div className="flex gap-2">
+        <button onClick={onSave} disabled={saving || !form.label.trim()} style={{ background: "#10b981" }} className="text-white text-xs font-medium px-3 py-1.5 rounded hover:opacity-90 disabled:opacity-50 transition-opacity">
+          {saving ? "Saving…" : "Save"}
+        </button>
+        <button onClick={onCancel} className="text-xs text-slate-500 hover:text-slate-700 px-3 py-1.5 transition-colors">Cancel</button>
       </div>
     </div>
   );
