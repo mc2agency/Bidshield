@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'BidShield Privacy Policy. Learn how we collect, use, and protect your information.',
+  alternates: { canonical: 'https://www.bidshield.co/privacy' },
+};
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -228,10 +236,10 @@ export default function PrivacyPage() {
                 For questions about this Privacy Policy or our data practices, contact us:
               </p>
               <div className="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
-                <p className="text-gray-800 mb-2"><strong>BidShield (BidShield)</strong></p>
+                <p className="text-gray-800 mb-2"><strong>BidShield</strong></p>
                 <p className="text-gray-700">Email: privacy@bidshield.co</p>
                 <p className="text-gray-700">Support: support@bidshield.co</p>
-                <p className="text-gray-700">Phone: (800) 555-1234</p>
+                <p className="text-gray-700">Contact: carlos@mc2agencyllc.com</p>
               </div>
 
               <div className="mt-12 p-6 bg-gray-100 rounded-lg border-2 border-gray-300">

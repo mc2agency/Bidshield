@@ -100,9 +100,12 @@ function ContactPageContent() {
                 <p className="text-slate-600 mb-4">
                   Quick questions and technical support
                 </p>
-                <button className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors">
-                  Start Live Chat
-                </button>
+                <a
+                  href="mailto:carlos@mc2agencyllc.com"
+                  className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
+                >
+                  carlos@mc2agencyllc.com
+                </a>
                 <p className="text-sm text-slate-500 mt-4">
                   Available: Mon-Fri, 9am-5pm EST
                 </p>
@@ -287,7 +290,7 @@ function ContactPageContent() {
             <div className="space-y-6">
               <FAQItem
                 question="What's the difference between buying individual tools and BidShield Pro access?"
-                answer="Individual tools give you lifetime access to specific templates. BidShield Pro access ($197/month) gives you unlimited access to ALL tools, templates, and resources, plus ongoing updates and new products as released. If you plan to use 3+ tools, Pro access is more cost-effective."
+                answer="Individual tools give you lifetime access to specific templates. BidShield Pro access ($249/month) gives you unlimited access to ALL tools, templates, and resources, plus ongoing updates and new products as released. If you plan to use 3+ tools, Pro access is more cost-effective."
               />
               <FAQItem
                 question="Do you offer enterprise licensing for teams?"
