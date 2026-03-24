@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
@@ -281,7 +279,7 @@ export default function PricingPage() {
           <div className="flex flex-wrap justify-center gap-10 text-center">
             {[
               { n: "134", label: "Checklist items" },
-              { n: "17",  label: "Bid phases" },
+              { n: "18",  label: "Bid Phases" },
               { n: "40+", label: "Scope gap items" },
               { n: "14d", label: "Free trial" },
             ].map(({ n, label }) => (
@@ -323,6 +321,51 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+
+      {/* FAQPage JSON-LD for Google rich results */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Does this replace my estimating software?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. BidShield is the last step before you submit — not a replacement for The EDGE, STACK, or your spreadsheets. It reviews your completed bid for things estimating software can't catch."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What's the difference between monthly and annual?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Same Pro features either way. Annual billing is $2,490/year — that's ~$208/mo effective, saving you $498 versus paying monthly. You're prepaying 12 months at the price of 10."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What does the free trial include?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Full Pro access for 14 days, no credit card required. Run a real bid through the complete checklist, AI quote extraction, and all Pro features before you decide."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I cancel anytime?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Cancel from your account settings at any time. Your data stays accessible until the end of your billing period."
+                }
+              }
+            ]
+          })
+        }}
+      />
     </div>
   );
 }
