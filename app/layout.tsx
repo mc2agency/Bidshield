@@ -93,6 +93,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+        {/* TODO: Add social profile URLs to sameAs once created, e.g. "https://www.linkedin.com/company/bidshield" */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -101,7 +102,7 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "BidShield",
               "url": "https://www.bidshield.co",
-              "logo": "https://www.bidshield.co/api/og",
+              "logo": "https://www.bidshield.co/bidshield-logo.jpg",
               "description": "Bid workflow tool for commercial roofing estimators.",
               "sameAs": [],
               "contactPoint": {
@@ -148,6 +149,25 @@ export default function RootLayout({
                 "@type": "Organization",
                 "name": "BidShield",
                 "url": "https://www.bidshield.co"
+              }
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "BidShield",
+              "url": "https://www.bidshield.co",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://www.bidshield.co/blog?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
               }
             })
           }}
