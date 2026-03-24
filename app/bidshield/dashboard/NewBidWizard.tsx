@@ -87,7 +87,7 @@ interface Props {
   onCreate: (data: {
     name: string; location: string; bidDate: string; trade: string;
     projectType: string; systemType: string; deckType: string;
-    gc: string; sqft: string; estimatedValue: string; assemblies: string;
+    gc: string; sqft: string; totalBidAmount: string; assemblies: string;
   }) => void;
   isDemo?: boolean;
 }
@@ -102,7 +102,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
   const [bidDate, setBidDate] = useState("");
   const [gc, setGc] = useState("");
   const [sqft, setSqft] = useState("");
-  const [estimatedValue, setEstimatedValue] = useState("");
+  const [totalBidAmount, setTotalBidAmount] = useState("");
 
   const canAdvance = [
     projectType !== "",                          // Step 0: must pick type
@@ -262,7 +262,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-700 block mb-1">Estimated bid value ($)</label>
-                  <input type="number" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="1250000" className={inputCls} />
+                  <input type="number" value={totalBidAmount} onChange={(e) => setTotalBidAmount(e.target.value)} placeholder="1250000" className={inputCls} />
                 </div>
               </div>
             </div>
@@ -350,7 +350,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
               onClick={() => onCreate({
                 name, location, bidDate, trade: "roofing",
                 projectType, systemType: system, deckType: deck,
-                gc, sqft, estimatedValue, assemblies: system ? system.toUpperCase() : "",
+                gc, sqft, totalBidAmount, assemblies: system ? system.toUpperCase() : "",
               })}
               className="py-2.5 px-6 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
             >

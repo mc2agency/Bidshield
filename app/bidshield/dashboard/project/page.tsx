@@ -90,7 +90,7 @@ function ProjectDetail() {
   const projectData = isDemo
     ? { name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
         status: "in_progress" as const, gc: "Skanska USA", sqft: 68000,
-        estimatedValue: 1250000, assemblies: ["TPO 60mil", "Tapered ISO"],
+        assemblies: ["TPO 60mil", "Tapered ISO"],
         notes: "Pre-bid walkthrough completed 2/12. Owner wants 20-yr NDL warranty. Existing roof has wet insulation in NE quadrant.",
         trade: "roofing", systemType: "tpo", deckType: "steel",
         primaryAssembly: "TPO 60mil Mechanically Attached",

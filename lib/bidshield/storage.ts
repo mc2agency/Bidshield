@@ -13,7 +13,7 @@ export interface Project {
   gc?: string;
   owner?: string;
   sqft?: number;
-  estimatedValue?: number;
+  totalBidAmount?: number;
   assemblies: string[];
   notes?: string;
   createdAt: number;
@@ -309,7 +309,7 @@ export function getStats() {
   const openRFIs = rfis.filter((r) => r.status === "sent");
 
   const pipelineValue = activeProjects.reduce(
-    (sum, p) => sum + (p.estimatedValue || 0),
+    (sum, p) => sum + (p.totalBidAmount || 0),
     0
   );
 
@@ -318,7 +318,7 @@ export function getStats() {
   const lostProjects = projects.filter((p) => p.status === "lost");
   const decidedProjects = wonProjects.length + lostProjects.length;
   const winRate = decidedProjects > 0 ? Math.round((wonProjects.length / decidedProjects) * 100) : 0;
-  const wonValue = wonProjects.reduce((sum, p) => sum + (p.estimatedValue || 0), 0);
+  const wonValue = wonProjects.reduce((sum, p) => sum + (p.totalBidAmount || 0), 0);
 
   return {
     activeProjects: activeProjects.length,
