@@ -637,6 +637,12 @@ type QualFields = {
   buildersRiskBy?: "owner" | "gc" | "included";
   bondRequired?: boolean;
   bondTypes?: string;
+  bondAmount?: number;
+  bondAmountPct?: number;
+  bondAmountType?: string;
+  suretyCompany?: string;
+  suretyAgent?: string;
+  bondStatus?: string;
   emr?: string;
   mbeGoals?: boolean;
   mbeGoalPct?: string;
@@ -950,25 +956,93 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabPro
           <Toggle value={data.bondRequired} onChange={v => saveField("bondRequired", v, true)} />
         </Field>
         {data.bondRequired && (
-          <Field label="Bond type(s)">
-            <div className="flex gap-3 flex-wrap">
-              {[
-                { id: "performance", label: "Performance" },
-                { id: "payment", label: "Payment" },
-                { id: "bid_bond", label: "Bid Bond" },
-              ].map(opt => (
-                <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={bondTypesSet.has(opt.id)}
-                    onChange={() => toggleBondType(opt.id)}
-                    style={{ width: 14, height: 14, accentColor: "#1e293b" }}
-                  />
-                  <span style={{ fontSize: 13, color: "#374151" }}>{opt.label}</span>
-                </label>
-              ))}
+          <>
+            <Field label="Bond type(s)">
+              <div className="flex gap-3 flex-wrap">
+                {[
+                  { id: "performance", label: "Performance" },
+                  { id: "payment", label: "Payment" },
+                  { id: "bid_bond", label: "Bid Bond" },
+                ].map(opt => (
+                  <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={bondTypesSet.has(opt.id)}
+                      onChange={() => toggleBondType(opt.id)}
+                      style={{ width: 14, height: 14, accentColor: "#1e293b" }}
+                    />
+                    <span style={{ fontSize: 13, color: "#374151" }}>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Bond amount type">
+                <RadioGroup
+                  value={data.bondAmountType ?? "percentage"}
+                  onChange={v => saveField("bondAmountType", v, true)}
+                  options={[
+                    { id: "percentage", label: "% of bid" },
+                    { id: "dollar", label: "$ amount" },
+                  ]}
+                />
+              </Field>
+              <Field label={data.bondAmountType === "dollar" ? "Bond amount ($)" : "Bond amount (%)"}>
+                <input
+                  type="number"
+                  className={INPUT_CLS}
+                  defaultValue={
+                    data.bondAmountType === "dollar"
+                      ? (data.bondAmount ?? "")
+                      : (data.bondAmountPct ?? "")
+                  }
+                  key={data.bondAmountType ?? "percentage"}
+                  placeholder={data.bondAmountType === "dollar" ? "e.g. 50000" : "e.g. 100"}
+                  style={{ maxWidth: 160 }}
+                  onBlur={e => {
+                    const n = parseFloat(e.target.value);
+                    if (data.bondAmountType === "dollar") {
+                      saveField("bondAmount", isNaN(n) ? undefined : n, true);
+                    } else {
+                      saveField("bondAmountPct", isNaN(n) ? undefined : n, true);
+                    }
+                  }}
+                />
+              </Field>
             </div>
-          </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Surety company">
+                <input
+                  type="text"
+                  className={INPUT_CLS}
+                  defaultValue={data.suretyCompany ?? ""}
+                  placeholder="e.g. Travelers, Liberty Mutual"
+                  onBlur={e => saveField("suretyCompany", e.target.value)}
+                />
+              </Field>
+              <Field label="Surety agent / contact">
+                <input
+                  type="text"
+                  className={INPUT_CLS}
+                  defaultValue={data.suretyAgent ?? ""}
+                  placeholder="Name, phone, or email"
+                  onBlur={e => saveField("suretyAgent", e.target.value)}
+                />
+              </Field>
+            </div>
+            <Field label="Bond status">
+              <RadioGroup
+                value={data.bondStatus ?? "not_started"}
+                onChange={v => saveField("bondStatus", v, true)}
+                options={[
+                  { id: "not_started", label: "Not started" },
+                  { id: "in_progress", label: "In progress" },
+                  { id: "obtained", label: "Obtained" },
+                  { id: "waived", label: "Waived" },
+                ]}
+              />
+            </Field>
+          </>
         )}
         <Field label="EMR" hint="Experience Modification Rate">
           <input
