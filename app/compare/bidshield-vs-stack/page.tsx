@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'BidShield vs STACK — Commercial Roofing Estimating Comparison',
   description: 'STACK handles cloud takeoff. BidShield runs the pre-submission review. Here\'s the difference, how they work together, and what STACK can\'t catch before bid day.',
   keywords: 'BidShield vs STACK, STACK estimating, commercial roofing bid review, pre-submission checklist, roofing software comparison',
+  alternates: { canonical: 'https://www.bidshield.co/compare/bidshield-vs-stack' },
 };
 
 const comparisonRows = [

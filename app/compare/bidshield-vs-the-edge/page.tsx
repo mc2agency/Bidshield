@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'BidShield vs The EDGE — Commercial Roofing Estimating Software Comparison',
   description: 'BidShield and The EDGE serve different purposes. The EDGE quantifies your bid. BidShield reviews it before submission. See how they work together — and what happens when you use only one.',
   keywords: 'BidShield vs The EDGE, commercial roofing estimating software, bid review, pre-submission checklist, roofing estimating tools comparison',
+  alternates: { canonical: 'https://www.bidshield.co/compare/bidshield-vs-the-edge' },
 };
 
 const comparisonRows = [

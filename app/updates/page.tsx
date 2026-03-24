@@ -5,53 +5,63 @@ export const metadata: Metadata = {
   title: 'Product Updates',
   description: 'Latest updates to BidShield tools and templates. New features, improvements, and additions to the tool vault.',
   keywords: 'BidShield updates, estimating tools updates, template updates, changelog',
+  alternates: { canonical: 'https://www.bidshield.co/updates' },
 };
 
 export default function UpdatesPage() {
   const updates = [
     {
-      date: 'December 2024',
-      version: '2.4',
+      date: 'March 2026',
+      version: '1.5',
       items: [
-        { type: 'new', title: 'Green Roof Template', description: 'Complete estimating template for vegetative and green roof systems' },
-        { type: 'improved', title: 'Metal Roofing Template', description: 'Added support for concealed fastener panels and updated labor rates' },
-        { type: 'improved', title: 'Proposal Templates', description: 'New exclusions language and updated warranty terms' },
+        { type: 'new', title: 'Alternate Pricing Support', description: 'Track and manage bid alternates — additive and deductive — directly within the project workflow' },
+        { type: 'new', title: 'Pre-bid Meeting Tracker', description: 'Log pre-bid meeting notes, mandatory attendance requirements, and key clarifications in one place' },
+        { type: 'improved', title: 'Bid Summary', description: 'Alternate line items now roll up cleanly in the full Bid Summary with $/SF breakdowns' },
       ]
     },
     {
-      date: 'November 2024',
-      version: '2.3',
+      date: 'February 2026',
+      version: '1.4',
       items: [
-        { type: 'new', title: 'Restoration Coating Template', description: 'Silicone and acrylic roof coating estimation system' },
-        { type: 'improved', title: 'Estimating Checklist', description: 'Added equipment rental section and fuel surcharge line items' },
-        { type: 'fixed', title: 'TPO Template', description: 'Corrected seam welding calculation for irregular shapes' },
+        { type: 'new', title: 'Submission Tracking', description: 'Record where, when, and how each bid was submitted — BuildingConnected, email, hand-delivered — with timestamps' },
+        { type: 'new', title: 'Bid Bond Tracking', description: 'Track bid bond requirements, amounts, surety info, and submission status per project' },
+        { type: 'improved', title: 'GC Bid Form Prep', description: 'AI Auto-Confirm now cross-references bid bond fields against GC requirements automatically' },
       ]
     },
     {
-      date: 'October 2024',
-      version: '2.2',
+      date: 'January 2026',
+      version: '1.3',
       items: [
-        { type: 'new', title: 'SBS Modified Template', description: 'Two-ply and three-ply modified bitumen estimation' },
-        { type: 'improved', title: 'All Templates', description: 'Updated 2024 Q4 material pricing across all systems' },
-        { type: 'improved', title: 'Labor Worksheets', description: 'Regional labor rate adjustments for 15 major markets' },
+        { type: 'new', title: 'AI-Powered Material Reconciliation', description: 'Upload vendor quote PDFs and AI extracts line items, quantities, and unit prices — auto-matched to your scope' },
+        { type: 'improved', title: 'Labor Verification', description: 'AI scope analysis now flags labor rate mismatches against regional benchmarks' },
+        { type: 'fixed', title: 'Addendum Impact Check', description: 'Fixed edge case where addenda issued after invitation were not flagged as affecting submitted scope' },
       ]
     },
     {
-      date: 'September 2024',
-      version: '2.1',
+      date: 'December 2025',
+      version: '1.2',
       items: [
-        { type: 'new', title: 'Technology Setup Guide', description: 'Complete guide to setting up your estimating workstation' },
-        { type: 'improved', title: 'Tile Roofing Template', description: 'Added concrete tile option with updated coverage rates' },
-        { type: 'fixed', title: 'Spray Foam Template', description: 'Fixed R-value calculation for varying thicknesses' },
+        { type: 'new', title: '18-Phase Bid QA Checklist', description: 'Expanded the core checklist from 5 phases to a full 18-phase structured workflow covering every stage from plan receipt to post-submission' },
+        { type: 'improved', title: 'Bid Readiness Score', description: 'Scoring now weighted by phase criticality — Phase 10 Addenda Review and Phase 15 Pre-Submission are highest weight' },
+        { type: 'improved', title: 'Decision Log', description: 'Unlimited entries on Pro; improved filtering by phase and decision type' },
       ]
     },
     {
-      date: 'August 2024',
-      version: '2.0',
+      date: 'November 2025',
+      version: '1.1',
       items: [
-        { type: 'new', title: 'Complete Redesign', description: 'All templates rebuilt with improved formulas and modern styling' },
-        { type: 'new', title: 'Proposal Template Library', description: '8 system-specific proposal templates added' },
-        { type: 'improved', title: 'Waste Factor Calculations', description: 'More accurate waste factors based on roof complexity' },
+        { type: 'new', title: 'Scope Tracker', description: 'Explicitly mark every scope item as Included, Excluded, or By Others — exportable for GC qualification letters' },
+        { type: 'new', title: 'Vendor Address Book', description: 'Store supplier and sub contacts with trade type, quote history, and preferred status' },
+        { type: 'improved', title: 'Project Dashboard', description: 'At-a-glance view of all active projects with bid dates, readiness scores, and outstanding items' },
+      ]
+    },
+    {
+      date: 'October 2025',
+      version: '1.0',
+      items: [
+        { type: 'new', title: 'BidShield Launch', description: 'Initial release of the bid workflow tool for commercial roofing estimators — 134-item checklist, scope tracker, and bid readiness scoring' },
+        { type: 'new', title: 'Free Plan', description: '1 active project, full checklist access, and RFI/Addenda tracking at no cost' },
+        { type: 'new', title: '14-Day Free Trial', description: 'Full Pro access for 14 days, no credit card required' },
       ]
     },
   ];

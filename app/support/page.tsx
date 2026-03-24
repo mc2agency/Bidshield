@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Support',
   description: 'Get help with BidShield tools and templates. Documentation, FAQs, and contact support.',
   keywords: 'BidShield support, estimating tools help, template support, customer service',
+  alternates: { canonical: 'https://www.bidshield.co/support' },
 };
 
 export default function SupportPage() {
