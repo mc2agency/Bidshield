@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "Best Roofing Estimating Software 2025: Compare Top Platforms",
   "description": "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
   "author": {

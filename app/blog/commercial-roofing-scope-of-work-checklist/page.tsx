@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
   "description": "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",
   "author": {

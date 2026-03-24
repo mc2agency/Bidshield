@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "General Conditions Checklist for Construction Estimating [2025]",
   "description": "Complete guide to general conditions in construction estimates. Learn what to include, how to calculate costs, and avoid missing critical items that eat into profit.",
   "author": {

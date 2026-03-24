@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
   "description": "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
   "author": {

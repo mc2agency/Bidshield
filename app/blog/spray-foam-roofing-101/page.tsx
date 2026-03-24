@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": "Spray Foam Roofing 101: Complete Guide to SPF Systems [2025]",
   "description": "Learn everything about spray polyurethane foam (SPF) roofing systems. Installation, costs, pros and cons, and how to estimate foam roofing projects.",
   "author": {
