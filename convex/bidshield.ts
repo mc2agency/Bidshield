@@ -56,7 +56,7 @@ export const createProject = mutation({
     gc: v.optional(v.string()),
     sqft: v.optional(v.number()),
     grossRoofArea: v.optional(v.number()),
-    estimatedValue: v.optional(v.number()),
+    totalBidAmount: v.optional(v.number()),
     assemblies: v.array(v.string()),
   },
   handler: async (ctx, args) => {
@@ -93,7 +93,7 @@ export const createProject = mutation({
       gc: args.gc,
       sqft: args.sqft,
       grossRoofArea: args.grossRoofArea ?? args.sqft,
-      estimatedValue: args.estimatedValue,
+      totalBidAmount: args.totalBidAmount,
       assemblies: args.assemblies,
       createdAt: now,
       updatedAt: now,
@@ -137,7 +137,6 @@ export const updateProject = mutation({
     gc: v.optional(v.string()),
     owner: v.optional(v.string()),
     sqft: v.optional(v.number()),
-    estimatedValue: v.optional(v.number()),
     assemblies: v.optional(v.array(v.string())),
     grossRoofArea: v.optional(v.number()),
     notes: v.optional(v.string()),
@@ -687,7 +686,7 @@ export const getStats = query({
     });
 
     const pipelineValue = activeProjects.reduce(
-      (sum, p) => sum + (p.estimatedValue || 0),
+      (sum, p) => sum + (p.totalBidAmount || 0),
       0
     );
 
@@ -696,7 +695,7 @@ export const getStats = query({
     const lostProjects = projects.filter((p) => p.status === "lost");
     const decidedProjects = wonProjects.length + lostProjects.length;
     const winRate = decidedProjects > 0 ? Math.round((wonProjects.length / decidedProjects) * 100) : 0;
-    const wonValue = wonProjects.reduce((sum, p) => sum + (p.estimatedValue || 0), 0);
+    const wonValue = wonProjects.reduce((sum, p) => sum + (p.totalBidAmount || 0), 0);
 
     // Count open RFIs across all projects
     let openRFIs = 0;

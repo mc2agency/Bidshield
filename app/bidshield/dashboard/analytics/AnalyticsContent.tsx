@@ -761,7 +761,7 @@ function AnalyticsInner() {
                       <td className="p-3 text-sm text-slate-600 tabular-nums">{sf > 0 ? sf.toLocaleString() : "—"}</td>
                       <td className="p-3 text-sm text-slate-600 tabular-nums">{dpsf !== "—" ? `$${dpsf}` : "—"}</td>
                       <td className="p-3 text-sm font-bold text-slate-600 tabular-nums">
-                        {p.totalBidAmount ? `$${(p.totalBidAmount / 1000).toFixed(0)}k` : p.estimatedValue ? `$${(p.estimatedValue / 1000).toFixed(0)}k` : "—"}
+                        {p.totalBidAmount ? `$${(p.totalBidAmount / 1000).toFixed(0)}k` : "—"}
                       </td>
                       <td className="p-3">
                         <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${statusClasses}`}>

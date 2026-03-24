@@ -96,6 +96,10 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
     api.bidshield.getLaborAnalysis,
     isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const bidQuals = useQuery(
+    api.bidshield.getBidQuals,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
   const saveLaborAnalysis = useMutation(api.bidshield.saveLaborAnalysis);
   const updateLaborTask = useMutation(api.bidshield.updateLaborTask);
   const toggleVerified = useMutation(api.bidshield.toggleLaborTaskVerified);
@@ -196,6 +200,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           deckType: project?.deckType,
           assemblies: project?.assemblies,
           bidDate: project?.bidDate,
+          estimatedDuration: bidQuals?.estimatedDuration,
         }),
       });
       const data = await res.json();

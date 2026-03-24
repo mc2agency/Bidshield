@@ -63,7 +63,7 @@ const translations: Record<Language, Record<string, string>> = {
     'bidshield.new': 'NEW — BidShield PRO',
     'bidshield.title1': 'Templates for Quick Estimates.',
     'bidshield.title2': 'BidShield for Complete Bid Management.',
-    'bidshield.desc': 'Go beyond templates. BidShield is the complete bid management system — 16-phase checklist, estimate validation, vendor tracking, and labor benchmarks. Never miss a line item again.',
+    'bidshield.desc': 'Go beyond templates. BidShield is the complete bid management system — 18-phase checklist, estimate validation, vendor tracking, and labor benchmarks. Never miss a line item again.',
     'bidshield.feature1': '16-Phase Checklist',
     'bidshield.feature1.desc': 'Every bid phase tracked',
     'bidshield.feature2': 'Estimate Validator',

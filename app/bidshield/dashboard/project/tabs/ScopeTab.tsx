@@ -87,6 +87,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const debounceRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const [aiExclusionsLoading, setAiExclusionsLoading] = useState(false);
   const [aiExclusionsText, setAiExclusionsText]       = useState<string | null>(null);
+  const [aiExclusionsError, setAiExclusionsError]     = useState<string | null>(null);
 
   const resolvedClarifications = isDemo ? demoClarifications : (clarifications ?? []);
 
@@ -194,6 +195,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     if (!isPro && !isDemo) return;
     setAiExclusionsLoading(true);
     setAiExclusionsText(null);
+    setAiExclusionsError(null);
     try {
       const excl   = items.filter((i: any) => i.status === "excluded");
       const others = items.filter((i: any) => i.status === "by_others");
@@ -206,10 +208,19 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
           clarifications: resolvedClarifications.map((c: any) => ({ text: c.text })),
         }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setAiExclusionsError(err?.error ?? "Failed to generate exclusions — please try again.");
+        return;
+      }
       const data = await res.json();
-      setAiExclusionsText(data.text ?? "");
+      if (!data.text) {
+        setAiExclusionsError("AI returned an empty response. Please try again.");
+        return;
+      }
+      setAiExclusionsText(data.text);
     } catch {
-      setAiExclusionsText("Error generating exclusions. Please try again.");
+      setAiExclusionsError("Failed to generate exclusions — check your connection and try again.");
     } finally {
       setAiExclusionsLoading(false);
     }
@@ -522,6 +533,15 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               🔒 Generate Exclusions with AI · Pro
             </a>
           )}
+        </div>
+      )}
+
+      {/* AI Exclusions error */}
+      {aiExclusionsError && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+          <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+          <span className="flex-1">{aiExclusionsError}</span>
+          <button onClick={() => setAiExclusionsError(null)} className="text-red-500 hover:text-red-700 font-medium text-xs shrink-0">Dismiss</button>
         </div>
       )}
 

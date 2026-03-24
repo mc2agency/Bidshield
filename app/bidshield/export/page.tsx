@@ -10,6 +10,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import type { ChecklistPhaseDef } from "@/lib/bidshield/checklist-data";
+import { computeBidScore } from "@/lib/bidScore";
 
 interface BidProject {
   name: string;
@@ -81,6 +82,14 @@ function ExportContent() {
   const quotes = useQuery(api.bidshield.getQuotes, !isDemo && isValidConvexId && userId ? { userId, projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const rfis = useQuery(api.bidshield.getRFIs, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addenda = useQuery(api.bidshield.getAddenda, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const bidQuals = useQuery(api.bidshield.getBidQuals, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const gcItems = useQuery(api.bidshield.getGCItems, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const projectMaterials = useQuery(api.bidshield.getProjectMaterials, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const datasheets = useQuery(api.bidshield.getDatasheets, !isDemo && userId ? { userId } : "skip");
+  const laborTasks = useQuery(api.bidshield.getLaborTasks, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const laborAnalysis = useQuery(api.bidshield.getLaborAnalysis, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const gcFormDocuments = useQuery(api.bidshield.getGcBidFormDocuments, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
+  const unconfirmedGcFormCount = useQuery(api.bidshield.getUnconfirmedGcBidFormCount, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
 
   // Gate: require auth and Pro subscription (demo mode bypasses)
   if (!isDemo) {
@@ -181,33 +190,27 @@ function ExportContent() {
   const grossArea = project?.grossRoofArea || project?.sqft;
   const dpsf = bidAmt && grossArea ? (bidAmt / grossArea).toFixed(2) : null;
 
-  // Readiness score (mirrors page.tsx logic)
+  // Readiness score — uses shared computeBidScore for identical results with ValidatorTab
   const readinessScore = useMemo(() => {
-    const sc = scopeData;
-    const scTotal = sc.length;
-    const scUnaddressed = sc.filter((s) => s.status === "unaddressed").length;
-    const scPct = scTotal > 0 ? Math.round(((scTotal - scUnaddressed) / scTotal) * 100) : 100;
-
-    const expired = quoteList.filter((q) => q.expirationDate && new Date(q.expirationDate) < new Date()).length;
-    const expiring = quoteList.filter((q) => { const d = q.expirationDate; if (!d) return false; const days = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000); return days > 0 && days <= 14; }).length;
-    const adNotReviewed = addendaList.filter((a) => a.affectsScope === undefined || a.affectsScope === null).length;
-    const adNotRepriced = addendaList.filter((a) => a.affectsScope === true && !a.repriced).length;
-    const rPending = rfiList.filter((r) => r.status === "sent" || r.status === "draft").length;
-    const matCost = project?.materialCost;
-    const labCost = project?.laborCost;
-    const pricingDone = !!(bidAmt && bidAmt > 0 && matCost && labCost);
-
-    const scores = {
-      checklist: isDemo ? 68 : checklistPct,
-      scope: isDemo ? 85 : scPct,
-      pricing: isDemo ? 100 : (pricingDone ? 100 : (bidAmt ? 50 : 0)),
-      quotes: quoteList.length > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 50,
-      addenda: addendaList.length > 0 ? (adNotRepriced === 0 && adNotReviewed === 0 ? 100 : 40) : 100,
-      rfis: rfiList.length > 0 ? (rPending === 0 ? 100 : 60) : 100,
-    };
-    const w = { checklist: 0.30, scope: 0.25, pricing: 0.20, quotes: 0.10, addenda: 0.10, rfis: 0.05 };
-    return Math.round(Object.entries(w).reduce((s, [k, v]) => s + (scores[k as keyof typeof scores] ?? 0) * v, 0));
-  }, [isDemo, scopeData, quoteList, addendaList, rfiList, project, checklistPct, bidAmt]);
+    if (!project) return 0;
+    return computeBidScore({
+      isDemo,
+      project,
+      checklist: checklistData,
+      scopeItems: scopeData,
+      quotes: quoteList,
+      rfis: rfiList,
+      addenda: addendaList,
+      bidQuals: isDemo ? null : bidQuals,
+      gcItems: isDemo ? null : gcItems,
+      projectMaterials: isDemo ? null : projectMaterials,
+      datasheets: isDemo ? null : datasheets,
+      laborTasks: isDemo ? null : laborTasks,
+      laborAnalysis: isDemo ? null : laborAnalysis,
+      gcFormDocuments: isDemo ? null : gcFormDocuments,
+      unconfirmedGcFormCount: isDemo ? null : unconfirmedGcFormCount,
+    }).score;
+  }, [isDemo, project, checklistData, scopeData, quoteList, rfiList, addendaList, bidQuals, gcItems, projectMaterials, datasheets, laborTasks, laborAnalysis, gcFormDocuments, unconfirmedGcFormCount]);
 
   // Merge checklist data with template for labels
   const checklistWithLabels = useMemo(() => {

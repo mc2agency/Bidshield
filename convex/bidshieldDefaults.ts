@@ -68,7 +68,7 @@ export const trades: TradeConfig[] = [
 ];
 
 // ===== ROOFING CHECKLIST (18 phases) =====
-// Display order: 1-12, 17 (scope), 13-14 (pricing), 18 (general), 15-16 (submission)
+// Display order: 1-12, 17 (scope), 13-14 (pricing), 18 (gen conds & quals), 15-16 (submission)
 
 const roofingPhases: Record<string, ChecklistPhaseDef> = {
   phase1: {
@@ -343,6 +343,21 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p14-10", text: "SPF spray crew rates & overspray protection time", systems: ["spf"] },
       { id: "p14-11", text: "Prevailing wage / Davis-Bacon requirements checked (if applicable)" },
       { id: "p14-12", text: "Subcontractor quotes received — sheet metal, caulking, etc. (if applicable)" },
+    ],
+  },
+  phase18: {
+    key: "phase18",
+    title: "General Conditions & Qualifications",
+    icon: "🏢",
+    items: [
+      { id: "p18-1", text: "General Conditions costs priced (site setup, supervision, safety)" },
+      { id: "p18-2", text: "Overhead & profit markup applied" },
+      { id: "p18-3", text: "Bid Qualifications document completed (labor type, wage, schedule)" },
+      { id: "p18-4", text: "Insurance requirements confirmed (CCIP/OCIP/own program)" },
+      { id: "p18-5", text: "Bond requirements confirmed and priced (if required)" },
+      { id: "p18-6", text: "GC bid forms reviewed and all fill-in items confirmed" },
+      { id: "p18-7", text: "Subcontractor bids received and incorporated (if applicable)" },
+      { id: "p18-8", text: "Sales tax and freight included in final number" },
     ],
   },
   phase15: {

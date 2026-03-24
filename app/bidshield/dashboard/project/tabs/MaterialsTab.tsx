@@ -329,6 +329,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [checkRowId, setCheckRowId] = useState<string | null>(null);
   const [coverageLookups, setCoverageLookups] = useState<Record<string, { coverageRate: string | null; confidence: string; loading?: boolean }>>({});
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [extractedFrom, setExtractedFrom] = useState<string | null>(null);
   const [alertExpanded, setAlertExpanded] = useState(false);
   const [previewItems, setPreviewItems] = useState<any[] | null>(null);
@@ -461,6 +462,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const handlePdfUpload = useCallback((file: File) => {
     if (!file || file.type !== "application/pdf") return;
     setIsUploading(true);
+    setUploadError(null);
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
@@ -477,25 +479,32 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          console.error("Extraction failed:", err);
+          setUploadError(err?.error ?? "PDF extraction failed — please try again or use a different file.");
           setIsUploading(false);
           return;
         }
 
         const data = await res.json();
-        if (!data.items?.length) { setIsUploading(false); return; }
+        if (!data.items?.length) {
+          setUploadError("No materials found in this PDF. Make sure you're uploading an estimating report with line items.");
+          setIsUploading(false);
+          return;
+        }
 
         // Show preview modal — don't save yet
         track("material_report_uploaded");
         setPreviewItems(data.items);
         setPreviewFilename(file.name);
-      } catch (err) {
-        console.error("PDF upload error:", err);
+      } catch (err: any) {
+        setUploadError(err?.message ?? "Upload failed — check your connection and try again.");
       } finally {
         setIsUploading(false);
       }
     };
-    reader.onerror = () => { setIsUploading(false); };
+    reader.onerror = () => {
+      setUploadError("Could not read the file. Please try again.");
+      setIsUploading(false);
+    };
     reader.readAsDataURL(file);
   }, []);
 
@@ -1000,6 +1009,15 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           )}
         </div>
       </div>
+
+      {/* PDF upload error banner */}
+      {uploadError && (
+        <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+          <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+          <span className="flex-1">{uploadError}</span>
+          <button onClick={() => setUploadError(null)} className="text-red-500 hover:text-red-700 font-medium text-xs shrink-0">Dismiss</button>
+        </div>
+      )}
 
       {/* No SF hint */}
       {!isDemo && totalSF === 0 && materials.length > 0 && (

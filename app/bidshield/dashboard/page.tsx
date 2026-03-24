@@ -42,7 +42,7 @@ interface BidProject {
   status: string;
   gc?: string;
   sqft?: number;
-  estimatedValue?: number;
+  totalBidAmount?: number;
   assemblies?: string[];
   userId: string;
   createdAt: number;
@@ -59,7 +59,7 @@ const demoProjects = [
     status: "in_progress" as const,
     gc: "Skanska USA",
     sqft: 68000,
-    estimatedValue: 1250000,
+    totalBidAmount: 1250000,
     assemblies: ["TPO 60mil", "Tapered ISO"],
     userId: "demo",
     createdAt: Date.now(),
@@ -138,7 +138,7 @@ function ProjectRow({ project, isDemo, onStatusChange, router }: {
   const daysUntil = Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const isUrgent = daysUntil <= 3 && daysUntil >= 0;
   const isPastDue = daysUntil < 0;
-  const totalBid = (project as any).totalBidAmount ?? project.estimatedValue;
+  const totalBid = project.totalBidAmount;
   const roofArea = (project as any).grossRoofArea ?? project.sqft;
   const dpsf = (totalBid && roofArea) ? (totalBid / roofArea).toFixed(2) : null;
   const systemType = (project as any).systemType as string | undefined;
@@ -367,7 +367,7 @@ function DashboardContent() {
       gc: np.gc || undefined,
       sqft: np.sqft ? parseInt(np.sqft) : undefined,
       grossRoofArea: np.sqft ? parseInt(np.sqft) : undefined,
-      estimatedValue: np.estimatedValue ? parseInt(np.estimatedValue) : undefined,
+      totalBidAmount: np.totalBidAmount ? parseInt(np.totalBidAmount) : undefined,
       assemblies: np.assemblies ? np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean) : [],
     });
     if (isFirst) track("first_project_created");
@@ -526,7 +526,7 @@ function DashboardContent() {
                   </div>
                   <p className="text-sm text-slate-500 mb-2">{project.location}</p>
                   <p className="text-sm text-slate-500 mb-2">GC: {project.gc || "N/A"} &bull; {project.sqft?.toLocaleString() || "\u2014"} SF</p>
-                  {project.estimatedValue && <div className={`text-xl font-bold ${isWon ? "text-emerald-600" : "text-slate-400"}`}>${project.estimatedValue.toLocaleString()}</div>}
+                  {project.totalBidAmount && <div className={`text-xl font-bold ${isWon ? "text-emerald-600" : "text-slate-400"}`}>${project.totalBidAmount.toLocaleString()}</div>}
                 </div>
               );
             })}

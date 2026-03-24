@@ -53,12 +53,15 @@ Return only the JSON array. No explanation, no markdown fences.`;
       clearTimeout(timeout);
     }
 
-    const raw = message.content[0].type === "text" ? message.content[0].text : "[]";
-    let impacts: { section: string; action: string }[] = [];
+    const raw = message.content[0].type === "text" ? message.content[0].text : "";
+    let impacts: { section: string; action: string }[];
     try {
       impacts = JSON.parse(raw);
     } catch {
-      impacts = [];
+      return NextResponse.json(
+        { error: "AI returned an unreadable response — please try again." },
+        { status: 422 }
+      );
     }
     return NextResponse.json({ impacts });
   } catch (err: any) {
