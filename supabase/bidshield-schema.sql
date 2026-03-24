@@ -31,7 +31,7 @@ CREATE TABLE project_assemblies (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Checklist Items (16-phase system)
+-- Checklist Items (18-phase system)
 CREATE TABLE checklist_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,

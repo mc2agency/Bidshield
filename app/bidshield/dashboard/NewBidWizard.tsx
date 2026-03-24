@@ -34,7 +34,7 @@ function getConfigSummary(projectType: string, system: string) {
   const configs: string[] = [];
 
   // Common to all
-  configs.push("16-phase bid QA checklist");
+  configs.push("18-phase bid QA checklist");
   configs.push("Bid readiness scoring");
 
   // Project-type specific

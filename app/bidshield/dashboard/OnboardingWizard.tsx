@@ -374,7 +374,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               <div className="space-y-2 mb-8">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <span className="text-emerald-600">✓</span>
-                  16-phase bid checklist customized for {systemType?.toUpperCase() || "roofing"}
+                  18-phase bid checklist customized for {systemType?.toUpperCase() || "roofing"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <span className="text-emerald-600">✓</span>
