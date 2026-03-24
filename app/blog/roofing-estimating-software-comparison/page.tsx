@@ -595,7 +595,7 @@ export default function RoofingEstimatingSoftwareArticle() {
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Comments</h3>
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-600">Comments are coming soon! For now, share your questions in our community.</p>
-            <Link href="/membership" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">
+            <Link href="/bidshield/pricing" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">
               Join BidShield Pro Community →
             </Link>
           </div>
