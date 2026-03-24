@@ -1,19 +1,21 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Routes that require authentication
-// Note: /bidshield/dashboard supports ?demo=true so we protect it here
-// but the layout also checks isDemo to allow unauthenticated demo access.
-const isProtectedRoute = createRouteMatcher([
-  "/bidshield/dashboard(.*)",
-  "/bidshield/export(.*)",
-  "/bidshield/projects(.*)",
-  "/bidshield/checklist(.*)",
-  "/bidshield/analytics(.*)",
-  "/dashboard(.*)",
+// Explicitly public routes that do NOT require authentication
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/pricing(.*)",
+  "/about(.*)",
+  "/contact(.*)",
+  "/blog(.*)",
+  "/api/webhooks(.*)",
+  "/api/gumroad(.*)",
+  "/api/download(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
+  if (!isPublicRoute(req)) {
     await auth.protect();
   }
 });

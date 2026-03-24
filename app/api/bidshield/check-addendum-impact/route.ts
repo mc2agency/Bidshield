@@ -1,11 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { auth } from "@clerk/nextjs/server";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const CheckAddendumSchema = z.object({
+  description: z.string().max(2000).trim(),
+});
+
 export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!checkRateLimit(userId)) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Please wait before trying again." },
+      { status: 429 }
+    );
+  }
+
   try {
-    const { description } = await req.json();
+    const parsed = CheckAddendumSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+    const { description } = parsed.data;
 
     const prompt = `You are a commercial roofing estimator reviewing an addendum to a bid. Based on the addendum description below, identify which parts of a roofing bid are affected and what action the estimator must take.
 

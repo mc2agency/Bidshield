@@ -21,6 +21,7 @@ export default defineSchema({
       stripeSubscriptionId: v.optional(v.string()),
       currentPeriodEnd: v.number(),
     })),
+    role: v.optional(v.union(v.literal("admin"), v.literal("user"))),
     createdAt: v.number(),
     lastLoginAt: v.optional(v.number()),
   })
