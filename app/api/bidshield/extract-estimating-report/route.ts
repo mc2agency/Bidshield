@@ -1,20 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
-import { checkRateLimit } from "@/lib/rateLimit";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// 20 MB limit — base64 adds ~33% overhead so we check against 27.3 MB of chars
+const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
+
+function validatePdfBase64(b64: string): boolean {
+  return b64.startsWith("JVBE"); // base64-encoded %PDF magic bytes
+}
+
 export async function POST(req: NextRequest) {
-  console.log("AUTH CHECK ADDED — extract-estimating-report");
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!checkRateLimit(userId)) {
+  const rl = checkRateLimit(userId);
+  if (!rl.allowed) {
     return NextResponse.json(
       { error: "Rate limit exceeded. Please wait before trying again." },
-      { status: 429 }
+      { status: 429, headers: rateLimitHeaders(rl) }
     );
   }
 
@@ -23,6 +30,12 @@ export async function POST(req: NextRequest) {
 
     if (!pdfBase64) {
       return NextResponse.json({ error: "No PDF data provided" }, { status: 400 });
+    }
+    if (pdfBase64.length > MAX_BASE64_CHARS) {
+      return NextResponse.json({ error: "File too large (max 20 MB)" }, { status: 413 });
+    }
+    if (!validatePdfBase64(pdfBase64)) {
+      return NextResponse.json({ error: "File must be a PDF" }, { status: 415 });
     }
 
     const systemPrompt = `You are extracting material line items from a commercial roofing estimating report. This could be exported from any estimating software (The EDGE, STACK, Bluebeam, Excel, etc.). Extract every line item and return a JSON array only, no other text, no markdown.
@@ -63,30 +76,30 @@ For wastePct: extract the waste percentage as a number (e.g. 5 for 5%, 10 for 10
 For coverageRate: extract as a string like "100 SF/RL" or "32 SF/BD". Use null if not present.
 Return only the JSON array. No explanation, no markdown fences.`;
 
-    const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    let message: Awaited<ReturnType<typeof client.messages.create>>;
+    try {
+      message = await client.messages.create(
         {
-          role: "user",
-          content: [
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 4096,
+          system: systemPrompt,
+          messages: [
             {
-              type: "document",
-              source: {
-                type: "base64",
-                media_type: "application/pdf",
-                data: pdfBase64,
-              },
-            } as any,
-            {
-              type: "text",
-              text: "Extract all material line items from this estimating report. Return only the JSON array.",
+              role: "user",
+              content: [
+                { type: "document", source: { type: "base64", media_type: "application/pdf", data: pdfBase64 } } as any,
+                { type: "text", text: "Extract all material line items from this estimating report. Return only the JSON array." },
+              ],
             },
           ],
         },
-      ],
-    });
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
-import { checkRateLimit } from "@/lib/rateLimit";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -15,10 +15,11 @@ export async function POST(req: NextRequest) {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!checkRateLimit(userId)) {
+  const rl = checkRateLimit(userId);
+  if (!rl.allowed) {
     return NextResponse.json(
       { error: "Rate limit exceeded. Please wait before trying again." },
-      { status: 429 }
+      { status: 429, headers: rateLimitHeaders(rl) }
     );
   }
 
@@ -33,13 +34,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No materialName provided" }, { status: 400 });
     }
 
-    const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 128,
-      messages: [
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    let message: Awaited<ReturnType<typeof client.messages.create>>;
+    try {
+      message = await client.messages.create(
         {
-          role: "user",
-          content: `For the commercial roofing material named "${materialName}", what is the standard industry coverage rate? Return JSON only, no other text:
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 128,
+          messages: [
+            {
+              role: "user",
+              content: `For the commercial roofing material named "${materialName}", what is the standard industry coverage rate? Return JSON only, no other text:
 { "coverageRate": string | null, "confidence": "high" | "low" }
 
 Only return a coverageRate value if you are confident. Common standards:
@@ -51,9 +57,14 @@ Only return a coverageRate value if you are confident. Common standards:
 - Fasteners / screws box of 500 = "500 EA/BX"
 - Bonding adhesive (5 gal) = "250 SF/GL"
 - Return null if unsure.`,
+            },
+          ],
         },
-      ],
-    });
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();

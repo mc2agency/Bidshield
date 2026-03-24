@@ -44,9 +44,21 @@ export const handleGumroadPurchase = mutation({
       productType = "product";
     }
 
+    // L6: The Gumroad webhook can fire before the buyer creates an account.
+    // If user is null we cannot satisfy the required purchases.userId field.
+    // Return early — the orphanedPurchases logic in users.getOrCreateUser will
+    // backfill the purchase record when the user signs up.
+    if (!user) {
+      return {
+        purchaseId: null,
+        userId: undefined,
+        message: "Purchase received. User must create account to access — will be linked on sign-up.",
+      };
+    }
+
     // Record the purchase
     const purchaseId = await ctx.db.insert("purchases", {
-      userId: user?._id!,
+      userId: user._id, // safe: user is confirmed non-null above
       email: args.email,
       productId: args.productId,
       productName: args.productName,
@@ -58,36 +70,29 @@ export const handleGumroadPurchase = mutation({
       purchasedAt: Date.now(),
     });
 
-    // Grant access if user exists
-    if (user) {
-      if (productType === "course") {
-        // Add course to user's purchased courses
-        if (!user.purchasedCourses.includes(args.productId)) {
-          await ctx.db.patch(user._id, {
-            purchasedCourses: [...user.purchasedCourses, args.productId],
-          });
-        }
-      } else if (productType === "product") {
-        // Add product to user's purchased products
-        if (!user.purchasedProducts.includes(args.productId)) {
-          await ctx.db.patch(user._id, {
-            purchasedProducts: [...user.purchasedProducts, args.productId],
-          });
-        }
-      } else if (productType === "membership") {
-        // Upgrade user to pro membership
+    // Grant access — user is confirmed non-null at this point
+    if (productType === "course") {
+      if (!user.purchasedCourses.includes(args.productId)) {
         await ctx.db.patch(user._id, {
-          membershipLevel: "pro",
+          purchasedCourses: [...user.purchasedCourses, args.productId],
         });
       }
+    } else if (productType === "product") {
+      if (!user.purchasedProducts.includes(args.productId)) {
+        await ctx.db.patch(user._id, {
+          purchasedProducts: [...user.purchasedProducts, args.productId],
+        });
+      }
+    } else if (productType === "membership") {
+      await ctx.db.patch(user._id, {
+        membershipLevel: "pro",
+      });
     }
 
     return {
       purchaseId,
-      userId: user?._id,
-      message: user
-        ? "Purchase recorded and access granted"
-        : "Purchase recorded. User must create account to access.",
+      userId: user._id,
+      message: "Purchase recorded and access granted",
     };
   },
 });

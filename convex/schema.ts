@@ -56,6 +56,10 @@ export default defineSchema({
 
   // Projects (bids being worked on)
   bidshield_projects: defineTable({
+    // TODO (M9): userId is stored as a plain Clerk ID string rather than a typed
+    // v.id("users") reference. This prevents Convex from enforcing referential
+    // integrity. Migrate to v.id("users") (storing the Convex _id) in a future
+    // schema migration once all write paths are updated to use the Convex user _id.
     userId: v.string(), // Clerk user ID
     name: v.string(),
     location: v.string(),
@@ -529,6 +533,15 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_created", ["userId", "createdAt"]),
+
+  // Processed webhook events — idempotency guard for Stripe/Gumroad webhooks.
+  // Before processing any webhook, check this table by stripeEventId. If found,
+  // skip processing (event already handled). Prevents duplicate writes on Stripe retries.
+  processedWebhooks: defineTable({
+    stripeEventId: v.string(), // Stripe event.id (e.g. "evt_1abc...")
+    processedAt: v.number(),   // Unix ms timestamp
+  })
+    .index("by_stripe_event_id", ["stripeEventId"]),
 
   // Decision log — paper trail for estimating decisions per project
   bidshield_decisions: defineTable({

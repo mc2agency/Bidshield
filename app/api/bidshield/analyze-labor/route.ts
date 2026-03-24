@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
-import { checkRateLimit } from "@/lib/rateLimit";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -11,10 +11,11 @@ export async function POST(req: NextRequest) {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!checkRateLimit(userId)) {
+  const rl = checkRateLimit(userId);
+  if (!rl.allowed) {
     return NextResponse.json(
       { error: "Rate limit exceeded. Please wait before trying again." },
-      { status: 429 }
+      { status: 429, headers: rateLimitHeaders(rl) }
     );
   }
 
@@ -142,17 +143,22 @@ warnings: list Gen. Conds items flagged from the scope, plus any high-risk items
 DO NOT generate tasks for Gen. Conds items. Only direct field labor goes in the tasks array.
 Return only the JSON object.`;
 
-    const message = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    let message: Awaited<ReturnType<typeof client.messages.create>>;
+    try {
+      message = await client.messages.create(
         {
-          role: "user",
-          content: `Analyze this roofing scope and generate a labor breakdown:\n\n${description}`,
+          model: "claude-sonnet-4-6",
+          max_tokens: 4096,
+          system: systemPrompt,
+          messages: [{ role: "user", content: `Analyze this roofing scope and generate a labor breakdown:\n\n${description}` }],
         },
-      ],
-    });
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
