@@ -45,6 +45,6 @@ Return only the RFI question text. No preamble, no subject line, no closing.`;
     return NextResponse.json({ text });
   } catch (err: any) {
     console.error("draft-rfi error:", err);
-    return NextResponse.json({ error: err?.message ?? "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

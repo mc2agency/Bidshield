@@ -162,7 +162,7 @@ Return only the JSON object.`;
       result = JSON.parse(cleaned);
     } catch {
       return NextResponse.json(
-        { error: "Failed to parse AI response", raw: text },
+        { error: "Failed to parse AI response" },
         { status: 422 }
       );
     }
@@ -177,7 +177,7 @@ Return only the JSON object.`;
   } catch (err: any) {
     console.error("analyze-labor error:", err);
     return NextResponse.json(
-      { error: err?.message ?? "Internal server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

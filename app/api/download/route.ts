@@ -105,7 +105,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Read and return the file
-    const fullPath = path.join(process.cwd(), filePath);
+    // Defense-in-depth: ensure resolved path stays within the templates directory
+    const templatesDir = path.resolve(process.cwd(), 'templates');
+    const fullPath = path.resolve(process.cwd(), filePath);
+    if (!fullPath.startsWith(templatesDir + path.sep) && fullPath !== templatesDir) {
+      return NextResponse.json({ error: 'File not found' }, { status: 404 });
+    }
     const fileBuffer = await readFile(fullPath);
 
     return new NextResponse(fileBuffer, {

@@ -67,8 +67,9 @@ Only return a coverageRate value if you are confident. Common standards:
 
     return NextResponse.json(result);
   } catch (err: any) {
+    console.error("lookup-coverage error:", err);
     return NextResponse.json(
-      { error: err?.message ?? "Internal server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

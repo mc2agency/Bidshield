@@ -56,6 +56,6 @@ Return only the JSON array. No explanation, no markdown fences.`;
     return NextResponse.json({ impacts });
   } catch (err: any) {
     console.error("check-addendum-impact error:", err);
-    return NextResponse.json({ error: err?.message ?? "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

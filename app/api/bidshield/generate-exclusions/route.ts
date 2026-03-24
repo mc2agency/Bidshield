@@ -63,6 +63,6 @@ Return only the numbered list. No preamble, no closing remarks.`;
     return NextResponse.json({ text });
   } catch (err: any) {
     console.error("generate-exclusions error:", err);
-    return NextResponse.json({ error: err?.message ?? "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
