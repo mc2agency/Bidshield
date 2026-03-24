@@ -1,15 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { auth } from "@clerk/nextjs/server";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function POST(req: NextRequest) {
-  try {
-    const { excludedItems, byOthersItems, clarifications } = await req.json();
+const ScopeItemSchema = z.object({
+  name: z.string().max(200).trim(),
+  note: z.string().max(500).trim().optional(),
+});
 
-    const excluded = (excludedItems ?? []).map((i: any) => `- ${i.name}${i.note ? ` (${i.note})` : ""}`).join("\n");
-    const byOthers = (byOthersItems ?? []).map((i: any) => `- ${i.name}${i.note ? ` (${i.note})` : ""}`).join("\n");
-    const clars = (clarifications ?? []).map((c: any) => `- ${c.text}`).join("\n");
+const GenerateExclusionsSchema = z.object({
+  excludedItems: z.array(ScopeItemSchema).max(100).optional(),
+  byOthersItems: z.array(ScopeItemSchema).max(100).optional(),
+  clarifications: z.array(z.object({ text: z.string().max(500).trim() })).max(100).optional(),
+});
+
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!checkRateLimit(userId)) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Please wait before trying again." },
+      { status: 429 }
+    );
+  }
+
+  try {
+    const parsed = GenerateExclusionsSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+    const { excludedItems, byOthersItems, clarifications } = parsed.data;
+
+    const excluded = (excludedItems ?? []).map((i) => `- ${i.name}${i.note ? ` (${i.note})` : ""}`).join("\n");
+    const byOthers = (byOthersItems ?? []).map((i) => `- ${i.name}${i.note ? ` (${i.note})` : ""}`).join("\n");
+    const clars = (clarifications ?? []).map((c) => `- ${c.text}`).join("\n");
 
     const prompt = `You are a commercial roofing estimator preparing a bid proposal. Based on the following scope exclusions and clarifications, write a professional exclusions section ready to paste into a proposal document. Use industry terminology, be specific, and format as a numbered list.
 
