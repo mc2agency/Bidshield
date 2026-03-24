@@ -29,11 +29,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "BidShield — Bidding Command Center for Commercial Roofing",
+    default: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
     template: "%s | BidShield",
   },
-  description: "One missed mechanical curb costs $30K–$80K. BidShield's 18-phase pre-submission review catches what estimating software can't — works alongside The EDGE, STACK, and Excel.",
-  keywords: ["commercial roofing bid checklist", "pre-submission bid review roofing", "roofing scope gap checker", "bid QA commercial roofing", "roofing estimating tools", "BidShield", "missed mechanical curb commercial roofing", "addendum review roofing"],
+  description: "BidShield is the structured bid workflow tool for commercial roofing estimators. 18-phase checklist, Material Reconciliation, Labor Verification, and GC Bid Forms — from first plan review to final submission.",
+  keywords: ["commercial roofing bid checklist", "roofing bid workflow tool", "commercial roofing estimator software", "material reconciliation roofing", "labor verification roofing", "GC bid form prep", "roofing pre-submission review", "BidShield", "18-phase bid checklist roofing"],
   authors: [{ name: "MC2 Estimating" }],
   creator: "MC2 Estimating",
   publisher: "MC2 Estimating",
@@ -43,21 +43,21 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://mc2estimating.com",
     siteName: "BidShield",
-    title: "BidShield — Bidding Command Center for Commercial Roofing",
-    description: "BidShield helps commercial roofing estimators catch mistakes before they cost money. Takeoff verification, material calculator, bid comparison, scope gap checker.",
+    title: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
+    description: "The structured workflow commercial roofing estimators run from first plan review to final submission. 18-phase checklist, AI material extraction, labor verification, and GC bid form prep.",
     images: [
       {
         url: "/api/og",
         width: 1200,
         height: 630,
-        alt: "BidShield — Bid QA for Commercial Roofing",
+        alt: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BidShield",
-    description: "The bidding command center for commercial roofing estimators. Catch mistakes before they cost money.",
+    title: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
+    description: "The structured workflow commercial roofing estimators run from first plan review to final submission. 18-phase checklist, AI material extraction, labor verification, and GC bid form prep.",
     images: ["/api/og"],
   },
   robots: {
@@ -102,7 +102,7 @@ export default function RootLayout({
               "name": "BidShield",
               "url": "https://mc2estimating.com",
               "logo": "https://mc2estimating.com/api/og",
-              "description": "BidShield's 18-phase pre-submission review catches what estimating software can't — works alongside The EDGE, STACK, and Excel.",
+              "description": "Bid workflow tool for commercial roofing estimators.",
               "sameAs": [],
               "contactPoint": {
                 "@type": "ContactPoint",
@@ -121,8 +121,9 @@ export default function RootLayout({
               "name": "BidShield",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
-              "url": "https://mc2estimating.com/bidshield/dashboard",
-              "description": "BidShield is the pre-submission bid review platform for commercial roofing estimators. 18-phase checklist, scope gap checker, takeoff reconciliation, and bid readiness score.",
+              "url": "https://mc2estimating.com",
+              "description": "Bid workflow tool for commercial roofing estimators. 18-phase checklist, material reconciliation, labor verification, and GC bid form preparation.",
+              "screenshot": "https://mc2estimating.com/api/og",
               "offers": [
                 {
                   "@type": "Offer",
@@ -132,10 +133,15 @@ export default function RootLayout({
                 },
                 {
                   "@type": "Offer",
-                  "price": "149",
+                  "price": "249",
                   "priceCurrency": "USD",
                   "name": "Pro Plan",
-                  "billingIncrement": "monthly"
+                  "priceSpecification": {
+                    "@type": "UnitPriceSpecification",
+                    "price": "249",
+                    "priceCurrency": "USD",
+                    "unitText": "MONTH"
+                  }
                 }
               ],
               "publisher": {
