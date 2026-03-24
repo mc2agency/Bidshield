@@ -2,6 +2,10 @@
 
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '@/convex/_generated/api';
+
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
 const blogPosts = [
   {
@@ -71,39 +75,6 @@ const blogPosts = [
     image: '/images/blog/labor-burden.jpg',
   },
   {
-    slug: 'reading-construction-specifications',
-    title: 'How to Read Construction Specifications (CSI MasterFormat Guide)',
-    excerpt: 'Complete guide to understanding CSI MasterFormat, finding roofing information in specs, and resolving spec vs drawing conflicts like a professional estimator.',
-    category: 'Plans & Specs',
-    author: 'BidShield',
-    date: 'December 5, 2025',
-    readTime: '10 min read',
-    featured: false,
-    image: '/images/blog/construction-specs.jpg',
-  },
-  {
-    slug: 'bluebeam-vs-planswift',
-    title: 'Bluebeam vs PlanSwift: Which Estimating Software is Better?',
-    excerpt: 'Detailed comparison of Bluebeam and PlanSwift for roofing estimators. Features, pricing, pros, cons, and which one is right for your business.',
-    category: 'Technology',
-    author: 'BidShield',
-    date: 'December 3, 2025',
-    readTime: '9 min read',
-    featured: false,
-    image: '/images/blog/software-comparison.jpg',
-  },
-  {
-    slug: 'roofing-estimate-template-excel',
-    title: 'Free Roofing Estimate Template for Excel [2025 Download]',
-    excerpt: 'Download our free Excel roofing estimate template. Learn what every professional estimate should include and get started with our proven format.',
-    category: 'Templates',
-    author: 'BidShield',
-    date: 'December 1, 2025',
-    readTime: '6 min read',
-    featured: false,
-    image: '/images/blog/excel-template.jpg',
-  },
-  {
     slug: 'what-is-a-roof-square',
     title: 'What is a Roof Square? Complete Guide for Estimators',
     excerpt: 'Understanding roof squares is fundamental to accurate roofing estimates. Learn how to measure, calculate, and use roof squares in your bids.',
@@ -159,17 +130,6 @@ const blogPosts = [
     image: '/images/blog/spray-foam.jpg',
   },
   {
-    slug: 'pictometry-vs-eagleview',
-    title: 'Pictometry vs EagleView: Aerial Measurement Tools Compared',
-    excerpt: 'Detailed comparison of the two leading aerial measurement platforms for roofing contractors and estimators.',
-    category: 'Technology',
-    author: 'BidShield',
-    date: 'November 13, 2025',
-    readTime: '8 min read',
-    featured: false,
-    image: '/images/blog/aerial-measurement.jpg',
-  },
-  {
     slug: 'buildingconnected-guide',
     title: 'BuildingConnected Guide: Win More Bids Online',
     excerpt: 'How to use BuildingConnected to find projects, submit bids, and grow your roofing business through the largest preconstruction platform.',
@@ -187,6 +147,26 @@ const categories = ['All', 'Estimation', 'Business', 'Plans & Specs', 'Technolog
 export default function BlogPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+    setNewsletterLoading(true);
+    try {
+      if (convexUrl) {
+        const client = new ConvexHttpClient(convexUrl);
+        await client.mutation(api.leads.subscribeEmail, { email: newsletterEmail, source: 'blog_sidebar' });
+      }
+      setNewsletterSubmitted(true);
+    } catch {
+      setNewsletterSubmitted(true);
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   const { filteredPosts, featuredPost, regularPosts } = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
@@ -344,14 +324,27 @@ export default function BlogPage() {
               <p className="text-blue-100 mb-4">
                 Get practical estimating tips delivered to your inbox every Tuesday.
               </p>
-              <input
-                type="email"
-                placeholder="Your email"
-                className="w-full px-4 py-2 rounded-lg mb-3 text-gray-900"
-              />
-              <button className="w-full px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
-                Subscribe
-              </button>
+              {newsletterSubmitted ? (
+                <p className="text-white font-semibold text-center py-2">✅ You&apos;re subscribed!</p>
+              ) : (
+                <form onSubmit={handleNewsletterSubmit}>
+                  <input
+                    type="email"
+                    placeholder="Your email"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 rounded-lg mb-3 text-gray-900"
+                  />
+                  <button
+                    type="submit"
+                    disabled={newsletterLoading}
+                    className="w-full px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors disabled:opacity-60"
+                  >
+                    {newsletterLoading ? 'Subscribing...' : 'Subscribe'}
+                  </button>
+                </form>
+              )}
               <p className="text-xs text-blue-200 mt-2">No spam. Unsubscribe anytime.</p>
             </div>
 
