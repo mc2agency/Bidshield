@@ -1,3 +1,10 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'BidShield terms of service. Learn about your rights and responsibilities when using BidShield, the bid workflow tool for commercial roofing estimators.',
+};
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
@@ -9,7 +16,7 @@ export default function TermsPage() {
               Terms of Service
             </h1>
             <p className="text-xl text-slate-300">
-              Last updated: December 2024
+              Last updated: March 2026
             </p>
           </div>
         </div>
