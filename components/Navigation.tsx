@@ -48,6 +48,8 @@ export default function Navigation() {
   }, [updateScrollState]);
 
   const navLinks = [
+    { href: '/about', label: 'About' },
+    { href: '/compare/bidshield-vs-the-edge', label: 'Compare' },
     { href: '/bidshield/demo', label: 'Demo' },
     { href: '/bidshield/pricing', label: 'Pricing' },
     { href: '/blog', label: 'Blog' },
