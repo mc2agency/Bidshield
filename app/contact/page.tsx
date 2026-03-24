@@ -109,19 +109,21 @@ function ContactPageContent() {
               </div>
 
               <div className="bg-white rounded-2xl shadow-xl p-8 text-center border-2 border-slate-200 hover:border-emerald-500 hover:shadow-2xl transition-all">
-                <div className="text-5xl mb-4">📞</div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900">Phone Support</h3>
+                <div className="text-5xl mb-4">📅</div>
+                <h3 className="text-xl font-bold mb-3 text-slate-900">Schedule a Call</h3>
                 <p className="text-slate-600 mb-4">
-                  BidShield Pro members only
+                  Book a 1-on-1 walkthrough with our team
                 </p>
                 <a
-                  href="tel:+18005551234"
+                  href="https://calendly.com/bidshield"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
                 >
-                  (800) 555-1234
+                  Book on Calendly →
                 </a>
                 <p className="text-sm text-slate-500 mt-4">
-                  Mon-Fri, 9am-5pm EST
+                  30-min sessions available
                 </p>
               </div>
             </div>

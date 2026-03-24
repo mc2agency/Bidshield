@@ -9,6 +9,9 @@ const isPublicRoute = createRouteMatcher([
   "/about(.*)",
   "/contact(.*)",
   "/blog(.*)",
+  // BidShield marketing pages — must be public (demo = no-auth-required by design)
+  "/bidshield/demo(.*)",
+  "/bidshield/pricing(.*)",
   "/api/webhooks(.*)",
   "/api/gumroad(.*)",
   "/api/download(.*)",
