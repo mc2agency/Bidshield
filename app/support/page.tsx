@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Support',
-  description: 'Get help with MC2 Estimating tools and templates. Documentation, FAQs, and contact support.',
-  keywords: 'MC2 support, estimating tools help, template support, customer service',
+  description: 'Get help with BidShield tools and templates. Documentation, FAQs, and contact support.',
+  keywords: 'BidShield support, estimating tools help, template support, customer service',
 };
 
 export default function SupportPage() {
@@ -135,7 +135,7 @@ export default function SupportPage() {
             />
             <FAQItem
               question="What if I need help with a specific project?"
-              answer="For project-specific questions, you can email our support team. MC2 Pro members also have access to monthly Q&A sessions for personalized guidance."
+              answer="For project-specific questions, you can email our support team. BidShield Pro members also have access to monthly Q&A sessions for personalized guidance."
             />
             <FAQItem
               question="How do I request a refund?"
@@ -143,7 +143,7 @@ export default function SupportPage() {
             />
             <FAQItem
               question="Do you offer phone support?"
-              answer="We provide email support for all customers and priority email support for MC2 Pro members. Phone consultations are available for enterprise customers."
+              answer="We provide email support for all customers and priority email support for BidShield Pro members. Phone consultations are available for enterprise customers."
             />
           </div>
         </div>

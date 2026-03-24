@@ -82,7 +82,7 @@ function DashboardContent() {
               <p className="text-slate-600">
                 Current plan:{" "}
                 <span className="font-semibold capitalize">
-                  {userData?.membershipLevel === "pro" ? "MC2 Pro" : "Free"}
+                  {userData?.membershipLevel === "pro" ? "BidShield Pro" : "Free"}
                 </span>
               </p>
             </div>

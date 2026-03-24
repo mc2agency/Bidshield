@@ -100,11 +100,11 @@ async function sendPurchaseEmail(session: Stripe.Checkout.Session) {
     <div class="callout">
       <p><strong>Link not working?</strong> Go to <a href="${BASE_URL}/checkout/success?session_id=${sessionId}" style="color: #059669;">your order page</a> to re-access your download at any time.</p>
     </div>
-    <p style="color: #475569;">— Carlos, MC2 Estimating</p>
+    <p style="color: #475569;">— Carlos, BidShield</p>
   </div>
   <div class="footer">
-    <p>MC2 Estimating &middot; <a href="${BASE_URL}" style="color: #94a3b8;">bidshield.co</a></p>
-    <p style="margin-top: 6px;">You're receiving this because you purchased a template from MC2 Estimating.</p>
+    <p>BidShield &middot; <a href="${BASE_URL}" style="color: #94a3b8;">bidshield.co</a></p>
+    <p style="margin-top: 6px;">You're receiving this because you purchased a template from BidShield.</p>
   </div>
 </div>
 </body>

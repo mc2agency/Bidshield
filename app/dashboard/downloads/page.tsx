@@ -112,7 +112,7 @@ function DownloadsContent() {
           <h1 className="text-3xl font-bold mb-2">My Downloads</h1>
           <p className="text-slate-300">
             {isPro
-              ? "MC2 Pro member — access all templates"
+              ? "BidShield Pro member — access all templates"
               : `${purchasedProducts.length} product${purchasedProducts.length !== 1 ? "s" : ""} purchased`}
           </p>
         </div>

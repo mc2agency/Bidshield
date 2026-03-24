@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
     type: "article",
     publishedTime: "2026-01-10",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]&type=article",
@@ -35,12 +35,12 @@ const articleSchema = {
   "description": "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2026-01-10",
@@ -89,7 +89,7 @@ export default function RoofingTakeoffMistakesPage() {
           <div className="mt-6 flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center font-bold text-lg">MC</div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>

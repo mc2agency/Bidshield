@@ -142,7 +142,7 @@ export default function HomepageContent() {
             in one place. Every phase, every discipline, every item that needs to be verified before you submit.
           </p>
           <p className="mt-6 text-sm text-slate-500">
-            — Founder, MC2 Estimating
+            — Founder, BidShield
           </p>
         </div>
       </section>

@@ -1,4 +1,4 @@
-# MC2 Estimating — Ad Copy Library
+# BidShield — Ad Copy Library
 
 ## Facebook/Instagram Ads
 
@@ -7,7 +7,7 @@
 **Primary Text:** 
 Tired of spreadsheets that don't talk to each other? Losing bids because your numbers are off?
 
-MC2 Estimating templates do the heavy lifting — material takeoffs, labor calculations, and professional proposals in one connected system.
+BidShield templates do the heavy lifting — material takeoffs, labor calculations, and professional proposals in one connected system.
 
 Built by estimators, for estimators.
 
@@ -25,7 +25,7 @@ Built by estimators, for estimators.
 **Primary Text:**
 What if your next roofing estimate took 30 minutes instead of 3 hours?
 
-MC2 templates connect your takeoff → materials → labor → proposal automatically. Change one number, everything updates.
+BidShield templates connect your takeoff → materials → labor → proposal automatically. Change one number, everything updates.
 
 No more copy-paste errors. No more formula hunting.
 
@@ -40,7 +40,7 @@ Join 500+ estimators who bid smarter.
 **Primary Text:**
 "I was spending 4+ hours per estimate. Now I'm done in under an hour and my proposals look 10x more professional." — Mike R., Commercial Roofing
 
-MC2 Estimating templates are built specifically for roofing contractors:
+BidShield templates are built specifically for roofing contractors:
 
 🏗️ TPO/PVC/EPDM/Modified Bitumen
 📊 Material + Labor calculators
@@ -59,7 +59,7 @@ A single estimating mistake can cost you $5,000+
 
 For less than the price of a nice dinner, you get a complete estimating system that pays for itself on your next bid.
 
-MC2 Templates: $79 - $149
+BidShield Templates: $79 - $149
 Your peace of mind: Priceless
 
 **CTA:** Invest in Your Business →
@@ -71,7 +71,7 @@ Your peace of mind: Priceless
 **Primary Text:**
 ¿Cansado de hojas de cálculo desordenadas?
 
-MC2 Estimating tiene plantillas profesionales en Excel para contratistas de techos:
+BidShield tiene plantillas profesionales en Excel para contratistas de techos:
 
 ✅ TPO, EPDM, Modified Bitumen, Metal
 ✅ Cálculos automáticos de materiales y mano de obra
@@ -117,7 +117,7 @@ MC2 Estimating tiene plantillas profesionales en Excel para contratistas de tech
 **Headline 2:** Excel Templates That Work
 **Headline 3:** One-Time Purchase
 
-**Description 1:** Why pay monthly for estimating software? MC2 templates work offline, no subscription required.
+**Description 1:** Why pay monthly for estimating software? BidShield templates work offline, no subscription required.
 **Description 2:** Professional roofing estimates without the SaaS fees. Download and own forever.
 
 ---

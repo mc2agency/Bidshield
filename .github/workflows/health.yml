@@ -12,25 +12,25 @@ jobs:
     steps:
       - name: Check homepage
         run: |
-          status=$(curl -s -o /dev/null -w "%{http_code}" https://mc2estimating.com)
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://www.bidshield.co)
           echo "Homepage: $status"
           [ "$status" = "200" ] || exit 1
 
       - name: Check BidShield pricing page
         run: |
-          status=$(curl -s -o /dev/null -w "%{http_code}" https://mc2estimating.com/bidshield/pricing)
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://www.bidshield.co/bidshield/pricing)
           echo "Pricing: $status"
           [ "$status" = "200" ] || exit 1
 
       - name: Check sign-in page
         run: |
-          status=$(curl -s -o /dev/null -w "%{http_code}" https://mc2estimating.com/sign-in)
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://www.bidshield.co/sign-in)
           echo "Sign-in: $status"
           [ "$status" = "200" ] || exit 1
 
       - name: Check checkout API is alive
         run: |
-          status=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://mc2estimating.com/api/bidshield/create-checkout \
+          status=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://www.bidshield.co/api/bidshield/create-checkout \
             -H "Content-Type: application/json" \
             -d '{"planId":"pro_monthly"}')
           echo "Checkout API: $status"
@@ -40,4 +40,4 @@ jobs:
       - name: Notify on failure
         if: failure()
         run: |
-          echo "::error::Production health check failed — check https://mc2estimating.com"
+          echo "::error::Production health check failed — check https://www.bidshield.co"

@@ -179,14 +179,14 @@ export default function ResourceCenter() {
             Want Full Access to Everything?
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            Join MC2 Pro for unlimited access to all tools, templates, tools, and monthly live Q&A sessions.
+            Join BidShield Pro for unlimited access to all tools, templates, tools, and monthly live Q&A sessions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/membership"
               className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg"
             >
-              Join MC2 Pro - $197/mo →
+              Join BidShield Pro - $197/mo →
             </Link>
             <Link
               href="/products"

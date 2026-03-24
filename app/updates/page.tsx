@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Product Updates',
-  description: 'Latest updates to MC2 Estimating tools and templates. New features, improvements, and additions to the tool vault.',
-  keywords: 'MC2 updates, estimating tools updates, template updates, changelog',
+  description: 'Latest updates to BidShield tools and templates. New features, improvements, and additions to the tool vault.',
+  keywords: 'BidShield updates, estimating tools updates, template updates, changelog',
 };
 
 export default function UpdatesPage() {

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
     type: "article",
     publishedTime: "2025-10-01",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation&type=article",
@@ -35,12 +35,12 @@ const articleSchema = {
   "description": "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2025-10-01",
@@ -92,7 +92,7 @@ export default function StandingSeamMetalRoofingArticle() {
               MC
             </div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
@@ -490,7 +490,7 @@ export default function StandingSeamMetalRoofingArticle() {
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-600">Comments are coming soon! For now, share your questions in our community.</p>
             <Link href="/membership" className="inline-block mt-4 text-blue-600 font-semibold hover:text-blue-700">
-              Join MC2 Pro Community →
+              Join BidShield Pro Community →
             </Link>
           </div>
         </div>

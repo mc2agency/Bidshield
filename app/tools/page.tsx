@@ -420,7 +420,7 @@ export default function ToolsPage() {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-bold mb-3 text-blue-900">Want Everything?</h3>
                 <p className="text-gray-600 mb-4">
-                  Join MC2 Pro and get access to all tools plus templates.
+                  Join BidShield Pro and get access to all tools plus templates.
                 </p>
                 <Link href="/membership" className="text-blue-600 font-semibold hover:text-blue-700">
                   View Membership →
@@ -493,14 +493,14 @@ export default function ToolsPage() {
               name="Amanda Foster"
               role="Estimating Manager"
               company="Foster & Sons Roofing"
-              quote="We get accessed our entire estimating team in the MC2 Pro membership. The standardization and efficiency gains have been incredible. Highly recommended for companies wanting consistent processes."
+              quote="We get accessed our entire estimating team in the BidShield Pro membership. The standardization and efficiency gains have been incredible. Highly recommended for companies wanting consistent processes."
               rating={5}
             />
           </div>
         </div>
       </section>
 
-      {/* MC2 Pro Membership CTA */}
+      {/* BidShield Pro Membership CTA */}
       <section className="py-20 bg-gradient-to-br from-blue-900 to-blue-800 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -511,7 +511,7 @@ export default function ToolsPage() {
               Get Access to All Tools
             </h2>
             <p className="text-xl text-blue-100 mb-6">
-              Join MC2 Pro and unlock everything. Save over $1,400 compared to buying tools individually.
+              Join BidShield Pro and unlock everything. Save over $1,400 compared to buying tools individually.
             </p>
             <div className="text-5xl font-bold mb-2">$197<span className="text-2xl text-blue-300">/month</span></div>
             <p className="text-blue-200 mb-8">Cancel anytime. No long-term commitment.</p>
@@ -560,7 +560,7 @@ export default function ToolsPage() {
               href="/membership"
               className="inline-block px-8 py-4 bg-white text-blue-900 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg mb-4"
             >
-              Join MC2 Pro Now →
+              Join BidShield Pro Now →
             </Link>
             <p className="text-sm text-blue-200">
               30-day money-back guarantee • Cancel anytime
@@ -591,8 +591,8 @@ export default function ToolsPage() {
             />
 
             <FAQItem
-              question="What's the difference between buying tools individually and MC2 Pro membership?"
-              answer="Individual tools are one-time purchases perfect if you only need specific skills. MC2 Pro membership ($197/month) gives you access to ALL tools, templates, live Q&A sessions, and the private community. If you plan to take 2+ tools, membership is the better value."
+              question="What's the difference between buying tools individually and BidShield Pro membership?"
+              answer="Individual tools are one-time purchases perfect if you only need specific skills. BidShield Pro membership ($197/month) gives you access to ALL tools, templates, live Q&A sessions, and the private community. If you plan to take 2+ tools, membership is the better value."
             />
 
             <FAQItem

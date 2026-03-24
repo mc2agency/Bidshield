@@ -1,5 +1,5 @@
 /**
- * Stripe Product Configuration for MC2 Estimating
+ * Stripe Product Configuration for BidShield
  * 
  * Pricing (from research):
  * - Individual templates: $29 each

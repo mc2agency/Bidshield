@@ -1,9 +1,9 @@
-# MC2 Estimating - Complete Site Structure & Content Roadmap
+# BidShield - Complete Site Structure & Content Roadmap
 
 ## 📊 Site Architecture Overview
 
 ```
-MC2 Estimating Academy
+BidShield Academy
 ├── 🏠 Homepage (/)
 ├── 📚 Learning Center (FREE)
 ├── 🎓 Courses (PAID)

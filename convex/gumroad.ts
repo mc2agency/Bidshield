@@ -34,7 +34,7 @@ export const handleGumroadPurchase = mutation({
     ];
 
     // Membership IDs
-    const membershipIds = ['mc2-pro-membership'];
+    const membershipIds = ['bidshield-pro-membership'];
 
     if (courseIds.includes(args.productId)) {
       productType = "course";

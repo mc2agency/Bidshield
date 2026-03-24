@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     description: "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
     type: "article",
     publishedTime: "2026-01-28",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=5 Costly Roofing Estimating Mistakes (And How to Avoid Them)&type=article",
@@ -36,12 +36,12 @@ const articleSchema = {
   "description": "Learn the most common roofing estimating errors that cost contractors thousands. From missed labor burden to wrong material coverage rates — fix these before your next bid.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2026-01-28",
@@ -245,7 +245,7 @@ Example: $25 × 1.45 = $36.25/hr actual cost`}
             <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 my-8">
               <h3 className="text-xl font-bold text-white mt-0">Ready to Estimate Smarter?</h3>
               <p className="text-slate-300 mb-4">
-                MC2 templates have helped 500+ roofing estimators eliminate these mistakes and win more profitable bids.
+                BidShield templates have helped 500+ roofing estimators eliminate these mistakes and win more profitable bids.
               </p>
               <Link 
                 href="/products" 
@@ -279,7 +279,7 @@ Example: $25 × 1.45 = $36.25/hr actual cost`}
                 M
               </div>
               <div>
-                <p className="font-semibold text-white">MC2 Estimating Team</p>
+                <p className="font-semibold text-white">BidShield Team</p>
                 <p className="text-sm text-slate-400">Tools and templates for commercial roofing professionals</p>
               </div>
             </div>

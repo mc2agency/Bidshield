@@ -674,11 +674,11 @@ export default function SubmittalsPage() {
                     href="/membership"
                     className="px-8 py-4 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors border border-white/20 text-lg"
                   >
-                    Get MC2 Pro Membership
+                    Get BidShield Pro Membership
                   </Link>
                 </div>
                 <p className="text-sm text-slate-400 mt-4">
-                  Or get access to this + all tools with MC2 Pro Membership
+                  Or get access to this + all tools with BidShield Pro Membership
                 </p>
               </section>
 

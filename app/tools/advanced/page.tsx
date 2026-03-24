@@ -100,7 +100,7 @@ export default function AdvancedToolsPage() {
             <div className="text-center max-w-3xl mx-auto">
               <h3 className="text-2xl font-bold mb-4">Looking for Complete Mastery?</h3>
               <p className="text-lg text-gray-700 mb-6">
-                Get access to all beginner, intermediate, and advanced tools with MC2 Pro membership. Master every tool and technique in the industry.
+                Get access to all beginner, intermediate, and advanced tools with BidShield Pro membership. Master every tool and technique in the industry.
               </p>
               <div className="text-5xl font-bold text-blue-600 mb-2">$197<span className="text-2xl text-gray-600">/month</span></div>
               <p className="text-gray-600 mb-8">All 7 tools + templates + live Q&A + community access</p>
@@ -108,7 +108,7 @@ export default function AdvancedToolsPage() {
                 href="/membership"
                 className="inline-block px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
-                Join MC2 Pro →
+                Join BidShield Pro →
               </Link>
             </div>
           </div>

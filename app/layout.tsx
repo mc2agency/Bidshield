@@ -1,5 +1,5 @@
 /**
- * BIDSHIELD — A product of MC2 Estimating
+ * BIDSHIELD
  * =======================================
  * BidShield is a bid quality-assurance platform for commercial subcontractors.
  * It helps estimators catch mistakes before they cost money.
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   },
   description: "BidShield is the structured bid workflow tool for commercial roofing estimators. 18-phase checklist, Material Reconciliation, Labor Verification, and GC Bid Forms — from first plan review to final submission.",
   keywords: ["commercial roofing bid checklist", "roofing bid workflow tool", "commercial roofing estimator software", "material reconciliation roofing", "labor verification roofing", "GC bid form prep", "roofing pre-submission review", "BidShield", "18-phase bid checklist roofing"],
-  authors: [{ name: "MC2 Estimating" }],
-  creator: "MC2 Estimating",
-  publisher: "MC2 Estimating",
+  authors: [{ name: "BidShield" }],
+  creator: "BidShield",
+  publisher: "BidShield",
   metadataBase: new URL("https://www.bidshield.co"),
   openGraph: {
     type: "website",
@@ -146,7 +146,7 @@ export default function RootLayout({
               ],
               "publisher": {
                 "@type": "Organization",
-                "name": "MC2 Estimating",
+                "name": "BidShield",
                 "url": "https://www.bidshield.co"
               }
             })

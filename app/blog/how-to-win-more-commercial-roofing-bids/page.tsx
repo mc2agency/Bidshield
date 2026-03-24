@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
     type: "article",
     publishedTime: "2026-02-01",
-    authors: ["MC2 Estimating"],
+    authors: ["BidShield"],
     images: [
       {
         url: "/api/og?title=How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]&type=article",
@@ -35,12 +35,12 @@ const articleSchema = {
   "description": "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
   "author": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "publisher": {
     "@type": "Organization",
-    "name": "MC2 Estimating",
+    "name": "BidShield",
     "url": "https://www.bidshield.co"
   },
   "datePublished": "2026-02-01",
@@ -89,7 +89,7 @@ export default function HowToWinMoreCommercialRoofingBidsPage() {
           <div className="mt-6 flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center font-bold text-lg">MC</div>
             <div>
-              <div className="font-semibold">MC2 Estimating</div>
+              <div className="font-semibold">BidShield</div>
               <div className="text-sm text-blue-200">Professional Estimating Tools</div>
             </div>
           </div>
