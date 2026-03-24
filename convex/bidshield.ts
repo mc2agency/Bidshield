@@ -2,16 +2,16 @@ import { v } from "convex/values";
 import { mutation, query, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { getChecklistForTrade } from "./bidshieldDefaults";
+import { isDemoUser } from "./utils";
 
 async function validateAuth(ctx: any, userId: string) {
-  // Skip validation for demo mode
-  if (userId.startsWith("demo_")) return;
+  if (isDemoUser(userId)) return; // demo mode bypasses auth
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
 }
 
 async function requirePro(ctx: any, userId: string) {
-  if (userId.startsWith("demo_")) return; // demo always allowed
+  if (isDemoUser(userId)) return; // demo always allowed
   const user = await ctx.db
     .query("users")
     .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", userId))

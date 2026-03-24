@@ -78,7 +78,7 @@ If a field cannot be determined, use null. Return only the JSON object.`;
       data = JSON.parse(cleaned);
     } catch {
       return NextResponse.json(
-        { error: "Failed to parse extraction result", raw: text },
+        { error: "Failed to parse extraction result" },
         { status: 422 }
       );
     }
@@ -87,7 +87,7 @@ If a field cannot be determined, use null. Return only the JSON object.`;
   } catch (err: any) {
     console.error("extract-quote error:", err);
     return NextResponse.json(
-      { error: err?.message ?? "Internal server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

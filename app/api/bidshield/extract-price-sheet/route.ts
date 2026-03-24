@@ -70,14 +70,14 @@ Return only the JSON array. If a field cannot be determined, use null.`;
       items = JSON.parse(cleaned);
     } catch {
       return NextResponse.json(
-        { error: "Failed to parse extraction result", raw: text },
+        { error: "Failed to parse extraction result" },
         { status: 422 }
       );
     }
 
     if (!Array.isArray(items)) {
       return NextResponse.json(
-        { error: "Extraction did not return an array", raw: text },
+        { error: "Extraction did not return an array" },
         { status: 422 }
       );
     }
@@ -86,7 +86,7 @@ Return only the JSON array. If a field cannot be determined, use null.`;
   } catch (err: any) {
     console.error("extract-price-sheet error:", err);
     return NextResponse.json(
-      { error: err?.message ?? "Internal server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

@@ -127,7 +127,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
       items = Array.isArray(parsed) ? parsed : [];
     } catch {
       return NextResponse.json(
-        { error: "Failed to parse extraction result", raw: text },
+        { error: "Failed to parse extraction result" },
         { status: 422 }
       );
     }
@@ -147,7 +147,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
   } catch (err: any) {
     console.error("extract-gc-form error:", err);
     return NextResponse.json(
-      { error: err?.message ?? "Internal server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
