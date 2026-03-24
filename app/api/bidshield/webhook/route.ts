@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
-  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-12-18.acacia" as any });
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-12-18.acacia" as Stripe.LatestApiVersion });
 }
 
 function getConvex() {
@@ -17,18 +17,19 @@ export async function POST(req: NextRequest) {
   const stripe = getStripe();
   const convex = getConvex();
   const body = await req.text();
-  const sig = req.headers.get("stripe-signature")!;
+  const sig = req.headers.get("stripe-signature");
+  if (!sig) return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) throw new Error("STRIPE_WEBHOOK_SECRET not configured");
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (err: any) {
-    console.error("Webhook signature verification failed:", err.message);
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Webhook signature verification failed:", message);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
         if (userId && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
-          ) as unknown as Stripe.Subscription;
+          );
 
           await convex.mutation(api.users.updateBidShieldSubscription, {
             clerkId: userId,
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
               plan: planId === "pro_annual" ? "annual" : "monthly",
               status: "active",
               stripeSubscriptionId: subscription.id,
-              currentPeriodEnd: (subscription as any).current_period_end * 1000,
+              currentPeriodEnd: (subscription.items.data[0]?.current_period_end ?? 0) * 1000,
             },
           });
         }
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
               plan: subscription.metadata?.planId === "pro_annual" ? "annual" : "monthly",
               status: status as "active" | "canceled" | "past_due",
               stripeSubscriptionId: subscription.id,
-              currentPeriodEnd: (subscription as any).current_period_end * 1000,
+              currentPeriodEnd: (subscription.items.data[0]?.current_period_end ?? 0) * 1000,
             },
           });
         }
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
               plan: subscription.metadata?.planId === "pro_annual" ? "annual" : "monthly",
               status: "canceled",
               stripeSubscriptionId: subscription.id,
-              currentPeriodEnd: (subscription as any).current_period_end * 1000,
+              currentPeriodEnd: (subscription.items.data[0]?.current_period_end ?? 0) * 1000,
             },
           });
         }
