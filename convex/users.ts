@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 // Get or create user from Clerk authentication
@@ -82,6 +82,19 @@ export const getOrCreateUser = mutation({
   },
 });
 
+// L4: Shared user lookup by email — used by webhook handlers to avoid duplicating
+// identical query logic across checkout.session.completed and subscription.updated
+// branches. Pass the customer email from the Stripe session/subscription object.
+export const getByEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+  },
+});
+
 // Get current user info
 export const getCurrentUser = query({
   args: { clerkId: v.string() },
@@ -145,6 +158,8 @@ export const getUserSubscription = query({
 });
 
 // Admin: get all users + all projects
+// TODO (M8): Replace .take() with proper Convex paginated queries (usePaginatedQuery on
+// the admin dashboard) to support unbounded growth beyond the 500-record safety limit.
 export const adminGetAllData = query({
   args: {},
   handler: async (ctx) => {
@@ -155,9 +170,30 @@ export const adminGetAllData = query({
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .first();
     if (user?.role !== "admin") throw new Error("Unauthorized");
-    const users = await ctx.db.query("users").order("desc").collect();
-    const projects = await ctx.db.query("bidshield_projects").order("desc").collect();
+    // Safety cap: prevents OOM on large datasets. Migrate to paginated query when user
+    // count exceeds ~500. See AUDIT_FIX_PLAN.md M8 for the full pagination upgrade path.
+    const users = await ctx.db.query("users").order("desc").take(500);
+    const projects = await ctx.db.query("bidshield_projects").order("desc").take(500);
     return { users, projects };
+  },
+});
+
+// Idempotency guard for Stripe webhook events (M9).
+// Returns true if the event was already processed; inserts and returns false otherwise.
+// Call this at the start of each Stripe event handler before any writes.
+export const isWebhookEventProcessed = mutation({
+  args: { stripeEventId: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("processedWebhooks")
+      .withIndex("by_stripe_event_id", (q) => q.eq("stripeEventId", args.stripeEventId))
+      .first();
+    if (existing) return true;
+    await ctx.db.insert("processedWebhooks", {
+      stripeEventId: args.stripeEventId,
+      processedAt: Date.now(),
+    });
+    return false;
   },
 });
 

@@ -107,7 +107,7 @@ export const DEMO_COUNT_ITEMS = [
 // ─── ADDENDA ───
 export const DEMO_ADDENDA = [
   {
-    _id: "add_1" as any, number: 1, title: "Revised RTU schedule — 2 additional units",
+    _id: "add_1" as string, number: 1, title: "Revised RTU schedule — 2 additional units",
     receivedDate: "2026-02-14", affectsScope: true, acknowledged: true, incorporated: true,
     scopeImpact: "Added 2 RTU curbs (now 8 total). Requires additional curb adapters.",
     impactCategories: "material,labor", repriced: true, repricedDate: "2026-02-15",
@@ -115,7 +115,7 @@ export const DEMO_ADDENDA = [
     notes: "Updated takeoff and material quantities.",
   },
   {
-    _id: "add_2" as any, number: 2, title: "Warranty upgraded to 25-year NDL",
+    _id: "add_2" as string, number: 2, title: "Warranty upgraded to 25-year NDL",
     receivedDate: "2026-02-18", affectsScope: true, acknowledged: true, incorporated: false,
     scopeImpact: "Manufacturer warranty fee increases. May require thicker membrane.",
     impactCategories: "material", repriced: false, repricedDate: undefined,
@@ -123,14 +123,14 @@ export const DEMO_ADDENDA = [
     notes: "",
   },
   {
-    _id: "add_3" as any, number: 3, title: "Clarification — tenant occupied during work",
+    _id: "add_3" as string, number: 3, title: "Clarification — tenant occupied during work",
     receivedDate: "2026-02-20", affectsScope: false, acknowledged: true, incorporated: false,
     scopeImpact: undefined, impactCategories: undefined, repriced: undefined,
     repricedDate: undefined, priceImpact: undefined, priority: "normal",
     notes: "Confirmed — east wing tenant moves out March 1. Work hours 7AM-5PM.",
   },
   {
-    _id: "add_4" as any, number: 4, title: "Substitution: Carlisle to Firestone allowed",
+    _id: "add_4" as string, number: 4, title: "Substitution: Carlisle to Firestone allowed",
     receivedDate: "2026-02-22", affectsScope: false, acknowledged: false, incorporated: false,
     scopeImpact: undefined, impactCategories: undefined, repriced: undefined,
     repricedDate: undefined, priceImpact: undefined, priority: "normal",
@@ -141,14 +141,14 @@ export const DEMO_ADDENDA = [
 // ─── RFIs ───
 export const DEMO_RFIS = [
   {
-    _id: "rfi_1" as any, number: 1,
+    _id: "rfi_1" as string, number: 1,
     question: "Drawing A-301 shows parapet height at 42\" but detail 7/A-501 shows 36\". Which is correct?",
     sentTo: "Skanska — John Peters", status: "sent",
     createdAt: Date.now() - 5 * 86400000, sentAt: Date.now() - 4 * 86400000,
     updatedAt: Date.now() - 4 * 86400000,
   },
   {
-    _id: "rfi_2" as any, number: 2,
+    _id: "rfi_2" as string, number: 2,
     question: "Spec calls for R-30 insulation but existing deck height limits us to R-25. Will owner accept?",
     sentTo: "Skanska — John Peters", status: "answered",
     response: "Owner approved R-25 with additional cover board. Revised spec section by 2/28.",
@@ -156,7 +156,7 @@ export const DEMO_RFIS = [
     respondedAt: Date.now() - 2 * 86400000, updatedAt: Date.now() - 2 * 86400000,
   },
   {
-    _id: "rfi_3" as any, number: 3,
+    _id: "rfi_3" as string, number: 3,
     question: "NE quadrant wet insulation — who covers deck drying time if rain during tear-off?",
     sentTo: undefined, status: "draft",
     createdAt: Date.now() - 86400000, updatedAt: Date.now() - 86400000,
@@ -166,35 +166,35 @@ export const DEMO_RFIS = [
 // ─── QUOTES ───
 export const DEMO_QUOTES = [
   {
-    _id: "q_1" as any, vendorName: "ABC Supply — Charlotte", vendorEmail: "quotes@abcsupply.com",
+    _id: "q_1" as string, vendorName: "ABC Supply — Charlotte", vendorEmail: "quotes@abcsupply.com",
     vendorPhone: "(704) 555-0142", category: "membrane",
     products: ["TPO 60mil White", "TPO Bonding Adhesive", "TPO Cover Tape"],
     quoteAmount: 186000, quoteDate: "2026-02-10", expirationDate: "2026-03-10",
     status: "received", notes: "Best price if ordered by 3/1",
   },
   {
-    _id: "q_2" as any, vendorName: "Beacon Building Products", vendorEmail: "charlotte@becn.com",
+    _id: "q_2" as string, vendorName: "Beacon Building Products", vendorEmail: "charlotte@becn.com",
     vendorPhone: "(704) 555-0388", category: "insulation",
     products: ["Polyiso 3.5\"", "Tapered Polyiso", "HD Cover Board"],
     quoteAmount: 142000, quoteDate: "2026-02-12", expirationDate: "2026-03-12",
     status: "received", notes: "Includes delivery. 2-week lead time.",
   },
   {
-    _id: "q_3" as any, vendorName: "Metal Era", vendorEmail: "sales@metalera.com",
+    _id: "q_3" as string, vendorName: "Metal Era", vendorEmail: "sales@metalera.com",
     category: "edge_metal",
     products: ["Perma-Tite Edge", "Coping System 12\""],
     quoteAmount: 28500, quoteDate: "2026-02-08", expirationDate: "2026-02-28",
     status: "received", notes: "EXPIRING — need to confirm or re-quote",
   },
   {
-    _id: "q_4" as any, vendorName: "Carlisle SynTec", vendorEmail: "warranty@carlisle.com",
+    _id: "q_4" as string, vendorName: "Carlisle SynTec", vendorEmail: "warranty@carlisle.com",
     category: "warranty",
     products: ["20-Year NDL Warranty"],
     quoteAmount: 8500, quoteDate: "2026-02-15", expirationDate: "2026-04-15",
     status: "received", notes: "Need to update for 25-yr per Addendum #2",
   },
   {
-    _id: "q_5" as any, vendorName: "SRS Distribution",
+    _id: "q_5" as string, vendorName: "SRS Distribution",
     category: "accessories",
     products: ["Fasteners", "Plates", "Sealants", "Walkway Pads"],
     quoteAmount: undefined, quoteDate: undefined, expirationDate: undefined,

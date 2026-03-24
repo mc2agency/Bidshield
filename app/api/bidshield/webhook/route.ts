@@ -33,6 +33,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  // M9: Idempotency guard — skip if we've already processed this Stripe event.
+  // Stripe retries webhooks on non-2xx responses; without this check a retry after
+  // a partial Convex write could create duplicate subscription records.
+  const alreadyProcessed = await convex.mutation(api.users.isWebhookEventProcessed, {
+    stripeEventId: event.id,
+  });
+  if (alreadyProcessed) {
+    return NextResponse.json({ received: true, skipped: "duplicate" });
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {

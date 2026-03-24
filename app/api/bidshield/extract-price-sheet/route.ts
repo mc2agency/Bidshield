@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
-import { checkRateLimit } from "@/lib/rateLimit";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// 20 MB limit — base64 adds ~33% overhead so we check against 27.3 MB of chars
+const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
+
+function validatePdfBase64(b64: string): boolean {
+  // PDF magic bytes: %PDF → base64 prefix "JVBE"
+  return b64.startsWith("JVBE");
+}
+
 export async function POST(req: NextRequest) {
-  console.log("AUTH CHECK ADDED — extract-price-sheet");
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!checkRateLimit(userId)) {
+  const rl = checkRateLimit(userId);
+  if (!rl.allowed) {
     return NextResponse.json(
       { error: "Rate limit exceeded. Please wait before trying again." },
-      { status: 429 }
+      { status: 429, headers: rateLimitHeaders(rl) }
     );
   }
 
@@ -23,6 +31,12 @@ export async function POST(req: NextRequest) {
 
     if (!pdfBase64) {
       return NextResponse.json({ error: "No PDF data provided" }, { status: 400 });
+    }
+    if (pdfBase64.length > MAX_BASE64_CHARS) {
+      return NextResponse.json({ error: "File too large (max 20 MB)" }, { status: 413 });
+    }
+    if (!validatePdfBase64(pdfBase64)) {
+      return NextResponse.json({ error: "File must be a PDF" }, { status: 415 });
     }
 
     const systemPrompt = `You are a construction materials pricing assistant. Extract all product pricing data from this vendor price sheet PDF. Return ONLY a valid JSON array — no markdown, no explanation.
@@ -53,12 +67,17 @@ Return only the JSON array. If a field cannot be determined, use null.`;
       },
     ];
 
-    const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userContent }],
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    let message: Awaited<ReturnType<typeof client.messages.create>>;
+    try {
+      message = await client.messages.create(
+        { model: "claude-haiku-4-5-20251001", max_tokens: 4096, system: systemPrompt, messages: [{ role: "user", content: userContent }] },
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
 
