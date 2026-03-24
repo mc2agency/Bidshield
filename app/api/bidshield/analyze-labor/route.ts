@@ -2,11 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const AnalyzeLaborSchema = z.object({
+  description: z.string().min(1).max(5000).trim(),
+  projectName: z.string().max(200).optional(),
+  sqft: z.number().positive().optional(),
+  systemType: z.string().max(50).optional(),
+  deckType: z.string().max(50).optional(),
+  laborType: z.enum(["open_shop", "prevailing_wage", "union"]).optional(),
+  baseWage: z.number().positive().max(500).optional(),
+  bidDate: z.string().max(20).optional(),
+  estimatedDuration: z.string().max(100).optional(),
+  assemblies: z.array(z.string().max(100)).max(20).optional(),
+});
+
 export async function POST(req: NextRequest) {
-  console.log("AUTH CHECK ADDED — analyze-labor");
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,7 +33,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const parsed = AnalyzeLaborSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
     const {
       description,
       projectName,
@@ -32,11 +48,7 @@ export async function POST(req: NextRequest) {
       bidDate,
       estimatedDuration,
       assemblies,
-    } = body;
-
-    if (!description) {
-      return NextResponse.json({ error: "No scope description provided" }, { status: 400 });
-    }
+    } = parsed.data;
 
     const burdenMap: Record<string, number> = {
       open_shop: 1.35,
