@@ -6,21 +6,18 @@ import EmailCapture from '@/components/EmailCapture';
 const mistakeScenarios = [
   {
     icon: '🔩',
-    cost: '$47,000',
     title: 'Mechanical Plan Review',
     scenario: 'Every mechanical plan reviewed for curbs, equipment supports, and dunnage before takeoff. Quantities verified against the plan set.',
     phase: 'Covered in Phase 5 — Mechanical Review',
   },
   {
     icon: '📋',
-    cost: '$31,000',
     title: 'Addenda Tracking',
-    scenario: 'Every addendum logged, reviewed for scope impact, and confirmed incorporated before submission. No surprises on bid day.',
+    scenario: 'Every addendum logged, reviewed for scope impact, and confirmed incorporated before submission. Fully incorporated before submission.',
     phase: 'Covered in Phase 2 — Addenda Review',
   },
   {
     icon: '📁',
-    cost: '$22,000',
     title: 'Specification Review',
     scenario: 'Spec sections reviewed for submittal requirements, special inspections, and compliance items that affect your scope and cost.',
     phase: 'Covered in Phase 9 — Specification Review',
@@ -64,10 +61,7 @@ export default function HomepageContent() {
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-            BidShield is the structured workflow commercial roofing estimators run from first plan review to final submission. Works alongside The EDGE, STACK, and Excel — built by a 12-year estimator who needed it.
-          </p>
-          <p className="text-sm text-emerald-400 font-medium mb-10">
-            Works alongside The EDGE, STACK, and Excel — no replacement required.
+            BidShield is the structured workflow commercial roofing estimators run from first plan review to final submission — built by a 12-year estimator who needed it.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -105,7 +99,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* Mistake Scenarios */}
+      {/* What BidShield Covers */}
       <section className="py-24 bg-slate-950 border-t border-slate-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -124,11 +118,10 @@ export default function HomepageContent() {
             {mistakeScenarios.map((m) => (
               <div
                 key={m.title}
-                className="bg-slate-900 rounded-2xl p-6 border border-slate-800 hover:border-red-500/20 transition-all duration-300"
+                className="bg-slate-900 rounded-2xl p-6 border border-slate-800 hover:border-emerald-500/20 transition-all duration-300"
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center mb-4">
                   <span className="text-3xl">{m.icon}</span>
-                  <span className="text-red-400 font-bold text-lg">{m.cost}</span>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-3">{m.title}</h3>
                 <p className="text-slate-400 text-sm leading-relaxed mb-4">{m.scenario}</p>
@@ -183,7 +176,7 @@ export default function HomepageContent() {
         </div>
       </section>
 
-      {/* How It Works — Screenshots + Demo Video */}
+      {/* How It Works */}
       <section className="py-24 bg-slate-900 border-t border-slate-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -198,22 +191,8 @@ export default function HomepageContent() {
             </p>
           </div>
 
-          {/* Loom embed — replace REPLACE_WITH_YOUR_LOOM_ID with your actual Loom video ID */}
-          <div
-            className="relative w-full mb-16 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl"
-            style={{ paddingTop: '56.25%' }}
-          >
-            <iframe
-              src="https://www.loom.com/embed/REPLACE_WITH_YOUR_LOOM_ID"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-              title="BidShield 60-second walkthrough"
-            />
-          </div>
-
-          {/* Screenshots */}
           <div className="space-y-16">
-            {/* Screenshot 1 — Project list */}
+            {/* Row 1 — Dashboard */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <div className="text-xs text-emerald-500 font-semibold uppercase tracking-wide mb-2">Dashboard</div>
@@ -223,24 +202,12 @@ export default function HomepageContent() {
                   Free plan: 1 active project. Pro: unlimited.
                 </p>
               </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700 shadow-lg bg-slate-800 aspect-video flex items-center justify-center">
-                {/* Replace with: <img src="/screenshots/dashboard-project-list.png" alt="BidShield project list dashboard" className="w-full block" /> */}
-                <p className="text-slate-500 text-sm text-center px-4">
-                  Add screenshot: /public/screenshots/dashboard-project-list.png<br />
-                  Capture from /bidshield/demo
-                </p>
-              </div>
+              <div className="w-full rounded-xl bg-white/5" style={{ aspectRatio: '16/9' }} />
             </div>
 
-            {/* Screenshot 2 — Checklist in progress */}
+            {/* Row 2 — Checklist */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1 rounded-xl overflow-hidden border border-slate-700 shadow-lg bg-slate-800 aspect-video flex items-center justify-center">
-                {/* Replace with: <img src="/screenshots/checklist-in-progress.png" alt="BidShield 18-phase checklist" className="w-full block" /> */}
-                <p className="text-slate-500 text-sm text-center px-4">
-                  Add screenshot: /public/screenshots/checklist-in-progress.png<br />
-                  Capture ChecklistTab mid-review from /bidshield/demo
-                </p>
-              </div>
+              <div className="order-2 md:order-1 w-full rounded-xl bg-white/5" style={{ aspectRatio: '16/9' }} />
               <div className="order-1 md:order-2">
                 <div className="text-xs text-emerald-500 font-semibold uppercase tracking-wide mb-2">18-Phase Checklist</div>
                 <h3 className="text-xl font-bold text-white mb-3">Every discipline. Every item.</h3>
@@ -251,27 +218,21 @@ export default function HomepageContent() {
               </div>
             </div>
 
-            {/* Screenshot 3 — Bid Readiness Score */}
+            {/* Row 3 — Bid Validator */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <div className="text-xs text-emerald-500 font-semibold uppercase tracking-wide mb-2">Bid Validator</div>
-                <h3 className="text-xl font-bold text-white mb-3">Submit with confidence, not gut feel</h3>
+                <h3 className="text-xl font-bold text-white mb-3">Know your bid is ready before you submit.</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
                   The Bid Readiness Score checks checklist completion, critical phase status,
                   quote expiration, open RFIs, and addenda acknowledgment — before you click submit.
                 </p>
               </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700 shadow-lg bg-slate-800 aspect-video flex items-center justify-center">
-                {/* Replace with: <img src="/screenshots/bid-readiness-score.png" alt="BidShield bid readiness score" className="w-full block" /> */}
-                <p className="text-slate-500 text-sm text-center px-4">
-                  Add screenshot: /public/screenshots/bid-readiness-score.png<br />
-                  Capture ValidatorTab from /bidshield/demo
-                </p>
-              </div>
+              <div className="w-full rounded-xl bg-white/5" style={{ aspectRatio: '16/9' }} />
             </div>
           </div>
 
-          {/* CTA after screenshots */}
+          {/* CTA after feature rows */}
           <div className="text-center mt-16 flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="/bidshield/demo"
@@ -329,19 +290,19 @@ export default function HomepageContent() {
                 </span>
               </div>
               <div className="text-sm text-slate-400 mb-2">Pro</div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-5xl font-bold text-white">$149</span>
-                <span className="text-slate-500">/mo</span>
-              </div>
+              <div className="text-5xl font-bold text-white mb-1">$249</div>
+              <div className="text-slate-500 mb-1">/month</div>
               <div className="text-xs text-emerald-400 font-medium mb-6">
-                or $1,490/year — save $298 (2 months free)
+                or $2,490/year — save $498 (2 months free)
               </div>
               <ul className="space-y-3 text-sm text-slate-300 mb-8 text-left">
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Unlimited projects</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> PDF bid package export</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Win/loss analytics &amp; $/SF benchmarks</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> All 8 Excel templates included</li>
-                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Material price book &amp; quote tracking</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Unlimited active projects</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> 134-item bid review checklist</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Material Reconciliation with AI extraction</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Labor Verification with AI scope analysis</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> GC Bid Forms — Exhibit A/B prep</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Vendor address book &amp; quote library</li>
+                <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Full Validate dashboard with $/SF</li>
                 <li className="flex items-center gap-2"><span className="text-emerald-500">✓</span> Priority support</li>
               </ul>
               <Link
@@ -361,7 +322,7 @@ export default function HomepageContent() {
           <span className="text-4xl mb-4 block">📋</span>
           <h2 className="text-3xl font-bold text-white mb-4">Get the Free Bid-Day Checklist</h2>
           <p className="text-lg text-slate-400 mb-8">
-            Scope gaps. Missed addenda. Wrong coverage rates. Catch them before the bid goes out.
+            The 18-phase workflow professional estimators run before every submission.
           </p>
           <EmailCapture />
         </div>
@@ -378,7 +339,7 @@ export default function HomepageContent() {
           </h2>
           <p className="text-xl text-slate-300 mb-10">
             Material Reconciliation, Labor Verification, Scope tracking, GC Bid Forms — every part of your
-            pre-submission process in one place. Run your workflow, not a checklist of what might go wrong.
+            pre-submission process in one place. Every section of your bid process in one place, from first plan review to final submission.
           </p>
           <Link
             href="/sign-up"
@@ -386,9 +347,6 @@ export default function HomepageContent() {
           >
             Start 14-Day Free Trial — No Card Required
           </Link>
-          <p className="mt-6 text-sm text-slate-500">
-            Works alongside The EDGE, STACK, and Excel &bull; Free forever plan available
-          </p>
         </div>
       </section>
     </main>
