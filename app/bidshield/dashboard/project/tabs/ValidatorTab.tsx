@@ -86,6 +86,7 @@ function getLabelGroup(label: string): TabId | "__meta__" {
     "Coverage Rates": "materials" as any,
     "Waste Factors": "materials" as any,
     "Labor Verification": "labor" as any,
+    "Scope-Pricing Conflicts": "scope",
     "GC Bid Forms": "bidquals",
   };
   return map[label] ?? "__meta__";

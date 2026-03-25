@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useCallback, useState } from "react";
+import { Suspense, useMemo, useCallback, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
+import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
 
 import type { TabId } from "./tab-types";
 import {
@@ -63,7 +64,7 @@ function ProjectDetail() {
   const [editingBidInline, setEditingBidInline] = useState(false);
   const [bidInlineValue, setBidInlineValue] = useState("");
   const [editProjectOpen, setEditProjectOpen] = useState(false);
-  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null, pre1990: null as boolean | null, energyCode: null as boolean | null, climateZone: "" });
+  const [editProjectForm, setEditProjectForm] = useState({ name: "", gc: "", location: "", bidDate: "", bidTime: "", sqft: "", totalBidAmount: "", fmGlobal: null as boolean | null, pre1990: null as boolean | null, energyCode: null as boolean | null, climateZone: "" });
   const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
   const [outcomeForm, setOutcomeForm] = useState<{
     result: "won" | "lost" | "no_award" | "pending" | null;
@@ -73,6 +74,12 @@ function ProjectDetail() {
   }>({ result: null, competitorName: "", competitorPrice: "", lossReason: "" });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
   const [panelOverrides, setPanelOverrides] = useState<Record<string, boolean>>({});
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [dismissedWarnings, setDismissedWarnings] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
   const [decisionModalOpen, setDecisionModalOpen] = useState(false);
   const [decisionText, setDecisionText] = useState("");
   const [decisionWho, setDecisionWho] = useState("");
@@ -120,6 +127,7 @@ function ProjectDetail() {
       gc: (projectData as any)?.gc ?? "",
       location: projectData?.location ?? "",
       bidDate: projectData?.bidDate ?? "",
+      bidTime: (projectData as any)?.bidTime ?? "",
       sqft: ((projectData as any)?.grossRoofArea ?? (projectData as any)?.sqft ?? "").toString(),
       totalBidAmount: ((projectData as any)?.totalBidAmount ?? "").toString(),
       fmGlobal: (projectData as any)?.fmGlobal ?? null,
@@ -139,6 +147,7 @@ function ProjectDetail() {
       gc: editProjectForm.gc || undefined,
       location: editProjectForm.location || undefined,
       bidDate: editProjectForm.bidDate || undefined,
+      bidTime: editProjectForm.bidTime || undefined,
       grossRoofArea: parseNum(editProjectForm.sqft),
       sqft: parseNum(editProjectForm.sqft),
       totalBidAmount: parseNum(editProjectForm.totalBidAmount),
@@ -170,7 +179,7 @@ function ProjectDetail() {
     setOutcomeModalOpen(false);
   };
 
-  const { actionItems, readinessScore, passCount, scores, remaining } = useMemo(() => {
+  const { actionItems, readinessScore, passCount, scores, remaining, scopeConflictCount } = useMemo(() => {
     const items: ActionItem[] = [];
     const cl = isDemo ? [] : (checklist ?? []);
     const clTotal = isDemo ? 95 : cl.length;
@@ -264,14 +273,51 @@ function ProjectDetail() {
     const laborScore = ltTotal === 0 ? 0 : ltVerified === 0 ? 25 : ltVerified === ltTotal ? 100 : Math.round((ltVerified / ltTotal) * 100);
     (scores as any).labor = laborScore;
 
-    return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining };
+    // Scope-Pricing conflict count (for sidebar badge)
+    const scopeConflictCount = isDemo ? 1 : detectScopePricingConflicts({
+      scopeItems: scopeItems ?? [],
+      projectMaterials: projectMaterials ?? [],
+      laborTasks: laborTasks ?? [],
+      project: projectData,
+    }).length;
+
+    return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining, scopeConflictCount };
   }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis, laborTasks]);
 
   if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
   if (!isDemo && !projectData) return <div className="text-center py-20"><div className="text-slate-400 text-sm">Loading...</div></div>;
 
-  const bidDate = projectData?.bidDate ? new Date(projectData.bidDate) : null;
-  const daysUntilBid = bidDate ? Math.ceil((bidDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+  const bidDeadlineMs = useMemo(() => {
+    if (!projectData?.bidDate) return null;
+    const bidTimeStr = (projectData as any)?.bidTime as string | undefined;
+    if (bidTimeStr) {
+      return new Date(`${projectData.bidDate}T${bidTimeStr}:00`).getTime();
+    }
+    return new Date(`${projectData.bidDate}T23:59:59`).getTime();
+  }, [projectData]);
+
+  const msUntilBid = bidDeadlineMs !== null ? bidDeadlineMs - nowMs : null;
+  const hoursUntilBid = msUntilBid !== null ? msUntilBid / 3600000 : null;
+  const daysUntilBid = msUntilBid !== null ? Math.ceil(msUntilBid / (1000 * 60 * 60 * 24)) : null;
+
+  const activeWarning: "1h" | "4h" | "24h" | null = (() => {
+    if (hoursUntilBid === null || hoursUntilBid <= 0) return null;
+    if (hoursUntilBid <= 1 && !dismissedWarnings.has("1h")) return "1h";
+    if (hoursUntilBid <= 4 && !dismissedWarnings.has("4h")) return "4h";
+    if (hoursUntilBid <= 24 && !dismissedWarnings.has("24h")) return "24h";
+    return null;
+  })();
+
+  function formatCountdown(ms: number): string {
+    if (ms <= 0) return "Due now";
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    if (h >= 48) return `${Math.floor(h / 24)}d ${h % 24}h`;
+    if (h >= 1) return `${h}h ${String(m).padStart(2, "0")}m`;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
   const blockerCount = actionItems.filter(a => a.level === "blocker").length;
   const warnCount = actionItems.filter(a => a.level === "warning").length;
   const tabProps = { projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigateTab: openTab };
@@ -399,6 +445,11 @@ function ProjectDetail() {
                     ) : (
                       <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", display: "inline-block", flexShrink: 0 }} title="All tasks verified" />
                     )
+                  )}
+                  {id === "scope" && scopeConflictCount > 0 && (
+                    <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }} title={`${scopeConflictCount} scope-pricing conflict${scopeConflictCount !== 1 ? "s" : ""} detected`}>
+                      {scopeConflictCount}
+                    </span>
                   )}
                   {id === "bidquals" && unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0 && (
                     <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
@@ -536,22 +587,70 @@ function ProjectDetail() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            {daysUntilBid !== null && (
+            {msUntilBid !== null && (
               <span style={{
                 fontSize: 12, fontWeight: 600,
                 padding: "3px 10px",
                 borderRadius: 8,
-                background: daysUntilBid <= 0 ? "rgba(239,68,68,0.15)" : "#1a2332",
-                color: daysUntilBid <= 0 ? "#f87171" : "#10b981",
-                border: `1px solid ${daysUntilBid <= 0 ? "rgba(239,68,68,0.4)" : "#10b981"}`,
+                background: msUntilBid <= 0 ? "rgba(239,68,68,0.15)" : hoursUntilBid! <= 4 ? "rgba(239,68,68,0.12)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.12)" : "#1a2332",
+                color: msUntilBid <= 0 ? "#f87171" : hoursUntilBid! <= 4 ? "#f87171" : hoursUntilBid! <= 24 ? "#fbbf24" : "#10b981",
+                border: `1px solid ${msUntilBid <= 0 ? "rgba(239,68,68,0.4)" : hoursUntilBid! <= 4 ? "rgba(239,68,68,0.3)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.3)" : "#10b981"}`,
+                fontVariantNumeric: "tabular-nums",
               }}>
-                {daysUntilBid > 0 ? `${daysUntilBid}d to bid` : daysUntilBid === 0 ? "Due today" : "Past due"}
+                {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `⏰ ${formatCountdown(msUntilBid)}` : `${daysUntilBid}d to bid`}
               </span>
             )}
             {/* Static readiness — no spinner */}
             <span style={{ fontSize: 13, color: "#6b7280" }}>{readinessScore}% ready</span>
           </div>
         </div>
+
+        {/* Deadline warning banner */}
+        {activeWarning && (
+          <div style={{
+            background: activeWarning === "1h" ? "#fef2f2" : "#fffbeb",
+            borderBottom: `1px solid ${activeWarning === "1h" ? "#fecaca" : "#fde68a"}`,
+            padding: "8px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexShrink: 0,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 16 }}>{activeWarning === "1h" ? "🚨" : "⏰"}</span>
+              <div>
+                <span style={{
+                  fontSize: 13, fontWeight: 700,
+                  color: activeWarning === "1h" ? "#dc2626" : "#d97706",
+                }}>
+                  {activeWarning === "1h"
+                    ? "Less than 1 hour until bid deadline!"
+                    : activeWarning === "4h"
+                    ? "Less than 4 hours until bid deadline"
+                    : "Bid deadline in less than 24 hours"}
+                </span>
+                {msUntilBid !== null && msUntilBid > 0 && (
+                  <span style={{ fontSize: 12, color: activeWarning === "1h" ? "#ef4444" : "#f59e0b", marginLeft: 8, fontVariantNumeric: "tabular-nums" }}>
+                    ({formatCountdown(msUntilBid)} remaining)
+                  </span>
+                )}
+                {blockerCount > 0 && (
+                  <span style={{ fontSize: 12, color: "#9ca3af", marginLeft: 8 }}>
+                    · {blockerCount} blocker{blockerCount > 1 ? "s" : ""} unresolved
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setDismissedWarnings(s => new Set([...s, activeWarning]))}
+              style={{ color: "#9ca3af", background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "2px 4px", flexShrink: 0 }}
+              title="Dismiss"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* Panels B + C */}
         <div className="flex-1 flex overflow-hidden">
@@ -618,6 +717,63 @@ function ProjectDetail() {
                     );
                   })}
                 </div>
+
+                {/* Bid deadline countdown card */}
+                {msUntilBid !== null && (
+                  <div style={{
+                    background: msUntilBid <= 0 ? "#fef2f2" : hoursUntilBid! <= 4 ? "#fef2f2" : hoursUntilBid! <= 24 ? "#fffbeb" : "white",
+                    borderRadius: 10,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                    padding: "16px 20px",
+                    marginBottom: 16,
+                    border: `1px solid ${msUntilBid <= 0 ? "#fecaca" : hoursUntilBid! <= 4 ? "#fecaca" : hoursUntilBid! <= 24 ? "#fde68a" : "#e5e7eb"}`,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 500, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                          Bid Deadline
+                        </div>
+                        <div style={{
+                          fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
+                          color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#111827",
+                          letterSpacing: "-0.02em",
+                        }}>
+                          {msUntilBid <= 0 ? "Past due" : formatCountdown(msUntilBid)}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+                          {projectData?.bidDate
+                            ? (() => {
+                                const bidTimeStr = (projectData as any)?.bidTime as string | undefined;
+                                const dateLabel = new Date(`${projectData.bidDate}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                                return bidTimeStr ? `${dateLabel} at ${bidTimeStr}` : dateLabel;
+                              })()
+                            : "No deadline set"
+                          }
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        {blockerCount > 0 && (
+                          <div style={{
+                            fontSize: 12, fontWeight: 700, color: "#dc2626",
+                            background: "#fef2f2", border: "1px solid #fecaca",
+                            borderRadius: 6, padding: "4px 10px", marginBottom: 6,
+                          }}>
+                            {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
+                          </div>
+                        )}
+                        <div style={{
+                          fontSize: 12, fontWeight: 600,
+                          color: readinessScore >= 80 ? "#059669" : readinessScore >= 50 ? "#d97706" : "#dc2626",
+                          background: readinessScore >= 80 ? "#f0fdf4" : readinessScore >= 50 ? "#fffbeb" : "#fef2f2",
+                          border: `1px solid ${readinessScore >= 80 ? "#bbf7d0" : readinessScore >= 50 ? "#fde68a" : "#fecaca"}`,
+                          borderRadius: 6, padding: "4px 10px",
+                        }}>
+                          {readinessScore}% ready
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Action items */}
                 {actionItems.length === 0 ? (
@@ -777,13 +933,45 @@ function ProjectDetail() {
                   <div style={{ height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden", marginBottom: 8 }}>
                     <div style={{ height: "100%", width: `${readinessScore}%`, background: readinessColor, borderRadius: 9999, transition: "width 0.5s" }} />
                   </div>
-                  {daysUntilBid !== null && (
-                    <div style={{ fontSize: 12, color: daysUntilBid <= 3 ? "#d97706" : "#6b7280", fontWeight: daysUntilBid <= 3 ? 600 : 400 }}>
-                      {daysUntilBid > 0 ? `${daysUntilBid} days until bid` : daysUntilBid === 0 ? "Due today" : "Past due"}
+                  {msUntilBid !== null && (
+                    <div style={{
+                      fontSize: 12,
+                      color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#6b7280",
+                      fontWeight: hoursUntilBid !== null && hoursUntilBid <= 24 ? 600 : 400,
+                      fontVariantNumeric: "tabular-nums",
+                    }}>
+                      {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `⏰ ${formatCountdown(msUntilBid)} remaining` : `${daysUntilBid} day${daysUntilBid !== 1 ? "s" : ""} until bid`}
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* 1b. DEADLINE COUNTDOWN — only when < 24h */}
+              {msUntilBid !== null && msUntilBid > 0 && hoursUntilBid! <= 24 && (
+                <div style={{ paddingBottom: 20 }}>
+                  <div style={{
+                    borderRadius: 8, padding: 14,
+                    background: hoursUntilBid! <= 4 ? "#fef2f2" : "#fffbeb",
+                    border: `1px solid ${hoursUntilBid! <= 4 ? "#fecaca" : "#fde68a"}`,
+                  }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: hoursUntilBid! <= 4 ? "#ef4444" : "#f59e0b", marginBottom: 4 }}>
+                      Time Remaining
+                    </div>
+                    <div style={{
+                      fontSize: 30, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
+                      color: hoursUntilBid! <= 4 ? "#dc2626" : "#d97706",
+                      letterSpacing: "-0.02em",
+                    }}>
+                      {formatCountdown(msUntilBid)}
+                    </div>
+                    {blockerCount > 0 && (
+                      <div style={{ fontSize: 11, color: "#ef4444", marginTop: 6, fontWeight: 600 }}>
+                        ⚠ {blockerCount} unresolved blocker{blockerCount > 1 ? "s" : ""}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* 2. SF / BID / $/SF stat card */}
               <div style={{ paddingBottom: 20 }}>
@@ -1311,7 +1499,6 @@ function ProjectDetail() {
               { label: "Project Name", key: "name", type: "text" },
               { label: "General Contractor", key: "gc", type: "text" },
               { label: "Location", key: "location", type: "text" },
-              { label: "Bid Date", key: "bidDate", type: "date" },
               { label: "Gross Roof Area (SF)", key: "sqft", type: "number" },
               { label: "Bid Amount ($)", key: "totalBidAmount", type: "number" },
             ] as { label: string; key: keyof typeof editProjectForm; type: string }[]).map(({ label, key, type }) => (
@@ -1327,6 +1514,30 @@ function ProjectDetail() {
                 />
               </div>
             ))}
+            {/* Bid deadline — date + time on one row */}
+            <div>
+              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Bid Deadline</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="date"
+                  value={editProjectForm.bidDate}
+                  onChange={e => setEditProjectForm(f => ({ ...f, bidDate: e.target.value }))}
+                  style={{ flex: 2, border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box" }}
+                  onFocus={e => (e.target.style.borderColor = "#10b981")}
+                  onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                />
+                <input
+                  type="time"
+                  value={editProjectForm.bidTime}
+                  onChange={e => setEditProjectForm(f => ({ ...f, bidTime: e.target.value }))}
+                  placeholder="Time (optional)"
+                  style={{ flex: 1, border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box" }}
+                  onFocus={e => (e.target.style.borderColor = "#10b981")}
+                  onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                />
+              </div>
+              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>Time is optional — enables hour/minute countdown on bid day</div>
+            </div>
             {/* FM Global toggle */}
             <div>
               <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, display: "block" }}>FM Global Insured?</label>
