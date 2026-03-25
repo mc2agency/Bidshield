@@ -543,12 +543,26 @@ function SectionCard({ title, children }: { title: string; children: React.React
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function AutoBadge({ source }: { source: string }) {
+  return (
+    <span title={`Auto-filled from ${source}`} style={{
+      marginLeft: 6, fontSize: 10, fontWeight: 600,
+      color: "#2563eb", background: "#eff6ff",
+      border: "1px solid #bfdbfe", borderRadius: 4,
+      padding: "1px 5px", verticalAlign: "middle",
+    }}>
+      auto · {source}
+    </span>
+  );
+}
+
+function Field({ label, hint, children, autoSource }: { label: string; hint?: string; children: React.ReactNode; autoSource?: string }) {
   return (
     <div>
       <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#6b7280", marginBottom: 5 }}>
         {label}
         {hint && <span style={{ fontWeight: 400, marginLeft: 6, color: "#9ca3af" }}>({hint})</span>}
+        {autoSource && <AutoBadge source={autoSource} />}
       </label>
       {children}
     </div>
@@ -690,10 +704,43 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
   );
   const upsertQuals = useMutation(api.bidshield.upsertBidQuals);
 
+  // Queries for auto-population from other tabs
+  const addendaData = useQuery(
+    api.bidshield.getAddenda,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const laborAnalysis = useQuery(
+    api.bidshield.getLaborAnalysis,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+
   const [demoState, setDemoState] = useState<QualFields>(DEMO_QUALS);
   const debounceRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const data: QualFields = isDemo ? demoState : (qualsData ?? {});
+
+  // Auto-populated values derived from other tabs
+  const autoAddendaThrough = (!isDemo && addendaData && addendaData.length > 0)
+    ? Math.max(...addendaData.map((a: any) => a.number))
+    : undefined;
+  const autoLaborType = (!isDemo && laborAnalysis?.laborType)
+    ? laborAnalysis.laborType as QualFields["laborType"]
+    : undefined;
+  const autoLaborBurdenRate = (!isDemo && laborAnalysis?.burdenMultiplier)
+    ? `${Math.round((laborAnalysis.burdenMultiplier - 1) * 100)}%`
+    : undefined;
+
+  // Effective values: prefer user-set data, fall back to auto
+  const effectiveAddendaThrough = data.addendaThrough ?? autoAddendaThrough;
+  const effectiveLaborType = data.laborType ?? autoLaborType;
+  const effectiveLaborBurdenRate = data.laborBurdenRate ?? autoLaborBurdenRate;
+
+  // Track which fields are showing auto-sourced values
+  const isAutoField = {
+    addendaThrough: (data.addendaThrough === undefined || data.addendaThrough === null) && autoAddendaThrough !== undefined,
+    laborType: !data.laborType && !!autoLaborType,
+    laborBurdenRate: !data.laborBurdenRate && !!autoLaborBurdenRate,
+  };
 
   // Save a single field (debounced for text, immediate for toggles/radios)
   const saveField = useCallback((field: string, value: any, immediate = false) => {
@@ -807,11 +854,12 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
           />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Addenda incorporated through #">
+          <Field label="Addenda incorporated through #" autoSource={isAutoField.addendaThrough ? "Addenda tab" : undefined}>
             <input
               type="number"
-              className={INPUT_CLS}
-              defaultValue={data.addendaThrough ?? ""}
+              key={`addendaThrough-${effectiveAddendaThrough}`}
+              className={INPUT_CLS + (isAutoField.addendaThrough ? " border-blue-200 bg-blue-50/30" : "")}
+              defaultValue={effectiveAddendaThrough ?? ""}
               min={0}
               placeholder="0"
               onBlur={e => saveField("addendaThrough", e.target.value ? parseInt(e.target.value) : undefined)}
@@ -831,9 +879,9 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
 
       {/* Section 2: Labor */}
       <SectionCard title="👷 Labor">
-        <Field label="Labor type">
+        <Field label="Labor type" autoSource={isAutoField.laborType ? "Labor tab" : undefined}>
           <RadioGroup
-            value={data.laborType}
+            value={effectiveLaborType}
             options={[
               { id: "open_shop", label: "Open Shop" },
               { id: "prevailing_wage", label: "Prevailing Wage" },
@@ -842,7 +890,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
             onChange={v => saveField("laborType", v, true)}
           />
         </Field>
-        {data.laborType === "prevailing_wage" && (
+        {effectiveLaborType === "prevailing_wage" && (
           <div className="grid grid-cols-2 gap-4">
             <Field label="Wage determination #">
               <input
@@ -863,7 +911,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
             </Field>
           </div>
         )}
-        {data.laborType === "union" && (
+        {effectiveLaborType === "union" && (
           <Field label="Union local #">
             <input
               type="text"
@@ -874,11 +922,12 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
             />
           </Field>
         )}
-        <Field label="Labor burden rate" hint="for your reference">
+        <Field label="Labor burden rate" hint="for your reference" autoSource={isAutoField.laborBurdenRate ? "Labor tab" : undefined}>
           <input
             type="text"
-            className={INPUT_CLS}
-            defaultValue={data.laborBurdenRate ?? ""}
+            key={`laborBurdenRate-${effectiveLaborBurdenRate}`}
+            className={INPUT_CLS + (isAutoField.laborBurdenRate ? " border-blue-200 bg-blue-50/30" : "")}
+            defaultValue={effectiveLaborBurdenRate ?? ""}
             placeholder="42%"
             onBlur={e => saveField("laborBurdenRate", e.target.value)}
           />
