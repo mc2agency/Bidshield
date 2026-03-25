@@ -7,10 +7,11 @@ import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps, TabId } from "../tab-types";
 import { computeBidScore } from "@/lib/bidScore";
 import type { ScoreItem } from "@/lib/bidScore";
+import { generateBidSummaryPDF } from "@/lib/generateBidSummaryPDF";
 import {
   LayoutList, AlignLeft, DollarSign, Quote, FileText,
-  HelpCircle, ClipboardList, Briefcase, Calendar, Info,
-  CheckCircle2, AlertTriangle, XCircle, ChevronRight,
+  HelpCircle, ClipboardList, Briefcase, Calendar,
+  CheckCircle2, AlertTriangle, XCircle, ChevronRight, Download,
 } from "lucide-react";
 
 
@@ -159,6 +160,7 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
   );
 
   const [hasRun] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const projectData = project;
 
   const scoreData = (hasRun && (isDemo || projectData)) ? computeBidScore({
@@ -186,6 +188,98 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
   const total   = scoreData.items.length;
   const isReady = fails.length === 0;
   const allPass = fails.length === 0 && warns.length === 0;
+
+  // ── Computed bid summary values (shared between render and PDF export) ──────
+  const pd = project as any;
+  const computedMat = (projectMaterials ?? []).reduce((s: number, m: any) => s + (m.totalCost || 0), 0);
+  const sumMaterial: number | null = isDemo ? 612000 : (computedMat > 0 ? Math.round(computedMat) : (pd?.materialCost ?? null));
+  const sumLabor: number | null    = isDemo ? 488000 : (laborTotal ?? pd?.laborCost ?? null);
+
+  const gcLineItems  = isDemo ? [] : (gcItems ?? []);
+  const gcNonMarkup  = gcLineItems.filter((i: any) => !i.isMarkup);
+  const gcMarkupRows = gcLineItems.filter((i: any) => i.isMarkup);
+  const gcLineTotal  = gcNonMarkup.reduce((s: number, i: any) => s + (i.total ?? 0), 0);
+  const gcMarkupBase = (sumMaterial ?? 0) + (sumLabor ?? 0) + gcLineTotal;
+
+  const demoGCLine   = 13600;
+  const demoMBase    = 612000 + 488000 + demoGCLine;
+  const demoMarkup   = Math.round(demoMBase * 0.21);
+
+  const sumGCLine: number | null   = isDemo ? demoGCLine : (gcLineTotal  > 0 ? gcLineTotal  : null);
+  const sumSubtotal: number | null = sumMaterial !== null || sumLabor !== null
+    ? (sumMaterial ?? 0) + (sumLabor ?? 0) + (isDemo ? demoGCLine : gcLineTotal)
+    : null;
+  const sumTotalBid: number | null = isDemo ? 1250000 : (pd?.totalBidAmount ?? null);
+  const sumSqft: number | null     = isDemo ? 68000   : (pd?.grossRoofArea ?? pd?.sqft ?? null);
+  const sumDpSF: number | null     = sumTotalBid && sumSqft && sumSqft > 0 ? sumTotalBid / sumSqft : null;
+
+  const overheadRow = isDemo ? { description: "Overhead", markupPct: 10 } : gcMarkupRows.find((i: any) => i.description?.toLowerCase().includes("overhead"));
+  const profitRow   = isDemo ? { description: "Profit",   markupPct: 8  } : gcMarkupRows.find((i: any) => i.description?.toLowerCase().includes("profit"));
+  const gcMarkupTotal = gcMarkupRows.reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0);
+  const sumMarkup: number | null = isDemo ? demoMarkup : (gcMarkupTotal > 0 ? gcMarkupTotal : null);
+  const overheadAmt  = overheadRow ? (isDemo ? demoMBase : gcMarkupBase) * ((overheadRow.markupPct ?? 0) / 100) : null;
+  const profitAmt    = profitRow   ? (isDemo ? demoMBase : gcMarkupBase) * ((profitRow.markupPct   ?? 0) / 100) : null;
+
+  const laborMap: Record<string, string> = { open_shop: "Open Shop", prevailing_wage: "Prevailing Wage", union: "Union" };
+  const laborKey   = isDemo ? "open_shop" : (bidQuals?.laborType ?? "");
+  const laborLabel = laborKey ? (laborMap[laborKey] ?? null) : null;
+  const addendaThru = isDemo ? 2 : (bidQuals?.addendaThrough ?? (addenda ? addenda.length : null));
+  const systemLabel = pd?.systemType ? pd.systemType.toUpperCase() : null;
+
+  const scopeExclusions = (scopeItems ?? [])
+    .filter((s: any) => s.status === "excluded")
+    .map((s: any) => (s.item || s.name || "").trim())
+    .filter(Boolean) as string[];
+
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      await generateBidSummaryPDF({
+        project: {
+          name:     pd?.name,
+          location: pd?.location,
+          gc:       pd?.gc,
+          owner:    pd?.owner,
+          bidDate:  pd?.bidDate ?? (isDemo ? "2026-03-07" : undefined),
+        },
+        financials: {
+          sumMaterial,
+          sumLabor,
+          sumGCLine,
+          sumSubtotal,
+          sumTotalBid,
+          sumSqft,
+          sumDpSF,
+          overheadPct: overheadRow?.markupPct ?? null,
+          overheadAmt,
+          profitPct:   profitRow?.markupPct   ?? null,
+          profitAmt,
+          otherMarkupAmt: (!overheadRow && !profitRow) ? sumMarkup : null,
+        },
+        validator: {
+          score:      scoreData.score,
+          passCount:  passes.length,
+          warnCount:  warns.length,
+          failCount:  fails.length,
+          isReady,
+          allPass,
+          warnings: warns.map(w => ({ label: w.label, message: w.message })),
+          failures: fails.map(f => ({ label: f.label, message: f.message })),
+        },
+        scope: {
+          includedCount:  (scopeItems ?? []).filter((s: any) => s.status === "included").length,
+          excludedCount:  (scopeItems ?? []).filter((s: any) => s.status === "excluded").length,
+          byOthersCount:  (scopeItems ?? []).filter((s: any) => s.status === "by_others").length,
+          exclusions:     scopeExclusions,
+        },
+        addendaCount:  isDemo ? 2 : (addenda?.length ?? 0),
+        roofSystem:    systemLabel,
+        laborLabel:    laborLabel,
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Hero status
   const heroTitle = allPass
@@ -366,49 +460,10 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
 
       {/* ── ZONE 4: Bid Summary ── */}
       {(() => {
-        const pd = project as any;
-        // Materials: prefer computed from projectMaterials, fall back to project field
-        const computedMat = (projectMaterials ?? []).reduce((s: number, m: any) => s + (m.totalCost || 0), 0);
-        const sumMaterial: number | null = isDemo ? 612000 : (computedMat > 0 ? Math.round(computedMat) : (pd?.materialCost ?? null));
-        const sumLabor: number | null    = isDemo ? 488000 : (laborTotal ?? pd?.laborCost ?? null);
-
-        // GC breakdown from gcItems
-        const gcLineItems   = isDemo ? [] : (gcItems ?? []);
-        const gcNonMarkup   = gcLineItems.filter((i: any) => !i.isMarkup);
-        const gcMarkupRows  = gcLineItems.filter((i: any) => i.isMarkup);
-        const gcLineTotal   = gcNonMarkup.reduce((s: number, i: any) => s + (i.total ?? 0), 0);
-        const gcMarkupBase  = (sumMaterial ?? 0) + (sumLabor ?? 0) + gcLineTotal;
-        const gcMarkupTotal = gcMarkupRows.reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0);
-
-        // Demo GC constants
-        const demoGCLine    = 13600;
-        const demoMBase     = 612000 + 488000 + demoGCLine;
-        const demoMarkup    = Math.round(demoMBase * 0.21);
-
-        const sumGCLine: number | null    = isDemo ? demoGCLine : (gcLineTotal  > 0 ? gcLineTotal  : null);
-        const sumMarkup: number | null    = isDemo ? demoMarkup : (gcMarkupTotal > 0 ? gcMarkupTotal : null);
-        const sumSubtotal: number | null  = sumMaterial !== null || sumLabor !== null
-          ? (sumMaterial ?? 0) + (sumLabor ?? 0) + (isDemo ? demoGCLine : gcLineTotal)
-          : null;
-        const sumTotalBid: number | null  = isDemo ? 1250000 : (pd?.totalBidAmount ?? null);
-        const sumSqft: number | null      = isDemo ? 68000   : (pd?.grossRoofArea ?? pd?.sqft ?? null);
-        const sumDpSF: number | null      = sumTotalBid && sumSqft && sumSqft > 0 ? sumTotalBid / sumSqft : null;
-
-        // Overhead + Profit line items
-        const overheadRow = isDemo ? { description: "Overhead",    markupPct: 10 } : gcMarkupRows.find((i: any) => i.description?.toLowerCase().includes("overhead"));
-        const profitRow   = isDemo ? { description: "Profit",      markupPct: 8  } : gcMarkupRows.find((i: any) => i.description?.toLowerCase().includes("profit"));
-        const overheadAmt = overheadRow ? (isDemo ? demoMBase : gcMarkupBase) * ((overheadRow.markupPct ?? 0) / 100) : null;
-        const profitAmt   = profitRow   ? (isDemo ? demoMBase : gcMarkupBase) * ((profitRow.markupPct   ?? 0) / 100) : null;
-
-        // Right column — project facts
-        const bidDateStr  = pd?.bidDate   ?? (isDemo ? "2026-03-07" : null);
-        const daysLeft    = bidDateStr ? Math.ceil((new Date(bidDateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
-        const laborMap: Record<string, string> = { open_shop: "Open Shop", prevailing_wage: "Prevailing Wage", union: "Union" };
-        const laborKey   = isDemo ? "open_shop" : (bidQuals?.laborType ?? "");
-        const laborLabel = laborKey ? (laborMap[laborKey] ?? null) : null;
-        const planDate    = isDemo ? "02/10/2026" : (bidQuals?.plansDated ?? null);
-        const addendaThru = isDemo ? 2 : (bidQuals?.addendaThrough ?? (addenda ? addenda.length : null));
-        const systemLabel = pd?.systemType ? pd.systemType.toUpperCase() : null;
+        // Uses component-level computed variables (sumMaterial, sumLabor, etc.)
+        const bidDateStr = pd?.bidDate ?? (isDemo ? "2026-03-07" : null);
+        const daysLeft   = bidDateStr ? Math.ceil((new Date(bidDateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+        const planDate   = isDemo ? "02/10/2026" : (bidQuals?.plansDated ?? null);
 
         const $ = (n: number | null, warn = false) => {
           if (n == null) return <span style={{ color: warn ? "#f59e0b" : "#d1d5db" }}>—</span>;
@@ -492,30 +547,42 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
             <div className="text-2xl mb-2">🚫</div>
             <h3 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Not Ready to Submit</h3>
             <p className="text-xs text-slate-500 mb-4">Resolve all failing checks before exporting your bid package.</p>
-            <a href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`} target="_blank"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
-              📄 Export Draft (with warnings)
-            </a>
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed border-0 cursor-pointer"
+            >
+              <Download size={15} />
+              {exporting ? "Generating PDF…" : "Export Bid Summary PDF (draft)"}
+            </button>
           </>
         ) : warns.length > 0 ? (
           <>
             <div className="text-2xl mb-2">⚠️</div>
             <h3 className="text-sm font-bold text-amber-600 uppercase tracking-wide mb-1">Ready with Warnings</h3>
             <p className="text-xs text-slate-500 mb-4">No blockers, but {warns.length} item{warns.length > 1 ? "s" : ""} should be reviewed.</p>
-            <a href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`} target="_blank"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
-              📄 Export Bid Summary
-            </a>
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed border-0 cursor-pointer"
+            >
+              <Download size={15} />
+              {exporting ? "Generating PDF…" : "Export Bid Summary PDF"}
+            </button>
           </>
         ) : (
           <>
             <div className="text-2xl mb-2">✅</div>
             <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-wide mb-1">Ready to Submit</h3>
             <p className="text-xs text-slate-500 mb-4">All checks passed. Your bid is ready.</p>
-            <a href={`/bidshield/export?id=${projectId}${isDemo ? "&demo=true" : ""}`} target="_blank"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
-              📄 Export Bid Package
-            </a>
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed border-0 cursor-pointer"
+            >
+              <Download size={15} />
+              {exporting ? "Generating PDF…" : "Export Bid Summary PDF"}
+            </button>
           </>
         )}
       </div>
