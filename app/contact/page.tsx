@@ -72,67 +72,10 @@ function ContactPageContent() {
         </div>
       </section>
 
-      {/* Contact Options */}
+      {/* Contact Form */}
       <section className="py-20 bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center border-2 border-slate-200 hover:border-emerald-500 hover:shadow-2xl transition-all">
-                <div className="text-5xl mb-4">📧</div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900">Email Support</h3>
-                <p className="text-slate-600 mb-4">
-                  General inquiries and product support
-                </p>
-                <a
-                  href="mailto:support@bidshield.co"
-                  className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
-                >
-                  support@bidshield.co
-                </a>
-                <p className="text-sm text-slate-500 mt-4">
-                  Response time: 24-48 hours
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center border-2 border-slate-200 hover:border-emerald-500 hover:shadow-2xl transition-all">
-                <div className="text-5xl mb-4">💬</div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900">Live Chat</h3>
-                <p className="text-slate-600 mb-4">
-                  Quick questions and technical support
-                </p>
-                <a
-                  href="mailto:carlos@mc2agencyllc.com"
-                  className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
-                >
-                  carlos@mc2agencyllc.com
-                </a>
-                <p className="text-sm text-slate-500 mt-4">
-                  Available: Mon-Fri, 9am-5pm EST
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center border-2 border-slate-200 hover:border-emerald-500 hover:shadow-2xl transition-all">
-                <div className="text-5xl mb-4">📅</div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900">Schedule a Call</h3>
-                <p className="text-slate-600 mb-4">
-                  Book a 1-on-1 walkthrough with our team
-                </p>
-                <a
-                  href="https://calendly.com/bidshield"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
-                >
-                  Book on Calendly →
-                </a>
-                <p className="text-sm text-slate-500 mt-4">
-                  30-min sessions available
-                </p>
-              </div>
-            </div>
-
-            {/* Contact Form */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border-2 border-slate-200">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border-2 border-slate-200">
               <h2 className="text-3xl font-bold mb-8 text-center">Send Us a Message</h2>
 
               {submitted ? (
@@ -275,7 +218,6 @@ function ContactPageContent() {
                   </p>
                 </form>
               )}
-            </div>
           </div>
         </div>
       </section>
