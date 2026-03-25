@@ -597,6 +597,28 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"]),
 
+  // Checklist templates — user-saved QA checklists per roof system type
+  bidshield_checklist_templates: defineTable({
+    userId: v.string(), // Clerk user ID
+    name: v.string(), // e.g. "TPO Standard", "SBS Mod Bit - FM Global"
+    systemType: v.optional(v.string()), // "tpo", "sbs", "epdm", "metal", etc.
+    // Snapshot of item statuses (only non-pending items stored to keep it lean)
+    items: v.array(v.object({
+      phaseKey: v.string(), // "phase1", "phase9", etc.
+      itemId: v.string(),   // "p1-1", "p9-3", etc.
+      status: v.union(
+        v.literal("pending"),
+        v.literal("done"),
+        v.literal("rfi"),
+        v.literal("na"),
+        v.literal("warning")
+      ),
+    })),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"]),
+
   // Processed webhook events — idempotency guard for Stripe/Gumroad webhooks.
   // Before processing any webhook, check this table by stripeEventId. If found,
   // skip processing (event already handled). Prevents duplicate writes on Stripe retries.

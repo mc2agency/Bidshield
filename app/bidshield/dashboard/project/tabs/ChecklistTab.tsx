@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import type { TabProps } from "../tab-types";
 
@@ -47,6 +48,16 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const overallProgress  = useQuery(api.bidshield.getChecklistProgress, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const updateChecklist  = useMutation(api.bidshield.updateChecklistItem);
 
+  // Template hooks
+  const userId = project?.userId ?? "";
+  const templates = useQuery(
+    api.checklistTemplates.getChecklistTemplates,
+    !isDemo && userId ? { userId } : "skip"
+  );
+  const saveTemplate    = useMutation(api.checklistTemplates.saveChecklistTemplate);
+  const applyTemplate   = useMutation(api.checklistTemplates.applyChecklistTemplate);
+  const deleteTemplate  = useMutation(api.checklistTemplates.deleteChecklistTemplate);
+
   const [demoState, setDemoState]     = useState(demoItems);
   const [expanded, setExpanded]       = useState<Record<string, boolean>>({});
   const [filter, setFilter]           = useState<FilterMode>("incomplete");
@@ -61,6 +72,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
   const [expandedHelp, setExpandedHelp] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // Template UI state
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName]         = useState("");
+  const [templateSaving, setTemplateSaving]     = useState(false);
+  const [templateFlash, setTemplateFlash]       = useState<string | null>(null);
+  const [applyingTemplateId, setApplyingTemplateId] = useState<string | null>(null);
 
   const selKey = (pk: string, id: string) => `${pk}__${id}`;
 
@@ -244,6 +262,46 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
       prevPhasePcts.current[phaseKey] = stats.pct;
     }
   }, [resolvedItems]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleSaveTemplate() {
+    if (!templateName.trim() || !isValidConvexId || !userId) return;
+    setTemplateSaving(true);
+    try {
+      await saveTemplate({
+        userId,
+        projectId: projectId as Id<"bidshield_projects">,
+        name: templateName.trim(),
+        systemType: systemType ?? undefined,
+      });
+      setTemplateName("");
+      setShowSaveTemplate(false);
+      setTemplateFlash("Template saved!");
+      setTimeout(() => setTemplateFlash(null), 2500);
+    } finally {
+      setTemplateSaving(false);
+    }
+  }
+
+  async function handleApplyTemplate(templateId: Id<"bidshield_checklist_templates">) {
+    if (!isValidConvexId || !userId) return;
+    setApplyingTemplateId(templateId);
+    try {
+      await applyTemplate({
+        userId,
+        projectId: projectId as Id<"bidshield_projects">,
+        templateId,
+      });
+      setTemplateFlash("Template applied!");
+      setTimeout(() => setTemplateFlash(null), 2500);
+    } finally {
+      setApplyingTemplateId(null);
+    }
+  }
+
+  async function handleDeleteTemplate(templateId: Id<"bidshield_checklist_templates">) {
+    if (!userId) return;
+    await deleteTemplate({ userId, templateId });
+  }
 
   const dpsf = (project as any)?.totalBidAmount && (project as any)?.grossRoofArea
     ? Math.round(((project as any).totalBidAmount / (project as any).grossRoofArea) * 100) / 100
@@ -674,6 +732,110 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Checklist Templates */}
+        {!isDemo && (
+          <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+              Checklist Templates
+            </div>
+
+            {/* Flash message */}
+            {templateFlash && (
+              <div style={{ fontSize: 12, color: "#059669", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+                {templateFlash}
+              </div>
+            )}
+
+            {/* Save current as template */}
+            {!showSaveTemplate ? (
+              <button
+                onClick={() => {
+                  setTemplateName(systemType ? `${systemType.toUpperCase()} Template` : "My Template");
+                  setShowSaveTemplate(true);
+                }}
+                style={{ fontSize: 12, fontWeight: 500, color: "#4f46e5", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 6, padding: "6px 10px", cursor: "pointer", width: "100%", textAlign: "left" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#e0e7ff")}
+                onMouseLeave={e => (e.currentTarget.style.background = "#eef2ff")}
+              >
+                + Save current checklist as template
+              </button>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <input
+                  autoFocus
+                  type="text"
+                  value={templateName}
+                  onChange={e => setTemplateName(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") handleSaveTemplate(); if (e.key === "Escape") setShowSaveTemplate(false); }}
+                  placeholder="Template name..."
+                  style={{ fontSize: 12, border: "1px solid #c7d2fe", borderRadius: 6, padding: "6px 8px", outline: "none", width: "100%" }}
+                />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    onClick={handleSaveTemplate}
+                    disabled={templateSaving || !templateName.trim()}
+                    style={{ flex: 1, fontSize: 12, fontWeight: 600, background: templateSaving || !templateName.trim() ? "#a5b4fc" : "#4f46e5", color: "white", border: "none", borderRadius: 6, padding: "6px 0", cursor: templateSaving || !templateName.trim() ? "not-allowed" : "pointer" }}
+                  >
+                    {templateSaving ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    onClick={() => setShowSaveTemplate(false)}
+                    style={{ fontSize: 12, color: "#6b7280", background: "none", border: "1px solid #e5e7eb", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Saved templates list */}
+            {templates && templates.length > 0 && (
+              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                {templates.map((tpl: Doc<"bidshield_checklist_templates">) => (
+                  <div
+                    key={tpl._id}
+                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 7 }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {tpl.name}
+                      </div>
+                      {tpl.systemType && (
+                        <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}>{tpl.systemType.toUpperCase()}</div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleApplyTemplate(tpl._id as Id<"bidshield_checklist_templates">)}
+                      disabled={applyingTemplateId === tpl._id}
+                      title="Apply this template to the current project"
+                      style={{ fontSize: 11, fontWeight: 500, color: "#059669", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 5, padding: "3px 8px", cursor: applyingTemplateId === tpl._id ? "wait" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#dcfce7")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "#f0fdf4")}
+                    >
+                      {applyingTemplateId === tpl._id ? "..." : "Apply"}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTemplate(tpl._id as Id<"bidshield_checklist_templates">)}
+                      title="Delete this template"
+                      style={{ fontSize: 11, color: "#ef4444", background: "none", border: "none", cursor: "pointer", padding: "3px 4px", flexShrink: 0, lineHeight: 1 }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#b91c1c")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#ef4444")}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {templates && templates.length === 0 && !showSaveTemplate && (
+              <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 8 }}>
+                No templates yet. Save your current checklist to reuse it on future bids.
+              </p>
+            )}
           </div>
         )}
       </div>
