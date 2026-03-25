@@ -935,6 +935,7 @@ export const createAddendum = mutation({
       incorporated: false,
       priority: args.priority || "normal",
       notes: args.notes,
+      reviewStatus: "pending_review" as const,
       createdAt: now,
       updatedAt: now,
     });
@@ -955,6 +956,9 @@ export const updateAddendum = mutation({
     impactCategories: v.optional(v.string()),
     priority: v.optional(v.string()),
     notes: v.optional(v.string()),
+    reviewStatus: v.optional(v.union(v.literal("reviewed"), v.literal("pending_review"))),
+    reviewedBy: v.optional(v.string()),
+    reviewedAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { addendumId, ...updates } = args;
@@ -972,6 +976,20 @@ export const deleteAddendum = mutation({
   args: { addendumId: v.id("bidshield_addenda") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.addendumId);
+  },
+});
+
+export const acknowledgeNoAddenda = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await ctx.db.patch(args.projectId, {
+      noAddendaAcknowledged: true,
+      updatedAt: Date.now(),
+    });
   },
 });
 

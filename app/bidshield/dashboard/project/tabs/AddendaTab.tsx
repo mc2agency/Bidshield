@@ -9,7 +9,15 @@ import type { TabProps } from "../tab-types";
 
 const IMPACT_OPTIONS = ["material", "labor", "schedule", "scope"] as const;
 
+function isReviewed(add: any): boolean {
+  // reviewStatus is authoritative; treat missing as pending_review
+  return add.reviewStatus === "reviewed";
+}
+
 function getAddendumStatus(add: any): { label: string; color: string; icon: string } {
+  if (!isReviewed(add)) {
+    return { label: "Pending Review", color: "text-red-600", icon: "⚠" };
+  }
   if (add.affectsScope === true && add.repriced) {
     return { label: "Reviewed & Re-priced", color: "text-emerald-600", icon: "✓" };
   }
@@ -17,16 +25,16 @@ function getAddendumStatus(add: any): { label: string; color: string; icon: stri
     return { label: "Reviewed — No impact", color: "text-emerald-600", icon: "✓" };
   }
   if (add.affectsScope === true && !add.repriced) {
-    return { label: "Pending Re-price", color: "text-red-600", icon: "⚠" };
+    return { label: "Reviewed — Needs Re-price", color: "text-amber-600", icon: "⚠" };
   }
-  return { label: "Not Reviewed", color: "text-amber-600", icon: "⚠" };
+  return { label: "Reviewed", color: "text-emerald-600", icon: "✓" };
 }
 
 function cardBorderColor(add: any): string {
   const priority = add.priority || "normal";
+  if (!isReviewed(add)) return "border-l-4 border-l-red-500";
   if (priority === "critical") return "border-l-4 border-l-red-500";
-  if (add.affectsScope === true && !add.repriced) return "border-l-4 border-l-red-500";
-  if (add.affectsScope === undefined || add.affectsScope === null) return "border-l-4 border-l-amber-500";
+  if (add.affectsScope === true && !add.repriced) return "border-l-4 border-l-amber-500";
   return "border-l-4 border-l-emerald-500";
 }
 
@@ -40,6 +48,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
   const createAddendumMut = useMutation(api.bidshield.createAddendum);
   const updateAddendumMut = useMutation(api.bidshield.updateAddendum);
   const deleteAddendumMut = useMutation(api.bidshield.deleteAddendum);
+  const acknowledgeNoAddendaMut = useMutation(api.bidshield.acknowledgeNoAddenda);
 
   const [showAdd, setShowAdd] = useState(false);
   const [newAddendum, setNewAddendum] = useState({
@@ -52,7 +61,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
   const [impactCheckResults, setImpactCheckResults] = useState<{ section: string; action: string }[] | null>(null);
 
   // Demo data with enhanced fields
-  const [demoAddendaState, setDemoAddendaState] = useState([
+  const [demoAddendaState, setDemoAddendaState] = useState<any[]>([
     {
       _id: "demo_add_1" as any, number: 1, title: "Revised mechanical equipment schedule",
       receivedDate: "2026-02-03", affectsScope: true, acknowledged: true, incorporated: true,
@@ -60,6 +69,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
       impactCategories: "material,labor", repriced: true, repricedDate: "2026-02-04",
       priceImpact: 2800, priority: "normal",
       notes: "Added to takeoff. Updated quote from ABC Supply.",
+      reviewStatus: "reviewed", reviewedBy: "demo_user", reviewedAt: 1738713600000,
     },
     {
       _id: "demo_add_2" as any, number: 2, title: "Clarification on warranty requirements",
@@ -67,6 +77,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
       scopeImpact: undefined, impactCategories: undefined, repriced: undefined, repricedDate: undefined,
       priceImpact: undefined, priority: "normal",
       notes: "Confirms 20-year NDL. No change to our pricing.",
+      reviewStatus: "reviewed", reviewedBy: "demo_user", reviewedAt: 1738886400000,
     },
     {
       _id: "demo_add_3" as any, number: 3, title: "Changed parapet coping to stainless steel",
@@ -75,6 +86,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
       impactCategories: "material", repriced: false, repricedDate: undefined,
       priceImpact: undefined, priority: "critical",
       notes: "",
+      reviewStatus: "pending_review", reviewedBy: undefined, reviewedAt: undefined,
     },
   ]);
 
@@ -83,11 +95,13 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
 
   // --- Stats ---
   const totalAddenda = resolvedAddenda.length;
+  const reviewedCount = resolvedAddenda.filter((a: any) => isReviewed(a)).length;
+  const pendingReviewCount = totalAddenda - reviewedCount;
   const scopeAffecting = resolvedAddenda.filter((a: any) => a.affectsScope === true).length;
   const repricedCount = resolvedAddenda.filter((a: any) => a.affectsScope === true && a.repriced === true).length;
   const pendingRePrice = resolvedAddenda.filter((a: any) => a.affectsScope === true && !a.repriced).length;
-  const notReviewed = resolvedAddenda.filter((a: any) => a.affectsScope === undefined || a.affectsScope === null).length;
   const netPriceImpact = resolvedAddenda.reduce((sum: number, a: any) => sum + (a.priceImpact || 0), 0);
+  const noAddendaAcknowledged = (project as any)?.noAddendaAcknowledged ?? false;
 
   // --- Handlers ---
   const handleAdd = async () => {
@@ -134,6 +148,19 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
     await updateAddendumMut({ addendumId, ...updates });
   }, [isDemo, updateAddendumMut]);
 
+  const handleMarkReviewed = useCallback(async (addendumId: Id<"bidshield_addenda">) => {
+    const updates = {
+      reviewStatus: "reviewed" as const,
+      reviewedBy: userId ?? "unknown",
+      reviewedAt: Date.now(),
+    };
+    if (isDemo) {
+      setDemoAddendaState(prev => prev.map(a => a._id === addendumId ? { ...a, ...updates } : a));
+      return;
+    }
+    await updateAddendumMut({ addendumId, ...updates });
+  }, [isDemo, userId, updateAddendumMut]);
+
   const handleDelete = async (addendumId: Id<"bidshield_addenda">) => {
     if (isDemo) {
       setDemoAddendaState(prev => prev.filter(a => a._id !== addendumId));
@@ -142,28 +169,93 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
     await deleteAddendumMut({ addendumId });
   };
 
-  // Warning items: addenda that affect scope but aren't re-priced
-  const warningItems = resolvedAddenda.filter((a: any) => a.affectsScope === true && !a.repriced);
+  const handleAcknowledgeNoAddenda = async () => {
+    if (isDemo || !userId || !isValidConvexId) return;
+    await acknowledgeNoAddendaMut({
+      projectId: projectId as Id<"bidshield_projects">,
+      userId,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Focused summary */}
-      {pendingRePrice > 0 ? (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <div className="text-sm font-bold text-red-800">{pendingRePrice} addend{pendingRePrice > 1 ? "a" : "um"} needs re-pricing</div>
-          <p className="text-xs text-red-600 mt-1">Scope-affecting changes without updated pricing are bid blockers</p>
-          {netPriceImpact !== 0 && (
-            <div className="mt-2 text-xs text-red-700">
-              Net impact: <span className="font-bold">{netPriceImpact > 0 ? "+" : ""}${netPriceImpact.toLocaleString()}</span>
+
+      {/* ── Summary Bar ── */}
+      {totalAddenda > 0 ? (
+        pendingReviewCount > 0 ? (
+          <div className="bg-red-50 border border-red-300 rounded-xl p-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <div className="text-sm font-bold text-red-800">
+                  {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — {reviewedCount} reviewed, {pendingReviewCount} pending
+                </div>
+                <p className="text-xs text-red-600 mt-0.5">
+                  Unreviewed addenda are a bid-day blocker. Mark each one as reviewed before submitting.
+                </p>
+              </div>
+              <span className="shrink-0 px-2.5 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full border border-red-300">
+                ⚠ BLOCKING
+              </span>
             </div>
-          )}
-        </div>
-      ) : totalAddenda > 0 ? (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-          <div className="text-sm font-bold text-emerald-700">All {totalAddenda} addenda reviewed ✓</div>
-          <div className="text-xs text-emerald-600 mt-0.5">{scopeAffecting} affect scope · {repricedCount} re-priced</div>
-        </div>
-      ) : null}
+            {netPriceImpact !== 0 && (
+              <div className="mt-2 text-xs text-red-700">
+                Net price impact: <span className="font-bold">{netPriceImpact > 0 ? "+" : ""}${netPriceImpact.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        ) : pendingRePrice > 0 ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="text-sm font-bold text-amber-800">
+              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — {reviewedCount} reviewed ✓ · {pendingRePrice} need{pendingRePrice === 1 ? "s" : ""} re-pricing
+            </div>
+            <p className="text-xs text-amber-600 mt-1">All addenda reviewed, but scope changes need updated pricing.</p>
+            {netPriceImpact !== 0 && (
+              <div className="mt-1 text-xs text-amber-700">
+                Net impact: <span className="font-bold">{netPriceImpact > 0 ? "+" : ""}${netPriceImpact.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+            <div className="text-sm font-bold text-emerald-700">
+              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — all {reviewedCount} reviewed ✓
+            </div>
+            <div className="text-xs text-emerald-600 mt-0.5">
+              {scopeAffecting} affect scope · {repricedCount} re-priced
+              {netPriceImpact !== 0 && ` · net ${netPriceImpact > 0 ? "+" : ""}$${netPriceImpact.toLocaleString()}`}
+            </div>
+          </div>
+        )
+      ) : (
+        /* 0 addenda — prompt for confirmation */
+        noAddendaAcknowledged ? (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+            <span className="text-emerald-600 text-lg">✓</span>
+            <div>
+              <div className="text-sm font-bold text-emerald-700">No addenda confirmed</div>
+              <div className="text-xs text-emerald-600 mt-0.5">You&apos;ve confirmed no addenda were received for this project.</div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="text-sm font-bold text-amber-800 mb-1">Confirm: no addenda received for this project?</div>
+            <p className="text-xs text-amber-600 mb-3">
+              If the GC issued no addenda, acknowledge it here so the Validator knows this was intentional — not an oversight.
+            </p>
+            {!isDemo && (
+              <button
+                onClick={handleAcknowledgeNoAddenda}
+                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                ✓ Confirm — No Addenda Received
+              </button>
+            )}
+            {isDemo && (
+              <span className="text-xs text-amber-500 italic">Demo mode — confirmation disabled</span>
+            )}
+          </div>
+        )
+      )}
 
       {/* Add button */}
       <div className="flex justify-between items-center">
@@ -174,30 +266,6 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
           </button>
         )}
       </div>
-
-      {/* Warning Banner */}
-      {warningItems.length > 0 && (
-        <div className="p-4 bg-red-50 border border-red-500/30 rounded-lg">
-          <div className="flex items-start gap-2">
-            <span className="text-red-600 text-lg">⚠</span>
-            <div>
-              <div className="text-sm font-semibold text-red-600">
-                {warningItems.length} addend{warningItems.length !== 1 ? "a" : "um"} affect{warningItems.length === 1 ? "s" : ""} your scope and {warningItems.length === 1 ? "has" : "have"} NOT been re-priced
-              </div>
-              <div className="text-xs text-slate-500 mt-1">
-                Review {warningItems.map(w => `Addendum #${(w as any).number}`).join(", ")} before submitting your bid.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Not Reviewed Warning */}
-      {notReviewed > 0 && (
-        <div className="p-3 bg-amber-50 border border-amber-500/30 rounded-lg text-sm text-amber-600">
-          {notReviewed} addend{notReviewed !== 1 ? "a" : "um"} not yet reviewed — determine if {notReviewed === 1 ? "it affects" : "they affect"} your scope.
-        </div>
-      )}
 
       {/* Add Form */}
       {showAdd && (
@@ -279,6 +347,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
               add={add}
               isDemo={isDemo}
               onUpdate={handleUpdate}
+              onMarkReviewed={handleMarkReviewed}
               onDelete={handleDelete}
             />
           ))}
@@ -299,14 +368,17 @@ function AddendumCard({
   add,
   isDemo,
   onUpdate,
+  onMarkReviewed,
   onDelete,
 }: {
   add: any;
   isDemo: boolean;
   onUpdate: (id: Id<"bidshield_addenda">, updates: Record<string, any>) => Promise<void>;
+  onMarkReviewed: (id: Id<"bidshield_addenda">) => Promise<void>;
   onDelete: (id: Id<"bidshield_addenda">) => Promise<void>;
 }) {
   const status = getAddendumStatus(add);
+  const reviewed = isReviewed(add);
   const priority = add.priority || "normal";
   const impactCats = add.impactCategories ? add.impactCategories.split(",") : [];
 
@@ -332,6 +404,16 @@ function AddendumCard({
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap mb-1.5">
             <span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">#{add.number}</span>
+            {/* Review Status Badge */}
+            {reviewed ? (
+              <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                Reviewed ✓
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-200">
+                Pending Review ⚠
+              </span>
+            )}
             {priority === "critical" && (
               <span className="text-[10px] font-bold bg-red-50 text-red-600 px-2 py-0.5 rounded uppercase">Critical</span>
             )}
@@ -341,11 +423,32 @@ function AddendumCard({
             <span className="text-xs text-slate-500">Received: {add.receivedDate}</span>
           </div>
           <div className="text-sm text-slate-900 font-medium">{add.title}</div>
+          {reviewed && add.reviewedAt && (
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              Reviewed {new Date(add.reviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </div>
+          )}
         </div>
-        {(
-          <button onClick={() => onDelete(add._id)} className="text-slate-600 hover:text-red-600 text-xs transition-colors shrink-0">Delete</button>
-        )}
+        <button onClick={() => onDelete(add._id)} className="text-slate-600 hover:text-red-600 text-xs transition-colors shrink-0">Delete</button>
       </div>
+
+      {/* Mark as Reviewed CTA — shown prominently when pending */}
+      {!reviewed && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-red-700">This addendum needs your review</div>
+            <div className="text-[11px] text-red-500 mt-0.5">
+              Determine if it affects your scope, then mark it as reviewed to unblock your bid.
+            </div>
+          </div>
+          <button
+            onClick={() => onMarkReviewed(add._id)}
+            className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+          >
+            Mark as Reviewed ✓
+          </button>
+        </div>
+      )}
 
       {/* Affects Scope Toggle */}
       <div className="mt-4 pt-3 border-t border-slate-200">
@@ -511,13 +614,14 @@ function AddendumCard({
           <span className={`text-xs ${status.color}`}>{status.icon}</span>
           <span className={`text-xs font-medium ${status.color}`}>{status.label}</span>
         </div>
-        <button
-          onClick={() => !isDemo && onUpdate(add._id, { acknowledged: !add.acknowledged })}
-          className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${add.acknowledged ? "text-emerald-600" : "text-slate-500 hover:text-slate-600"}`}
-        >
-          <span className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] ${add.acknowledged ? "bg-emerald-50 border-emerald-500" : "border-slate-300"}`}>{add.acknowledged ? "✓" : ""}</span>
-          Acknowledged
-        </button>
+        {reviewed && (
+          <button
+            onClick={() => !isDemo && onUpdate(add._id, { reviewStatus: "pending_review", reviewedBy: undefined, reviewedAt: undefined })}
+            className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            Undo review
+          </button>
+        )}
       </div>
     </div>
   );
