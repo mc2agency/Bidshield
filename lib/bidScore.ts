@@ -3,6 +3,7 @@
 // Scores MUST be identical for the same project state.
 
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
+import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
 
 export interface ScoreItem {
   label: string;
@@ -359,7 +360,34 @@ export function computeBidScore(input: BidScoreInput): BidScoreResult {
     }
   }
 
-  // 14. GC BID FORMS (only shown if docs uploaded)
+  // 14. SCOPE-PRICING CONFLICTS
+  if (isDemo) {
+    items.push({ label: "Scope-Pricing Conflicts", status: "warn", message: "1 scope item marked Excluded but matching material cost found — review before submitting", tabLink: "scope" });
+  } else if (scopeItems && (projectMaterials !== undefined || laborTasks !== undefined)) {
+    const conflicts = detectScopePricingConflicts({
+      scopeItems,
+      projectMaterials: projectMaterials ?? [],
+      laborTasks: laborTasks ?? [],
+      project: projectData,
+    });
+    if (conflicts.length === 0) {
+      if (scopeItems.length > 0) {
+        items.push({ label: "Scope-Pricing Conflicts", status: "pass", message: "No conflicts between scope decisions and pricing" });
+      }
+    } else {
+      // Surface each conflict as a separate score item so they're individually actionable
+      for (const c of conflicts) {
+        items.push({
+          label: "Scope-Pricing Conflicts",
+          status: c.severity,
+          message: `${c.message} — ${c.detail}`,
+          tabLink: "scope",
+        });
+      }
+    }
+  }
+
+  // 15. GC BID FORMS (only shown if docs uploaded)
   if (!isDemo && gcFormDocuments !== undefined && gcFormDocuments !== null && gcFormDocuments.length > 0) {
     if (unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0) {
       items.push({

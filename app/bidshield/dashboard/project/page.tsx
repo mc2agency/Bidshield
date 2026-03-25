@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
+import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
 
 import type { TabId } from "./tab-types";
 import {
@@ -170,7 +171,7 @@ function ProjectDetail() {
     setOutcomeModalOpen(false);
   };
 
-  const { actionItems, readinessScore, passCount, scores, remaining } = useMemo(() => {
+  const { actionItems, readinessScore, passCount, scores, remaining, scopeConflictCount } = useMemo(() => {
     const items: ActionItem[] = [];
     const cl = isDemo ? [] : (checklist ?? []);
     const clTotal = isDemo ? 95 : cl.length;
@@ -264,7 +265,15 @@ function ProjectDetail() {
     const laborScore = ltTotal === 0 ? 0 : ltVerified === 0 ? 25 : ltVerified === ltTotal ? 100 : Math.round((ltVerified / ltTotal) * 100);
     (scores as any).labor = laborScore;
 
-    return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining };
+    // Scope-Pricing conflict count (for sidebar badge)
+    const scopeConflictCount = isDemo ? 1 : detectScopePricingConflicts({
+      scopeItems: scopeItems ?? [],
+      projectMaterials: projectMaterials ?? [],
+      laborTasks: laborTasks ?? [],
+      project: projectData,
+    }).length;
+
+    return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining, scopeConflictCount };
   }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis, laborTasks]);
 
   if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
@@ -399,6 +408,11 @@ function ProjectDetail() {
                     ) : (
                       <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", display: "inline-block", flexShrink: 0 }} title="All tasks verified" />
                     )
+                  )}
+                  {id === "scope" && scopeConflictCount > 0 && (
+                    <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }} title={`${scopeConflictCount} scope-pricing conflict${scopeConflictCount !== 1 ? "s" : ""} detected`}>
+                      {scopeConflictCount}
+                    </span>
                   )}
                   {id === "bidquals" && unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0 && (
                     <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
