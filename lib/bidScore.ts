@@ -184,20 +184,27 @@ export function computeBidScore(input: BidScoreInput): BidScoreResult {
 
   // 8. ADDENDA REVIEW
   if (isDemo) {
-    items.push({ label: "Addenda Review", status: "fail", message: "Addendum #3 affects scope and has not been re-priced", tabLink: "addenda" });
+    items.push({ label: "Addenda Review", status: "fail", message: "Addendum #3 is pending review — must be reviewed before submitting", tabLink: "addenda" });
   } else if (addenda) {
     const total = addenda.length;
-    const notReviewed = addenda.filter((a: any) => a.affectsScope === undefined || a.affectsScope === null).length;
+    // reviewStatus is authoritative; treat missing reviewStatus as pending_review
+    const pendingReview = addenda.filter((a: any) => !a.reviewStatus || a.reviewStatus === "pending_review").length;
     const needsRePrice = addenda.filter((a: any) => a.affectsScope === true && !a.repriced).length;
     if (total === 0) {
-      items.push({ label: "Addenda Review", status: "pass", message: "No addenda received" });
+      if (projectData?.noAddendaAcknowledged) {
+        items.push({ label: "Addenda Review", status: "pass", message: "No addenda confirmed ✓" });
+      } else {
+        items.push({ label: "Addenda Review", status: "warn", message: "Confirm: no addenda received for this project?", tabLink: "addenda" });
+      }
+    } else if (pendingReview > 0) {
+      const nums = addenda.filter((a: any) => !a.reviewStatus || a.reviewStatus === "pending_review").map((a: any) => `#${a.number}`).join(", ");
+      items.push({ label: "Addenda Review", status: "fail", message: `Addend${pendingReview !== 1 ? "a" : "um"} ${nums} pending review — must acknowledge before submitting`, tabLink: "addenda" });
     } else if (needsRePrice > 0) {
       const nums = addenda.filter((a: any) => a.affectsScope === true && !a.repriced).map((a: any) => `#${a.number}`).join(", ");
       items.push({ label: "Addenda Review", status: "fail", message: `Addend${needsRePrice !== 1 ? "a" : "um"} ${nums} affect${needsRePrice === 1 ? "s" : ""} scope — not re-priced`, tabLink: "addenda" });
-    } else if (notReviewed > 0) {
-      items.push({ label: "Addenda Review", status: "warn", message: `${notReviewed} addend${notReviewed !== 1 ? "a" : "um"} not yet reviewed`, tabLink: "addenda" });
     } else {
-      items.push({ label: "Addenda Review", status: "pass", message: `All ${total} addenda reviewed${addenda.some((a: any) => a.affectsScope && a.repriced) ? " and re-priced" : ""}` });
+      const maxNum = Math.max(...addenda.map((a: any) => a.number));
+      items.push({ label: "Addenda Review", status: "pass", message: `Addenda #1–#${maxNum} acknowledged ✓` });
     }
   }
 

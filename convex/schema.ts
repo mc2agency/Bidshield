@@ -107,6 +107,7 @@ export default defineSchema({
     competitorPrice: v.optional(v.number()), // Competitor's bid price
     energyCode: v.optional(v.boolean()), // Does project replace >50% roof area or >2,000 SF?
     climateZone: v.optional(v.string()), // ASHRAE climate zone (1-8)
+    noAddendaAcknowledged: v.optional(v.boolean()), // User confirmed no addenda for this project
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -282,6 +283,10 @@ export default defineSchema({
     impactCategories: v.optional(v.string()), // Comma-separated: "material,labor,schedule,scope"
     priority: v.optional(v.string()), // "critical", "high", "normal", "low"
     notes: v.optional(v.string()),
+    // Review tracking fields
+    reviewStatus: v.optional(v.union(v.literal("reviewed"), v.literal("pending_review"))),
+    reviewedBy: v.optional(v.string()), // userId of reviewer
+    reviewedAt: v.optional(v.number()), // timestamp
     createdAt: v.number(),
     updatedAt: v.number(),
   })
