@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       prevailing_wage: "Prevailing Wage",
       union: "Union",
     };
-    const burdenMultiplier = burdenMap[laborType] ?? 1.35;
+    const burdenMultiplier = burdenMap[laborType ?? "open_shop"] ?? 1.35;
     const resolvedBaseWage = baseWage ?? 35;
     const loadedRate = resolvedBaseWage * burdenMultiplier * 8; // $/person/day
 
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 Your job: analyze a roofing scope description and produce a detailed, task-level labor breakdown. You will return a single JSON object only — no markdown, no commentary.
 
 === LOADED LABOR RATE ===
-Labor type: ${laborTypeLabel[laborType] ?? "Open Shop"}
+Labor type: ${laborTypeLabel[laborType ?? "open_shop"] ?? "Open Shop"}
 Base wage: $${resolvedBaseWage}/hr
 Burden multiplier: ${burdenMultiplier}x
 Loaded day rate: $${loadedRate.toFixed(2)}/person/day
