@@ -54,11 +54,11 @@ function AnalyticsInner() {
 
   const convexStats = useQuery(
     api.bidshield.getStats,
-    !isDemo && userId ? { userId } : "skip"
+    !isDemo && userId && isPro ? { userId } : "skip"
   );
   const comparisonData = useQuery(
     api.bidshield.getComparisonData,
-    !isDemo && userId ? { userId } : "skip"
+    !isDemo && userId && isPro ? { userId } : "skip"
   );
 
   // Gate: Pro only (demo bypasses)

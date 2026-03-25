@@ -319,12 +319,12 @@ function DashboardContent() {
   const { userId } = useAuth();
 
   const convexProjects = useQuery(api.bidshield.getProjects, !isDemo && userId ? { userId } : "skip");
-  const convexStats = useQuery(api.bidshield.getStats, !isDemo && userId ? { userId } : "skip");
   const subscription = useQuery(api.users.getUserSubscription, !isDemo && userId ? { clerkId: userId } : "skip");
+  // isPro must be derived before calling getStats — getStats throws for free users on the server
+  const isPro = isDemo || (subscription?.isPro ?? false);
+  const convexStats = useQuery(api.bidshield.getStats, !isDemo && userId && isPro ? { userId } : "skip");
   const createProjectMut = useMutation(api.bidshield.createProject);
   const updateProjectMut = useMutation(api.bidshield.updateProject);
-
-  const isPro = isDemo || (subscription?.isPro ?? false);
   const projects: BidProject[] = isDemo ? demoProjects : (convexProjects ?? []);
   const stats = isDemo ? demoStats : (convexStats ?? {
     activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0,
