@@ -375,6 +375,7 @@ export function computeBidScore(input: BidScoreInput): BidScoreResult {
         items.push({ label: "Scope-Pricing Conflicts", status: "pass", message: "No conflicts between scope decisions and pricing" });
       }
     } else {
+      // Surface each conflict as a separate score item so they're individually actionable
       for (const c of conflicts) {
         items.push({
           label: "Scope-Pricing Conflicts",
