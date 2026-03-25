@@ -331,7 +331,7 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
                       </div>
                     </div>
                     {item.tabLink && (
-                      <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full hover:bg-red-100 transition-colors border-0 cursor-pointer">
+                      <button onClick={() => onNavigateTab?.(item.tabLink! as TabId)} className="shrink-0 px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full hover:bg-red-100 transition-colors border-0 cursor-pointer">
                         Fix →
                       </button>
                     )}
@@ -352,7 +352,7 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
                       </div>
                     </div>
                     {item.tabLink && (
-                      <button onClick={() => onNavigateTab?.(item.tabLink!)} className="shrink-0 px-3 py-1 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full hover:bg-amber-100 transition-colors border-0 cursor-pointer">
+                      <button onClick={() => onNavigateTab?.(item.tabLink! as TabId)} className="shrink-0 px-3 py-1 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full hover:bg-amber-100 transition-colors border-0 cursor-pointer">
                         Review →
                       </button>
                     )}

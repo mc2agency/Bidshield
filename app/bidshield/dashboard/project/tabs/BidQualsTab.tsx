@@ -679,7 +679,7 @@ type QualFields = {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function BidQualsTab({ projectId, isDemo, isPro, userId }: TabProps) {
+export default function BidQualsTab({ projectId, isDemo, isPro, userId, project }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const [activeSubTab, setActiveSubTab] = useState<"quals" | "forms">("quals");
