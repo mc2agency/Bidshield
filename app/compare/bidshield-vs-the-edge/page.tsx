@@ -87,9 +87,52 @@ const costScenarios = [
   },
 ];
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Do I have to stop using The EDGE to use BidShield?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. BidShield is not a replacement for The EDGE. Keep using The EDGE for takeoff and pricing. Use BidShield after your numbers are done to verify the bid is complete before submission.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Will BidShield integrate directly with The EDGE?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Not currently — BidShield works as a standalone review layer. You run the checklist manually against your completed bid. A direct integration is on the roadmap.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What if I use STACK or Excel instead of The EDGE?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'BidShield works the same way regardless of your takeoff tool. The 18-phase review applies to any commercial roofing bid, built with any software.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What does BidShield actually check?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: '18 phases covering: project setup, document receipt, architectural review, structural review, mechanical, plumbing, electrical, civil/site, specifications, addenda, takeoff areas, takeoff linear, takeoff counts, material pricing, labor pricing, subcontractor scope, pre-submission, and bid submission.',
+      },
+    },
+  ],
+};
+
 export default function BidShieldVsTheEdgePage() {
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />

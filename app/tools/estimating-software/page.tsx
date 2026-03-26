@@ -4,7 +4,8 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Estimating Software & AI Tools Tool - Modern Construction Tech',
   description: 'Master construction estimating software, AI tools, and automation. Master AccuLynx, JobNimbus, AI assistants, and workflow optimization for faster, more accurate estimates.',
-  keywords: 'construction estimating software, roofing software, AccuLynx, JobNimbus, AI estimating tools, construction automation, estimating technology'
+  keywords: 'construction estimating software, roofing software, AccuLynx, JobNimbus, AI estimating tools, construction automation, estimating technology',
+  alternates: { canonical: 'https://www.bidshield.co/tools/estimating-software' },
 };
 
 export default function EstimatingSoftwarePage() {

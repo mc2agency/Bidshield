@@ -66,9 +66,52 @@ const comparisonRows = [
   },
 ];
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Does BidShield replace STACK?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "No. Keep using STACK for your digital takeoff. BidShield runs after takeoff is done — it reviews the completed bid for gaps, missing addenda, mechanical scope items, and spec requirements that your takeoff tool can't catch.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'I already double-check my bids manually. Why do I need BidShield?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Manual reviews are inconsistent — especially when you're running multiple bids at once. BidShield gives you a systematic 18-phase, 100+ item review every time, not just the items you happen to remember under deadline pressure.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What does the 40-item scope gap checker actually look for?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Mechanical curbs, edge metal systems, drain compatibility, expansion joints, warranty scope language, liquidated damages clauses, coverboard requirements, through-wall flashings, and more — items frequently buried in the mechanical plans or spec sections rather than the roof plan.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does this work for reroofing jobs, not just new construction?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. The 18-phase checklist applies to commercial roofing bids of any type — TPO reroof, modified bitumen, PVC, coatings, new construction. The scope gap checker flags the items most commonly missed on reroof work.',
+      },
+    },
+  ],
+};
+
 export default function BidShieldVsStackPage() {
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
