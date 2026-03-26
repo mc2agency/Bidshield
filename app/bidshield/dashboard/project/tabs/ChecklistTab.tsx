@@ -717,21 +717,38 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               </button>
                             )}
 
-                            {/* Status pill — RIGHT side */}
+                            {/* Status pills — RIGHT side */}
                             {status !== "rfi" && status !== "warning" && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); cycleStatus(phaseKey, item.id); }}
-                                className={`
-                                  shrink-0 rounded-full text-[11px] font-medium px-3 py-1 border transition-all whitespace-nowrap
-                                  ${status === "done"
-                                    ? "bg-[#f0fdf4] text-[#16a34a] border-[#86efac]"
-                                    : status === "na"
-                                    ? "bg-[#f8fafc] text-[#94a3b8] border-[#e2e8f0]"
-                                    : "bg-white text-[#9ca3af] border-[#e2e8f0] hover:bg-[#f0fdf4] hover:text-[#16a34a] hover:border-[#86efac]"}
-                                `}
-                              >
-                                {status === "done" ? "✓ Done" : status === "na" ? "N/A" : "Mark Done"}
-                              </button>
+                              status === "pending" ? (
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "done"); }}
+                                    className="rounded-full text-[11px] font-medium px-3 py-1 border transition-all whitespace-nowrap bg-white text-[#9ca3af] border-[#e2e8f0] hover:bg-[#f0fdf4] hover:text-[#16a34a] hover:border-[#86efac]"
+                                  >
+                                    Mark Done
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "na"); }}
+                                    className="rounded-full text-[11px] font-medium px-3 py-1 border transition-all whitespace-nowrap bg-white text-[#9ca3af] border-[#e2e8f0] hover:bg-[#f8fafc] hover:text-[#94a3b8] hover:border-[#cbd5e1]"
+                                    title="Not applicable / not needed"
+                                  >
+                                    N/A
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "pending"); }}
+                                  className={`
+                                    shrink-0 rounded-full text-[11px] font-medium px-3 py-1 border transition-all whitespace-nowrap
+                                    ${status === "done"
+                                      ? "bg-[#f0fdf4] text-[#16a34a] border-[#86efac]"
+                                      : "bg-[#f8fafc] text-[#94a3b8] border-[#e2e8f0]"}
+                                  `}
+                                  title="Click to reset to pending"
+                                >
+                                  {status === "done" ? "✓ Done" : "N/A"}
+                                </button>
+                              )
                             )}
                           </div>
 
