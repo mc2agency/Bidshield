@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -9,8 +9,24 @@ import type { TabProps, TabId } from "../tab-types";
 type ActionLevel = "red" | "yellow" | "green";
 interface ActionItem { level: ActionLevel; text: string; tab: TabId }
 
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return "Due now";
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h >= 48) return `${Math.floor(h / 24)}d ${h % 24}h`;
+  if (h >= 1) return `${h}h ${String(m).padStart(2, "0")}m`;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
 export default function OverviewTab({ projectId, isDemo, project, userId, onNavigateTab, cachedData }: TabProps) {
   const [showCompleted, setShowCompleted] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const hasCached = !!cachedData;
@@ -77,6 +93,42 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const rfiCount = isDemo ? 3 : rfiList.length;
   const pendingRFIs = isDemo ? 1 : rfiList.filter((r: any) => r.status === "sent" || r.status === "draft").length;
 
+  // Bid deadline
+  const bidDeadlineMs = useMemo(() => {
+    if (!project?.bidDate) return null;
+    const bidTimeStr = (project as any)?.bidTime as string | undefined;
+    if (bidTimeStr) return new Date(`${project.bidDate}T${bidTimeStr}:00`).getTime();
+    return new Date(`${project.bidDate}T23:59:59`).getTime();
+  }, [project]);
+  const msUntilBid = bidDeadlineMs !== null ? bidDeadlineMs - nowMs : null;
+  const hoursUntilBid = msUntilBid !== null ? msUntilBid / 3600000 : null;
+  const daysUntilBid = msUntilBid !== null ? Math.ceil(msUntilBid / (1000 * 60 * 60 * 24)) : null;
+
+  // Section scores (for progress bars)
+  const sectionScores = useMemo(() => {
+    const takeoffScore = (() => {
+      if (controlSF === 0) return 50;
+      if (deltaPct === null) return 50;
+      return Math.max(0, Math.round(100 - deltaPct * 10));
+    })();
+    return {
+      checklist: checklistPct,
+      scope: Math.round(scopePct),
+      takeoff: takeoffScore,
+      pricing: pricingComplete ? 100 : (bidAmt ? 50 : 0),
+      materials: matItemCount > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
+      quotes: quoteCount > 0 ? (expiredQuotes === 0 ? (expiringQuotes === 0 ? 100 : 70) : 40) : 50,
+      addenda: addendaCount > 0 ? (scopeNotRepriced === 0 && addendaNotReviewed === 0 ? 100 : 40) : 100,
+      rfis: rfiCount > 0 ? (pendingRFIs === 0 ? 100 : 60) : 100,
+    };
+  }, [checklistPct, scopePct, controlSF, deltaPct, pricingComplete, bidAmt, matItemCount, matUnpriced, quoteCount, expiredQuotes, expiringQuotes, addendaCount, scopeNotRepriced, addendaNotReviewed, rfiCount, pendingRFIs]);
+
+  const sectionLabels: Record<string, string> = {
+    checklist: "Checklist", scope: "Scope", takeoff: "Takeoff",
+    pricing: "Pricing", materials: "Materials", quotes: "Quotes",
+    addenda: "Addenda", rfis: "RFIs",
+  };
+
   // Action items
   const actionItems: ActionItem[] = [];
   if (scopeTotal > 0) {
@@ -121,6 +173,42 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Bid deadline card */}
+      {msUntilBid !== null && (
+        <div style={{
+          background: msUntilBid <= 0 ? "#fef2f2" : hoursUntilBid! <= 4 ? "#fef2f2" : hoursUntilBid! <= 24 ? "#fffbeb" : "white",
+          borderRadius: 10,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          padding: "16px 20px",
+          border: `1px solid ${msUntilBid <= 0 ? "#fecaca" : hoursUntilBid! <= 4 ? "#fecaca" : hoursUntilBid! <= 24 ? "#fde68a" : "#e5e7eb"}`,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                Bid Deadline
+              </div>
+              <div style={{
+                fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
+                color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#111827",
+                letterSpacing: "-0.02em",
+              }}>
+                {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `⏰ ${formatCountdown(msUntilBid)}` : (daysUntilBid === 1 ? "1d to bid" : `${daysUntilBid}d to bid`)}
+              </div>
+              <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+                {project?.bidDate
+                  ? (() => {
+                      const bidTimeStr = (project as any)?.bidTime as string | undefined;
+                      const dateLabel = new Date(`${project.bidDate}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                      return bidTimeStr ? `${dateLabel} at ${bidTimeStr}` : dateLabel;
+                    })()
+                  : "No deadline set"
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Quick stats row */}
       {(bidAmt || grossArea) && (
         <div className="flex flex-wrap gap-3 text-xs text-slate-500">
@@ -165,6 +253,30 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
           )}
         </div>
       )}
+
+      {/* Section progress bars */}
+      <div className="bg-white rounded-lg p-4 border border-slate-200">
+        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Section Progress</div>
+        <div className="flex flex-col gap-2.5">
+          {Object.entries(sectionScores).map(([key, score]) => {
+            const color = score === 100 ? "#10b981" : score >= 67 ? "#3b82f6" : score >= 34 ? "#f59e0b" : "#ef4444";
+            const tabId = key as any;
+            return (
+              <button
+                key={key}
+                onClick={() => onNavigateTab?.(tabId)}
+                className="flex items-center gap-3 w-full text-left hover:opacity-75 transition-opacity"
+              >
+                <span className="text-xs text-slate-500 w-20 shrink-0 text-right">{sectionLabels[key]}</span>
+                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${score}%`, background: color }} />
+                </div>
+                <span className="text-[11px] font-medium w-8 shrink-0" style={{ color }}>{score}%</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Project notes (only if they exist) */}
       {project?.notes && (
