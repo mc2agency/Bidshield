@@ -20,8 +20,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider
       publishableKey={clerkKey}
-      afterSignInUrl="/bidshield/dashboard"
-      afterSignUpUrl="/bidshield/dashboard"
+      fallbackRedirectUrl="/bidshield/dashboard"
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <LanguageProvider>
