@@ -114,7 +114,7 @@ export default function HomepageContent() {
               </span>
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              18 phases from project setup to bid submission. Every discipline. Every item.
+              The bid QA tool for commercial roofing — 18 phases from project setup to bid submission. Every discipline. Every item.
             </p>
           </div>
 
@@ -162,7 +162,7 @@ export default function HomepageContent() {
               </span>
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              From project setup to bid submission. Every phase. Every item. Nothing missed.
+              From project setup to bid submission. Every phase. Every item — including material reconciliation and scope verification. Nothing missed.
             </p>
           </div>
 
@@ -336,8 +336,8 @@ export default function HomepageContent() {
             </span>
           </h2>
           <p className="text-xl text-slate-300 mb-10">
-            Material Reconciliation, Labor Verification, Scope tracking, GC Bid Forms — every part of your
-            pre-submission process in one place. Every section of your bid process in one place, from first plan review to final submission.
+            Material Reconciliation, commercial roofing estimate templates, Labor Verification, Scope tracking, GC Bid Forms — every part of your
+            pre-submission bid quality assurance process in one place, from first plan review to final submission.
           </p>
           <Link
             href="/sign-up"
