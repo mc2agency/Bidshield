@@ -5,6 +5,9 @@ import { useState, useEffect, useCallback, useRef, Component } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 
+// Baked in at build time — undefined when NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set
+const CLERK_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
 const NAV_LINKS = [
   { href: '/about', label: 'About' },
   { href: '/compare/bidshield-vs-the-edge', label: 'Compare' },
@@ -310,10 +313,8 @@ export default function Navigation() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
-            {isClient ? (
-              <AuthErrorBoundary fallback={<StaticDesktopNav pathname={pathname} />}>
-                <NavAuthDesktop isDashboard={isDashboard} pathname={pathname} />
-              </AuthErrorBoundary>
+            {isClient && CLERK_KEY ? (
+              <NavAuthDesktop isDashboard={isDashboard} pathname={pathname} />
             ) : (
               <StaticDesktopNav pathname={pathname} />
             )}
@@ -321,10 +322,8 @@ export default function Navigation() {
 
           {/* Mobile: initials + hamburger */}
           <div className="md:hidden flex items-center gap-2">
-            {isClient && (
-              <AuthErrorBoundary fallback={null}>
-                <NavAuthMobileInitials />
-              </AuthErrorBoundary>
+            {isClient && CLERK_KEY && (
+              <NavAuthMobileInitials />
             )}
             <button
               onClick={() => setMobileMenuOpen((v) => !v)}
@@ -348,10 +347,8 @@ export default function Navigation() {
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 px-4 py-4 space-y-1">
-          {isClient ? (
-            <AuthErrorBoundary fallback={<StaticMobileMenu pathname={pathname} onClose={() => setMobileMenuOpen(false)} />}>
-              <NavAuthMobileMenu pathname={pathname} isDashboard={isDashboard} onClose={() => setMobileMenuOpen(false)} />
-            </AuthErrorBoundary>
+          {isClient && CLERK_KEY ? (
+            <NavAuthMobileMenu pathname={pathname} isDashboard={isDashboard} onClose={() => setMobileMenuOpen(false)} />
           ) : (
             <StaticMobileMenu pathname={pathname} onClose={() => setMobileMenuOpen(false)} />
           )}
