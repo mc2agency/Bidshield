@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
   description: "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/roofing-takeoff-mistakes' },
   openGraph: {
     title: "7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]",
     description: "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",

@@ -62,7 +62,7 @@ export default function HomepageContent() {
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-            BidShield is the structured workflow commercial roofing estimators run from first plan review to final submission — built by a 12-year estimator who needed it.
+            BidShield is the bid quality assurance platform commercial roofing estimators run from first plan review to final submission — built by a 12-year estimator who needed it.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -114,7 +114,7 @@ export default function HomepageContent() {
               </span>
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              The bid QA tool for commercial roofing — 18 phases from project setup to bid submission. Every discipline. Every item.
+              The bid QA tool that catches scope gaps and roofing takeoff mistakes before they reach the GC. 18 phases, every discipline, every item.
             </p>
           </div>
 
@@ -144,6 +144,7 @@ export default function HomepageContent() {
           <p className="text-lg sm:text-xl text-slate-300 leading-relaxed">
             After 12 years estimating commercial roofing, I built the workflow I always ran on paper — finally
             in one place. Every phase, every discipline, every item that needs to be verified before you submit.
+            Material reconciliation, scope verification, addenda review — the bid quality assurance process every estimator needs but few have systematized.
           </p>
           <p className="mt-6 text-sm text-slate-500">
             — Founder, BidShield
@@ -320,7 +321,7 @@ export default function HomepageContent() {
           <span className="text-4xl mb-4 block">📋</span>
           <h2 className="text-3xl font-bold text-white mb-4">Get the Free Bid-Day Checklist</h2>
           <p className="text-lg text-slate-400 mb-8">
-            The 18-phase workflow professional estimators run before every submission.
+            The 18-phase workflow professional estimators run before every submission. Includes scope verification, commercial roofing estimate template guidance, and material reconciliation checks.
           </p>
           <EmailCapture />
         </div>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
   description: "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/buildingconnected-guide' },
   openGraph: {
     title: "BuildingConnected Guide: How to Find & Win Construction Bids [2025]",
     description: "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",

@@ -3,6 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "How to Calculate Roof Pitch: Formula, Chart & Calculator [2025]",
   description: "Learn how to calculate roof pitch using the rise-over-run formula. Includes pitch multiplier chart, angle conversions, and interactive calculator for roofing estimates.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/how-to-calculate-roof-pitch' },
   openGraph: {
     title: "How to Calculate Roof Pitch: Formula, Chart & Calculator [2025]",
     description: "Learn how to calculate roof pitch using the rise-over-run formula. Includes pitch multiplier chart, angle conversions, and interactive calculator for roofing estimates.",

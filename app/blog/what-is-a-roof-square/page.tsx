@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "What is a Roof Square? Complete Guide to Roofing Measurements [2025]",
   description: "Learn what a roof square is, how to calculate roof squares, and why this measurement matters for roofing estimates. Includes calculators and conversion charts.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/what-is-a-roof-square' },
   openGraph: {
     title: "What is a Roof Square? Complete Guide to Roofing Measurements [2025]",
     description: "Learn what a roof square is, how to calculate roof squares, and why this measurement matters for roofing estimates. Includes calculators and conversion charts.",

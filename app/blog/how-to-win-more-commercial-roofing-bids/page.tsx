@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
   description: "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/how-to-win-more-commercial-roofing-bids' },
   openGraph: {
     title: "How to Win More Commercial Roofing Bids: 6 Strategies That Work [2026]",
     description: "Proven strategies to improve your commercial roofing bid win rate — from tracking cost per SF by GC to the pre-submission review that catches errors before they cost you the job.",

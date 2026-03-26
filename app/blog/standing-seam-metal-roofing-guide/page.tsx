@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
   description: "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/standing-seam-metal-roofing-guide' },
   openGraph: {
     title: "Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation",
     description: "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
