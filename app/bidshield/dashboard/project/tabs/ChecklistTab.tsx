@@ -7,7 +7,18 @@ import type { Id } from "@/convex/_generated/dataModel";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import type { TabProps } from "../tab-types";
-import TabErrorBoundary from "../TabErrorBoundary";
+import React from "react";
+
+// Silent error boundary — renders nothing if the child throws.
+// Used for the templates panel so a missing Convex deployment doesn't show any UI.
+class SilentBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() { return this.state.hasError ? null : this.props.children; }
+}
 
 type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
 type FilterMode = "all" | "incomplete" | "flagged" | "rfi" | "done";
@@ -851,10 +862,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           </div>
         )}
 
-        {/* Checklist Templates — isolated in its own error boundary so a missing
-            Convex function (e.g. not yet deployed) won't crash the whole tab */}
+        {/* Checklist Templates — silently hidden if the Convex function isn't
+            deployed yet; SilentBoundary renders null on any query error */}
         {!isDemo && (
-          <TabErrorBoundary tabLabel="Templates">
+          <SilentBoundary>
             <ChecklistTemplatesPanel
               userId={userId}
               projectId={projectId}
@@ -862,7 +873,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
               systemType={systemType}
               isValidConvexId={!!isValidConvexId}
             />
-          </TabErrorBoundary>
+          </SilentBoundary>
         )}
       </div>
     </div>
