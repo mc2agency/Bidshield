@@ -25,7 +25,6 @@ export const metadata: Metadata = {
     description: "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",
     images: ["/api/og?title=Commercial Roofing Scope of Work: 40-Item Checklist for Estimators&type=article"],
   },
-,
   alternates: { canonical: 'https://www.bidshield.co/blog/commercial-roofing-scope-of-work-checklist' }
 };
 

@@ -25,7 +25,6 @@ export const metadata: Metadata = {
     description: "Complete guide to BuildingConnected (Autodesk Construction Cloud). Learn how to set up your profile, find projects, download plans, and submit winning bids.",
     images: ["/api/og?title=BuildingConnected Guide: How to Find & Win Construction Bids [2025]&type=article"],
   },
-,
   alternates: { canonical: 'https://www.bidshield.co/blog/buildingconnected-guide' }
 };
 

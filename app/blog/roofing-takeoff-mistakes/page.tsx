@@ -25,7 +25,6 @@ export const metadata: Metadata = {
     description: "The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent each one on your next commercial bid.",
     images: ["/api/og?title=7 Roofing Takeoff Mistakes That Cost Estimators Money [2026]&type=article"],
   },
-,
   alternates: { canonical: 'https://www.bidshield.co/blog/roofing-takeoff-mistakes' }
 };
 

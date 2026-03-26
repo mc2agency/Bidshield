@@ -25,7 +25,6 @@ export const metadata: Metadata = {
     description: "Compare TPO, PVC, and EPDM single-ply roofing systems. Cost, performance, installation, and which membrane is best for your commercial roofing project.",
     images: ["/api/og?title=TPO vs PVC vs EPDM: Complete Single-Ply Roofing Comparison [2025]&type=article"],
   },
-,
   alternates: { canonical: 'https://www.bidshield.co/blog/tpo-vs-pvc-vs-epdm' }
 };
 

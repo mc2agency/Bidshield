@@ -25,7 +25,6 @@ export const metadata: Metadata = {
     description: "Learn everything about spray polyurethane foam (SPF) roofing systems. Installation, costs, pros and cons, and how to estimate foam roofing projects.",
     images: ["/api/og?title=Spray Foam Roofing 101: Complete Guide to SPF Systems [2025]&type=article"],
   },
-,
   alternates: { canonical: 'https://www.bidshield.co/blog/spray-foam-roofing-101' }
 };
 
