@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     description: "Learn how to calculate roof pitch using the rise-over-run formula.",
     images: ["/api/og?title=How%20to%20Calculate%20Roof%20Pitch&type=article"],
   },
+  alternates: { canonical: 'https://www.bidshield.co/blog/how-to-calculate-roof-pitch' },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

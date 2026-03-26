@@ -6,6 +6,8 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Complete Template Bundle',
   description: 'All 8 professional roofing estimating templates in one bundle. Asphalt, TPO, EPDM, Metal, Tile, BUR, SBS, Spray Foam. Save $133.',
+,
+  alternates: { canonical: 'https://www.bidshield.co/products/template-bundle' }
 };
 
 const TEMPLATES = [

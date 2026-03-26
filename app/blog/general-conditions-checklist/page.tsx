@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     description: "Complete guide to general conditions in construction estimates. Learn what to include, how to calculate costs, and avoid missing critical items that eat into profit.",
     images: ["/api/og?title=General Conditions Checklist for Construction Estimating [2025]&type=article"],
   },
+,
+  alternates: { canonical: 'https://www.bidshield.co/blog/general-conditions-checklist' }
 };
 
 

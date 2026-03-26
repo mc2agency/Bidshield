@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: 'Roof Measurement & Technology Tool - Drones, Apps & Digital Tools',
   description: 'Master modern roof measurement technology including drones, satellite measurement, mobile apps, and digital reporting. Master EagleView, Hover, drones, and more.',
   keywords: 'roof measurement technology, drone roof measurement, EagleView, Hover app, satellite measurement, roofing technology tool, digital roof measurement'
+,
+  alternates: { canonical: 'https://www.bidshield.co/tools/measurement-technology' }
 };
 
 export default function MeasurementTechnologyPage() {

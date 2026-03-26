@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     description: "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
     images: ["/api/og?title=Best Roofing Estimating Software 2025: Compare Top Platforms&type=article"],
   },
+,
+  alternates: { canonical: 'https://www.bidshield.co/blog/roofing-estimating-software-comparison' }
 };
 
 

@@ -66,9 +66,44 @@ const comparisonRows = [
   },
 ];
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'How does BidShield compare to STACK?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'BidShield and STACK serve different purposes. STACK is cloud-based takeoff software — you use it to measure, count, and quantify from digital plans. BidShield is a pre-submission bid review tool — you use it after takeoff to verify the bid is complete before it goes out. They complement each other.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is BidShield better than STACK for commercial roofing?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'They solve different problems. STACK is better for digital plan takeoff and cloud-based measurement. BidShield is better for pre-submission review — catching scope gaps, missed addenda, mechanical curbs, and compliance issues that STACK can\'t flag because it only knows what you measured. Most commercial roofing contractors use both.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I use BidShield with STACK?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. BidShield is designed to layer on top of STACK, not replace it. Finish your cloud takeoff in STACK, then run BidShield\'s 18-phase checklist to catch what the takeoff missed — addenda items, mechanical scope gaps, submittal requirements — before the bid goes out.',
+      },
+    },
+  ],
+};
+
 export default function BidShieldVsStackPage() {
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />

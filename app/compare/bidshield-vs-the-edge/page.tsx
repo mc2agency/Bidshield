@@ -87,9 +87,44 @@ const costScenarios = [
   },
 ];
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'How does BidShield compare to The EDGE?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'BidShield and The EDGE serve different purposes. The EDGE is takeoff and pricing software — you use it to quantify scope and build material/labor costs. BidShield is a pre-submission bid review tool — you use it after your takeoff is done to verify the bid is complete before it goes out. They complement each other rather than compete.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is BidShield better than The EDGE for commercial roofing?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'They solve different problems. The EDGE is better for building your numbers — takeoff, material quantities, labor costs. BidShield is better for catching what your numbers missed — scope gaps, addenda, mechanical curbs, submittal requirements. Most commercial roofing estimators use both: The EDGE to build the bid, BidShield to verify it before submission.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I use BidShield with The EDGE?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. BidShield is designed to work alongside The EDGE, not replace it. Complete your takeoff and pricing in The EDGE, then run BidShield\'s 18-phase checklist to catch scope gaps, missed addenda, and compliance issues before the bid goes out.',
+      },
+    },
+  ],
+};
+
 export default function BidShieldVsTheEdgePage() {
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />

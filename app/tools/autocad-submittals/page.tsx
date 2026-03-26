@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: 'AutoCAD for Submittals - Shop Drawing Tool for Contractors',
   description: 'Master AutoCAD essentials for creating professional shop drawings and submittal packages. Perfect for contractors who need CAD skills without becoming full-time drafters.',
   keywords: 'AutoCAD for contractors, shop drawings, construction submittals, CAD tools, AutoCAD essentials, contractor CAD tool'
+,
+  alternates: { canonical: 'https://www.bidshield.co/tools/autocad-submittals' }
 };
 
 export default function AutoCADSubmittalsPage() {

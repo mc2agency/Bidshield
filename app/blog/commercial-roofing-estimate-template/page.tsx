@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     description: "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
     images: ["/api/og?title=Commercial Roofing Estimate Template: What Every Bid Must Include [2026]&type=article"],
   },
+,
+  alternates: { canonical: 'https://www.bidshield.co/blog/commercial-roofing-estimate-template' }
 };
 
 

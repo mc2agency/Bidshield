@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     description: "Master construction specifications with our complete guide. Learn CSI MasterFormat, Division organization, and how to extract critical information for accurate estimates.",
     images: ["/api/og?title=How to Read Construction Specifications [Complete Guide 2025]&type=article"],
   },
+,
+  alternates: { canonical: 'https://www.bidshield.co/blog/how-to-read-construction-specifications' }
 };
 
 

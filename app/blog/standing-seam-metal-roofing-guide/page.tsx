@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     description: "Complete guide to standing seam metal roofing. Learn about panel types, costs, installation methods, and how to estimate metal roofing projects accurately.",
     images: ["/api/og?title=Standing Seam Metal Roofing Guide [2025]: Costs, Types & Installation&type=article"],
   },
+,
+  alternates: { canonical: 'https://www.bidshield.co/blog/standing-seam-metal-roofing-guide' }
 };
 
 

@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     description: "Learn what a roof square is, how to calculate roof squares, and why this measurement matters for roofing estimates. Includes calculators and conversion charts.",
     images: ["/api/og?title=What is a Roof Square? Complete Guide to Roofing Measurements [2025]&type=article"],
   },
+,
+  alternates: { canonical: 'https://www.bidshield.co/blog/what-is-a-roof-square' }
 };
 
 

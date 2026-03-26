@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     description: "Learn how to accurately calculate labor burden including FICA, Medicare, workers comp, and all hidden costs. Avoid losing money on every job.",
     images: ["/api/og?title=Labor Burden Calculation for Contractors [Complete Guide 2025]&type=article"],
   },
+,
+  alternates: { canonical: 'https://www.bidshield.co/blog/labor-burden-calculation-guide' }
 };
 
 

@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: 'Construction Submittals Tool - Shop Drawings & RFIs',
   description: 'Master the complete submittal process for commercial construction. Master shop drawings, product submittals, RFIs, change orders, and closeout documentation.',
   keywords: 'construction submittals, shop drawings, RFI process, product submittals, commercial construction, submittal logs, contractor submittals'
+,
+  alternates: { canonical: 'https://www.bidshield.co/tools/construction-submittals' }
 };
 
 export default function ConstructionSubmittalsPage() {
