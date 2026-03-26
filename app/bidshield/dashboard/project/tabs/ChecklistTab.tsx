@@ -8,9 +8,9 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import type { TabProps } from "../tab-types";
 
-// Silent error boundary — renders null if the template query crashes
-// (e.g. Convex functions not yet deployed to backend)
-class SilentErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+// Silent error boundary — renders nothing if the child throws.
+// Used for the templates panel so a missing Convex deployment doesn't crash the whole tab.
+class SilentBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
@@ -19,17 +19,41 @@ class SilentErrorBoundary extends React.Component<{ children: React.ReactNode },
   render() { return this.state.hasError ? null : this.props.children; }
 }
 
-interface TemplatesPanelProps {
-  isDemo: boolean;
-  isValidConvexId: boolean | string | null;
-  userId: string;
-  projectId: string;
-  systemType: string | null | undefined;
+type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
+type FilterMode = "all" | "incomplete" | "flagged" | "rfi" | "done";
+
+function matchesFilter(status: ChecklistStatus, filter: FilterMode): boolean {
+  if (filter === "all") return true;
+  if (filter === "incomplete") return status === "pending" || status === "rfi" || status === "warning";
+  if (filter === "flagged") return status === "warning";
+  if (filter === "rfi") return status === "rfi";
+  if (filter === "done") return status === "done" || status === "na";
+  return true;
 }
 
-function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, systemType }: TemplatesPanelProps) {
-  const templates    = useQuery(api.checklistTemplates.getChecklistTemplates, !isDemo && userId ? { userId } : "skip");
-  const saveTemplate = useMutation(api.checklistTemplates.saveChecklistTemplate);
+function formatNoteDate(ts: number | null): string | null {
+  if (!ts) return null;
+  return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// ── Checklist Templates sub-component ────────────────────────────────────────
+// Isolated so that if the Convex function isn't deployed yet the query error
+// is caught by the wrapping TabErrorBoundary rather than crashing the whole tab.
+function ChecklistTemplatesPanel({
+  userId,
+  projectId,
+  isDemo,
+  systemType,
+  isValidConvexId,
+}: {
+  userId: string;
+  projectId: string | null;
+  isDemo: boolean;
+  systemType: string | undefined;
+  isValidConvexId: boolean;
+}) {
+  const templates     = useQuery(api.checklistTemplates.getChecklistTemplates, !isDemo && userId ? { userId } : "skip");
+  const saveTemplate  = useMutation(api.checklistTemplates.saveChecklistTemplate);
   const applyTemplate = useMutation(api.checklistTemplates.applyChecklistTemplate);
   const deleteTemplate = useMutation(api.checklistTemplates.deleteChecklistTemplate);
 
@@ -43,7 +67,12 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
     if (!templateName.trim() || !isValidConvexId || !userId) return;
     setTemplateSaving(true);
     try {
-      await saveTemplate({ userId, projectId: projectId as Id<"bidshield_projects">, name: templateName.trim(), systemType: systemType ?? undefined });
+      await saveTemplate({
+        userId,
+        projectId: projectId as Id<"bidshield_projects">,
+        name: templateName.trim(),
+        systemType: systemType ?? undefined,
+      });
       setTemplateName("");
       setShowSaveTemplate(false);
       setTemplateFlash("Template saved!");
@@ -57,7 +86,11 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
     if (!isValidConvexId || !userId) return;
     setApplyingTemplateId(templateId);
     try {
-      await applyTemplate({ userId, projectId: projectId as Id<"bidshield_projects">, templateId });
+      await applyTemplate({
+        userId,
+        projectId: projectId as Id<"bidshield_projects">,
+        templateId,
+      });
       setTemplateFlash("Template applied!");
       setTimeout(() => setTemplateFlash(null), 2500);
     } finally {
@@ -69,8 +102,6 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
     if (!userId) return;
     await deleteTemplate({ userId, templateId });
   }
-
-  if (isDemo) return null;
 
   return (
     <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
@@ -86,7 +117,10 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
 
       {!showSaveTemplate ? (
         <button
-          onClick={() => { setTemplateName(systemType ? `${systemType.toUpperCase()} Template` : "My Template"); setShowSaveTemplate(true); }}
+          onClick={() => {
+            setTemplateName(systemType ? `${systemType.toUpperCase()} Template` : "My Template");
+            setShowSaveTemplate(true);
+          }}
           style={{ fontSize: 12, fontWeight: 500, color: "#4f46e5", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 6, padding: "6px 10px", cursor: "pointer", width: "100%", textAlign: "left" }}
           onMouseEnter={e => (e.currentTarget.style.background = "#e0e7ff")}
           onMouseLeave={e => (e.currentTarget.style.background = "#eef2ff")}
@@ -96,7 +130,9 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <input
-            autoFocus type="text" value={templateName}
+            autoFocus
+            type="text"
+            value={templateName}
             onChange={e => setTemplateName(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") handleSaveTemplate(); if (e.key === "Escape") setShowSaveTemplate(false); }}
             placeholder="Template name..."
@@ -104,7 +140,8 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
           />
           <div style={{ display: "flex", gap: 6 }}>
             <button
-              onClick={handleSaveTemplate} disabled={templateSaving || !templateName.trim()}
+              onClick={handleSaveTemplate}
+              disabled={templateSaving || !templateName.trim()}
               style={{ flex: 1, fontSize: 12, fontWeight: 600, background: templateSaving || !templateName.trim() ? "#a5b4fc" : "#4f46e5", color: "white", border: "none", borderRadius: 6, padding: "6px 0", cursor: templateSaving || !templateName.trim() ? "not-allowed" : "pointer" }}
             >
               {templateSaving ? "Saving..." : "Save"}
@@ -122,10 +159,17 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
       {templates && templates.length > 0 && (
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
           {templates.map((tpl: Doc<"bidshield_checklist_templates">) => (
-            <div key={tpl._id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 7 }}>
+            <div
+              key={tpl._id}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 7 }}
+            >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tpl.name}</div>
-                {tpl.systemType && <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}>{tpl.systemType.toUpperCase()}</div>}
+                <div style={{ fontSize: 12, fontWeight: 500, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {tpl.name}
+                </div>
+                {tpl.systemType && (
+                  <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}>{tpl.systemType.toUpperCase()}</div>
+                )}
               </div>
               <button
                 onClick={() => handleApplyTemplate(tpl._id as Id<"bidshield_checklist_templates">)}
@@ -159,23 +203,7 @@ function ChecklistTemplatesPanel({ isDemo, isValidConvexId, userId, projectId, s
     </div>
   );
 }
-
-type ChecklistStatus = "pending" | "done" | "rfi" | "na" | "warning";
-type FilterMode = "all" | "incomplete" | "flagged" | "rfi" | "done";
-
-function matchesFilter(status: ChecklistStatus, filter: FilterMode): boolean {
-  if (filter === "all") return true;
-  if (filter === "incomplete") return status === "pending" || status === "rfi" || status === "warning";
-  if (filter === "flagged") return status === "warning";
-  if (filter === "rfi") return status === "rfi";
-  if (filter === "done") return status === "done" || status === "na";
-  return true;
-}
-
-function formatNoteDate(ts: number | null): string | null {
-  if (!ts) return null;
-  return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const demoChecklist = getChecklistForTrade("roofing", "tpo", "steel");
 const demoItems = (() => {
@@ -200,6 +228,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const overallProgress  = useQuery(api.bidshield.getChecklistProgress, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const updateChecklist  = useMutation(api.bidshield.updateChecklistItem);
 
+  // Template functionality is in ChecklistTemplatesPanel (wrapped in SilentBoundary)
   const userId = project?.userId ?? "";
 
   const [demoState, setDemoState]     = useState(demoItems);
@@ -832,16 +861,19 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           </div>
         )}
 
-        {/* Checklist Templates — isolated so a Convex deploy error doesn't crash the whole tab */}
-        <SilentErrorBoundary>
-          <ChecklistTemplatesPanel
-            isDemo={isDemo}
-            isValidConvexId={isValidConvexId}
-            userId={userId}
-            projectId={projectId}
-            systemType={systemType}
-          />
-        </SilentErrorBoundary>
+        {/* Checklist Templates — silently hidden if the Convex function isn't
+            deployed yet; SilentBoundary renders null on any query error */}
+        {!isDemo && (
+          <SilentBoundary>
+            <ChecklistTemplatesPanel
+              userId={userId}
+              projectId={projectId}
+              isDemo={isDemo}
+              systemType={systemType}
+              isValidConvexId={!!isValidConvexId}
+            />
+          </SilentBoundary>
+        )}
       </div>
     </div>
 

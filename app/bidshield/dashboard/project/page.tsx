@@ -284,9 +284,6 @@ function ProjectDetail() {
     return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining, scopeConflictCount };
   }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis, laborTasks]);
 
-  if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
-  if (!isDemo && !projectData) return <div className="text-center py-20"><div className="text-slate-400 text-sm">Loading...</div></div>;
-
   const bidDeadlineMs = useMemo(() => {
     if (!projectData?.bidDate) return null;
     const bidTimeStr = (projectData as any)?.bidTime as string | undefined;
@@ -295,6 +292,9 @@ function ProjectDetail() {
     }
     return new Date(`${projectData.bidDate}T23:59:59`).getTime();
   }, [projectData]);
+
+  if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
+  if (!isDemo && !projectData) return <div className="text-center py-20"><div className="text-slate-400 text-sm">Loading...</div></div>;
 
   const msUntilBid = bidDeadlineMs !== null ? bidDeadlineMs - nowMs : null;
   const hoursUntilBid = msUntilBid !== null ? msUntilBid / 3600000 : null;
