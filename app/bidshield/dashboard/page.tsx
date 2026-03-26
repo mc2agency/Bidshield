@@ -11,6 +11,40 @@ import NewBidWizard from "./NewBidWizard";
 import { track } from "@vercel/analytics";
 
 // ============================================================
+// DELETE CONFIRM DIALOG
+// ============================================================
+function DeleteConfirmDialog({ projectName, onConfirm, onCancel }: {
+  projectName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <h2 className="text-lg font-bold text-slate-900 mb-2">Delete bid?</h2>
+        <p className="text-sm text-slate-500 mb-6">
+          Are you sure you want to delete <span className="font-semibold text-slate-700">&ldquo;{projectName}&rdquo;</span>? This will permanently remove the project and all related data.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // UPGRADE MODAL
 // ============================================================
 function UpgradeModal({ onClose }: { onClose: () => void }) {
@@ -123,12 +157,15 @@ function WelcomeCard({ onNewBid }: { onNewBid: () => void }) {
 // ============================================================
 // PROJECT TABLE (desktop pipeline view)
 // ============================================================
-function ProjectRow({ project, isDemo, onStatusChange, router }: {
+function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router }: {
   project: BidProject;
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
+  onDelete: (id: Id<"bidshield_projects">, name: string) => void;
+  onEdit: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const progress = useQuery(
     api.bidshield.getChecklistProgress,
     !isDemo ? { projectId: project._id } : "skip"
@@ -178,19 +215,58 @@ function ProjectRow({ project, isDemo, onStatusChange, router }: {
         </div>
       </td>
       <td className="px-4 py-3">
-        <div className="flex gap-1.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="py-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-emerald-200">Won</button>
-          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="py-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-red-200">Lost</button>
+        <div className="flex gap-1.5 items-center justify-end">
+          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="py-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-emerald-200">Won</button>
+            <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="py-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-red-200">Lost</button>
+          </div>
+          {!isDemo && (
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+                className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="More actions"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+                </svg>
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
+                  <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(project._id); }}
+                      className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
+                      Edit
+                    </button>
+                    <div className="border-t border-slate-100 my-1" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(project._id, project.name); }}
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                      Delete
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </td>
     </tr>
   );
 }
 
-function ProjectTable({ projects, isDemo, onStatusChange, router, onNewBid }: {
+function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, router, onNewBid }: {
   projects: BidProject[];
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
+  onDelete: (id: Id<"bidshield_projects">, name: string) => void;
+  onEdit: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
   onNewBid: () => void;
 }) {
@@ -210,7 +286,7 @@ function ProjectTable({ projects, isDemo, onStatusChange, router, onNewBid }: {
         </thead>
         <tbody>
           {projects.map((project) => (
-            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} router={router} />
+            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} router={router} />
           ))}
           <tr>
             <td colSpan={7} className="px-4 py-3">
@@ -229,10 +305,12 @@ function ProjectTable({ projects, isDemo, onStatusChange, router, onNewBid }: {
 // ============================================================
 // PROJECT CARD
 // ============================================================
-function ProjectCard({ project, isDemo, onStatusChange, router }: {
+function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, router }: {
   project: BidProject;
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
+  onDelete: (id: Id<"bidshield_projects">, name: string) => void;
+  onEdit: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
 }) {
   const progress = useQuery(
@@ -303,6 +381,16 @@ function ProjectCard({ project, isDemo, onStatusChange, router }: {
         <div className="flex gap-2 mt-4 pt-3 border-t border-slate-100">
           <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg transition-colors ring-1 ring-emerald-200">&check; Won</button>
           <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-lg transition-colors ring-1 ring-red-200">&times; Lost</button>
+          {!isDemo && (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); onEdit(project._id); }} className="py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg transition-colors ring-1 ring-slate-200" aria-label="Edit">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onDelete(project._id, project.name); }} className="py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition-colors ring-1 ring-red-200" aria-label="Delete">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -325,6 +413,7 @@ function DashboardContent() {
   const convexStats = useQuery(api.bidshield.getStats, !isDemo && userId && isPro ? { userId } : "skip");
   const createProjectMut = useMutation(api.bidshield.createProject);
   const updateProjectMut = useMutation(api.bidshield.updateProject);
+  const deleteProjectMut = useMutation(api.bidshield.deleteProject);
   const projects: BidProject[] = isDemo ? demoProjects : (convexProjects ?? []);
   const stats = isDemo ? demoStats : (convexStats ?? {
     activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0,
@@ -335,6 +424,7 @@ function DashboardContent() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
+  const [deleteTarget, setDeleteTarget] = useState<{ id: Id<"bidshield_projects">; name: string } | null>(null);
 
   // Show onboarding for new users with zero projects
   useEffect(() => {
@@ -373,6 +463,20 @@ function DashboardContent() {
     if (isFirst) track("first_project_created");
     setShowNewProject(false);
     router.push(`/bidshield/dashboard/project?id=${projectId}`);
+  };
+
+  const handleDeleteRequest = (id: Id<"bidshield_projects">, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    await deleteProjectMut({ projectId: deleteTarget.id });
+    setDeleteTarget(null);
+  };
+
+  const handleEdit = (id: Id<"bidshield_projects">) => {
+    router.push(`/bidshield/dashboard/project?id=${id}`);
   };
 
   const handleStatusChange = async (projectId: Id<"bidshield_projects">, status: "won" | "lost") => {
@@ -491,13 +595,13 @@ function DashboardContent() {
 
         {/* Desktop: pipeline table */}
         <div className="hidden md:block">
-          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} router={router} onNewBid={handleNewBidClick} />
+          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} router={router} onNewBid={handleNewBidClick} />
         </div>
 
         {/* Mobile: card grid */}
         <div className="grid grid-cols-1 gap-4 md:hidden">
           {activeProjects.map((project: BidProject) => (
-            <ProjectCard key={project._id} project={project} isDemo={isDemo} onStatusChange={handleStatusChange} router={router} />
+            <ProjectCard key={project._id} project={project} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} router={router} />
           ))}
           <div onClick={handleNewBidClick} className="rounded-xl p-5 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer text-slate-400 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all min-h-[200px] group">
             <div className="w-12 h-12 rounded-full bg-slate-100 group-hover:bg-emerald-100 flex items-center justify-center mb-3 transition-colors">
@@ -548,6 +652,13 @@ function DashboardContent() {
 
       {showNewProject && <NewBidWizard isDemo={isDemo} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
       {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
+      {deleteTarget && (
+        <DeleteConfirmDialog
+          projectName={deleteTarget.name}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }
