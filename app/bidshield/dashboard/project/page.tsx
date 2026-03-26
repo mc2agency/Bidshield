@@ -473,53 +473,6 @@ function ProjectDetail() {
             );
           })}
 
-          {/* Validate — separated, final review step */}
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: 8, paddingTop: 8 }}>
-            {(() => {
-              const isActive = activeTab === "validator";
-              const scoreBadgeColor = readinessScore >= 90 ? "#10b981" : readinessScore >= 50 ? "#f59e0b" : "#ef4444";
-              const scoreBadgeBg   = readinessScore >= 90 ? "rgba(16,185,129,0.15)" : readinessScore >= 50 ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)";
-              const passChecks = actionItems.filter(a => a.level !== "blocker" && a.level !== "warning").length;
-              const failChecks = actionItems.filter(a => a.level === "blocker").length;
-              const warnChecks = actionItems.filter(a => a.level === "warning").length;
-              const tooltip = `Final pre-submission review — ${passChecks} passing${warnChecks > 0 ? `, ${warnChecks} warning${warnChecks !== 1 ? "s" : ""}` : ""}${failChecks > 0 ? `, ${failChecks} blocker${failChecks !== 1 ? "s" : ""}` : ""}`;
-              return (
-                <button
-                  title={tooltip}
-                  onClick={() => setActiveTab(isActive ? null : "validator")}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-all"
-                  style={isActive
-                    ? { background: "rgba(16,185,129,0.15)", color: "#ffffff", borderLeft: "2px solid #10b981" }
-                    : { background: "rgba(255,255,255,0.04)", color: "#d1d5db", borderLeft: "2px solid transparent" }
-                  }
-                  onMouseEnter={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = "rgba(16,185,129,0.1)";
-                      (e.currentTarget as HTMLElement).style.color = "#ffffff";
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
-                      (e.currentTarget as HTMLElement).style.color = "#d1d5db";
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <CheckSquare size={17} strokeWidth={1.75} />
-                    <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>Validate</span>
-                  </div>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, lineHeight: 1,
-                    minWidth: 28, height: 18, borderRadius: 9999,
-                    background: scoreBadgeBg, color: scoreBadgeColor,
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    padding: "0 6px",
-                  }}>{readinessScore}%</span>
-                </button>
-              );
-            })()}
-          </div>
         </nav>
 
         {/* Status pills */}
