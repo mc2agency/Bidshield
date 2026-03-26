@@ -42,7 +42,6 @@ export const DEFAULT_SCOPE_ITEMS: DefaultScopeItem[] = [
   { category: "schedule", name: "Occupied building restrictions", sortOrder: 17 },
 
   // Sheet Metal & Drainage
-  { category: "sheetmetal", name: "Sheet metal gutters / Downspouts", sortOrder: 18 },
   { category: "sheetmetal", name: "Scuppers / Overflow provisions", sortOrder: 19 },
   { category: "sheetmetal", name: "Coping / Edge metal fabrication", sortOrder: 20 },
   { category: "sheetmetal", name: "Counterflashing (furnished by GC or roofer?)", sortOrder: 21 },

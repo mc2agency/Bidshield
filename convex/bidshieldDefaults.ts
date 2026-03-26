@@ -303,6 +303,8 @@ const roofingPhases: Record<string, ChecklistPhaseDef> = {
       { id: "p17-8", text: "Tear-off scope defined (layers, disposal, recycling)" },
       { id: "p17-9", text: "All exclusions listed in proposal" },
       { id: "p17-10", text: "Alternates identified and priced separately" },
+      { id: "p17-11", text: "Sheet metal gutters / downspouts — included in bid or explicitly excluded?" },
+      { id: "p17-12", text: "Edge metal / drip edge — scope confirmed (included or by others)?" },
     ],
   },
   phase13: {

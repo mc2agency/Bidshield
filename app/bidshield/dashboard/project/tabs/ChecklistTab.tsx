@@ -731,6 +731,12 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                         N/A
                                       </button>
                                       <button
+                                        onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "rfi"); }}
+                                        className="shrink-0 h-8 rounded-lg text-sm font-semibold px-4 border transition-all whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300"
+                                      >
+                                        ? RFI
+                                      </button>
+                                      <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "done"); }}
                                         className="shrink-0 h-8 rounded-lg text-sm font-semibold px-4 border transition-all whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300"
                                       >
