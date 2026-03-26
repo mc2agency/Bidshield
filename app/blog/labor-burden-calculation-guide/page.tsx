@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "Labor Burden Calculation for Contractors [Complete Guide 2025]",
   description: "Learn how to accurately calculate labor burden including FICA, Medicare, workers comp, and all hidden costs. Avoid losing money on every job.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/labor-burden-calculation-guide' },
   openGraph: {
     title: "Labor Burden Calculation for Contractors [Complete Guide 2025]",
     description: "Learn how to accurately calculate labor burden including FICA, Medicare, workers comp, and all hidden costs. Avoid losing money on every job.",

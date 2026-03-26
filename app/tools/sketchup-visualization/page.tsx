@@ -4,7 +4,8 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'SketchUp for Visualization Tool - 3D Modeling for Contractors',
   description: 'Use SketchUp for roofing and construction visualization. Create stunning 3D models, client presentations, and shop drawings. Perfect for contractors who want to impress clients.',
-  keywords: 'SketchUp for contractors, 3D roofing models, construction visualization, SketchUp tutorial, client presentations, roofing 3D models'
+  keywords: 'SketchUp for contractors, 3D roofing models, construction visualization, SketchUp tutorial, client presentations, roofing 3D models',
+  alternates: { canonical: 'https://www.bidshield.co/tools/sketchup-visualization' },
 };
 
 export default function SketchUpVisualizationPage() {

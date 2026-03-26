@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "General Conditions Checklist for Construction Estimating [2025]",
   description: "Complete guide to general conditions in construction estimates. Learn what to include, how to calculate costs, and avoid missing critical items that eat into profit.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/general-conditions-checklist' },
   openGraph: {
     title: "General Conditions Checklist for Construction Estimating [2025]",
     description: "Complete guide to general conditions in construction estimates. Learn what to include, how to calculate costs, and avoid missing critical items that eat into profit.",

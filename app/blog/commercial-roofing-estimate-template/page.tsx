@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
   description: "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/commercial-roofing-estimate-template' },
   openGraph: {
     title: "Commercial Roofing Estimate Template: What Every Bid Must Include [2026]",
     description: "The 8 sections every professional commercial roofing estimate needs — plus formatting tips that build trust with GCs and help you win more work.",

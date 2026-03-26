@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "Spray Foam Roofing 101: Complete Guide to SPF Systems [2025]",
   description: "Learn everything about spray polyurethane foam (SPF) roofing systems. Installation, costs, pros and cons, and how to estimate foam roofing projects.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/spray-foam-roofing-101' },
   openGraph: {
     title: "Spray Foam Roofing 101: Complete Guide to SPF Systems [2025]",
     description: "Learn everything about spray polyurethane foam (SPF) roofing systems. Installation, costs, pros and cons, and how to estimate foam roofing projects.",

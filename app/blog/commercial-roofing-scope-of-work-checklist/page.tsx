@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
   description: "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/commercial-roofing-scope-of-work-checklist' },
   openGraph: {
     title: "Commercial Roofing Scope of Work: 40-Item Checklist for Estimators",
     description: "A complete commercial roofing scope of work checklist covering existing conditions, removal, substrate, membrane systems, accessories, flashing, warranty, and cleanup. Avoid costly change orders.",

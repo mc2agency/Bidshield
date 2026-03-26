@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: "Best Roofing Estimating Software 2025: Compare Top Platforms",
   description: "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",
+  alternates: { canonical: 'https://www.bidshield.co/blog/roofing-estimating-software-comparison' },
   openGraph: {
     title: "Best Roofing Estimating Software 2025: Compare Top Platforms",
     description: "Compare the best roofing estimating software: AccuLynx, JobNimbus, Contractor Foreman, and more. Features, pricing, pros and cons for contractors.",

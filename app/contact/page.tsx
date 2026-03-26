@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -295,4 +294,4 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
-export default dynamic(() => Promise.resolve(ContactPageContent), { ssr: false });
+export default ContactPageContent;
