@@ -686,70 +686,73 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               )}
                             </div>
 
-                            {/* RFI badge — opens inline drawer */}
-                            {status === "rfi" && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setRfiDrawerKey(prev => prev === rowKey ? null : rowKey); setRfiQuestion(item.text); }}
-                                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 transition-colors ${isRfiDrawerOpen ? "bg-amber-200 text-amber-800" : "bg-amber-100 hover:bg-amber-200 text-amber-700"}`}
-                              >
-                                RFI {isRfiDrawerOpen ? "▲" : "▼"}
-                              </button>
-                            )}
-
-                            {/* Flag button — hover only */}
-                            {!isEditingThisNote && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, isFlagged ? "pending" : "warning"); }}
-                                className={`transition-all shrink-0 text-sm ${isFlagged ? "text-orange-500" : "opacity-0 group-hover:opacity-100 text-slate-300 hover:text-orange-400"}`}
-                                title={isFlagged ? "Unflag" : "Flag for review"}
-                              >
-                                ⚑
-                              </button>
-                            )}
-
-                            {/* 📝 Add note button — hover only */}
-                            {!isEditingThisNote && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-slate-400 hover:text-amber-600 shrink-0 whitespace-nowrap"
-                              >
-                                {note ? "📝 Edit" : "📝 Add note"}
-                              </button>
-                            )}
-
-                            {/* Status pills — RIGHT side */}
-                            {status !== "rfi" && status !== "warning" && (
-                              status === "pending" ? (
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "done"); }}
-                                    className="rounded-full text-xs font-medium px-4 py-1.5 border transition-all whitespace-nowrap bg-white text-[#9ca3af] border-[#e2e8f0] hover:bg-[#f0fdf4] hover:text-[#16a34a] hover:border-[#86efac]"
-                                  >
-                                    Mark Done
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "na"); }}
-                                    className="rounded-full text-xs font-medium px-4 py-1.5 border transition-all whitespace-nowrap bg-white text-[#9ca3af] border-[#e2e8f0] hover:bg-[#f8fafc] hover:text-[#94a3b8] hover:border-[#cbd5e1]"
-                                    title="Not applicable / not needed"
-                                  >
-                                    N/A
-                                  </button>
-                                </div>
-                              ) : (
+                            {/* Action buttons — always visible, right-aligned */}
+                            <div className="flex items-center gap-2 shrink-0 ml-auto">
+                              {/* RFI badge */}
+                              {status === "rfi" && (
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "pending"); }}
-                                  className={`
-                                    shrink-0 rounded-full text-xs font-medium px-4 py-1.5 border transition-all whitespace-nowrap
-                                    ${status === "done"
-                                      ? "bg-[#f0fdf4] text-[#16a34a] border-[#86efac]"
-                                      : "bg-[#f8fafc] text-[#94a3b8] border-[#e2e8f0]"}
-                                  `}
-                                  title="Click to reset to pending"
+                                  onClick={(e) => { e.stopPropagation(); setRfiDrawerKey(prev => prev === rowKey ? null : rowKey); setRfiQuestion(item.text); }}
+                                  className={`text-xs px-3 py-1.5 rounded-full font-semibold shrink-0 transition-colors ${isRfiDrawerOpen ? "bg-amber-200 text-amber-800" : "bg-amber-100 hover:bg-amber-200 text-amber-700"}`}
                                 >
-                                  {status === "done" ? "✓ Done" : "N/A"}
+                                  RFI {isRfiDrawerOpen ? "▲" : "▼"}
                                 </button>
-                              )
-                            )}
+                              )}
+
+                              {/* Flag button — always visible */}
+                              {!isEditingThisNote && status !== "rfi" && status !== "warning" && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, isFlagged ? "pending" : "warning"); }}
+                                  className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border transition-all ${isFlagged ? "bg-orange-50 text-orange-500 border-orange-200" : "bg-white text-slate-400 border-slate-200 hover:text-orange-400 hover:border-orange-300 hover:bg-orange-50"}`}
+                                  title={isFlagged ? "Unflag" : "Flag for review"}
+                                >
+                                  <span className="text-sm">⚑</span>
+                                </button>
+                              )}
+
+                              {/* Add note button — always visible */}
+                              {!isEditingThisNote && status !== "rfi" && status !== "warning" && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
+                                  className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50 transition-all"
+                                  title={note ? "Edit note" : "Add note"}
+                                >
+                                  <span className="text-sm">📝</span>
+                                </button>
+                              )}
+
+                              {/* Status action buttons */}
+                              {status !== "rfi" && status !== "warning" && (
+                                status === "pending" ? (
+                                  <>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "na"); }}
+                                      className="rounded-lg text-xs font-medium px-3 py-1.5 border transition-all whitespace-nowrap bg-white text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 hover:border-slate-300"
+                                    >
+                                      N/A
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "done"); }}
+                                      className="rounded-lg text-xs font-semibold px-4 py-1.5 border transition-all whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300"
+                                    >
+                                      ✓ Mark Done
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "pending"); }}
+                                    className={`
+                                      shrink-0 rounded-lg text-xs font-semibold px-4 py-1.5 border transition-all whitespace-nowrap
+                                      ${status === "done"
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-white hover:text-slate-500 hover:border-slate-300"
+                                        : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-white hover:text-slate-700 hover:border-slate-300"}
+                                    `}
+                                    title="Click to undo"
+                                  >
+                                    {status === "done" ? "✓ Done" : "N/A"}
+                                  </button>
+                                )
+                              )}
+                            </div>
                           </div>
 
                           {/* Note display — styled amber callout */}
