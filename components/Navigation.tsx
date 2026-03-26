@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, useClerk } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 
 
 export default function Navigation() {
@@ -14,8 +14,7 @@ export default function Navigation() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const ticking = useRef(false);
   const pathname = usePathname();
-  const { isSignedIn, userId } = useAuth();
-  const { signOut } = useClerk();
+  const { isSignedIn, userId, signOut } = useAuth();
   const router = useRouter();
 
   useEffect(() => { setIsClient(true); }, []);
