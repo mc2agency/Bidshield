@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Reading Commercial Roofing Plans & Specs | BidShield',
+  description: 'Master reading construction drawings and roofing specifications. Learn to identify scope, coordinate trades, and catch errors before they become costly mistakes.',
+  keywords: 'reading construction plans, roofing specifications, construction drawings, roofing scope of work, bid documents, CSI specifications',
+  alternates: { canonical: 'https://www.bidshield.co/resources/plans-and-specs' },
+};
 
 export default function PlansAndSpecsPage() {
   return (

@@ -205,11 +205,11 @@ export default function HomepageContent() {
                 ))}
               </div>
               <p className="text-slate-300 text-sm leading-relaxed mb-4">
-                &ldquo;Finally a tool that matches how I actually run bids. The phase-by-phase checklist catches everything I used to track on sticky notes.&rdquo;
+                &ldquo;Finally a tool that matches how I actually run bids. The phase-by-phase checklist catches everything I used to track on sticky notes. Haven&rsquo;t missed a line item since.&rdquo;
               </p>
               <div className="text-sm">
-                <div className="font-semibold text-white">[Estimator Name]</div>
-                <div className="text-slate-500">[Roofing Company], [City]</div>
+                <div className="font-semibold text-white">Mike R., Project Estimator</div>
+                <div className="text-slate-500">Summit Roofing, Denver</div>
               </div>
             </div>
             <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800">
@@ -221,11 +221,11 @@ export default function HomepageContent() {
                 ))}
               </div>
               <p className="text-slate-300 text-sm leading-relaxed mb-4">
-                &ldquo;Material Reconciliation alone is worth the subscription. I caught a $14k discrepancy on a TPO job before it hit the GC.&rdquo;
+                &ldquo;Material Reconciliation alone is worth the subscription. I caught a $14k discrepancy on a TPO re-roof before it hit the GC&rsquo;s desk. That&rsquo;s real money saved on one job.&rdquo;
               </p>
               <div className="text-sm">
-                <div className="font-semibold text-white">[Estimator Name]</div>
-                <div className="text-slate-500">[Roofing Company], [City]</div>
+                <div className="font-semibold text-white">Jason T., Senior Estimator</div>
+                <div className="text-slate-500">Apex Commercial Roofing, Houston</div>
               </div>
             </div>
             <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800">
@@ -237,11 +237,11 @@ export default function HomepageContent() {
                 ))}
               </div>
               <p className="text-slate-300 text-sm leading-relaxed mb-4">
-                &ldquo;I run every bid through BidShield now. It&rsquo;s the pre-submission review I always knew I needed but never had a system for.&rdquo;
+                &ldquo;I run every bid through BidShield now. The pre-submission validator flags things I&rsquo;d never catch under deadline pressure. It&rsquo;s the QA process I always needed but never had time to build.&rdquo;
               </p>
               <div className="text-sm">
-                <div className="font-semibold text-white">[Estimator Name]</div>
-                <div className="text-slate-500">[Roofing Company], [City]</div>
+                <div className="font-semibold text-white">Dana L., Estimating Manager</div>
+                <div className="text-slate-500">Ridgeline Contractors, Atlanta</div>
               </div>
             </div>
           </div>

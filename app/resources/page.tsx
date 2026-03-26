@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Free Commercial Roofing Estimating Resources | BidShield',
+  description: 'Free guides, checklists, and references for commercial roofing estimators. Learn roofing systems, measurement, takeoff, submittals, and bid workflow best practices.',
+  keywords: 'commercial roofing estimating resources, roofing estimator guide, bid workflow, roofing takeoff, BidShield',
+  alternates: { canonical: 'https://www.bidshield.co/resources' },
+};
 
 export default function ResourceCenter() {
   return (

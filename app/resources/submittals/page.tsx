@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Construction Submittals & Shop Drawings for Roofers | BidShield',
+  description: 'Master the roofing submittal process from reading requirements to creating shop drawings. Learn organization, tracking, and how to avoid delays that cost you money.',
+  keywords: 'roofing submittals, shop drawings, construction submittals, submittal log, roofing product data, material submittals',
+  alternates: { canonical: 'https://www.bidshield.co/resources/submittals' },
+};
 
 export default function SubmittalsPage() {
   return (

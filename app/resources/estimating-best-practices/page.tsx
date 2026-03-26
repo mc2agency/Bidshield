@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Commercial Roofing Estimating Best Practices | BidShield',
+  description: 'Learn the techniques that separate professional commercial roofing estimators from the rest. Master accuracy, efficiency, and consistency in every bid.',
+  keywords: 'roofing estimating best practices, commercial roofing bid accuracy, estimator tips, bid consistency, roofing takeoff techniques',
+  alternates: { canonical: 'https://www.bidshield.co/resources/estimating-best-practices' },
+};
 
 export default function EstimatingBestPracticesPage() {
   return (

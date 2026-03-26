@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Estimating Technology & Software Stack for Roofers | BidShield',
+  description: 'Master the essential technology stack for professional roofing estimators — from aerial measurement tools to AI-powered software. See what to use and how to use it.',
+  keywords: 'roofing estimating technology, Bluebeam Revu, EagleView, drone roofing, AI roofing software, estimating tech stack',
+  alternates: { canonical: 'https://www.bidshield.co/resources/technology' },
+};
 
 export default function TechnologyPage() {
   return (

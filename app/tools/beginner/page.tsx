@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Beginner Roofing Estimating Tools — Start Here | BidShield',
+  description: 'New to commercial roofing estimating? Start with the fundamentals — estimating essentials, measurement basics, and the core workflow every estimator needs to know.',
+  keywords: 'beginner roofing estimating, estimating fundamentals, roofing estimator training, learn roofing estimating, commercial roofing basics',
+  alternates: { canonical: 'https://www.bidshield.co/tools/beginner' },
+};
 
 export default function BeginnerToolsPage() {
   return (

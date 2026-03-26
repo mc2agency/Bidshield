@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Advanced Roofing Estimating Tools — Bluebeam, SketchUp & More | BidShield',
+  description: 'Master professional-grade estimating tools to compete at the highest level. Advanced Bluebeam workflows, SketchUp visualization, AutoCAD submittals, and more.',
+  keywords: 'advanced roofing estimating tools, Bluebeam advanced, SketchUp roofing, AutoCAD submittals, professional estimating, commercial roofing tools',
+  alternates: { canonical: 'https://www.bidshield.co/tools/advanced' },
+};
 
 export default function AdvancedToolsPage() {
   return (

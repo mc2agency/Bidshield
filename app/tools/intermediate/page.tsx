@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Intermediate Roofing Estimating Tools — Level Up Your Bids | BidShield',
+  description: 'Take your commercial roofing estimating to the next level. Intermediate tools covering digital takeoff, software workflows, and bid strategies for faster, more accurate estimates.',
+  keywords: 'intermediate roofing estimating, digital takeoff tools, roofing estimating workflow, commercial bid strategy, estimating efficiency',
+  alternates: { canonical: 'https://www.bidshield.co/tools/intermediate' },
+};
 
 export default function IntermediateToolsPage() {
   return (

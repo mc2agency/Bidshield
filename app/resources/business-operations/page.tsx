@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Roofing Business Operations & Compliance Guide | BidShield',
+  description: 'Master the business side of commercial roofing — proposals, project execution, insurance requirements, and OSHA compliance. Free resource for roofing contractors.',
+  keywords: 'roofing business operations, roofing compliance, OSHA roofing, roofing proposals, commercial roofing contractor guide',
+  alternates: { canonical: 'https://www.bidshield.co/resources/business-operations' },
+};
 
 export default function BusinessOperationsPage() {
   return (

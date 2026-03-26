@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { gtagEvent } from '@/lib/gtag';
 
 function ContactPageContent() {
   const [formData, setFormData] = useState({
@@ -42,6 +43,7 @@ function ContactPageContent() {
         message: formData.message,
         newsletter: formData.newsletter,
       });
+      gtagEvent('contact_form_submitted', { event_category: 'conversion', event_label: 'contact_page' });
       setSubmitted(true);
     } catch {
       setSubmitted(true);

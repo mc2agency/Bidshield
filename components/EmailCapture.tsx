@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
+import { gtagEvent } from '@/lib/gtag';
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
@@ -25,6 +26,7 @@ export default function EmailCapture({ variant = 'full' }: EmailCaptureProps) {
         const client = new ConvexHttpClient(convexUrl);
         await client.mutation(api.leads.subscribeEmail, { email, source: 'checklist' });
       }
+      gtagEvent('email_captured', { event_category: 'lead', event_label: 'free_checklist' });
       setSubmitted(true);
     } catch {
       // Still show success to user

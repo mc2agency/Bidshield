@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Estimating Software & Technology Guide for Roofers | BidShield',
+  description: 'The complete guide to software tools professional roofing estimators use. Covers Bluebeam, STACK, The EDGE, aerial measurement, and AI estimating tools.',
+  keywords: 'roofing estimating software, Bluebeam for roofers, STACK estimating, roofing technology, construction software guide',
+  alternates: { canonical: 'https://www.bidshield.co/resources/software-technology' },
+};
 
 export default function SoftwareTechnologyPage() {
   return (
