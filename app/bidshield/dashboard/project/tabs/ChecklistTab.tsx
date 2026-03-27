@@ -227,6 +227,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const checklistItems   = useQuery(api.bidshield.getChecklist,         !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const overallProgress  = useQuery(api.bidshield.getChecklistProgress, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const updateChecklist  = useMutation(api.bidshield.updateChecklistItem);
+  const createRFIMut     = useMutation(api.bidshield.createRFI);
 
   // Template functionality is in ChecklistTemplatesPanel (wrapped in SilentBoundary)
   const userId = project?.userId ?? "";
@@ -815,7 +816,17 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               />
                               <div className="flex items-center gap-2 mt-2">
                                 <button
-                                  onClick={() => { setRfiDrawerKey(null); onNavigateTab?.("rfis"); }}
+                                  onClick={async () => {
+                                    if (!isDemo && isValidConvexId && userId && rfiQuestion.trim()) {
+                                      await createRFIMut({
+                                        projectId: projectId as Id<"bidshield_projects">,
+                                        userId,
+                                        question: rfiQuestion.trim(),
+                                      });
+                                    }
+                                    setRfiDrawerKey(null);
+                                    onNavigateTab?.("rfis");
+                                  }}
                                   className="text-[11px] bg-amber-600 text-white px-3 py-1.5 rounded font-medium hover:bg-amber-700 transition-colors"
                                 >
                                   + Create RFI
