@@ -639,15 +639,4 @@ export default defineSchema({
   })
     .index("by_project", ["projectId"])
     .index("by_project_section", ["projectId", "section"]),
-
-  // Distributed rate limit entries — each row is one API call by a user.
-  // To check rate: count rows for (userId, action) in the last windowMs.
-  // Rows older than 1 hour can be garbage-collected in a scheduled job.
-  rateLimits: defineTable({
-    userId: v.string(),    // Clerk user ID
-    action: v.string(),    // e.g. "ai_endpoint", "demo_email"
-    timestamp: v.number(), // Date.now() when the call was made
-  })
-    .index("by_user_action", ["userId", "action"])
-    .index("by_user_action_time", ["userId", "action", "timestamp"]),
 });

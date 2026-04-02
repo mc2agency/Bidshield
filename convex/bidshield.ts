@@ -2801,7 +2801,10 @@ export const updateGcBidFormItem = mutation({
   handler: async (ctx, args) => {
     const { itemId, ...updates } = args;
     const formItem = await ctx.db.get(itemId);
-    await assertRecordOwnership(ctx, formItem, "GC bid form item");
+    if (!formItem) throw new Error("GC bid form item not found");
+    // Ownership check via parent document (gcBidFormItems don't have userId directly)
+    const parentDoc = await ctx.db.get(formItem.documentId);
+    await assertRecordOwnership(ctx, parentDoc, "GC bid form document");
     const filtered = Object.fromEntries(
       Object.entries(updates).filter(([_, val]) => val !== undefined)
     );

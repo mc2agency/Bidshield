@@ -57,7 +57,8 @@ Return only the JSON array. No explanation, no markdown fences.`;
     let impacts: { section: string; action: string }[];
     try {
       impacts = JSON.parse(raw);
-    } catch {
+    } catch (parseErr: any) {
+      console.error("[ai-parse-error]", { endpoint: "check-addendum-impact", rawResponse: raw?.substring(0, 500), parseError: parseErr?.message });
       return NextResponse.json(
         { error: "AI returned an unreadable response — please try again." },
         { status: 422 }

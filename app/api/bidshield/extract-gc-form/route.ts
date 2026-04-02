@@ -107,7 +107,7 @@ Set scopeMatch.foundInChecklist = true if any checklist item with status "done" 
 Return only the JSON array. No explanation, no markdown fences.`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
+    const timeout = setTimeout(() => controller.abort(), 60_000) // P1-4: 60s for PDF extraction;
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
@@ -138,7 +138,8 @@ Return only the JSON array. No explanation, no markdown fences.`;
     try {
       const parsed = JSON.parse(cleaned);
       items = Array.isArray(parsed) ? parsed : [];
-    } catch {
+    } catch (parseErr: any) {
+      console.error("[ai-parse-error]", { endpoint: req.url, rawResponse: cleaned?.substring(0, 500), parseError: parseErr?.message, userId });
       return NextResponse.json(
         { error: "Failed to parse extraction result" },
         { status: 422 }

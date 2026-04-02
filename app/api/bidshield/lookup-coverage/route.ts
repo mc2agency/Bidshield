@@ -96,7 +96,8 @@ Only return a coverageRate value if you are confident. Common standards:
     let result: { coverageRate: string | null; confidence: "high" | "low" };
     try {
       result = JSON.parse(cleaned);
-    } catch {
+    } catch (parseErr: any) {
+      console.error("[ai-parse-error]", { endpoint: "lookup-coverage", rawResponse: cleaned?.substring(0, 500), parseError: parseErr?.message });
       return NextResponse.json({ coverageRate: null, confidence: "low" });
     }
 

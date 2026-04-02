@@ -59,7 +59,7 @@ The JSON object must have these exact fields:
 If a field cannot be determined, use null. Return only the JSON object.`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
+    const timeout = setTimeout(() => controller.abort(), 60_000) // P1-4: 60s for PDF extraction;
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
@@ -89,7 +89,8 @@ If a field cannot be determined, use null. Return only the JSON object.`;
     let data: any;
     try {
       data = JSON.parse(cleaned);
-    } catch {
+    } catch (parseErr: any) {
+      console.error("[ai-parse-error]", { endpoint: req.url, rawResponse: cleaned?.substring(0, 500), parseError: parseErr?.message, userId });
       return NextResponse.json(
         { error: "Failed to parse extraction result" },
         { status: 422 }

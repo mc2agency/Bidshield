@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
+import { anyApi } from "convex/server";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    await convex.mutation(api.subscribers.subscribeEmail, {
+    await convex.mutation(anyApi.subscribers.subscribeEmail, {
       email: email.trim().toLowerCase(),
       source: "demo",
     });

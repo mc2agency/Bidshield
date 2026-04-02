@@ -68,7 +68,7 @@ Return only the JSON array. If a field cannot be determined, use null.`;
     ];
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
+    const timeout = setTimeout(() => controller.abort(), 60_000) // P1-4: 60s for PDF extraction;
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
@@ -87,7 +87,8 @@ Return only the JSON array. If a field cannot be determined, use null.`;
     let items: any[];
     try {
       items = JSON.parse(cleaned);
-    } catch {
+    } catch (parseErr: any) {
+      console.error("[ai-parse-error]", { endpoint: req.url, rawResponse: cleaned?.substring(0, 500), parseError: parseErr?.message, userId });
       return NextResponse.json(
         { error: "Failed to parse extraction result" },
         { status: 422 }

@@ -57,10 +57,17 @@ export async function POST(request: NextRequest) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
-    // Send email, then mark as processed
-    await sendPurchaseEmail(session).catch((err) =>
-      console.error('Purchase email failed for session', session.id, err)
-    );
+    // P1-7: Await email send. If it fails, return 500 so Stripe retries.
+    // The idempotency guard above will deduplicate on the retry.
+    try {
+      await sendPurchaseEmail(session);
+    } catch (err) {
+      console.error('Purchase email failed for session', session.id, err);
+      return NextResponse.json(
+        { error: 'Email delivery failed — Stripe will retry' },
+        { status: 500 }
+      );
+    }
   }
 
   // Mark event as processed AFTER handling
@@ -89,6 +96,13 @@ async function sendPurchaseEmail(session: Stripe.Checkout.Session) {
 
   if (!customerEmail) {
     console.warn('No customer email in session', sessionId);
+    return;
+  }
+
+  // P1-8: Basic email format validation before sending
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(customerEmail)) {
+    console.error('[stripe-webhook] Invalid email format, skipping send:', { sessionId, customerEmail });
     return;
   }
 

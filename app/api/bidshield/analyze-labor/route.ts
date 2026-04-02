@@ -178,7 +178,8 @@ Return only the JSON object.`;
     let result: any;
     try {
       result = JSON.parse(cleaned);
-    } catch {
+    } catch (parseErr: any) {
+      console.error("[ai-parse-error]", { endpoint: req.url, rawResponse: cleaned?.substring(0, 500), parseError: parseErr?.message, userId });
       return NextResponse.json(
         { error: "Failed to parse AI response" },
         { status: 422 }

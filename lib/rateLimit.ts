@@ -1,6 +1,6 @@
 import { LRUCache } from "lru-cache";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
+import { anyApi } from "convex/server";
 
 // P0-5: Distributed rate limiting — three-tier strategy:
 //
@@ -124,7 +124,7 @@ export async function checkRateLimit(
   if (convexUrl) {
     try {
       const convex = new ConvexHttpClient(convexUrl);
-      const result = await convex.mutation(api.rateLimits.recordAndCheck, {
+      const result = await convex.mutation(anyApi.rateLimits.recordAndCheck, {
         userId,
         action,
         limit,

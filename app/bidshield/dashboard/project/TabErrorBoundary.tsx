@@ -10,21 +10,29 @@ interface Props {
 interface State {
   hasError: boolean;
   errorMessage: string;
+  retryKey: number; // P1-3: incremented on retry to force full re-mount
 }
 
 export default class TabErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, errorMessage: "" };
+    this.state = { hasError: false, errorMessage: "", retryKey: 0 };
   }
 
-  static getDerivedStateFromError(error: unknown): State {
+  static getDerivedStateFromError(error: unknown): Partial<State> {
     const msg = error instanceof Error ? error.message : String(error);
     return { hasError: true, errorMessage: msg };
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, errorMessage: "" });
+    // P1-3: Increment retryKey to force React to unmount and re-mount the
+    // child tree. This ensures Convex useQuery() hooks re-subscribe and
+    // fresh data is fetched, rather than just clearing the error visually.
+    this.setState((prev) => ({
+      hasError: false,
+      errorMessage: "",
+      retryKey: prev.retryKey + 1,
+    }));
   };
 
   render() {
@@ -53,6 +61,7 @@ export default class TabErrorBoundary extends React.Component<Props, State> {
         </div>
       );
     }
-    return this.props.children;
+    // Key rotation forces a full unmount/remount on retry
+    return <React.Fragment key={this.state.retryKey}>{this.props.children}</React.Fragment>;
   }
 }

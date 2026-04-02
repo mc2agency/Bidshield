@@ -8,7 +8,9 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const ADMIN_ID = "user_3Aid1uIjrlbv2KrZsADW4SkYKlp";
+// P1-1: Admin ID moved to env var. Set ADMIN_USER_ID in .env.local and Vercel.
+// Falls back to the original hardcoded ID if the env var is not set.
+const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID || "user_3Aid1uIjrlbv2KrZsADW4SkYKlp";
 
 function fmt(ts: number) {
   return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -33,7 +35,7 @@ export default function AdminPage() {
   }
 
   const proUsers = data.users.filter((u) => u.membershipLevel === "bidshield" || u.membershipLevel === "pro");
-  const mrr = proUsers.length * 149;
+  const mrr = proUsers.length * 249; // P1-2: corrected from $149 to $249/mo
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const recentSignups = data.users.filter((u) => u.createdAt >= sevenDaysAgo);
 
