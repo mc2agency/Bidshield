@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import DemoGate from "./DemoGate";
 
 export const metadata: Metadata = {
   title: 'BidShield Demo — Live Bid Workflow Preview',
@@ -123,6 +124,7 @@ const sectionColors: Record<string, { bg: string; color: string }> = {
 
 export default function BidShieldDemoPage() {
   return (
+    <DemoGate>
     <div style={{ background: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
 
       {/* ── HERO ── */}
@@ -619,5 +621,6 @@ export default function BidShieldDemoPage() {
       </section>
 
     </div>
+    </DemoGate>
   );
 }
