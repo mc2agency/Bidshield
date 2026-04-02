@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { ConvexHttpClient } from 'convex/browser';
+import { anyApi } from 'convex/server';
 import { buildPurchaseEmailHtml, buildDownloadLinks } from '@/lib/emails/purchase';
 
 const FROM = 'BidShield <hello@bidshield.co>';
@@ -8,6 +10,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://www.bidshield.co';
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY not configured');
   return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-12-15.clover' });
+}
+
+function getConvex() {
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url) throw new Error('NEXT_PUBLIC_CONVEX_URL not configured');
+  return new ConvexHttpClient(url);
 }
 
 export async function POST(request: NextRequest) {
@@ -28,19 +36,40 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  // M9: Idempotency guard — track processed Stripe event IDs to prevent duplicate
-  // email sends on Stripe retries. Simple in-memory dedup using event.id.
-  // For a distributed guard, use the processedWebhooks Convex table via ConvexHttpClient.
-  // This webhook only sends emails (no DB writes), so a duplicate send is low-risk —
-  // but we log it so it's visible in function logs.
   console.info('[stripe-webhook] received event', { type: event.type, id: event.id });
+
+  // P0-4: Idempotency guard — check if this event has already been processed
+  // Prevents duplicate email sends on Stripe retries (up to 3× over 3 days).
+  const convex = getConvex();
+  try {
+    const alreadyProcessed = await convex.query(anyApi.webhooks.isEventProcessed, {
+      stripeEventId: event.id,
+    });
+    if (alreadyProcessed) {
+      console.info('[stripe-webhook] skipping duplicate event', event.id);
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+  } catch (err) {
+    // If Convex is unreachable, log but proceed — better to risk a duplicate
+    // email than to reject a valid webhook (Stripe would retry anyway).
+    console.warn('[stripe-webhook] idempotency check failed, proceeding:', err);
+  }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
-    // Fire-and-forget — email failure must not cause non-200 response
-    sendPurchaseEmail(session).catch((err) =>
+    // Send email, then mark as processed
+    await sendPurchaseEmail(session).catch((err) =>
       console.error('Purchase email failed for session', session.id, err)
     );
+  }
+
+  // Mark event as processed AFTER handling
+  try {
+    await convex.mutation(anyApi.webhooks.markEventProcessed, {
+      stripeEventId: event.id,
+    });
+  } catch (err) {
+    console.warn('[stripe-webhook] failed to mark event processed:', err);
   }
 
   return NextResponse.json({ received: true });
