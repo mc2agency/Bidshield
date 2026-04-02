@@ -68,6 +68,12 @@ async function requirePro(ctx: any, userId: string) {
 export const getProjects = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    // P0-7: Verify caller is the user they claim to be
+    if (!isDemoUser(args.userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) throw new Error("Not authenticated");
+      if (identity.subject !== args.userId) throw new Error("Unauthorized");
+    }
     return await ctx.db
       .query("bidshield_projects")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -583,6 +589,11 @@ export const deleteQuote = mutation({
 export const getQuotesWithProjects = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    // P0-7: Verify caller identity
+    if (!isDemoUser(userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== userId) throw new Error("Unauthorized");
+    }
     const quotes = await ctx.db
       .query("bidshield_quotes")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -611,8 +622,11 @@ export const importQuoteToProject = mutation({
   },
   handler: async (ctx, { userId, quoteId, projectId }) => {
     await validateAuth(ctx, userId);
+    await assertProjectOwnership(ctx, projectId);
     const source = await ctx.db.get(quoteId);
     if (!source) throw new Error("Quote not found");
+    // Verify caller owns the source quote
+    await assertRecordOwnership(ctx, source, "quote");
     const now = Date.now();
     return await ctx.db.insert("bidshield_quotes", {
       userId,
@@ -659,6 +673,7 @@ export const createRFI = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_rfis", {
       projectId: args.projectId,
@@ -716,6 +731,11 @@ export const deleteRFI = mutation({
 export const getStats = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    // P0-7: Verify caller identity before returning stats
+    if (!isDemoUser(args.userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
+    }
     await requirePro(ctx, args.userId);
     const projects = await ctx.db
       .query("bidshield_projects")
@@ -792,6 +812,11 @@ export const getStats = query({
 export const getComparisonData = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    // P0-7: Verify caller identity
+    if (!isDemoUser(args.userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
+    }
     await requirePro(ctx, args.userId);
     const projects = await ctx.db
       .query("bidshield_projects")
@@ -885,6 +910,11 @@ export const getComparisonData = query({
 export const getLaborRates = query({
   args: { userId: v.string(), category: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    // P0-7: Verify caller identity
+    if (!isDemoUser(args.userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
+    }
     if (args.category) {
       return await ctx.db
         .query("bidshield_labor_rates")
@@ -983,6 +1013,7 @@ export const createAddendum = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_addenda", {
       projectId: args.projectId,
@@ -1050,6 +1081,7 @@ export const acknowledgeNoAddenda = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     await ctx.db.patch(args.projectId, {
       noAddendaAcknowledged: true,
       updatedAt: Date.now(),
@@ -1082,6 +1114,7 @@ export const createTakeoffSection = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const existing = await ctx.db
       .query("bidshield_takeoff_sections")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -1184,6 +1217,8 @@ export const initTakeoffLineItems = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     // Check if items already exist
     const existing = await ctx.db
       .query("bidshield_takeoff_line_items")
@@ -1265,6 +1300,7 @@ export const createTakeoffLineItem = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const existing = await ctx.db
       .query("bidshield_takeoff_line_items")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -1336,6 +1372,8 @@ export const addProjectMaterial = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const existing = await ctx.db
       .query("bidshield_project_materials")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -1422,6 +1460,8 @@ export const initProjectMaterials = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     // Check if materials already exist
     const existing = await ctx.db
       .query("bidshield_project_materials")
@@ -1465,6 +1505,8 @@ export const clearProjectMaterials = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     try {
       const existing = await ctx.db
         .query("bidshield_project_materials")
@@ -1498,6 +1540,8 @@ export const bulkSaveMaterialsFromExtraction = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     try {
     const now = Date.now();
     const existing = await ctx.db
@@ -1579,6 +1623,7 @@ export const fixMaterialCategories = mutation({
     projectId: v.id("bidshield_projects"),
   },
   handler: async (ctx, args) => {
+    await assertProjectOwnership(ctx, args.projectId);
     const materials = await ctx.db
       .query("bidshield_project_materials")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -1634,6 +1679,11 @@ export const fixMaterialCategories = mutation({
 export const getUserMaterialPrices = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    // P0-7: Verify caller identity
+    if (!isDemoUser(args.userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
+    }
     return await ctx.db
       .query("bidshield_user_material_prices")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -1650,6 +1700,7 @@ export const upsertUserMaterialPrice = mutation({
     vendorName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const existing = await ctx.db
       .query("bidshield_user_material_prices")
       .withIndex("by_user_material", (q) => q.eq("userId", args.userId).eq("materialName", args.materialName))
@@ -1701,6 +1752,8 @@ export const initScopeItems = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     // Check if items already exist
     const existing = await ctx.db
       .query("bidshield_scope_items")
@@ -1776,6 +1829,8 @@ export const addScopeClarification = mutation({
     text: v.string(),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     return await ctx.db.insert("bidshield_scope_clarifications", {
       projectId: args.projectId,
       userId: args.userId,
@@ -1802,6 +1857,8 @@ export const addCustomScopeItem = mutation({
     name: v.string(),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const existing = await ctx.db
       .query("bidshield_scope_items")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -1829,6 +1886,7 @@ export const deleteScopeItem = mutation({
   handler: async (ctx, args) => {
     const item = await ctx.db.get(args.itemId);
     if (!item) return;
+    await assertRecordOwnership(ctx, item, "scope item");
     // Only allow deleting custom items
     if (item.isDefault) return;
     await ctx.db.delete(args.itemId);
@@ -1907,6 +1965,8 @@ export const upsertBidQuals = mutation({
   },
   handler: async (ctx, args) => {
     const { projectId, userId, ...fields } = args;
+    await validateAuth(ctx, userId);
+    await assertProjectOwnership(ctx, projectId);
     const existing = await ctx.db
       .query("bidshield_bid_quals")
       .withIndex("by_project", (q) => q.eq("projectId", projectId))
@@ -1943,6 +2003,8 @@ export const addDecision = mutation({
     section: v.string(),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     await ctx.db.insert("bidshield_decisions", { ...args, timestamp: Date.now() });
   },
 });
@@ -1975,6 +2037,8 @@ export const seedGCItems = mutation({
     userId: v.string(),
   },
   handler: async (ctx, { projectId, userId }) => {
+    await validateAuth(ctx, userId);
+    await assertProjectOwnership(ctx, projectId);
     // Only seed if no items exist
     const existing = await ctx.db
       .query("bidshield_gc_items")
@@ -2051,6 +2115,8 @@ export const upsertGCItem = mutation({
     sortOrder: v.optional(v.number()),
   },
   handler: async (ctx, { id, ...fields }) => {
+    await validateAuth(ctx, fields.userId);
+    await assertProjectOwnership(ctx, fields.projectId);
     const now = Date.now();
     if (id) {
       await ctx.db.patch(id, { ...fields, updatedAt: now });
@@ -2075,6 +2141,11 @@ export const deleteGCItem = mutation({
 export const getDatasheets = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    // P0-7: Verify caller identity
+    if (!isDemoUser(userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== userId) throw new Error("Unauthorized");
+    }
     const items = await ctx.db
       .query("bidshield_datasheets")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -2108,6 +2179,7 @@ export const addDatasheet = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_datasheets", {
       ...args,
@@ -2133,6 +2205,8 @@ export const updateDatasheet = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, { id, ...fields }) => {
+    const sheet = await ctx.db.get(id);
+    await assertRecordOwnership(ctx, sheet, "datasheet");
     await ctx.db.patch(id, { ...fields, updatedAt: Date.now() });
   },
 });
@@ -2140,6 +2214,8 @@ export const updateDatasheet = mutation({
 export const deleteDatasheet = mutation({
   args: { id: v.id("bidshield_datasheets") },
   handler: async (ctx, { id }) => {
+    const sheet = await ctx.db.get(id);
+    await assertRecordOwnership(ctx, sheet, "datasheet");
     await ctx.db.delete(id);
   },
 });
@@ -2153,6 +2229,11 @@ export const generatePdfUploadUrl = mutation({
 export const getMonthlyExtractionCount = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    // P0-7: Verify caller identity
+    if (!isDemoUser(userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== userId) throw new Error("Unauthorized");
+    }
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const items = await ctx.db
@@ -2269,6 +2350,7 @@ export const saveLaborAnalysis = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
 
     // Delete existing analysis + tasks for this project
@@ -2349,6 +2431,7 @@ export const getLaborTasks = query({
 export const getLaborAnalysis = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
+    await assertProjectOwnership(ctx, args.projectId);
     return await ctx.db
       .query("bidshield_laborAnalysis")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2359,6 +2442,7 @@ export const getLaborAnalysis = query({
 export const getLaborTotal = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
+    await assertProjectOwnership(ctx, args.projectId);
     const analysis = await ctx.db
       .query("bidshield_laborAnalysis")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2370,6 +2454,7 @@ export const getLaborTotal = query({
 export const getUnverifiedLaborCount = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
+    await assertProjectOwnership(ctx, args.projectId);
     const tasks = await ctx.db
       .query("bidshield_laborTasks")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2390,6 +2475,7 @@ export const updateLaborTask = mutation({
     const { taskId, ...updates } = args;
     const task = await ctx.db.get(taskId);
     if (!task) throw new Error("Task not found");
+    await assertRecordOwnership(ctx, task, "labor task");
 
     const quantity = updates.quantity ?? task.quantity;
     const ratePerUnit = updates.ratePerUnit ?? task.ratePerUnit;
@@ -2426,6 +2512,7 @@ export const toggleLaborTaskVerified = mutation({
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.taskId);
     if (!task) throw new Error("Task not found");
+    await assertRecordOwnership(ctx, task, "labor task");
     await ctx.db.patch(args.taskId, {
       verified: !task.verified,
       updatedAt: Date.now(),
@@ -2437,6 +2524,7 @@ export const clearLaborTasks = mutation({
   args: { projectId: v.id("bidshield_projects"), userId: v.string() },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const tasks = await ctx.db
       .query("bidshield_laborTasks")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2470,6 +2558,11 @@ export const getVendors = query({
 export const getVendorsByCategory = query({
   args: { userId: v.string(), category: v.string() },
   handler: async (ctx, args) => {
+    // P0-7: Verify caller identity
+    if (!isDemoUser(args.userId)) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
+    }
     const vendors = await ctx.db
       .query("bidshield_vendors")
       .withIndex("by_user_active", (q) => q.eq("userId", args.userId).eq("active", true))
@@ -2483,6 +2576,8 @@ export const getVendorWithQuoteHistory = query({
   handler: async (ctx, args) => {
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor) return null;
+    // P0-7: Verify caller owns this vendor
+    await assertRecordOwnership(ctx, vendor, "vendor");
 
     const quotes = await ctx.db
       .query("bidshield_quotes")
@@ -2546,6 +2641,8 @@ export const updateVendor = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    const vendor = await ctx.db.get(args.vendorId);
+    await assertRecordOwnership(ctx, vendor, "vendor");
     const { vendorId, userId, ...fields } = args;
     const patch: Record<string, unknown> = {};
     for (const [k, val] of Object.entries(fields)) {
@@ -2559,6 +2656,8 @@ export const deleteVendor = mutation({
   args: { vendorId: v.id("bidshield_vendors"), userId: v.string() },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    const vendor = await ctx.db.get(args.vendorId);
+    await assertRecordOwnership(ctx, vendor, "vendor");
     await ctx.db.delete(args.vendorId);
   },
 });
@@ -2571,6 +2670,10 @@ export const linkQuoteToVendor = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    const quote = await ctx.db.get(args.quoteId);
+    await assertRecordOwnership(ctx, quote, "quote");
+    const vendor = await ctx.db.get(args.vendorId);
+    await assertRecordOwnership(ctx, vendor, "vendor");
     await ctx.db.patch(args.quoteId, { vendorId: args.vendorId });
   },
 });
@@ -2594,6 +2697,7 @@ export const saveGcBidForm = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     const confirmedCount = args.items.filter(i => i.autoConfirmed).length;
 
@@ -2644,6 +2748,11 @@ export const reanalyzeGcBidForm = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    // Get projectId from the document
+    const doc = await ctx.db.get(args.documentId);
+    if (!doc) throw new Error("Document not found");
+    await assertRecordOwnership(ctx, doc, "GC bid form document");
+
     const now = Date.now();
     // Delete existing items
     const existing = await ctx.db
@@ -2651,10 +2760,6 @@ export const reanalyzeGcBidForm = mutation({
       .withIndex("by_document", (q) => q.eq("documentId", args.documentId))
       .collect();
     for (const item of existing) await ctx.db.delete(item._id);
-
-    // Get projectId from the document
-    const doc = await ctx.db.get(args.documentId);
-    if (!doc) throw new Error("Document not found");
 
     const confirmedCount = args.items.filter(i => i.autoConfirmed).length;
 
@@ -2695,6 +2800,8 @@ export const updateGcBidFormItem = mutation({
   },
   handler: async (ctx, args) => {
     const { itemId, ...updates } = args;
+    const formItem = await ctx.db.get(itemId);
+    await assertRecordOwnership(ctx, formItem, "GC bid form item");
     const filtered = Object.fromEntries(
       Object.entries(updates).filter(([_, val]) => val !== undefined)
     );
@@ -2708,6 +2815,8 @@ export const updateGcBidFormLabel = mutation({
     label: v.string(),
   },
   handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.documentId);
+    await assertRecordOwnership(ctx, doc, "GC bid form document");
     await ctx.db.patch(args.documentId, { label: args.label });
   },
 });
@@ -2715,6 +2824,8 @@ export const updateGcBidFormLabel = mutation({
 export const deleteGcBidFormDocument = mutation({
   args: { documentId: v.id("bidshield_gcBidFormDocuments") },
   handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.documentId);
+    await assertRecordOwnership(ctx, doc, "GC bid form document");
     const items = await ctx.db
       .query("bidshield_gcBidFormItems")
       .withIndex("by_document", (q) => q.eq("documentId", args.documentId))
@@ -2742,6 +2853,9 @@ export const getGcBidFormDocuments = query({
 export const getGcBidFormItems = query({
   args: { documentId: v.id("bidshield_gcBidFormDocuments") },
   handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.documentId);
+    if (!doc) return [];
+    await assertProjectOwnership(ctx, doc.projectId);
     const items = await ctx.db
       .query("bidshield_gcBidFormItems")
       .withIndex("by_document", (q) => q.eq("documentId", args.documentId))
@@ -2753,6 +2867,7 @@ export const getGcBidFormItems = query({
 export const getUnconfirmedGcBidFormCount = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
+    await assertProjectOwnership(ctx, args.projectId);
     const docs = await ctx.db
       .query("bidshield_gcBidFormDocuments")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2773,8 +2888,7 @@ export const getUnconfirmedGcBidFormCount = query({
 export const getSubmissions = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    await assertProjectOwnership(ctx, args.projectId);
     return await ctx.db
       .query("bidshield_submissions")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2798,6 +2912,7 @@ export const addSubmission = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_submissions", { ...args, createdAt: now, updatedAt: now });
   },
@@ -2818,8 +2933,7 @@ export const deleteSubmission = mutation({
 export const getPreBidMeetings = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    await assertProjectOwnership(ctx, args.projectId);
     return await ctx.db
       .query("bidshield_prebid_meetings")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2840,6 +2954,7 @@ export const addPreBidMeeting = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_prebid_meetings", { ...args, createdAt: now, updatedAt: now });
   },
@@ -2859,7 +2974,7 @@ export const updatePreBidMeeting = mutation({
     await validateAuth(ctx, args.userId);
     const { meetingId, userId: _uid, ...fields } = args;
     const doc = await ctx.db.get(meetingId);
-    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await assertRecordOwnership(ctx, doc, "pre-bid meeting");
     await ctx.db.patch(meetingId, { ...fields, updatedAt: Date.now() });
   },
 });
@@ -2869,7 +2984,7 @@ export const deletePreBidMeeting = mutation({
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
     const doc = await ctx.db.get(args.meetingId);
-    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await assertRecordOwnership(ctx, doc, "pre-bid meeting");
     await ctx.db.delete(args.meetingId);
   },
 });
@@ -2879,8 +2994,7 @@ export const deletePreBidMeeting = mutation({
 export const getAlternates = query({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    await assertProjectOwnership(ctx, args.projectId);
     const items = await ctx.db
       .query("bidshield_alternates")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
@@ -2901,6 +3015,7 @@ export const addAlternate = mutation({
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_alternates", { ...args, createdAt: now, updatedAt: now });
   },
@@ -2919,7 +3034,7 @@ export const updateAlternate = mutation({
     await validateAuth(ctx, args.userId);
     const { alternateId, userId: _uid, ...fields } = args;
     const doc = await ctx.db.get(alternateId);
-    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await assertRecordOwnership(ctx, doc, "alternate");
     await ctx.db.patch(alternateId, { ...fields, updatedAt: Date.now() });
   },
 });
@@ -2929,7 +3044,7 @@ export const deleteAlternate = mutation({
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
     const doc = await ctx.db.get(args.alternateId);
-    if (!doc || doc.userId !== args.userId) throw new Error("Not found");
+    await assertRecordOwnership(ctx, doc, "alternate");
     await ctx.db.delete(args.alternateId);
   },
 });

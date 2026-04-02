@@ -1,20 +1,19 @@
 import { LRUCache } from "lru-cache";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 
-// P0-5: Distributed rate limiting via Upstash Redis.
+// P0-5: Distributed rate limiting — three-tier strategy:
 //
-// When UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set in the
-// environment, this module uses Upstash's sliding-window rate limiter which
-// works correctly across all Vercel serverless instances.
+// Tier 1 (fastest): Upstash Redis — true distributed sliding window.
+//   Requires UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN env vars.
+//   To enable: npm install @upstash/ratelimit @upstash/redis
 //
-// Without those env vars, it falls back to the in-memory LRU approach which
-// only limits within a single instance (suitable for development).
+// Tier 2 (distributed fallback): Convex — uses the rateLimits table.
+//   Works without Upstash, accurate across all Vercel instances.
+//   Requires NEXT_PUBLIC_CONVEX_URL env var (already required by the app).
 //
-// To enable distributed rate limiting:
-//   1. Create a free Upstash Redis instance at https://console.upstash.com
-//   2. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to:
-//      - .env.local (for local dev)
-//      - Vercel Environment Variables (for production)
-//   3. npm install @upstash/ratelimit @upstash/redis
+// Tier 3 (local fallback): In-memory LRU — single-instance only.
+//   Used in development or if Convex is unreachable.
 
 const DEFAULT_LIMIT = 10;
 const WINDOW_SECS = 60;
@@ -93,29 +92,55 @@ function checkLocalRateLimit(userId: string, limit = DEFAULT_LIMIT): RateLimitRe
  * Returns an object describing whether the request is allowed and how many
  * calls remain in the current window.
  *
- * Uses Upstash Redis in production (when env vars are set) for true distributed
- * rate limiting across all serverless instances. Falls back to in-memory LRU
- * when Upstash is not configured.
+ * Priority:
+ *  1. Upstash Redis (when env vars set) — true distributed sliding window.
+ *  2. Convex rateLimits table — distributed, works without Upstash.
+ *  3. In-memory LRU — single-instance fallback (dev / Convex unreachable).
  *
  * Default: 10 AI calls per 60-second sliding window per user.
  */
-export async function checkRateLimit(userId: string, limit = DEFAULT_LIMIT): Promise<RateLimitResult> {
+export async function checkRateLimit(
+  userId: string,
+  action = "ai_endpoint",
+  limit = DEFAULT_LIMIT
+): Promise<RateLimitResult> {
+  // Tier 1: Upstash
   const limiter = await getUpstashLimiter();
-
   if (limiter) {
     try {
-      const result = await limiter.limit(userId);
+      const result = await limiter.limit(`${userId}:${action}`);
       return {
         allowed: result.success,
         limit: result.limit,
         remaining: result.remaining,
       };
     } catch (err) {
-      // If Upstash fails, fall back to local limiter rather than blocking all requests
-      console.warn("[rate-limit] Upstash error, falling back to local:", err);
+      console.warn("[rate-limit] Upstash error, falling back to Convex:", err);
     }
   }
 
+  // Tier 2: Convex distributed store
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (convexUrl) {
+    try {
+      const convex = new ConvexHttpClient(convexUrl);
+      const result = await convex.mutation(api.rateLimits.recordAndCheck, {
+        userId,
+        action,
+        limit,
+        windowMs: WINDOW_SECS * 1000,
+      });
+      return {
+        allowed: result.allowed,
+        limit: result.limit,
+        remaining: Math.max(0, result.limit - result.count),
+      };
+    } catch (err) {
+      console.warn("[rate-limit] Convex error, falling back to local LRU:", err);
+    }
+  }
+
+  // Tier 3: local LRU fallback
   return checkLocalRateLimit(userId, limit);
 }
 
