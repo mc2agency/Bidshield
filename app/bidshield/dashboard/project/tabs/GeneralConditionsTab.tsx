@@ -5,7 +5,8 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
-import { Plus, Trash2, ChevronDown, ChevronUp, Briefcase } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronUp, Briefcase, Download } from "lucide-react";
+import { exportCsv } from "@/lib/exportCsv";
 
 const GC_CATEGORIES = [
   { id: "bidding",    label: "Bidding & Preconstruction",    icon: "📋" },
@@ -179,6 +180,17 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
             Track all indirect costs — site logistics, safety, fees, and markups.
           </p>
         </div>
+        <button
+          onClick={() => exportCsv(
+            items.map((i: any) => ({ category: i.category, description: i.description, quantity: i.quantity ?? "", unit: i.unit ?? "", unitCost: i.unitCost ?? "", total: i.total ?? "", notes: i.notes ?? "" })),
+            [{ key: "category", header: "Category" }, { key: "description", header: "Description" }, { key: "quantity", header: "Qty" }, { key: "unit", header: "Unit" }, { key: "unitCost", header: "Unit Cost" }, { key: "total", header: "Total" }, { key: "notes", header: "Notes" }],
+            `gc-items-export.csv`
+          )}
+          className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 hover:text-emerald-600 border border-slate-200 rounded-lg transition-colors shrink-0"
+          title="Export GC items to CSV"
+        >
+          <Download size={13} /> CSV
+        </button>
       </div>
 
       {/* Summary cards */}

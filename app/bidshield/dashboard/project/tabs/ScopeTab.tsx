@@ -7,6 +7,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { DEFAULT_SCOPE_ITEMS } from "@/lib/bidshield/scope-defaults";
 import { DEMO_SCOPE_ITEMS } from "@/lib/bidshield/demo-data";
+import { exportCsv } from "@/lib/exportCsv";
+import { Download } from "lucide-react";
 
 type ScopeStatus = "unaddressed" | "included" | "excluded" | "by_others" | "na";
 type FilterMode = "all" | "unaddressed" | "included" | "excluded" | "by_others" | "na";
@@ -276,6 +278,19 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
       {/* Stat line + progress bar */}
       <div>
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={() => exportCsv(
+              items.map((i: any) => ({ category: i.category, name: i.name ?? i.item, status: i.status, cost: i.cost ?? "", note: i.note ?? "" })),
+              [{ key: "category", header: "Category" }, { key: "name", header: "Item" }, { key: "status", header: "Status" }, { key: "cost", header: "Cost" }, { key: "note", header: "Note" }],
+              `scope-export-${project?.name ?? "project"}.csv`
+            )}
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-600 transition-colors"
+            title="Export scope to CSV"
+          >
+            <Download size={13} /> CSV
+          </button>
+        </div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-[13px] text-slate-500">
             {totalCount} items

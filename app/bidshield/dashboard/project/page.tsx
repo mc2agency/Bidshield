@@ -16,6 +16,7 @@ import {
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
 import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
+import { useUnsavedChanges } from "@/lib/hooks/useUnsavedChanges";
 
 import type { TabId } from "./tab-types";
 import {
@@ -83,6 +84,9 @@ function ProjectDetail() {
   const [decisionModalOpen, setDecisionModalOpen] = useState(false);
   const [decisionText, setDecisionText] = useState("");
   const [decisionWho, setDecisionWho] = useState("");
+
+  // P2-3: Warn before navigating away when editing inline fields
+  useUnsavedChanges(editingBidInline || editProjectOpen || outcomeModalOpen || decisionModalOpen);
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const checklist = useQuery(api.bidshield.getChecklist, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");

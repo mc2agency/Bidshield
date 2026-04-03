@@ -81,7 +81,10 @@ interface BidProject {
   userId: string;
   createdAt: number;
   updatedAt: number;
-  [key: string]: unknown;
+  trade?: string;
+  systemType?: string;
+  deckType?: string;
+  grossRoofArea?: number;
 }
 
 const demoProjects = [
@@ -157,13 +160,15 @@ function WelcomeCard({ onNewBid }: { onNewBid: () => void }) {
 // ============================================================
 // PROJECT TABLE (desktop pipeline view)
 // ============================================================
-function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router }: {
+function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router, selected, onToggleSelect }: {
   project: BidProject;
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
   onDelete: (id: Id<"bidshield_projects">, name: string) => void;
   onEdit: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const progress = useQuery(
@@ -176,17 +181,31 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
   const isUrgent = daysUntil <= 3 && daysUntil >= 0;
   const isPastDue = daysUntil < 0;
   const totalBid = project.totalBidAmount;
-  const roofArea = (project as any).grossRoofArea ?? project.sqft;
+  const roofArea = project.grossRoofArea ?? project.sqft;
   const dpsf = (totalBid && roofArea) ? (totalBid / roofArea).toFixed(2) : null;
-  const systemType = (project as any).systemType as string | undefined;
+  const systemType = project.systemType;
 
   return (
     <tr
       onClick={() => router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
       className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors group"
     >
+      {onToggleSelect && (
+        <td className="pl-4 pr-1 py-3 w-8">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={(e) => { e.stopPropagation(); onToggleSelect(project._id); }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+          />
+        </td>
+      )}
       <td className="px-4 py-3">
-        <div className="font-semibold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate max-w-[200px]">{project.name}</div>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate max-w-[200px]">{project.name}</span>
+          {isDemo && <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Demo</span>}
+        </div>
         <div className="text-xs text-slate-400 truncate">{project.location}</div>
       </td>
       <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{project.gc || "—"}</td>
@@ -261,7 +280,7 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
   );
 }
 
-function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, router, onNewBid }: {
+function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, router, onNewBid, selectedIds, onToggleSelect }: {
   projects: BidProject[];
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
@@ -269,6 +288,8 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
   onEdit: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
   onNewBid: () => void;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -286,7 +307,7 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
         </thead>
         <tbody>
           {projects.map((project) => (
-            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} router={router} />
+            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} router={router} selected={selectedIds?.has(project._id)} onToggleSelect={onToggleSelect} />
           ))}
           <tr>
             <td colSpan={7} className="px-4 py-3">
@@ -332,7 +353,10 @@ function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, router
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">{project.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">{project.name}</h3>
+              {isDemo && <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Demo</span>}
+            </div>
             <p className="text-sm text-slate-500 mt-0.5">{project.location}</p>
           </div>
           <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ml-3 shrink-0 ${
@@ -342,11 +366,11 @@ function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, router
           </span>
         </div>
 
-        {((project as any).trade || (project as any).systemType) && (
+        {(project.trade || project.systemType) && (
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {(project as any).trade && <span className="text-[10px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md capitalize">{(project as any).trade}</span>}
-            {(project as any).systemType && <span className="text-[10px] font-medium bg-violet-50 text-violet-600 px-2 py-0.5 rounded-md uppercase">{(project as any).systemType}</span>}
-            {(project as any).deckType && <span className="text-[10px] font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md capitalize">{(project as any).deckType} deck</span>}
+            {project.trade && <span className="text-[10px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md capitalize">{project.trade}</span>}
+            {project.systemType && <span className="text-[10px] font-medium bg-violet-50 text-violet-600 px-2 py-0.5 rounded-md uppercase">{project.systemType}</span>}
+            {project.deckType && <span className="text-[10px] font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md capitalize">{project.deckType} deck</span>}
           </div>
         )}
 
@@ -425,6 +449,16 @@ function DashboardContent() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
   const [deleteTarget, setDeleteTarget] = useState<{ id: Id<"bidshield_projects">; name: string } | null>(null);
+  // P2-11: Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const bulkUpdateStatus = useMutation(api.bidshield.bulkUpdateProjectStatus);
+  const bulkDelete = useMutation(api.bidshield.bulkDeleteProjects);
+  const toggleSelection = (id: string) => setSelectedIds(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const clearSelection = () => setSelectedIds(new Set());
 
   // Show onboarding for new users with zero projects
   useEffect(() => {
@@ -444,7 +478,7 @@ function DashboardContent() {
   }, [searchParams]);
   const isLoading = !isDemo && convexProjects === undefined;
 
-  const handleCreateProject = async (np: any) => {
+  const handleCreateProject = async (np: Record<string, string>) => {
     if (!np.name || !np.location || !np.bidDate) return;
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
     if (!userId) return;
@@ -503,6 +537,10 @@ function DashboardContent() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
+        <div className="flex items-end justify-between">
+          <div><div className="h-7 w-32 bg-slate-200 rounded animate-pulse mb-2" /><div className="h-4 w-48 bg-slate-100 rounded animate-pulse" /></div>
+          <div className="h-10 w-24 bg-slate-200 rounded-lg animate-pulse" />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => (
             <div key={i} className="bg-white rounded-xl p-6 border border-slate-100 animate-pulse">
@@ -511,6 +549,21 @@ function DashboardContent() {
               <div className="h-4 bg-slate-100 rounded w-20" />
             </div>
           ))}
+        </div>
+        <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+          <table className="w-full"><thead><tr className="border-b border-slate-100 bg-slate-50"><th className="px-4 py-3" colSpan={7}><div className="h-3 w-16 bg-slate-200 rounded animate-pulse" /></th></tr></thead><tbody>
+            {[1,2,3].map(i => (
+              <tr key={i} className="border-b border-slate-100">
+                <td className="px-4 py-3"><div className="h-5 w-40 bg-slate-100 rounded animate-pulse mb-1" /><div className="h-3 w-24 bg-slate-100 rounded animate-pulse" /></td>
+                <td className="px-4 py-3"><div className="h-4 w-20 bg-slate-100 rounded animate-pulse" /></td>
+                <td className="px-4 py-3"><div className="h-4 w-12 bg-slate-100 rounded animate-pulse" /></td>
+                <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-100 rounded animate-pulse" /></td>
+                <td className="px-4 py-3"><div className="h-4 w-12 bg-slate-100 rounded animate-pulse ml-auto" /></td>
+                <td className="px-4 py-3"><div className="h-2 w-20 bg-slate-100 rounded animate-pulse ml-auto" /></td>
+                <td className="px-4 py-3" />
+              </tr>
+            ))}
+          </tbody></table>
         </div>
       </div>
     );
@@ -591,11 +644,65 @@ function DashboardContent() {
 
       {/* Active Bids — table on desktop, cards on mobile */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Active Bids</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-slate-900">Active Bids</h2>
+          {!isDemo && activeProjects.length > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (selectedIds.size === activeProjects.length) clearSelection();
+                  else setSelectedIds(new Set(activeProjects.map(p => p._id)));
+                }}
+                className="text-xs text-slate-500 hover:text-slate-700 transition-colors"
+              >
+                {selectedIds.size === activeProjects.length ? "Deselect all" : "Select all"}
+              </button>
+            </div>
+          )}
+        </div>
+        {/* P2-11: Bulk action bar */}
+        {selectedIds.size > 0 && !isDemo && (
+          <div className="flex items-center gap-3 mb-4 px-4 py-2.5 bg-slate-100 rounded-lg border border-slate-200">
+            <span className="text-sm font-medium text-slate-700">{selectedIds.size} selected</span>
+            <div className="flex gap-2 ml-auto">
+              <button
+                onClick={async () => {
+                  await bulkUpdateStatus({ projectIds: [...selectedIds] as Id<"bidshield_projects">[], status: "won" });
+                  clearSelection();
+                }}
+                className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-md hover:bg-emerald-100 transition-colors ring-1 ring-emerald-200"
+              >
+                Mark Won
+              </button>
+              <button
+                onClick={async () => {
+                  await bulkUpdateStatus({ projectIds: [...selectedIds] as Id<"bidshield_projects">[], status: "lost" });
+                  clearSelection();
+                }}
+                className="px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors ring-1 ring-red-200"
+              >
+                Mark Lost
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm(`Delete ${selectedIds.size} project(s)? This cannot be undone.`)) return;
+                  await bulkDelete({ projectIds: [...selectedIds] as Id<"bidshield_projects">[] });
+                  clearSelection();
+                }}
+                className="px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors ring-1 ring-red-200"
+              >
+                Delete
+              </button>
+              <button onClick={clearSelection} className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Desktop: pipeline table */}
         <div className="hidden md:block">
-          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} router={router} onNewBid={handleNewBidClick} />
+          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} router={router} onNewBid={handleNewBidClick} selectedIds={selectedIds} onToggleSelect={isDemo ? undefined : toggleSelection} />
         </div>
 
         {/* Mobile: card grid */}
@@ -665,7 +772,19 @@ function DashboardContent() {
 
 export default function BidShieldDashboardPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20"><div className="text-slate-400 text-sm">Loading dashboard...</div></div>}>
+    <Suspense fallback={
+      <div className="flex flex-col gap-6 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="bg-white rounded-xl p-6 border border-slate-100">
+              <div className="h-9 w-9 bg-slate-100 rounded-lg mb-3" />
+              <div className="h-8 bg-slate-100 rounded mb-2 w-16" />
+              <div className="h-4 bg-slate-100 rounded w-20" />
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
       <DashboardContent />
     </Suspense>
   );
