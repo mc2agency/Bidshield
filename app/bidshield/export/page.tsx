@@ -13,7 +13,6 @@ import type { ChecklistPhaseDef } from "@/lib/bidshield/checklist-data";
 import { computeBidScore } from "@/lib/bidScore";
 
 interface BidProject {
-  [key: string]: unknown;
   name: string;
   location?: string;
   bidDate?: string;
@@ -68,8 +67,6 @@ interface RFI {
 }
 
 interface Addendum {
-  number?: number;
-  reviewStatus?: string;
   affectsScope?: boolean | null;
   repriced?: boolean;
 }

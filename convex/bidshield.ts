@@ -4,7 +4,7 @@ import { Id } from "./_generated/dataModel";
 import { getChecklistForTrade } from "./bidshieldDefaults";
 import { isDemoUser } from "./utils";
 
-async function validateAuth(ctx: QueryCtx | MutationCtx, userId: string) {
+async function validateAuth(ctx: any, userId: string) {
   if (isDemoUser(userId)) return; // demo mode bypasses auth
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
@@ -53,29 +53,7 @@ async function assertRecordOwnership(
   }
 }
 
-/** P2-7: Auto-log a decision entry when a significant action is taken. */
-async function autoLogDecision(
-  ctx: MutationCtx,
-  projectId: Id<"bidshield_projects">,
-  userId: string,
-  text: string,
-  section: string
-) {
-  try {
-    await ctx.db.insert("bidshield_decisions", {
-      projectId,
-      userId,
-      text,
-      section,
-      who: "system",
-      timestamp: Date.now(),
-    });
-  } catch {
-    // Non-critical — never let logging break the primary mutation
-  }
-}
-
-async function requirePro(ctx: QueryCtx | MutationCtx, userId: string) {
+async function requirePro(ctx: any, userId: string) {
   if (isDemoUser(userId)) return; // demo always allowed
   const user = await ctx.db
     .query("users")
@@ -234,7 +212,6 @@ export const updateProject = mutation({
   },
   handler: async (ctx, args) => {
     await assertProjectOwnership(ctx, args.projectId);
-    const project = await ctx.db.get(args.projectId);
     const { projectId, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([_, v]) => v !== undefined)
@@ -244,18 +221,6 @@ export const updateProject = mutation({
       ...filteredUpdates,
       updatedAt: Date.now(),
     });
-
-    // P2-7: Auto-log key changes
-    if (project) {
-      if (args.status && args.status !== project.status) {
-        await autoLogDecision(ctx, projectId, project.userId, `Project status changed from "${project.status}" to "${args.status}"`, "project");
-      }
-      if (args.totalBidAmount !== undefined && args.totalBidAmount !== project.totalBidAmount) {
-        const prev = project.totalBidAmount ? `$${project.totalBidAmount.toLocaleString()}` : "unset";
-        const next = args.totalBidAmount ? `$${args.totalBidAmount.toLocaleString()}` : "unset";
-        await autoLogDecision(ctx, projectId, project.userId, `Bid amount changed from ${prev} to ${next}`, "pricing");
-      }
-    }
   },
 });
 
@@ -338,51 +303,6 @@ export const deleteProject = mutation({
   },
 });
 
-// P2-11: Bulk update project status
-export const bulkUpdateProjectStatus = mutation({
-  args: {
-    projectIds: v.array(v.id("bidshield_projects")),
-    status: v.union(
-      v.literal("won"),
-      v.literal("lost"),
-      v.literal("no_bid")
-    ),
-  },
-  handler: async (ctx, args) => {
-    for (const projectId of args.projectIds) {
-      await assertProjectOwnership(ctx, projectId);
-      const project = await ctx.db.get(projectId);
-      if (project) {
-        await ctx.db.patch(projectId, {
-          status: args.status,
-          completedDate: new Date().toISOString().split("T")[0],
-          updatedAt: Date.now(),
-        });
-        await autoLogDecision(ctx, projectId, project.userId, `Bulk action: status changed to "${args.status}"`, "project");
-      }
-    }
-    return { updated: args.projectIds.length };
-  },
-});
-
-// P2-11: Bulk delete projects
-export const bulkDeleteProjects = mutation({
-  args: { projectIds: v.array(v.id("bidshield_projects")) },
-  handler: async (ctx, args) => {
-    for (const projectId of args.projectIds) {
-      await assertProjectOwnership(ctx, projectId);
-      // Delete checklist items
-      const items = await ctx.db
-        .query("bidshield_checklist_items")
-        .withIndex("by_project", (q) => q.eq("projectId", projectId))
-        .collect();
-      for (const item of items) await ctx.db.delete(item._id);
-      await ctx.db.delete(projectId);
-    }
-    return { deleted: args.projectIds.length };
-  },
-});
-
 // ===== CHECKLIST =====
 
 export const getChecklist = query({
@@ -462,52 +382,6 @@ export const updateChecklistItem = mutation({
         updatedAt: Date.now(),
       });
     }
-  },
-});
-
-// P2-12: Add custom checklist item
-export const addCustomChecklistItem = mutation({
-  args: {
-    projectId: v.id("bidshield_projects"),
-    phaseKey: v.string(),
-    text: v.string(),
-  },
-  handler: async (ctx, args) => {
-    await assertProjectOwnership(ctx, args.projectId);
-    const project = await ctx.db.get(args.projectId);
-    if (!project) throw new Error("Project not found");
-
-    // Generate a unique custom item ID
-    const customId = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-
-    await ctx.db.insert("bidshield_checklist_items", {
-      projectId: args.projectId,
-      userId: project.userId,
-      phaseKey: args.phaseKey,
-      itemId: customId,
-      status: "pending",
-      notes: args.text,
-      updatedAt: Date.now(),
-    });
-
-    return customId;
-  },
-});
-
-// P2-12: Delete custom checklist item
-export const deleteChecklistItem = mutation({
-  args: {
-    itemId: v.id("bidshield_checklist_items"),
-  },
-  handler: async (ctx, args) => {
-    const item = await ctx.db.get(args.itemId);
-    if (!item) throw new Error("Item not found");
-    await assertProjectOwnership(ctx, item.projectId);
-    // Only allow deleting custom items (ID starts with "custom-")
-    if (!item.itemId.startsWith("custom-")) {
-      throw new Error("Cannot delete default checklist items");
-    }
-    await ctx.db.delete(args.itemId);
   },
 });
 
@@ -663,12 +537,6 @@ export const createQuote = mutation({
       isExtracted: args.isExtracted,
       products: args.products,
     });
-
-    // P2-7: Auto-log quote creation
-    if (args.projectId) {
-      const amt = args.quoteAmount ? ` ($${args.quoteAmount.toLocaleString()})` : "";
-      await autoLogDecision(ctx, args.projectId, args.userId, `New quote added from ${args.vendorName} for ${args.category}${amt}`, "quotes");
-    }
 
     return quoteId;
   },
@@ -1937,12 +1805,6 @@ export const updateScopeItem = mutation({
       ...filteredUpdates,
       updatedAt: Date.now(),
     });
-
-    // P2-7: Auto-log scope exclusions (high-risk decisions)
-    if (scopeItem && args.status && args.status !== scopeItem.status && (args.status === "excluded" || args.status === "by_others")) {
-      const itemName = (scopeItem as any).name ?? (scopeItem as any).item ?? "item";
-      await autoLogDecision(ctx, scopeItem.projectId, scopeItem.userId, `Scope item "${itemName}" marked as ${args.status === "excluded" ? "excluded" : "by others"}`, "scope");
-    }
   },
 });
 

@@ -9,7 +9,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { gtagEvent } from "@/lib/gtag";
-import { StatCardSkeleton, ProjectRowSkeleton } from "@/components/Skeleton";
 
 const NAV_ITEMS = [
   {
@@ -216,85 +215,6 @@ function MobileNav({ pathname, isDemo, isPro }: { pathname: string; isDemo: bool
   );
 }
 
-function MobileDrawer({ isOpen, onClose, isDemo, pathname, isPro }: { isOpen: boolean; onClose: () => void; isDemo: boolean; pathname: string; isPro: boolean }) {
-  const { userId, isSignedIn } = useAuth();
-  const demoSuffix = isDemo ? "?demo=true" : "";
-  const isActive = (href: string, exact: boolean) => exact ? pathname === href : pathname.startsWith(href);
-
-  useEffect(() => {
-    if (isOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="lg:hidden fixed inset-0 z-50">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      {/* Drawer */}
-      <aside className="absolute left-0 top-0 bottom-0 w-72 bg-slate-900 flex flex-col shadow-2xl animate-slide-in-left">
-        {/* Header */}
-        <div className="px-4 py-4 border-b border-slate-800 flex items-center justify-between">
-          <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-              </svg>
-            </div>
-            <span className="text-white font-bold text-sm tracking-tight">BidShield</span>
-          </a>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white transition-colors" aria-label="Close menu">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(({ href, label, exact, icon }) => {
-            const active = isActive(href, exact);
-            return (
-              <Link
-                key={href}
-                href={href + demoSuffix}
-                onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors border-l-2 ${
-                  active
-                    ? "bg-emerald-600/15 text-emerald-400 border-emerald-500"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800 border-transparent"
-                }`}
-              >
-                {icon}
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-        {/* Footer */}
-        <div className="px-4 py-4 border-t border-slate-800">
-          {isDemo ? (
-            <Link href="/sign-up" onClick={onClose} className="block text-center py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors">
-              Start Free
-            </Link>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                {userId ? userId.slice(5, 7).toUpperCase() : "??"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-slate-300 truncate">{isSignedIn ? "Signed in" : "—"}</div>
-                <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${isPro ? "bg-emerald-900 text-emerald-400" : "bg-slate-700 text-slate-400"}`}>
-                  {isPro ? "Pro" : "Free"}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      </aside>
-    </div>
-  );
-}
-
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const { user } = useUser();
@@ -311,7 +231,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isPro = isDemo || (subscription?.isPro ?? false);
 
   const [showTrialBanner, setShowTrialBanner] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && !isDemo) {
@@ -366,18 +285,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex bg-slate-50" style={{ minHeight: "calc(100vh - 4rem)" }}>
       <Sidebar isDemo={isDemo} pathname={pathname} isPro={isPro} />
-      <MobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} isDemo={isDemo} pathname={pathname} isPro={isPro} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile hamburger bar — visible below lg when not on project pages */}
-        {!pathname.startsWith("/bidshield/dashboard/project") && (
-          <div className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-slate-200 shrink-0">
-            <button onClick={() => setDrawerOpen(true)} className="p-1.5 -ml-1.5 text-slate-600 hover:text-slate-900 transition-colors" aria-label="Open menu">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-            </button>
-            <span className="text-sm font-semibold text-slate-900">BidShield</span>
-          </div>
-        )}
         {isDemo && (
           <div className="bg-emerald-600 text-white text-center py-2.5 text-sm font-medium shrink-0">
             🎯 Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
@@ -416,25 +325,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={
-      <div className="flex bg-slate-50 min-h-screen">
-        {/* Sidebar skeleton */}
-        <aside className="hidden lg:flex flex-col w-60 bg-slate-900 shrink-0">
-          <div className="px-4 py-5 border-b border-slate-800"><div className="h-8 w-28 bg-slate-800 rounded animate-pulse" /></div>
-          <nav className="flex-1 px-3 py-4 space-y-2">
-            {[1,2,3,4,5].map(i => <div key={i} className="h-9 bg-slate-800 rounded-lg animate-pulse" />)}
-          </nav>
-        </aside>
-        {/* Content skeleton */}
-        <div className="flex-1 p-4 lg:p-6 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1,2,3,4].map(i => <StatCardSkeleton key={i} />)}
-          </div>
-          <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-            <table className="w-full"><tbody>
-              {[1,2,3].map(i => <ProjectRowSkeleton key={i} />)}
-            </tbody></table>
-          </div>
-        </div>
+      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
+        <div className="text-slate-500 text-lg">Loading BidShield...</div>
       </div>
     }>
       <DashboardContent>{children}</DashboardContent>

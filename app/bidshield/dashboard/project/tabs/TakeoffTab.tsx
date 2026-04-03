@@ -7,8 +7,6 @@ import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { DEMO_TAKEOFF_SECTIONS as IMPORTED_SECTIONS, DEMO_LINEAR_ITEMS as IMPORTED_LINEAR, DEMO_COUNT_ITEMS as IMPORTED_COUNT } from "@/lib/bidshield/demo-data";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
-import { exportCsv } from "@/lib/exportCsv";
-import { Download } from "lucide-react";
 
 type TakeoffSection = {
   _id: string; name: string; assemblyType: string; squareFeet: number;
@@ -292,26 +290,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   return (
     <div className="bg-white rounded-xl p-5 border border-slate-200">
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-3">
-          <h3 className="text-sm font-semibold text-slate-900">Takeoff Reconciliation</h3>
-          <button
-            onClick={() => {
-              const rows = [
-                ...(sections ?? []).map((s: any) => ({ type: "Section", name: s.name, assembly: s.assemblyType, quantity: s.squareFeet, unit: "SF", verified: s.completed ? "Yes" : "No" })),
-                ...(linearItems ?? []).map((li: any) => ({ type: "Linear", name: li.label, assembly: "", quantity: li.quantity ?? "", unit: li.unit, verified: li.verified ? "Yes" : "No" })),
-                ...(countItems ?? []).map((ci: any) => ({ type: "Count", name: ci.label, assembly: "", quantity: ci.quantity ?? "", unit: ci.unit, verified: ci.verified ? "Yes" : "No" })),
-              ];
-              exportCsv(rows,
-                [{ key: "type", header: "Type" }, { key: "name", header: "Name" }, { key: "assembly", header: "Assembly" }, { key: "quantity", header: "Quantity" }, { key: "unit", header: "Unit" }, { key: "verified", header: "Verified" }],
-                `takeoff-export.csv`
-              );
-            }}
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-600 transition-colors"
-            title="Export takeoff to CSV"
-          >
-            <Download size={13} /> CSV
-          </button>
-        </div>
+        <h3 className="text-sm font-semibold text-slate-900">Takeoff Reconciliation</h3>
         {controlNumber !== null && !editingControl && (
           <button onClick={() => { setControlInput(String(controlNumber)); setEditingControl(true); }} className="text-xs text-slate-500 hover:text-slate-700 transition-colors">Edit Control #</button>
         )}

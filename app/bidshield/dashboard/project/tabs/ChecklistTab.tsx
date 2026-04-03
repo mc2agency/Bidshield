@@ -246,11 +246,6 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const [swipeActive, setSwipeActive] = useState<string | null>(null);
   const [expandedHelp, setExpandedHelp] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  // P2-12: Custom checklist items
-  const [addingCustomPhase, setAddingCustomPhase] = useState<string | null>(null);
-  const [customItemText, setCustomItemText] = useState("");
-  const addCustomItem = useMutation(api.bidshield.addCustomChecklistItem);
-  const deleteCustomItem = useMutation(api.bidshield.deleteChecklistItem);
 
   const selKey = (pk: string, id: string) => `${pk}__${id}`;
 
@@ -848,91 +843,6 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                         </div>
                       );
                     })}
-
-                    {/* P2-12: Custom items from DB (itemId starts with "custom-") */}
-                    {resolvedItems
-                      .filter((ci: { phaseKey: string; itemId: string }) => ci.phaseKey === phaseKey && ci.itemId.startsWith("custom-"))
-                      .filter((ci: { phaseKey: string; itemId: string }) => {
-                        // Also check they're not already in template items
-                        return !items.some((ti: { id: string }) => ti.id === ci.itemId);
-                      })
-                      .map((ci: { _id?: string; itemId: string; notes?: string; status?: string }) => {
-                        const cStatus = (ci.status || "pending") as ChecklistStatus;
-                        const cDone = cStatus === "done" || cStatus === "na";
-                        return (
-                          <div key={ci.itemId} className="flex items-center gap-3 group" style={{ padding: "10px 16px", borderLeft: "2px solid #a78bfa" }}>
-                            <button
-                              onClick={() => cycleStatus(phaseKey, ci.itemId)}
-                              style={{ width: 18, height: 18, borderRadius: 4, border: cDone ? "none" : "1.5px solid #d1d5db", background: cDone ? "#10b981" : "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "all 0.15s" }}
-                            >
-                              {cDone && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
-                            </button>
-                            <span style={{ fontSize: 14, color: cDone ? "#9ca3af" : "#374151", textDecoration: cDone ? "line-through" : "none", flex: 1 }}>
-                              {ci.notes || ci.itemId}
-                            </span>
-                            <span style={{ fontSize: 9, background: "#ede9fe", color: "#7c3aed", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>Custom</span>
-                            {!isDemo && ci._id && (
-                              <button
-                                onClick={() => deleteCustomItem({ itemId: ci._id as Id<"bidshield_checklist_items"> })}
-                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all"
-                                title="Delete custom item"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-
-                    {/* P2-12: Add custom item button */}
-                    {!isDemo && isOpen && (
-                      <div className="border-t border-slate-100 px-4 py-2">
-                        {addingCustomPhase === phaseKey ? (
-                          <div className="flex items-center gap-2">
-                            <input
-                              autoFocus
-                              value={customItemText}
-                              onChange={e => setCustomItemText(e.target.value)}
-                              onKeyDown={async e => {
-                                if (e.key === "Enter" && customItemText.trim()) {
-                                  await addCustomItem({ projectId: projectId as Id<"bidshield_projects">, phaseKey, text: customItemText.trim() });
-                                  setCustomItemText("");
-                                  setAddingCustomPhase(null);
-                                }
-                                if (e.key === "Escape") { setAddingCustomPhase(null); setCustomItemText(""); }
-                              }}
-                              placeholder="Custom checklist item..."
-                              className="flex-1 text-sm border border-slate-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            />
-                            <button
-                              onClick={async () => {
-                                if (!customItemText.trim()) return;
-                                await addCustomItem({ projectId: projectId as Id<"bidshield_projects">, phaseKey, text: customItemText.trim() });
-                                setCustomItemText("");
-                                setAddingCustomPhase(null);
-                              }}
-                              className="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
-                            >
-                              Add
-                            </button>
-                            <button
-                              onClick={() => { setAddingCustomPhase(null); setCustomItemText(""); }}
-                              className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setAddingCustomPhase(phaseKey)}
-                            className="text-xs text-slate-400 hover:text-emerald-600 transition-colors flex items-center gap-1"
-                          >
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                            Add custom item
-                          </button>
-                        )}
-                      </div>
-                    )}
                   </div>
                 )}
               </div>

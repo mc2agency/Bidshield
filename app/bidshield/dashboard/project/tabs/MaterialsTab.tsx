@@ -2,7 +2,6 @@
 import { DEMO_MATERIALS as IMPORTED_MATERIALS } from "@/lib/bidshield/demo-data";
 
 import React, { useState, useMemo, useCallback, useRef } from "react";
-import { exportCsv } from "@/lib/exportCsv";
 import { track } from "@vercel/analytics";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -929,18 +928,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           ))}
         </div>
         <div className="flex gap-2 ml-auto">
-          <button
-            onClick={() => exportCsv(
-              materials.map((m: any) => ({ name: m.name, category: m.category, unit: m.unit, quantity: m.quantity ?? "", wasteFactor: m.wasteFactor ?? "", unitPrice: m.unitPrice ?? "", totalCost: m.totalCost ?? "" })),
-              [{ key: "name", header: "Material" }, { key: "category", header: "Category" }, { key: "unit", header: "Unit" }, { key: "quantity", header: "Qty" }, { key: "wasteFactor", header: "Waste %" }, { key: "unitPrice", header: "Unit Price" }, { key: "totalCost", header: "Total" }],
-              `materials-export.csv`
-            )}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-500 hover:text-emerald-600 border border-slate-200 rounded-lg transition-colors"
-            title="Export materials to CSV"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-            CSV
-          </button>
           {!isDemo && quotes.length > 0 && (
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">vs. Quote:</span>

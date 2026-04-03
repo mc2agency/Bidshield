@@ -178,56 +178,6 @@ export const adminGetAllData = query({
   },
 });
 
-// P2-9: Paginated admin user list
-export const adminGetUsersPaginated = query({
-  args: {
-    paginationOpts: v.object({
-      cursor: v.union(v.string(), v.null()),
-      numItems: v.number(),
-    }),
-  },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-    if (user?.role !== "admin") throw new Error("Unauthorized");
-
-    const result = await ctx.db
-      .query("users")
-      .order("desc")
-      .paginate({ cursor: args.paginationOpts.cursor ?? null, numItems: args.paginationOpts.numItems });
-    return result;
-  },
-});
-
-// P2-9: Paginated admin project list
-export const adminGetProjectsPaginated = query({
-  args: {
-    paginationOpts: v.object({
-      cursor: v.union(v.string(), v.null()),
-      numItems: v.number(),
-    }),
-  },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-    if (user?.role !== "admin") throw new Error("Unauthorized");
-
-    const result = await ctx.db
-      .query("bidshield_projects")
-      .order("desc")
-      .paginate({ cursor: args.paginationOpts.cursor ?? null, numItems: args.paginationOpts.numItems });
-    return result;
-  },
-});
-
 // Idempotency guard for Stripe webhook events (M9).
 // Returns true if the event was already processed; inserts and returns false otherwise.
 // Call this at the start of each Stripe event handler before any writes.
