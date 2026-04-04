@@ -164,7 +164,7 @@ export default function DecisionLogTab({ projectId, isDemo, isPro, userId }: Tab
               <div
                 key={d._id}
                 className="bg-white rounded-xl border border-slate-200 p-4 group"
-                style={{ borderLeft: `3px solid ${style.color}` }}
+                style={{ borderLeft: `4px solid ${style.color}` }}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">

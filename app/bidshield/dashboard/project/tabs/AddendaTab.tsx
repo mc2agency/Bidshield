@@ -419,10 +419,10 @@ function AddendumCard({
               </span>
             )}
             {priority === "critical" && (
-              <span className="text-[10px] font-bold bg-red-50 text-red-600 px-2 py-0.5 rounded uppercase">Critical</span>
+              <span className="text-[11px] font-bold bg-red-50 text-red-600 px-2 py-0.5 rounded-full uppercase tracking-wide border border-red-200">Critical</span>
             )}
             {priority === "high" && (
-              <span className="text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded uppercase">High</span>
+              <span className="text-[11px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-wide border border-amber-200">High</span>
             )}
             <span className="text-xs text-slate-500">Received: {add.receivedDate}</span>
           </div>

@@ -161,8 +161,8 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
         <div className="flex flex-wrap gap-1.5">
           {(["all", "draft", "sent", "answered", "closed"] as const).map((s) => (
             <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
-                filter === s ? "bg-slate-900 text-white" : "bg-white text-slate-500 hover:text-slate-900 border border-slate-200"
+              className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-colors duration-150 cursor-pointer ${
+                filter === s ? "bg-slate-800 text-white" : "bg-white text-slate-500 hover:text-slate-800 border border-slate-200"
               }`}>
               {s === "all" ? "All" : statusConfig[s].label} ({statusCounts[s]})
             </button>
@@ -237,7 +237,7 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
                         <button onClick={() => handleSend(rfi._id)} disabled={isDemo} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slate-900 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Mark as Sent</button>
                       )}
                       {rfi.status === "sent" && (
-                        <button onClick={() => handleMarkAnswered(rfi._id)} disabled={isDemo || !(responseTexts[rfi._id as string] || "").trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-slate-900 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Mark Answered</button>
+                        <button onClick={() => handleMarkAnswered(rfi._id)} disabled={isDemo || !(responseTexts[rfi._id as string] || "").trim()} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors duration-150 disabled:opacity-50 cursor-pointer">Mark Answered</button>
                       )}
                       {(rfi.status === "answered" || rfi.status === "sent") && (
                         <button onClick={() => handleClose(rfi._id)} disabled={isDemo} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Close RFI</button>
