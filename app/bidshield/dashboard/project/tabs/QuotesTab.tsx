@@ -359,53 +359,49 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       )}
 
       {/* Stats bar */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-1.5">
-          <span className="text-2xl font-bold text-slate-900">{stats.total}</span>
-          <span className="text-[13px] text-slate-500">quote{stats.total !== 1 ? "s" : ""}</span>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-stretch gap-3 flex-wrap">
+          <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Quotes</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>{stats.total}</div>
+          </div>
+          {stats.bestDpsf && (
+            <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Best $/SF</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#059669", letterSpacing: "-0.02em", lineHeight: 1 }}>${stats.bestDpsf.toFixed(2)}</div>
+            </div>
+          )}
+          {stats.expiring > 0 && (
+            <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #f59e0b", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Expiring</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#d97706", letterSpacing: "-0.02em", lineHeight: 1 }}>{stats.expiring}</div>
+            </div>
+          )}
+          {stats.expired > 0 && (
+            <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #ef4444", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Expired</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#dc2626", letterSpacing: "-0.02em", lineHeight: 1 }}>{stats.expired}</div>
+            </div>
+          )}
         </div>
-        {stats.bestDpsf && (
-          <>
-            <span className="text-slate-200">·</span>
-            <span className="text-[13px] text-slate-500">Best <span className="font-semibold text-emerald-600">${stats.bestDpsf.toFixed(2)}/SF</span></span>
-          </>
-        )}
-        {stats.expiring > 0 && (
-          <>
-            <span className="text-slate-200">·</span>
-            <span className="text-[13px] text-amber-600 font-medium">{stats.expiring} expiring soon</span>
-          </>
-        )}
-        {stats.expired > 0 && (
-          <>
-            <span className="text-slate-200">·</span>
-            <span className="text-[13px] text-red-500 font-medium">{stats.expired} expired</span>
-          </>
-        )}
-        <div className="ml-auto flex gap-2">
+        <div className="flex gap-2">
           {comparison && (
-            <button
-              onClick={() => setShowCompare(!showCompare)}
-              className="text-[13px] font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-            >
+            <button onClick={() => setShowCompare(!showCompare)} className="cursor-pointer transition-colors" style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 8, border: "1px solid #e2e8f0", color: "#475569", background: "white" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f8fafc"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "white"}>
               {showCompare ? "Hide Compare" : "Compare →"}
             </button>
           )}
           {!isDemo && (
             <>
               {isValidConvexId && (
-                <button
-                  onClick={() => { setImportSearch(""); setImportModal(true); }}
-                  className="text-[13px] font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-                >
+                <button onClick={() => { setImportSearch(""); setImportModal(true); }} className="cursor-pointer transition-colors" style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 8, border: "1px solid #e2e8f0", color: "#475569", background: "white" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f8fafc"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "white"}>
                   Import from Library
                 </button>
               )}
-              <button
-                onClick={openModal}
-                style={{ background: "#10b981" }}
-                className="text-[13px] font-semibold px-4 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors"
-              >
+              <button onClick={openModal} className="cursor-pointer" style={{ fontSize: 12, fontWeight: 700, padding: "8px 16px", borderRadius: 8, background: "#059669", color: "white", boxShadow: "0 1px 3px rgba(5,150,105,0.3)" }}>
                 + Add Quote
               </button>
             </>

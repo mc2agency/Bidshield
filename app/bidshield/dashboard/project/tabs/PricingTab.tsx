@@ -273,9 +273,9 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
       )}
 
       {/* Bid Pricing Card */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-semibold text-slate-900">Bid Pricing & Outcome</h3>
+      <div className="bg-white rounded-xl p-5" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div className="flex justify-between items-center mb-5">
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Bid Pricing & Outcome</h3>
           {(isPro || isDemo) ? (
             <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
               {editing ? "Save" : "Edit"}
@@ -288,91 +288,58 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
-          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-            {editing ? <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="Total" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" /> : <div className="text-lg font-bold text-slate-900">{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>}
-            <div className="text-[10px] text-slate-500">Total Bid</div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+          {/* Total Bid */}
+          <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "3px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+            {editing ? <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="Total" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" style={{ marginBottom: 4 }} /> : <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>}
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Total Bid</div>
           </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+          {/* Material */}
+          <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "3px solid #3b82f6", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
             {computedMaterialTotal > 0 ? (
-              <div className="text-lg font-bold text-blue-600">
-                {fmtDollar(computedMaterialTotal)}
-                <span className="text-[10px] text-blue-400 font-normal ml-1">(auto)</span>
-              </div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#1d4ed8", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{fmtDollar(computedMaterialTotal)}</div>
             ) : (
-              <div className="text-base font-bold text-slate-400">—</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#cbd5e1" }}>—</div>
             )}
-            <div className="text-[10px] text-slate-500">Material</div>
-            {computedMaterialTotal > 0 ? (
-              <button
-                type="button"
-                onClick={() => onNavigateTab?.("materials")}
-                className="text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 block w-full text-center"
-              >
-                → Material Reconciliation
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onNavigateTab?.("materials")}
-                className="text-[9px] text-amber-500 hover:text-amber-700 mt-0.5 block w-full text-center leading-tight"
-              >
-                Upload report in Material Reconciliation
-              </button>
-            )}
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Material</div>
+            <button type="button" onClick={() => onNavigateTab?.("materials")} style={{ fontSize: 9, color: computedMaterialTotal > 0 ? "#3b82f6" : "#f59e0b", marginTop: 4, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
+              {computedMaterialTotal > 0 ? "→ Reconciliation" : "→ Upload report"}
+            </button>
           </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+          {/* Labor */}
+          <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "3px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
             {computedLaborTotal > 0 ? (
-              <div className="text-lg font-bold text-emerald-600">
-                {fmtDollar(computedLaborTotal)}
-                <span className="text-[10px] text-emerald-400 font-normal ml-1">(auto)</span>
-              </div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#059669", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{fmtDollar(computedLaborTotal)}</div>
             ) : (
-              <div className="text-base font-bold text-slate-400">—</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#cbd5e1" }}>—</div>
             )}
-            <div className="text-[10px] text-slate-500">Labor</div>
-            {computedLaborTotal > 0 ? (
-              <button
-                type="button"
-                onClick={() => onNavigateTab?.("labor")}
-                className="text-[9px] text-emerald-500 hover:text-emerald-700 mt-0.5 block w-full text-center"
-              >
-                → Labor Verification
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onNavigateTab?.("labor")}
-                className="text-[9px] text-amber-500 hover:text-amber-700 mt-0.5 block w-full text-center leading-tight"
-              >
-                Run analysis in Labor
-              </button>
-            )}
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Labor</div>
+            <button type="button" onClick={() => onNavigateTab?.("labor")} style={{ fontSize: 9, color: computedLaborTotal > 0 ? "#059669" : "#f59e0b", marginTop: 4, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
+              {computedLaborTotal > 0 ? "→ Verification" : "→ Run analysis"}
+            </button>
           </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+          {/* Gen. Conds */}
+          <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "3px solid #8b5cf6", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
             {editing ? (
               <div>
-                <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full text-center focus:outline-none focus:border-amber-500" />
+                <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" style={{ marginBottom: 4 }} />
                 {computedGCTotal > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, otherCost: computedGCTotal.toString() }))}
-                    className="mt-1 text-[10px] text-amber-600 underline cursor-pointer bg-transparent border-none p-0"
-                  >
+                  <button type="button" onClick={() => setForm((f) => ({ ...f, otherCost: computedGCTotal.toString() }))} style={{ fontSize: 9, color: "#f59e0b", cursor: "pointer", background: "none", border: "none", padding: 0 }}>
                     Pull from GC ({fmtDollar(computedGCTotal)})
                   </button>
                 )}
               </div>
             ) : (
-              <div className="text-lg font-bold text-slate-600">
-                {pricing.otherCost ? fmtDollar(pricing.otherCost) : computedGCTotal > 0 ? <span title="Computed from Gen. Conditions tab">{fmtDollar(computedGCTotal)} <span className="text-[10px] text-slate-400">(GC)</span></span> : "—"}
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#7c3aed", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                {pricing.otherCost ? fmtDollar(pricing.otherCost) : computedGCTotal > 0 ? <span title="Computed from Gen. Conditions tab">{fmtDollar(computedGCTotal)}</span> : "—"}
               </div>
             )}
-            <div className="text-[10px] text-slate-500">Gen. Conds</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Gen. Conds</div>
           </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200 col-span-2 sm:col-span-1">
-            <div className={`text-lg font-bold ${healthColor}`}>{dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
-            <div className="text-[10px] text-slate-500">$/SF</div>
+          {/* $/SF */}
+          <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: `3px solid ${dollarPerSf ? (healthColor === "text-emerald-600" ? "#059669" : healthColor === "text-amber-600" ? "#f59e0b" : "#ef4444") : "#e2e8f0"}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }} className="col-span-2 sm:col-span-1">
+            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1, color: dollarPerSf ? (healthColor === "text-emerald-600" ? "#059669" : healthColor === "text-amber-600" ? "#d97706" : "#dc2626") : "#cbd5e1" }}>{dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Cost / SF</div>
           </div>
         </div>
 

@@ -837,58 +837,29 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "14px 16px", border: "1px solid #bbf7d0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#16a34a"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#16a34a", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Total Cost</span>
+        {[
+          { label: "Total Cost", value: `$${totalCost.toLocaleString()}`, accent: "#059669" },
+          { label: "Line Items", value: String(materials.length), accent: "#3b82f6" },
+          { label: "Mat / SF", value: dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—", accent: "#334155" },
+          {
+            label: unpricedCount > 0 ? "Unpriced Items" : "All Priced",
+            value: unpricedCount > 0 ? String(unpricedCount) : "0",
+            accent: unpricedCount > 0 ? "#f59e0b" : "#059669",
+          },
+        ].map(({ label, value, accent }) => (
+          <div key={label} style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
           </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#15803d", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>${totalCost.toLocaleString()}</div>
-        </div>
-        <div style={{ background: "#eff6ff", borderRadius: 12, padding: "14px 16px", border: "1px solid #bfdbfe", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#2563eb"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" /></svg>
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#2563eb", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Line Items</span>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#1d4ed8", letterSpacing: "-0.02em" }}>{materials.length}</div>
-        </div>
-        <div style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#475569"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5" /></svg>
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Mat $/SF</span>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#334155", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
-        </div>
-        <div style={{ background: unpricedCount > 0 ? "#fffbeb" : "#f0fdf4", borderRadius: 12, padding: "14px 16px", border: `1px solid ${unpricedCount > 0 ? "#fde68a" : "#bbf7d0"}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: unpricedCount > 0 ? "#fef3c7" : "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke={unpricedCount > 0 ? "#d97706" : "#16a34a"}>
-                {unpricedCount > 0
-                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                  : <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />}
-              </svg>
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: unpricedCount > 0 ? "#d97706" : "#16a34a", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
-              {unpricedCount > 0 ? "Unpriced" : "All Priced"}
-            </span>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: unpricedCount > 0 ? "#b45309" : "#15803d", letterSpacing: "-0.02em" }}>
-            {unpricedCount > 0 ? unpricedCount : "✓"}
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Category breakdown bar */}
       {totalCost > 0 && (
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-semibold text-slate-900">Cost Breakdown by Category</h3>
-            <span className="text-xs text-slate-500">Based on {totalSF.toLocaleString()} SF</span>
+        <div className="bg-white rounded-xl p-4" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div className="flex justify-between items-center mb-3">
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Cost Breakdown by Category</h3>
+            <span style={{ fontSize: 11, color: "#94a3b8" }}>Based on {totalSF.toLocaleString()} SF</span>
           </div>
           <div className="flex h-4 rounded-full overflow-hidden bg-slate-100 mb-3">
             {(Object.entries(categoryTotals) as [string, number][])

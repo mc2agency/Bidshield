@@ -425,29 +425,19 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
         <>
           {/* Stat cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">{fmtDollar(liveTotal)}</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Total Labor Cost</div>
-            </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-              <div className="text-2xl font-bold text-slate-900">
-                {resolvedAnalysis.totalDays ?? "—"}
-                {resolvedAnalysis.totalDays && <span className="text-base font-normal text-slate-400 ml-1">days</span>}
+            {[
+              { label: "Total Labor Cost", value: fmtDollar(liveTotal), accent: "#059669" },
+              { label: "Est. Duration", value: resolvedAnalysis.totalDays ? `${resolvedAnalysis.totalDays}` : "—", unit: resolvedAnalysis.totalDays ? "days" : undefined, accent: "#334155" },
+              { label: "Labor / SF", value: resolvedAnalysis.laborPerSf ? `$${resolvedAnalysis.laborPerSf.toFixed(2)}` : "—", accent: "#3b82f6" },
+              { label: "Loaded Rate / Day", value: `$${Math.round(resolvedAnalysis.loadedRate).toLocaleString()}`, accent: "#8b5cf6" },
+            ].map(({ label, value, unit, accent }) => (
+              <div key={label} style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                  {value}{unit && <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8", marginLeft: 4 }}>{unit}</span>}
+                </div>
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Estimated Duration</div>
-            </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-              <div className="text-2xl font-bold text-slate-900">
-                {resolvedAnalysis.laborPerSf ? `$${resolvedAnalysis.laborPerSf.toFixed(2)}` : "—"}
-              </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Labor $/SF</div>
-            </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-              <div className="text-2xl font-bold text-slate-900">
-                ${Math.round(resolvedAnalysis.loadedRate).toLocaleString()}
-              </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Loaded Rate/Day</div>
-            </div>
+            ))}
           </div>
 
           {/* Schedule flag banner */}
@@ -476,7 +466,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
                 {resolvedTasks.length - unverifiedCount}/{resolvedTasks.length} verified
               </span>
               {unverifiedCount === 0 && (
-                <span className="text-xs text-emerald-600 font-semibold">All verified ✓</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "2px 8px", borderRadius: 9999 }}>All verified</span>
               )}
             </div>
           )}

@@ -300,42 +300,53 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-slate-200">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-semibold text-slate-900">Takeoff Reconciliation</h3>
+    <div className="bg-white rounded-xl p-5" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+      <div className="flex justify-between items-center mb-5">
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Takeoff Reconciliation</h3>
         {controlNumber !== null && !editingControl && (
-          <button onClick={() => { setControlInput(String(controlNumber)); setEditingControl(true); }} className="text-xs text-slate-500 hover:text-slate-700 transition-colors">Edit Control #</button>
+          <button onClick={() => { setControlInput(String(controlNumber)); setEditingControl(true); }} style={{ fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#0f172a"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#64748b"}>Edit Control #</button>
         )}
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+        {/* Control # */}
+        <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "3px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
           {editingControl ? (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1.5">
               <input type="number" value={controlInput} onChange={(e) => setControlInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSaveControl(); if (e.key === "Escape") setEditingControl(false); }}
-                className="bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" autoFocus placeholder="SF" />
-              <div className="flex gap-1 justify-center">
-                <button onClick={handleSaveControl} className="text-[10px] text-emerald-600 hover:text-emerald-300">Save</button>
-                <button onClick={() => setEditingControl(false)} className="text-[10px] text-slate-500 hover:text-slate-600">Cancel</button>
+                className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" autoFocus placeholder="SF" />
+              <div className="flex gap-2">
+                <button onClick={handleSaveControl} style={{ fontSize: 10, color: "#059669", cursor: "pointer", background: "none", border: "none", padding: 0 }}>Save</button>
+                <button onClick={() => setEditingControl(false)} style={{ fontSize: 10, color: "#94a3b8", cursor: "pointer", background: "none", border: "none", padding: 0 }}>Cancel</button>
               </div>
             </div>
           ) : controlNumber !== null ? (
-            <><div className="text-lg font-bold text-slate-900">{fmt(controlNumber)} SF</div><div className="text-[10px] text-slate-500">Control # (Gross Area)</div></>
+            <>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Control # (Gross)</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>{fmt(controlNumber)} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>
+            </>
           ) : (
-            <button onClick={() => { setControlInput(""); setEditingControl(true); }} className="w-full">
-              <div className="text-lg font-bold text-slate-500">Not set</div><div className="text-[10px] text-amber-600">Click to set control #</div>
+            <button onClick={() => { setControlInput(""); setEditingControl(true); }} className="w-full text-left cursor-pointer" style={{ background: "none", border: "none", padding: 0 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Control #</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#f59e0b" }}>Not set — click</div>
             </button>
           )}
         </div>
-        <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-          <div className="text-lg font-bold text-slate-900">{fmt(takenOff)} SF</div><div className="text-[10px] text-slate-500">Taken Off (Sum)</div>
+        {/* Taken Off */}
+        <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "3px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Taken Off</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>{fmt(takenOff)} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>
         </div>
-        <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
+        {/* Delta */}
+        <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: `3px solid ${delta !== null ? (delta >= 0 ? "#059669" : "#ef4444") : "#e2e8f0"}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Delta</div>
           {delta !== null ? (
-            <><div className={`text-lg font-bold ${deltaColor.text}`}>{delta >= 0 ? "-" : "+"}{fmt(Math.abs(delta))} SF</div><div className="text-[10px] text-slate-500">Delta</div></>
+            <div style={{ fontSize: 20, fontWeight: 800, color: delta >= 0 ? "#059669" : "#dc2626", letterSpacing: "-0.02em", lineHeight: 1 }}>{delta >= 0 ? "-" : "+"}{fmt(Math.abs(delta))} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>
           ) : (
-            <><div className="text-lg font-bold text-slate-500">—</div><div className="text-[10px] text-slate-500">Set control # to compare</div></>
+            <div style={{ fontSize: 14, color: "#94a3b8" }}>Set control #</div>
           )}
         </div>
       </div>
