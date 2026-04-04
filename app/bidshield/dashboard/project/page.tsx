@@ -392,7 +392,7 @@ function ProjectDetail() {
             <div style={{ height: "100%", borderRadius: 9999, width: `${readinessScore}%`, background: readinessColor, transition: "width 0.5s" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
-            <span style={{ fontSize: 11, color: "#475569" }}>Bid readiness</span>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>Bid readiness</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
           </div>
         </div>
@@ -480,7 +480,7 @@ function ProjectDetail() {
 
         {/* Status summary */}
         <div className="px-3 pb-3 pt-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Status</div>
+          <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "#4b5563" }}>Status</div>
           <div className="flex flex-wrap gap-1.5">
             {blockerCount > 0 && (
               <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(239,68,68,0.12)", color: "#f87171", padding: "2px 8px", borderRadius: 5, border: "1px solid rgba(239,68,68,0.2)" }}>
@@ -619,10 +619,11 @@ function ProjectDetail() {
             </div>
             <button
               onClick={() => setDismissedWarnings(s => new Set([...s, activeWarning]))}
-              style={{ color: "#9ca3af", background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "2px 4px", flexShrink: 0 }}
+              className="text-slate-400 hover:text-slate-600 transition-colors duration-150 cursor-pointer shrink-0 p-1 rounded"
+              style={{ background: "none", border: "none" }}
               title="Dismiss"
             >
-              ×
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
             </button>
           </div>
         )}
@@ -769,7 +770,7 @@ function ProjectDetail() {
                 ) : (
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between mb-1">
-                      <h2 style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                      <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""} · ` : ""}
                         {actionItems.length} need attention
                       </h2>
@@ -781,29 +782,29 @@ function ProjectDetail() {
                       <button
                         key={`${item.tab}-${i}`}
                         onClick={() => openTab(item.tab)}
-                        className="w-full text-left transition-all active:scale-[0.98]"
+                        className="w-full text-left transition-all duration-150 active:scale-[0.98] hover:shadow-md rounded-xl cursor-pointer"
                         style={{
-                          background: "white",
+                          background: item.level === "blocker" ? "#fff5f5" : item.level === "warning" ? "#fffbeb" : "#eff6ff",
                           borderRadius: 10,
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
                           padding: 16,
-                          borderLeft: `3px solid ${item.level === "blocker" ? "#ef4444" : item.level === "warning" ? "#f59e0b" : "#3b82f6"}`,
+                          borderLeft: `4px solid ${item.level === "blocker" ? "#ef4444" : item.level === "warning" ? "#f59e0b" : "#3b82f6"}`,
+                          border: `1px solid ${item.level === "blocker" ? "#fecaca" : item.level === "warning" ? "#fde68a" : "#bfdbfe"}`,
+                          borderLeftWidth: 4,
                         }}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{item.title}</div>
-                            {item.detail && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{item.detail}</div>}
+                            {item.detail && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{item.detail}</div>}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span style={{
-                              fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999,
-                              background: item.level === "blocker" ? "#fef2f2" : item.level === "warning" ? "#fffbeb" : "#eff6ff",
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{
+                              background: item.level === "blocker" ? "#fee2e2" : item.level === "warning" ? "#fef3c7" : "#dbeafe",
                               color: item.level === "blocker" ? "#dc2626" : item.level === "warning" ? "#d97706" : "#2563eb",
                             }}>
                               {item.level === "blocker" ? "Fix" : item.level === "warning" ? "Review" : "Info"}
                             </span>
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#d1d5db">
+                            <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                             </svg>
                           </div>
@@ -815,7 +816,7 @@ function ProjectDetail() {
 
                 {/* Section Progress */}
                 <div style={{ marginTop: 32 }}>
-                  <h3 style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 12 }}>
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
                     Section Progress
                   </h3>
                   <div className="flex flex-col gap-2.5">
@@ -831,8 +832,8 @@ function ProjectDetail() {
                           >
                             {label}
                           </span>
-                          <div style={{ flex: 1, height: 4, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${score}%`, background: dot, borderRadius: 9999, transition: "width 0.5s" }} />
+                          <div style={{ flex: 1, height: 5, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${score}%`, background: score >= 75 ? "#10b981" : score >= 25 ? "#f59e0b" : "#ef4444", borderRadius: 9999, transition: "width 0.5s" }} />
                           </div>
                           {/* Dot indicator */}
                           <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
@@ -966,13 +967,13 @@ function ProjectDetail() {
               {/* 2. SF / BID / $/SF stat cards */}
               <div style={{ paddingBottom: 20, display: "flex", flexDirection: "column", gap: 8 }}>
                 {/* Square Footage */}
-                <div style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: "3px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>Square Footage</div>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between px-3.5 py-2.5" style={{ borderLeft: "4px solid #334155" }}>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Square Footage</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>{grossArea ? grossArea.toLocaleString() : "—"} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>
                 </div>
                 {/* Total Bid */}
-                <div style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: "3px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>Total Bid</div>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between px-3.5 py-2.5" style={{ borderLeft: "4px solid #059669" }}>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Total Bid</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
                     {editingBidInline && !isDemo ? (
                       <input
@@ -996,8 +997,8 @@ function ProjectDetail() {
                   </div>
                 </div>
                 {/* Cost per SF */}
-                <div style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: "3px solid #3b82f6", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>Cost / SF</div>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between px-3.5 py-2.5" style={{ borderLeft: "4px solid #3b82f6" }}>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Cost / SF</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
                 </div>
               </div>

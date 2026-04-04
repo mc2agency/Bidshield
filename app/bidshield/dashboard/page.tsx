@@ -127,19 +127,12 @@ function StatCard({ value, label, dimmed, icon, accent = "#059669" }: {
   accent?: string;
 }) {
   return (
-    <div style={{
-      background: "white",
-      border: "1px solid #e5e7eb",
-      borderLeft: `3px solid ${dimmed ? "#e5e7eb" : accent}`,
-      borderRadius: 10,
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-      padding: "18px 20px",
-    }}>
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
-        {icon && <span style={{ color: dimmed ? "#d1d5db" : accent, opacity: 0.7 }}>{icon}</span>}
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 p-5" style={{ borderLeft: `4px solid ${dimmed ? "#e2e8f0" : accent}` }}>
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
+        {icon && <span style={{ color: dimmed ? "#cbd5e1" : accent }} className="opacity-60">{icon}</span>}
       </div>
-      <div style={{ fontSize: 32, fontWeight: 800, color: dimmed ? "#d1d5db" : "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>
+      <div className="text-3xl font-extrabold tracking-tight leading-none" style={{ color: dimmed ? "#cbd5e1" : "#0f172a" }}>
         {dimmed ? "—" : value}
       </div>
     </div>
@@ -238,16 +231,20 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-2 justify-end">
           <div style={{ width: 56, height: 5, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${displayProgress}%`, borderRadius: 9999, background: displayProgress >= 80 ? "#059669" : displayProgress >= 40 ? "#f59e0b" : "#cbd5e1", transition: "width 0.4s" }} />
+            <div style={{ height: "100%", width: `${displayProgress}%`, borderRadius: 9999, background: displayProgress >= 75 ? "#059669" : displayProgress >= 25 ? "#f59e0b" : "#ef4444", transition: "width 0.4s" }} />
           </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: displayProgress >= 80 ? "#059669" : displayProgress >= 40 ? "#d97706" : "#94a3b8", fontVariantNumeric: "tabular-nums", width: 32, textAlign: "right" }}>{displayProgress}%</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: displayProgress >= 75 ? "#059669" : displayProgress >= 25 ? "#d97706" : "#ef4444", fontVariantNumeric: "tabular-nums", width: 32, textAlign: "right" }}>{displayProgress}%</span>
         </div>
       </td>
       <td className="px-4 py-3">
         <div className="flex gap-1.5 items-center justify-end">
           <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="py-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-emerald-200">Won</button>
-            <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="py-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold rounded-md transition-colors ring-1 ring-red-200">Lost</button>
+            <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="py-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md transition-colors duration-150 ring-1 ring-emerald-200 cursor-pointer flex items-center gap-0.5">
+              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>Won
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="py-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold rounded-md transition-colors duration-150 ring-1 ring-red-200 cursor-pointer flex items-center gap-0.5">
+              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>Lost
+            </button>
           </div>
           {!isDemo && (
             <div className="relative">
@@ -300,16 +297,16 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
   onNewBid: () => void;
 }) {
   return (
-    <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+    <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
       <table className="w-full text-sm">
-        <thead>
-          <tr style={{ borderBottom: "1px solid #f1f5f9", background: "#f8fafc" }}>
-            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Project</th>
-            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>GC</th>
-            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Bid Date</th>
-            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>System</th>
-            <th className="text-right px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>$/SF</th>
-            <th className="text-right px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Ready</th>
+        <thead className="sticky top-0 z-10">
+          <tr className="bg-slate-50 border-b border-slate-200">
+            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Project</th>
+            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">GC</th>
+            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Bid Date</th>
+            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">System</th>
+            <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">$/SF</th>
+            <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Ready</th>
             <th className="px-4 py-3 w-24" />
           </tr>
         </thead>
@@ -394,9 +391,9 @@ function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, router
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div className={`h-full rounded-full transition-all duration-500 ${displayProgress >= 80 ? "bg-emerald-500" : displayProgress >= 40 ? "bg-amber-500" : "bg-slate-400"}`} style={{ width: `${displayProgress}%` }} />
+            <div className={`h-full rounded-full transition-all duration-500 ${displayProgress >= 75 ? "bg-emerald-500" : displayProgress >= 25 ? "bg-amber-500" : "bg-red-400"}`} style={{ width: `${displayProgress}%` }} />
           </div>
-          <span className={`text-sm font-semibold tabular-nums ${displayProgress >= 80 ? "text-emerald-600" : displayProgress >= 40 ? "text-amber-600" : "text-slate-500"}`}>{displayProgress}%</span>
+          <span className={`text-sm font-bold tabular-nums ${displayProgress >= 75 ? "text-emerald-600" : displayProgress >= 25 ? "text-amber-600" : "text-red-500"}`}>{displayProgress}%</span>
         </div>
 
         {project.assemblies && project.assemblies.length > 0 && (
@@ -408,8 +405,12 @@ function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, router
         )}
 
         <div className="flex gap-2 mt-4 pt-3 border-t border-slate-100">
-          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg transition-colors ring-1 ring-emerald-200">&check; Won</button>
-          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-lg transition-colors ring-1 ring-red-200">&times; Lost</button>
+          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "won"); }} className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg transition-colors duration-150 ring-1 ring-emerald-200 cursor-pointer flex items-center justify-center gap-1">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>Won
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); onStatusChange(project._id, "lost"); }} className="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-lg transition-colors duration-150 ring-1 ring-red-200 cursor-pointer flex items-center justify-center gap-1">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>Lost
+          </button>
           {!isDemo && (
             <>
               <button onClick={(e) => { e.stopPropagation(); onEdit(project._id); }} className="py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg transition-colors ring-1 ring-slate-200" aria-label="Edit">
@@ -621,7 +622,7 @@ function DashboardContent() {
       {/* Alerts */}
       {(stats.expiringQuotes > 0 || stats.openRFIs > 0) && (
         <div className="flex flex-col gap-2">
-          <h2 style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em" }}>Alerts</h2>
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Alerts</h2>
           {stats.expiringQuotes > 0 && (
             <div
               className="flex items-start gap-3 p-4 rounded-xl border border-red-200 bg-red-50 hover:shadow-md transition-all cursor-pointer"
@@ -659,7 +660,7 @@ function DashboardContent() {
       <div id="active-bids">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Active Bids</h2>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">Active Bids</h2>
             {activeProjects.length > 0 && (
               <span style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "2px 8px", borderRadius: 9999 }}>
                 {activeProjects.length}
@@ -691,12 +692,12 @@ function DashboardContent() {
       {completedProjects.length > 0 && (
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Completed Bids</h2>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">Completed Bids</h2>
             <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", padding: "2px 8px", borderRadius: 9999 }}>
               {completedProjects.length}
             </span>
           </div>
-          <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
+          <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
             {completedProjects.map((project: BidProject, i) => {
               const status = getProjectStatus(project);
               const isWon = status === "won";
