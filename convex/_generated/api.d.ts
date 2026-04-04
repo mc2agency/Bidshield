@@ -14,7 +14,11 @@ import type * as checklistTemplates from "../checklistTemplates.js";
 import type * as email from "../email.js";
 import type * as gumroad from "../gumroad.js";
 import type * as leads from "../leads.js";
+import type * as rateLimits from "../rateLimits.js";
+import type * as subscribers from "../subscribers.js";
 import type * as users from "../users.js";
+import type * as utils from "../utils.js";
+import type * as webhooks from "../webhooks.js";
 
 import type {
   ApiFromModules,
@@ -29,7 +33,11 @@ declare const fullApi: ApiFromModules<{
   email: typeof email;
   gumroad: typeof gumroad;
   leads: typeof leads;
+  rateLimits: typeof rateLimits;
+  subscribers: typeof subscribers;
   users: typeof users;
+  utils: typeof utils;
+  webhooks: typeof webhooks;
 }>;
 
 /**
