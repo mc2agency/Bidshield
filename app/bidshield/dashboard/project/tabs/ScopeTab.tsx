@@ -528,7 +528,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               className="w-full py-3 rounded-xl text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-60"
               style={{ background: "linear-gradient(135deg, #059669 0%, #0d9488 100%)", color: "white" }}
             >
-              {aiExclusionsLoading ? "✨ Generating..." : "✨ Generate Exclusions with AI"}
+              {aiExclusionsLoading ? "Generating..." : "Generate Exclusions with AI"}
             </button>
           ) : (
             <a
@@ -555,7 +555,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
       {aiExclusionsText && (
         <div className="rounded-xl p-4 border border-emerald-200" style={{ background: "#f0fdf4" }}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-emerald-700">✨ AI-Generated Exclusions</span>
+            <span className="text-xs font-semibold text-emerald-700">AI-Generated Exclusions</span>
             <button
               onClick={() => { navigator.clipboard.writeText(aiExclusionsText); }}
               className="text-[11px] text-emerald-600 hover:text-emerald-500 font-medium"

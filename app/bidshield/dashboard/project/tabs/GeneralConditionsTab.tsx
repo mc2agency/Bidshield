@@ -8,12 +8,12 @@ import type { TabProps } from "../tab-types";
 import { Plus, Trash2, ChevronDown, ChevronUp, Briefcase } from "lucide-react";
 
 const GC_CATEGORIES = [
-  { id: "bidding",    label: "Bidding & Preconstruction",    icon: "📋" },
-  { id: "site",       label: "Site Setup & Logistics",       icon: "🚧" },
-  { id: "safety",     label: "Safety & Compliance",          icon: "⚠️" },
-  { id: "supervision",label: "Supervision & Management",     icon: "👷" },
-  { id: "insurance",  label: "Insurance, Bonding & Fees",    icon: "🛡️" },
-  { id: "markup",     label: "Markups",                      icon: "📈" },
+  { id: "bidding",    label: "Bidding & Preconstruction" },
+  { id: "site",       label: "Site Setup & Logistics" },
+  { id: "safety",     label: "Safety & Compliance" },
+  { id: "supervision",label: "Supervision & Management" },
+  { id: "insurance",  label: "Insurance, Bonding & Fees" },
+  { id: "markup",     label: "Markups" },
 ];
 
 function fmt(n: number | undefined | null) {
@@ -156,7 +156,9 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
   if (!isPro && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
-        <div className="text-4xl mb-4">🔒</div>
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+        </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">General Conditions</h3>
         <p className="text-sm text-slate-500 mb-6">Track supervision, mobilization, insurance, bonding, and markups. Available on Pro.</p>
         <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
@@ -214,7 +216,6 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
               onClick={() => setCollapsed((c) => ({ ...c, [cat.id]: !c[cat.id] }))}
             >
               <div className="flex items-center gap-2">
-                <span className="text-base">{cat.icon}</span>
                 <span className="text-sm font-semibold text-slate-800">{cat.label}</span>
                 {catTotal > 0 && (
                   <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5">

@@ -481,7 +481,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         {/* Empty state */}
         {visiblePhases.length === 0 && (
           <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-            <div className="text-4xl mb-3">{filter === "incomplete" ? "🎉" : "📋"}</div>
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+              {filter === "incomplete" ? (
+                <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+              ) : (
+                <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" /></svg>
+              )}
+            </div>
             <p className="text-sm font-semibold text-slate-700">{filter === "incomplete" ? "All items complete!" : "No items match this filter"}</p>
           </div>
         )}
@@ -575,14 +581,15 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 {/* Critical rule banner */}
                 {phase.criticalRule && isOpen && (
                   <div className="px-4 py-2 bg-red-50 border-t border-red-100 text-xs text-red-700 font-medium">
-                    ⚠ {phase.criticalRule}
+                    <svg className="w-3.5 h-3.5 inline-block mr-1 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                    {phase.criticalRule}
                   </div>
                 )}
 
                 {/* No system selected note — spec review only */}
                 {phaseKey === "phase9" && !systemType && isOpen && (
                   <div className="px-4 py-2 bg-amber-50 border-t border-amber-100 text-xs text-amber-700">
-                    💡 Select a roof system in Project Settings to filter spec items to your system type. All items are shown until then.
+                    Select a roof system in Project Settings to filter spec items to your system type. All items are shown until then.
                   </div>
                 )}
 
@@ -717,7 +724,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                       onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
                                       className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50 transition-all"
                                     >
-                                      <span className="text-sm">📝</span>
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" /></svg>
                                       <span className="text-xs font-medium">{note ? "Edit" : "Note"}</span>
                                     </button>
                                   )}
@@ -772,7 +779,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               onClick={e => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
                             >
                               <p style={{ fontSize: 12, color: "#92400e", lineHeight: 1.4, flex: 1 }}>
-                                <span style={{ fontWeight: 600 }}>📝 Note: </span>{note}
+                                <span style={{ fontWeight: 600 }}>Note: </span>{note}
                               </p>
                               <span style={{ fontSize: 10, color: "#d97706", marginLeft: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
                                 {formatNoteDate(noteTs) ? `· ${formatNoteDate(noteTs)}` : ""}

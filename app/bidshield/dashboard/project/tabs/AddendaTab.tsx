@@ -16,7 +16,7 @@ function isReviewed(add: any): boolean {
 
 function getAddendumStatus(add: any): { label: string; color: string; icon: string } {
   if (!isReviewed(add)) {
-    return { label: "Pending Review", color: "text-red-600", icon: "⚠" };
+    return { label: "Pending Review", color: "text-red-600", icon: "!" };
   }
   if (add.affectsScope === true && add.repriced) {
     return { label: "Reviewed & Re-priced", color: "text-emerald-600", icon: "✓" };
@@ -25,7 +25,7 @@ function getAddendumStatus(add: any): { label: string; color: string; icon: stri
     return { label: "Reviewed — No impact", color: "text-emerald-600", icon: "✓" };
   }
   if (add.affectsScope === true && !add.repriced) {
-    return { label: "Reviewed — Needs Re-price", color: "text-amber-600", icon: "⚠" };
+    return { label: "Reviewed — Needs Re-price", color: "text-amber-600", icon: "!" };
   }
   return { label: "Reviewed", color: "text-emerald-600", icon: "✓" };
 }
@@ -193,8 +193,9 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
                   Unreviewed addenda are a bid-day blocker. Mark each one as reviewed before submitting.
                 </p>
               </div>
-              <span className="shrink-0 px-2.5 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full border border-red-300">
-                ⚠ BLOCKING
+              <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full border border-red-300">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                BLOCKING
               </span>
             </div>
             {netPriceImpact !== 0 && (
@@ -304,7 +305,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
                   className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                   style={{ background: "linear-gradient(135deg, #059669 0%, #0d9488 100%)", color: "white" }}
                 >
-                  {impactCheckLoading ? "✨ Checking..." : "✨ Check Addendum Impact"}
+                  {impactCheckLoading ? "Checking..." : "Check Addendum Impact"}
                 </button>
                 {impactCheckResults && impactCheckResults.length > 0 && (
                   <div className="mt-2 rounded-lg p-3 border border-emerald-200" style={{ background: "#f0fdf4" }}>
@@ -326,7 +327,8 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
             )}
             {!isPro && !isDemo && newAddendum.title && (
               <a href="/bidshield/pricing" className="inline-block text-xs text-slate-400 hover:text-emerald-600 transition-colors">
-                🔒 ✨ Check Addendum Impact — Pro feature
+                <svg className="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+              Check Addendum Impact — Pro feature
               </a>
             )}
 
@@ -354,7 +356,9 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
         </div>
       ) : (
         <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-          <div className="text-4xl mb-3">📁</div>
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+            <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v8.25m19.5 0H2.25m19.5 0v3a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 18v-3" /></svg>
+          </div>
           <p className="text-sm text-slate-500 mb-2">No addenda logged for this project</p>
           <p className="text-xs text-slate-500">Click &quot;+ Add Addendum&quot; when you receive one from the GC</p>
           <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">Missed addenda are one of the most common bid-day errors — BidShield tracks each one so nothing falls through.</p>
@@ -411,7 +415,7 @@ function AddendumCard({
               </span>
             ) : (
               <span className="text-[10px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-200">
-                Pending Review ⚠
+                Pending Review
               </span>
             )}
             {priority === "critical" && (
@@ -555,7 +559,10 @@ function AddendumCard({
               <span className="text-[11px] text-slate-500">Date: {add.repricedDate}</span>
             )}
             {!add.repriced && (
-              <span className="text-[11px] font-semibold text-red-600">⚠ NEEDS RE-PRICING</span>
+              <span className="text-[11px] font-semibold text-red-600 inline-flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                NEEDS RE-PRICING
+              </span>
             )}
           </div>
 

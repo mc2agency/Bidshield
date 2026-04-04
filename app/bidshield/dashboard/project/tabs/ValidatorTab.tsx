@@ -489,7 +489,9 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
           <div className="relative">
           {!isPro && !isDemo && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl" style={{ background: "rgba(248,250,252,0.85)", backdropFilter: "blur(6px)" }}>
-              <div className="text-2xl mb-2">🔒</div>
+              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-2">
+                <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+              </div>
               <p className="text-sm font-semibold text-slate-800 mb-1">Bid Summary — Pro</p>
               <p className="text-xs text-slate-500 mb-3">See your complete cost breakdown and $/SF before submission.</p>
               <a href="/bidshield/pricing" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors">
@@ -547,7 +549,9 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
       <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
         {fails.length > 0 ? (
           <>
-            <div className="text-2xl mb-2">🚫</div>
+            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mx-auto mb-2">
+              <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+            </div>
             <h3 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">Not Ready to Submit</h3>
             <p className="text-xs text-slate-500 mb-4">Resolve all failing checks before exporting your bid package.</p>
             <button
@@ -561,7 +565,9 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
           </>
         ) : warns.length > 0 ? (
           <>
-            <div className="text-2xl mb-2">⚠️</div>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-2">
+              <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+            </div>
             <h3 className="text-sm font-bold text-amber-600 uppercase tracking-wide mb-1">Ready with Warnings</h3>
             <p className="text-xs text-slate-500 mb-4">No blockers, but {warns.length} item{warns.length > 1 ? "s" : ""} should be reviewed.</p>
             <button
@@ -575,7 +581,9 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
           </>
         ) : (
           <>
-            <div className="text-2xl mb-2">✅</div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mx-auto mb-2">
+              <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+            </div>
             <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-wide mb-1">Ready to Submit</h3>
             <p className="text-xs text-slate-500 mb-4">All checks passed. Your bid is ready.</p>
             <button

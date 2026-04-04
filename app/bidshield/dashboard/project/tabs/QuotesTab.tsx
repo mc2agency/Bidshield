@@ -398,7 +398,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                   onClick={() => { setImportSearch(""); setImportModal(true); }}
                   className="text-[13px] font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
                 >
-                  📥 Import from Library
+                  Import from Library
                 </button>
               )}
               <button
@@ -454,7 +454,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                           <>
                             <div className="font-bold text-[13px]">${(t / 1000).toFixed(0)}K</div>
                             <div className="text-[11px] font-medium">{dpsf ? `$${dpsf.toFixed(2)}/SF` : ""}</div>
-                            {isBest && <div className="text-[10px] font-bold mt-0.5">🏆 Best value</div>}
+                            {isBest && <div className="text-[10px] font-bold mt-0.5">Best value</div>}
                           </>
                         ) : "—"}
                       </td>
@@ -493,8 +493,8 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
 
             const statusStyle: Record<string, { bg: string; text: string; label: string }> = {
               valid:     { bg: "#f0fdf4", text: "#16a34a", label: "✓ Active" },
-              received:  { bg: "#eff6ff", text: "#2563eb", label: "📥 Received" },
-              requested: { bg: "#f5f3ff", text: "#7c3aed", label: "📧 Requested" },
+              received:  { bg: "#eff6ff", text: "#2563eb", label: "Received" },
+              requested: { bg: "#f5f3ff", text: "#7c3aed", label: "Requested" },
               expiring:  { bg: "#fffbeb", text: "#d97706", label: "Expiring" },
               expired:   { bg: "#fef2f2", text: "#dc2626", label: "✗ Expired" },
               none:      { bg: "#f8fafc", text: "#94a3b8", label: "○ None" },

@@ -302,7 +302,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                     onClick={() => { setReanalyzeTargetId(doc._id); reanalFileRef.current?.click(); }}
                     className="text-[11px] text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1 transition-colors"
                   >
-                    ✨ Re-analyze
+                    Re-analyze
                   </button>
                 )}
               </div>
@@ -343,7 +343,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                             </p>
                           )}
                         </div>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-100 text-teal-700 font-semibold shrink-0">✨ AI</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-100 text-teal-700 font-semibold shrink-0">AI</span>
                       </div>
                     ))}
                   </div>
@@ -382,7 +382,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                                     inScope ? (
                                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">✓ In Scope</span>
                                     ) : (
-                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">⚠ Not in Scope</span>
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Not in Scope</span>
                                     )
                                   ) : null}
                                 </>
@@ -467,7 +467,9 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
       {/* Empty state */}
       {resolvedDocs.length === 0 && (
         <div className="bg-white rounded-xl border border-slate-200 px-6 py-12 text-center flex flex-col items-center gap-4">
-          <div className="text-4xl">📋</div>
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" /></svg>
+          </div>
           <div>
             <h3 className="text-base font-semibold text-slate-900">Upload GC Bid Documents</h3>
             <p className="text-sm text-slate-500 mt-1 max-w-md">
@@ -488,7 +490,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                 </svg>
                 Analyzing…
               </>
-            ) : "✨ Upload Document"}
+            ) : "Upload Document"}
           </button>
           <p className="text-[11px] text-slate-400">Not all GCs require these forms — only upload if provided. Upload is optional.</p>
         </div>
@@ -515,7 +517,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                   </svg>
                   Analyzing…
                 </>
-              ) : "✨ Upload Another Document"}
+              ) : "Upload Another Document"}
             </button>
           </div>
         </>
@@ -768,7 +770,9 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
   if (!isPro && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
-        <div className="text-4xl mb-4">🔒</div>
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+        </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Bid Qualifications</h3>
         <p className="text-sm text-slate-500 mb-6">Track bonding, insurance, exclusions, and other GC submission requirements. Available on Pro.</p>
         <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
@@ -824,7 +828,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
       {activeSubTab === "quals" && (
       <>
       {/* Section 1: Basis of Bid */}
-      <SectionCard title="📄 Basis of Bid — Documents">
+      <SectionCard title="Basis of Bid — Documents">
         <div className="grid grid-cols-2 gap-4">
           <Field label="Plans dated">
             <input
@@ -878,7 +882,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
       </SectionCard>
 
       {/* Section 2: Labor */}
-      <SectionCard title="👷 Labor">
+      <SectionCard title="Labor">
         <Field label="Labor type" autoSource={isAutoField.laborType ? "Labor tab" : undefined}>
           <RadioGroup
             value={effectiveLaborType}
@@ -935,7 +939,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
       </SectionCard>
 
       {/* Section 3: Schedule & Timing */}
-      <SectionCard title="📅 Schedule & Timing">
+      <SectionCard title="Schedule & Timing">
         <div className="grid grid-cols-2 gap-4">
           <Field label="Estimated duration">
             <input
@@ -987,7 +991,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
       </SectionCard>
 
       {/* Section 4: Insurance & Bonding */}
-      <SectionCard title="🛡️ Insurance & Bonding">
+      <SectionCard title="Insurance & Bonding">
         <Field label="Insurance program">
           <RadioGroup
             value={data.insuranceProgram}
@@ -1131,7 +1135,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
       </SectionCard>
 
       {/* Section 5: Compliance */}
-      <SectionCard title="📋 Compliance">
+      <SectionCard title="Compliance">
         <Field label="MBE/WBE/DBE goals">
           <Toggle value={data.mbeGoals} onChange={v => saveField("mbeGoals", v, true)} label={data.mbeGoals ? "Yes — goals apply" : "No"} />
         </Field>
@@ -1177,7 +1181,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
       </SectionCard>
 
       {/* Section 6: Qualifications & Exceptions */}
-      <SectionCard title="📝 Qualifications & Exceptions to Bid">
+      <SectionCard title="Qualifications & Exceptions to Bid">
         <Field label="Notes">
           <textarea
             className="w-full text-[13px] rounded-lg px-3 py-2.5 border border-slate-200 focus:border-slate-400 focus:outline-none bg-white text-slate-800 resize-none"
@@ -1188,7 +1192,7 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
           />
         </Field>
         <p style={{ fontSize: 11, color: "#9ca3af" }}>
-          💡 These notes will appear in your Pre-Submission checklist for final review.
+          These notes will appear in your Pre-Submission checklist for final review.
         </p>
       </SectionCard>
       </>

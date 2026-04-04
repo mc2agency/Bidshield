@@ -72,12 +72,12 @@ const LABOR_TYPES = [
   { value: "union", label: "Union", mult: 1.65 },
 ];
 const RATE_DB_CATEGORIES = [
-  { id: "membrane", label: "Membrane", icon: "🔲" },
-  { id: "insulation", label: "Insulation", icon: "🧱" },
-  { id: "flashing", label: "Flashing", icon: "⚡" },
-  { id: "accessories", label: "Accessories", icon: "🔩" },
-  { id: "tearoff", label: "Tear-Off", icon: "🗑️" },
-  { id: "general", label: "General", icon: "📋" },
+  { id: "membrane", label: "Membrane", icon: "" },
+  { id: "insulation", label: "Insulation", icon: "" },
+  { id: "flashing", label: "Flashing", icon: "" },
+  { id: "accessories", label: "Accessories", icon: "" },
+  { id: "tearoff", label: "Tear-Off", icon: "" },
+  { id: "general", label: "General", icon: "" },
 ];
 
 const fmtDollar = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -299,7 +299,9 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
   if (!isPro && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
-        <div className="text-4xl mb-4">🔒</div>
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+        </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Labor Verification</h3>
         <p className="text-sm text-slate-500 mb-6">AI-assisted labor cost verification and production rate database. Available on Pro.</p>
         <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
@@ -659,7 +661,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
                     <ul className="flex flex-col gap-1.5">
                       {resolvedAnalysis.warnings.map((w: string, i: number) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
-                          <span className="mt-0.5">⚠</span>
+                          <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                           <span>{w}</span>
                         </li>
                       ))}
