@@ -509,9 +509,9 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 style={{
                   background: "white",
                   border: "1px solid #e2e8f0",
-                  borderRadius: 10,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  borderLeft: `3px solid ${pctColor}`,
+                  borderRadius: 12,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03)",
+                  borderLeft: `4px solid ${pctColor}`,
                 }}
               >
                 {/* Phase header */}
@@ -552,7 +552,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{phase.title}</span>
-                        {isHighRisk && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">CRITICAL</span>}
+                        {isHighRisk && <span className="text-[9px] font-bold bg-red-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wide">Critical</span>}
                         {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
                         {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
                         {isComplete && (

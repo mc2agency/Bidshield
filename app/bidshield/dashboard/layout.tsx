@@ -76,11 +76,11 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 bg-slate-900 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="hidden lg:flex flex-col w-60 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto" style={{ background: "#0d1117", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-slate-800">
+      <div className="px-4 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-emerald-900/50">
             <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
             </svg>
@@ -90,7 +90,7 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
+      <nav className="flex-1 px-2 py-4 flex flex-col gap-0.5">
         {NAV_ITEMS.map(({ href, label, exact, icon }) => {
           const active = isActive(href, exact);
           const fullHref = href + demoSuffix;
@@ -98,38 +98,39 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
             <Link
               key={href}
               href={fullHref}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border-l-2 ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 active
-                  ? "bg-emerald-600/15 text-emerald-400 border-emerald-500"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800 border-transparent"
+                  ? "bg-emerald-500/10 text-emerald-300 shadow-sm"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-white/5"
               }`}
             >
-              {icon}
+              <span className={active ? "text-emerald-400" : "text-slate-500"}>{icon}</span>
               {label}
+              {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />}
             </Link>
           );
         })}
       </nav>
 
-      {/* Free plan — subtle single-line at sidebar bottom */}
+      {/* Free plan upgrade nudge */}
       {!isDemo && !isPro && isSignedIn && (
-        <div className="px-4 pb-2">
-          <span className="text-[12px] text-slate-500">Free plan · </span>
-          <Link href="/bidshield/pricing" className="text-[12px] text-emerald-500 hover:text-emerald-400 transition-colors font-medium">
-            Upgrade →
+        <div className="mx-3 mb-3 px-3 py-2.5 rounded-lg" style={{ background: "rgba(5,150,105,0.08)", border: "1px solid rgba(5,150,105,0.2)" }}>
+          <p className="text-[11px] text-slate-400 mb-1.5">You're on the Free plan</p>
+          <Link href="/bidshield/pricing" className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
+            Upgrade to Pro →
           </Link>
         </div>
       )}
 
       {/* External links footer */}
       <div className="px-4 pb-2 flex items-center gap-1.5">
-        <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Home</a>
-        <span className="text-slate-700 text-xs">·</span>
-        <a href="https://www.bidshield.co/bidshield/pricing" target="_blank" rel="noopener" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Pricing</a>
+        <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="text-[11px] text-slate-600 hover:text-slate-400 transition-colors">Home</a>
+        <span className="text-slate-800 text-xs">·</span>
+        <a href="https://www.bidshield.co/bidshield/pricing" target="_blank" rel="noopener" className="text-[11px] text-slate-600 hover:text-slate-400 transition-colors">Pricing</a>
       </div>
 
       {/* User / Plan footer */}
-      <div className="px-4 py-4 border-t border-slate-800">
+      <div className="px-3 py-3 mx-2 mb-2 rounded-xl" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.03)" }}>
         {isDemo ? (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -144,16 +145,16 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
             </Link>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-md">
               {userId ? userId.slice(5, 7).toUpperCase() : "??"}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-xs font-medium text-slate-300 truncate">
                 {isSignedIn ? "Signed in" : "—"}
               </div>
-              <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${isPro ? "bg-emerald-900 text-emerald-400" : "bg-slate-700 text-slate-400"}`}>
-                {isPro ? "Pro" : "Free"}
+              <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${isPro ? "bg-emerald-900/80 text-emerald-300" : "bg-slate-800 text-slate-500"}`}>
+                {isPro ? "● Pro" : "Free"}
               </span>
             </div>
           </div>
@@ -283,7 +284,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex bg-slate-50" style={{ minHeight: "calc(100vh - 4rem)" }}>
+    <>
+    {/* App-wide typography: Barlow Condensed display + DM Sans body */}
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+      #bidshield-app { font-family: 'DM Sans', system-ui, sans-serif; }
+      #bidshield-app .app-display { font-family: 'Barlow Condensed', system-ui, sans-serif; }
+    `}</style>
+    <div id="bidshield-app" className="flex bg-slate-50" style={{ minHeight: "calc(100vh - 4rem)" }}>
       <Sidebar isDemo={isDemo} pathname={pathname} isPro={isPro} />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -319,6 +327,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       <MobileNav pathname={pathname} isDemo={isDemo} isPro={isPro} />
     </div>
+    </>
   );
 }
 

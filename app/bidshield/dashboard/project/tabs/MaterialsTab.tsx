@@ -835,23 +835,49 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className="text-2xl font-bold text-emerald-600">${totalCost.toLocaleString()}</div>
-          <div className="text-[11px] text-slate-500">Total Material Cost</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className="text-2xl font-bold text-blue-600">{materials.length}</div>
-          <div className="text-[11px] text-slate-500">Line Items</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className="text-2xl font-bold text-slate-600">{dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
-          <div className="text-[11px] text-slate-500">Material $/SF</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
-          <div className={`text-2xl font-bold ${unpricedCount > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-            {unpricedCount > 0 ? `${unpricedCount}` : "✓"}
+        <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "14px 16px", border: "1px solid #bbf7d0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#16a34a"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#16a34a", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Total Cost</span>
           </div>
-          <div className="text-[11px] text-slate-500">{unpricedCount > 0 ? "Unpriced" : "All Priced"}</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#15803d", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>${totalCost.toLocaleString()}</div>
+        </div>
+        <div style={{ background: "#eff6ff", borderRadius: 12, padding: "14px 16px", border: "1px solid #bfdbfe", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#2563eb"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" /></svg>
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#2563eb", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Line Items</span>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#1d4ed8", letterSpacing: "-0.02em" }}>{materials.length}</div>
+        </div>
+        <div style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#475569"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5" /></svg>
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Mat $/SF</span>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#334155", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
+        </div>
+        <div style={{ background: unpricedCount > 0 ? "#fffbeb" : "#f0fdf4", borderRadius: 12, padding: "14px 16px", border: `1px solid ${unpricedCount > 0 ? "#fde68a" : "#bbf7d0"}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: unpricedCount > 0 ? "#fef3c7" : "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke={unpricedCount > 0 ? "#d97706" : "#16a34a"}>
+                {unpricedCount > 0
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />}
+              </svg>
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 700, color: unpricedCount > 0 ? "#d97706" : "#16a34a", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
+              {unpricedCount > 0 ? "Unpriced" : "All Priced"}
+            </span>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: unpricedCount > 0 ? "#b45309" : "#15803d", letterSpacing: "-0.02em" }}>
+            {unpricedCount > 0 ? unpricedCount : "✓"}
+          </div>
         </div>
       </div>
 

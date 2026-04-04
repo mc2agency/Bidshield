@@ -360,19 +360,21 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
             const worstItem = sectionItems.find(i => i.status === "fail") ?? sectionItems.find(i => i.status === "warn") ?? sectionItems[0];
             const canNavigate = tabId && (status === "fail" || status === "warn");
 
+            const cardBg = status === "pass" ? "#f0fdf4" : status === "warn" ? "#fffbeb" : status === "fail" ? "#fef2f2" : "#f8fafc";
+            const cardBorderColor = status === "pass" ? "#bbf7d0" : status === "warn" ? "#fde68a" : status === "fail" ? "#fecaca" : "#e5e7eb";
             return (
               <div
                 key={label}
                 onClick={() => canNavigate && onNavigateTab?.(tabId!)}
                 style={{
-                  background: "#ffffff",
-                  border: "1px solid #e5e7eb",
+                  background: cardBg,
+                  border: `1px solid ${cardBorderColor}`,
                   borderLeft: `4px solid ${border}`,
                   borderRadius: 10,
                   padding: "14px 16px",
                   cursor: canNavigate ? "pointer" : "default",
                   transition: "box-shadow 0.15s, transform 0.1s",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                 }}
                 onMouseEnter={e => {
                   if (canNavigate) {

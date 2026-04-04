@@ -167,34 +167,46 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   };
 
   const levelStyles = {
-    red: { border: "border-l-red-500", bg: "bg-red-50", dot: "bg-red-500" },
-    yellow: { border: "border-l-amber-400", bg: "bg-amber-50", dot: "bg-amber-400" },
+    red: { borderColor: "#ef4444", bg: "#fef2f2", dot: "#ef4444", text: "#991b1b" },
+    yellow: { borderColor: "#f59e0b", bg: "#fffbeb", dot: "#f59e0b", text: "#78350f" },
   };
 
   return (
     <div className="flex flex-col gap-4">
       {/* Bid deadline card */}
-      {msUntilBid !== null && (
-        <div style={{
-          background: msUntilBid <= 0 ? "#fef2f2" : hoursUntilBid! <= 4 ? "#fef2f2" : hoursUntilBid! <= 24 ? "#fffbeb" : "white",
-          borderRadius: 10,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-          padding: "16px 20px",
-          border: `1px solid ${msUntilBid <= 0 ? "#fecaca" : hoursUntilBid! <= 4 ? "#fecaca" : hoursUntilBid! <= 24 ? "#fde68a" : "#e5e7eb"}`,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      {msUntilBid !== null && (() => {
+        const isOverdue = msUntilBid <= 0;
+        const isCritical = !isOverdue && hoursUntilBid! <= 4;
+        const isWarning = !isOverdue && !isCritical && hoursUntilBid! <= 24;
+        const accentColor = isOverdue || isCritical ? "#ef4444" : isWarning ? "#f59e0b" : "#10b981";
+        const countdownText = isOverdue ? "Past due" : hoursUntilBid! < 24 ? formatCountdown(msUntilBid) : (daysUntilBid === 1 ? "1 day" : `${daysUntilBid} days`);
+        const countdownLabel = isOverdue ? "" : hoursUntilBid! < 24 ? "until bid" : "to bid";
+        return (
+          <div style={{
+            background: "white",
+            borderRadius: 12,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)",
+            borderLeft: `4px solid ${accentColor}`,
+            padding: "16px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 500, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
                 Bid Deadline
               </div>
               <div style={{
-                fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
-                color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#111827",
-                letterSpacing: "-0.02em",
+                fontSize: 30, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
+                color: isOverdue || isCritical ? "#dc2626" : isWarning ? "#d97706" : "#111827",
+                letterSpacing: "-0.03em",
+                fontFamily: "'Barlow Condensed', system-ui, sans-serif",
               }}>
-                {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `⏰ ${formatCountdown(msUntilBid)}` : (daysUntilBid === 1 ? "1d to bid" : `${daysUntilBid}d to bid`)}
+                {countdownText}
+                {countdownLabel && <span style={{ fontSize: 14, fontWeight: 500, color: "#6b7280", marginLeft: 6, fontFamily: "inherit" }}>{countdownLabel}</span>}
               </div>
-              <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 5 }}>
                 {project?.bidDate
                   ? (() => {
                       const bidTimeStr = (project as any)?.bidTime as string | undefined;
@@ -205,9 +217,14 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
                 }
               </div>
             </div>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${accentColor}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke={accentColor}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Quick stats row */}
       {(bidAmt || grossArea) && (
@@ -220,15 +237,21 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
 
       {/* Action items — the core of this tab */}
       {actionItems.length === 0 ? (
-        <div className="bg-emerald-50 rounded-lg p-6 text-center border border-emerald-200">
-          <div className="text-2xl mb-1">✅</div>
-          <div className="text-sm font-semibold text-emerald-700">All clear — bid is ready to submit</div>
-          <div className="text-xs text-emerald-600 mt-1">{greenCount} items passing</div>
+        <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "20px 20px", border: "1px solid #bbf7d0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#16a34a">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#065f46" }}>All clear — bid is ready to submit</div>
+            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 2 }}>{greenCount} item{greenCount !== 1 ? "s" : ""} passing</div>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">
-            What needs attention ({actionItems.length})
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1 mb-0.5">
+            Needs Attention ({actionItems.length})
           </div>
           {actionItems.map((item, i) => {
             const style = levelStyles[item.level as "red" | "yellow"];
@@ -236,42 +259,52 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
               <button
                 key={`${item.tab}-${i}`}
                 onClick={() => onNavigateTab?.(item.tab)}
-                className={`flex items-center justify-between w-full text-left px-3 py-2.5 rounded-lg border-l-3 ${style.border} ${style.bg} hover:shadow-sm transition-all group`}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  width: "100%", textAlign: "left", padding: "10px 14px",
+                  borderRadius: 10, borderLeft: `4px solid ${style.borderColor}`,
+                  background: style.bg,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                  cursor: "pointer", transition: "box-shadow 0.15s",
+                  border: "none", outline: "none",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.10)")}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)")}
               >
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${style.dot}`} />
-                  <span className="text-xs text-slate-700">{item.text}</span>
+                <div className="flex items-center gap-2.5">
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: style.dot, flexShrink: 0, display: "inline-block" }} />
+                  <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{item.text}</span>
                 </div>
-                <span className="text-[10px] text-slate-400 group-hover:text-emerald-600 flex-shrink-0 ml-3">
+                <span style={{ fontSize: 11, color: "#9ca3af", flexShrink: 0, marginLeft: 12, fontWeight: 500 }}>
                   {tabLabels[item.tab]} →
                 </span>
               </button>
             );
           })}
           {greenCount > 0 && (
-            <div className="text-[10px] text-emerald-600 px-1 pt-1">{greenCount} item{greenCount > 1 ? "s" : ""} passing ✓</div>
+            <div style={{ fontSize: 11, color: "#16a34a", padding: "4px 4px 0", fontWeight: 500 }}>{greenCount} item{greenCount > 1 ? "s" : ""} passing ✓</div>
           )}
         </div>
       )}
 
       {/* Section progress bars */}
-      <div className="bg-white rounded-lg p-4 border border-slate-200">
-        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Section Progress</div>
-        <div className="flex flex-col gap-2.5">
+      <div style={{ background: "white", borderRadius: 12, padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 14 }}>Section Progress</div>
+        <div className="flex flex-col gap-3">
           {Object.entries(sectionScores).map(([key, score]) => {
-            const color = score === 100 ? "#10b981" : score >= 67 ? "#3b82f6" : score >= 34 ? "#f59e0b" : "#ef4444";
+            const color = score >= 75 ? "#10b981" : score >= 25 ? "#f59e0b" : "#ef4444";
             const tabId = key as any;
             return (
               <button
                 key={key}
                 onClick={() => onNavigateTab?.(tabId)}
-                className="flex items-center gap-3 w-full text-left hover:opacity-75 transition-opacity"
+                className="flex items-center gap-3 w-full text-left group"
               >
-                <span className="text-xs text-slate-500 w-20 shrink-0 text-right">{sectionLabels[key]}</span>
-                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${score}%`, background: color }} />
+                <span style={{ fontSize: 12, color: "#6b7280", width: 72, flexShrink: 0, textAlign: "right" as const, fontWeight: 500 }}>{sectionLabels[key]}</span>
+                <div style={{ flex: 1, height: 6, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: 9999, background: color, width: `${score}%`, transition: "width 0.6s cubic-bezier(0.34,1.56,0.64,1)" }} />
                 </div>
-                <span className="text-[11px] font-medium w-8 shrink-0" style={{ color }}>{score}%</span>
+                <span style={{ fontSize: 11, fontWeight: 700, width: 32, flexShrink: 0, color }}>{score}%</span>
               </button>
             );
           })}
