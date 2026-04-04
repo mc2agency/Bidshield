@@ -204,35 +204,43 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
   return (
     <tr
       onClick={() => router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
-      className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors group"
+      className="cursor-pointer transition-colors group"
+      style={{ borderBottom: "1px solid #f1f5f9" }}
+      onMouseEnter={e => (e.currentTarget.style.background = "#f8fafc")}
+      onMouseLeave={e => (e.currentTarget.style.background = "")}
     >
-      <td className="px-4 py-3">
-        <div className="font-semibold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate max-w-[200px]">{project.name}</div>
-        <div className="text-xs text-slate-400 truncate">{project.location}</div>
+      <td className="px-4 py-3.5">
+        <div className="flex items-center gap-2.5">
+          <div style={{ width: 3, height: 28, borderRadius: 9999, background: isPastDue ? "#ef4444" : isUrgent ? "#f59e0b" : "#059669", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }} className="truncate max-w-[180px] group-hover:text-emerald-700 transition-colors">{project.name}</div>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }} className="truncate">{project.location}</div>
+          </div>
+        </div>
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{project.gc || "—"}</td>
-      <td className="px-4 py-3 whitespace-nowrap">
-        <span className={`text-sm font-medium ${isPastDue ? "text-red-600" : isUrgent ? "text-amber-600" : "text-slate-600"}`}>
+      <td className="px-4 py-3.5" style={{ fontSize: 13, color: "#475569" }}>{project.gc || <span style={{ color: "#cbd5e1" }}>—</span>}</td>
+      <td className="px-4 py-3.5 whitespace-nowrap">
+        <span style={{ fontSize: 13, fontWeight: 600, color: isPastDue ? "#dc2626" : isUrgent ? "#d97706" : "#334155", fontVariantNumeric: "tabular-nums" }}>
           {isPastDue ? "Past due" : daysUntil === 0 ? "Today" : `${daysUntil}d`}
         </span>
-        <div className="text-xs text-slate-400">{project.bidDate}</div>
+        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{project.bidDate}</div>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3.5">
         {systemType ? (
-          <span style={{ fontSize: 12, fontWeight: 500, background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: 4 }}>{systemType.toUpperCase()}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, background: "#f1f5f9", color: "#475569", padding: "3px 8px", borderRadius: 4, letterSpacing: "0.02em" }}>{systemType.toUpperCase()}</span>
         ) : project.assemblies && project.assemblies.length > 0 ? (
-          <span className="text-xs text-slate-500 truncate max-w-[100px] block">{project.assemblies[0]}</span>
-        ) : <span className="text-xs text-slate-400">—</span>}
+          <span style={{ fontSize: 12, color: "#64748b" }} className="truncate max-w-[100px] block">{project.assemblies[0]}</span>
+        ) : <span style={{ color: "#cbd5e1", fontSize: 13 }}>—</span>}
       </td>
-      <td className="px-4 py-3 text-right text-sm font-medium text-slate-700 whitespace-nowrap">
-        {dpsf ? `$${dpsf}` : "—"}
+      <td className="px-4 py-3.5 text-right whitespace-nowrap" style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", fontVariantNumeric: "tabular-nums" }}>
+        {dpsf ? `$${dpsf}` : <span style={{ color: "#cbd5e1" }}>—</span>}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3.5">
         <div className="flex items-center gap-2 justify-end">
-          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <div className={`h-full rounded-full ${displayProgress >= 80 ? "bg-emerald-500" : displayProgress >= 40 ? "bg-amber-500" : "bg-slate-400"}`} style={{ width: `${displayProgress}%` }} />
+          <div style={{ width: 56, height: 5, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${displayProgress}%`, borderRadius: 9999, background: displayProgress >= 80 ? "#059669" : displayProgress >= 40 ? "#f59e0b" : "#cbd5e1", transition: "width 0.4s" }} />
           </div>
-          <span className={`text-xs font-bold tabular-nums w-8 text-right ${displayProgress >= 80 ? "text-emerald-600" : displayProgress >= 40 ? "text-amber-600" : "text-slate-400"}`}>{displayProgress}%</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: displayProgress >= 80 ? "#059669" : displayProgress >= 40 ? "#d97706" : "#94a3b8", fontVariantNumeric: "tabular-nums", width: 32, textAlign: "right" }}>{displayProgress}%</span>
         </div>
       </td>
       <td className="px-4 py-3">
@@ -292,16 +300,16 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
   onNewBid: () => void;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-100 bg-slate-50">
-            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Project</th>
-            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">GC</th>
-            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Bid Date</th>
-            <th className="text-left px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">System</th>
-            <th className="text-right px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">$/SF</th>
-            <th className="text-right px-4 py-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Ready</th>
+          <tr style={{ borderBottom: "1px solid #f1f5f9", background: "#f8fafc" }}>
+            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Project</th>
+            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>GC</th>
+            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Bid Date</th>
+            <th className="text-left px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>System</th>
+            <th className="text-right px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>$/SF</th>
+            <th className="text-right px-4 py-3" style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Ready</th>
             <th className="px-4 py-3 w-24" />
           </tr>
         </thead>
@@ -563,15 +571,15 @@ function DashboardContent() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{ paddingBottom: 8 }}>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {activeProjects.length === 0 ? "No active bids. Create one to get started." : `${activeProjects.length} active bid${activeProjects.length !== 1 ? "s" : ""} in your pipeline`}
+          <h1 className="app-display" style={{ fontSize: 32, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>Dashboard</h1>
+          <p style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
+            {activeProjects.length === 0 ? "No active bids — create one to get started." : `${activeProjects.length} active bid${activeProjects.length !== 1 ? "s" : ""} in your pipeline`}
           </p>
         </div>
-        <button onClick={handleNewBidClick} className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm shrink-0">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+        <button onClick={handleNewBidClick} className="inline-flex items-center gap-2 shrink-0 cursor-pointer transition-all duration-150 hover:opacity-90 active:scale-95" style={{ background: "#059669", color: "white", fontSize: 13, fontWeight: 700, padding: "10px 20px", borderRadius: 8, boxShadow: "0 1px 3px rgba(5,150,105,0.4), 0 0 0 1px rgba(5,150,105,0.3)" }}>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
           New Bid
         </button>
       </div>
@@ -612,8 +620,8 @@ function DashboardContent() {
 
       {/* Alerts */}
       {(stats.expiringQuotes > 0 || stats.openRFIs > 0) && (
-        <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Alerts</h2>
+        <div className="flex flex-col gap-2">
+          <h2 style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em" }}>Alerts</h2>
           {stats.expiringQuotes > 0 && (
             <div
               className="flex items-start gap-3 p-4 rounded-xl border border-red-200 bg-red-50 hover:shadow-md transition-all cursor-pointer"
@@ -649,7 +657,16 @@ function DashboardContent() {
 
       {/* Active Bids — table on desktop, cards on mobile */}
       <div id="active-bids">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Active Bids</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Active Bids</h2>
+            {activeProjects.length > 0 && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "2px 8px", borderRadius: 9999 }}>
+                {activeProjects.length}
+              </span>
+            )}
+          </div>
+        </div>
 
         {/* Desktop: pipeline table */}
         <div className="hidden md:block">
@@ -673,22 +690,39 @@ function DashboardContent() {
       {/* Completed Bids */}
       {completedProjects.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Completed Bids</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedProjects.map((project: BidProject) => {
+          <div className="flex items-center gap-3 mb-4">
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Completed Bids</h2>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", padding: "2px 8px", borderRadius: 9999 }}>
+              {completedProjects.length}
+            </span>
+          </div>
+          <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
+            {completedProjects.map((project: BidProject, i) => {
               const status = getProjectStatus(project);
               const isWon = status === "won";
               return (
-                <div key={project._id} className={`bg-white rounded-xl p-5 border-2 transition-all ${isWon ? "border-emerald-200" : "border-red-200"}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-base font-semibold text-slate-900">{project.name}</h3>
-                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${isWon ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}>
-                      {isWon ? "\u2713 Won" : "\u2717 Lost"}
+                <div key={project._id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer" style={{ borderTop: i > 0 ? "1px solid #f1f5f9" : undefined }}
+                  onClick={() => router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
+                >
+                  <div style={{ width: 3, height: 36, borderRadius: 9999, background: isWon ? "#059669" : "#ef4444", flexShrink: 0 }} />
+                  <div className="flex-1 min-w-0">
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a" }} className="truncate">{project.name}</div>
+                    <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>{project.location}{project.gc ? ` · GC: ${project.gc}` : ""}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {project.totalBidAmount ? (
+                      <div style={{ fontSize: 15, fontWeight: 700, color: isWon ? "#059669" : "#94a3b8", letterSpacing: "-0.02em" }}>${(project.totalBidAmount / 1000).toFixed(0)}K</div>
+                    ) : null}
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
+                      color: isWon ? "#059669" : "#dc2626",
+                      background: isWon ? "#f0fdf4" : "#fef2f2",
+                      border: `1px solid ${isWon ? "#bbf7d0" : "#fecaca"}`,
+                      padding: "1px 6px", borderRadius: 4, display: "inline-block", marginTop: 2,
+                    }}>
+                      {isWon ? "Won" : "Lost"}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-500 mb-2">{project.location}</p>
-                  <p className="text-sm text-slate-500 mb-2">GC: {project.gc || "N/A"} &bull; {project.sqft?.toLocaleString() || "\u2014"} SF</p>
-                  {project.totalBidAmount && <div className={`text-xl font-bold ${isWon ? "text-emerald-600" : "text-slate-400"}`}>${project.totalBidAmount.toLocaleString()}</div>}
                 </div>
               );
             })}
