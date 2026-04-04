@@ -361,26 +361,26 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       {/* Stats bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-stretch gap-3 flex-wrap">
-          <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Quotes</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>{stats.total}</div>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #334155" }}>
+            <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Quotes</div>
+            <div className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">{stats.total}</div>
           </div>
           {stats.bestDpsf && (
-            <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Best $/SF</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#059669", letterSpacing: "-0.02em", lineHeight: 1 }}>${stats.bestDpsf.toFixed(2)}</div>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #059669" }}>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Best $/SF</div>
+              <div className="text-2xl font-extrabold tracking-tight leading-none" style={{ color: "#059669" }}>${stats.bestDpsf.toFixed(2)}</div>
             </div>
           )}
           {stats.expiring > 0 && (
-            <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #f59e0b", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Expiring</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#d97706", letterSpacing: "-0.02em", lineHeight: 1 }}>{stats.expiring}</div>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #f59e0b" }}>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Expiring</div>
+              <div className="text-2xl font-extrabold tracking-tight leading-none" style={{ color: "#d97706" }}>{stats.expiring}</div>
             </div>
           )}
           {stats.expired > 0 && (
-            <div style={{ background: "white", borderRadius: 10, padding: "10px 16px", borderLeft: "3px solid #ef4444", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Expired</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#dc2626", letterSpacing: "-0.02em", lineHeight: 1 }}>{stats.expired}</div>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #ef4444" }}>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Expired</div>
+              <div className="text-2xl font-extrabold tracking-tight leading-none" style={{ color: "#dc2626" }}>{stats.expired}</div>
             </div>
           )}
         </div>
@@ -418,10 +418,10 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
-                <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-                  <th className="text-left px-4 py-2.5 font-semibold text-slate-600 text-[12px]">Material</th>
+                <tr className="bg-slate-50 border-b border-slate-200 sticky top-0">
+                  <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Material</th>
                   {comparison.vendors.map((v, i) => (
-                    <th key={i} className="text-right px-4 py-2.5 font-semibold text-slate-600 text-[12px] whitespace-nowrap">{v}</th>
+                    <th key={i} className="text-right px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{v}</th>
                   ))}
                 </tr>
               </thead>
@@ -524,7 +524,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                       )}
                     </div>
                     <span
-                      className="text-[11px] font-semibold px-2.5 py-1 rounded shrink-0"
+                      className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0"
                       style={{ background: ss.bg, color: ss.text }}
                     >
                       {ss.label}

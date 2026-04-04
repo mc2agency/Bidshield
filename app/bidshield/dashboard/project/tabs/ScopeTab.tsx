@@ -267,7 +267,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
         <p className="text-sm text-slate-500 mb-6">Generate 40 common roofing scope items to review</p>
         <button
           onClick={handleInitialize}
-          className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+          className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors duration-150 cursor-pointer shadow-sm"
         >
           Generate Scope Items
         </button>
@@ -286,9 +286,9 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
           ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost.toLocaleString()}`, accent: "#059669" }] : []),
           ...(includedCount > 0 || excludedCount > 0 ? [{ label: "In / Out", value: `${includedCount} / ${excludedCount}`, accent: includedCount > excludedCount ? "#059669" : "#334155" }] : []),
         ].map(({ label, value, accent }) => (
-          <div key={label} style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
+          <div key={label} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4" style={{ borderLeft: `4px solid ${accent}` }}>
+            <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{label}</div>
+            <div className="text-xl font-extrabold text-slate-900 tracking-tight leading-none">{value}</div>
           </div>
         ))}
       </div>
