@@ -583,7 +583,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
                                             : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                                         }`}
                                       >
-                                        {isVerified ? "✓ OK" : "Verify"}
+                                        {isVerified ? "Verified" : "Verify"}
                                       </button>
                                     </>
                                   )}

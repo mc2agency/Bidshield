@@ -73,11 +73,11 @@ function getEffectiveStatus(quote: any): string {
 }
 
 const STATUS_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  valid:     { bg: "#f0fdf4", text: "#16a34a", label: "✓ Active" },
+  valid:     { bg: "#f0fdf4", text: "#16a34a", label: "Active" },
   received:  { bg: "#eff6ff", text: "#2563eb", label: "Received" },
   requested: { bg: "#f5f3ff", text: "#7c3aed", label: "Requested" },
   expiring:  { bg: "#fffbeb", text: "#d97706", label: "Expiring" },
-  expired:   { bg: "#fef2f2", text: "#dc2626", label: "✗ Expired" },
+  expired:   { bg: "#fef2f2", text: "#dc2626", label: "Expired" },
   none:      { bg: "#f8fafc", text: "#94a3b8", label: "○ Pending" },
 };
 
@@ -926,7 +926,7 @@ export default function QuotesPricingPage() {
               )}
               {backfillResult && (
                 <span className="self-center text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg">
-                  ✓ Added {backfillResult.upserted}, updated {backfillResult.updated}
+                  Added {backfillResult.upserted}, updated {backfillResult.updated}
                 </span>
               )}
               <button onClick={() => { setDsForm(BLANK_DS); setManualModal(true); }} className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors">
@@ -1037,7 +1037,7 @@ export default function QuotesPricingPage() {
               <div>
                 <h2 className="text-[15px] font-bold text-slate-900">Add Quote to Library</h2>
                 {quoteModalStage === "upload" && <p className="text-[12px] text-slate-400 mt-0.5">Upload a vendor PDF — AI extracts everything automatically</p>}
-                {quoteModalStage === "review" && quotePdfStorageId && <p className="text-[12px] text-emerald-600 mt-0.5">✓ Extracted — review and save</p>}
+                {quoteModalStage === "review" && quotePdfStorageId && <p className="text-[12px] text-emerald-600 mt-0.5">Extracted — review and save</p>}
                 {quoteModalStage === "review" && !quotePdfStorageId && <p className="text-[12px] text-slate-400 mt-0.5">Enter quote details manually</p>}
               </div>
               <button onClick={closeQuoteModal} className="text-slate-400 hover:text-slate-700 text-lg">✕</button>

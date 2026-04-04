@@ -504,7 +504,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
             onClick={handleCopyExclusions}
             className="w-full py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition-all"
           >
-            {copiedExclusions ? "✓ Copied to clipboard" : "Copy exclusions for proposal"}
+            {copiedExclusions ? "Copied to clipboard" : "Copy exclusions for proposal"}
           </button>
 
           {(isPro || isDemo) ? (

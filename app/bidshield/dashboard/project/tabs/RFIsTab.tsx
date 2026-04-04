@@ -151,8 +151,9 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
           <p className="text-xs text-blue-600 mt-1">Open questions can affect your pricing — track responses before submitting</p>
         </div>
       ) : items.length > 0 ? (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-          <div className="text-sm font-bold text-emerald-700">All RFIs resolved ✓</div>
+        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+          <svg className="w-4 h-4 shrink-0" style={{ color: "#059669" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#059669" }}>All RFIs resolved</span>
         </div>
       ) : null}
 

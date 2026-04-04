@@ -56,7 +56,7 @@ export default function ProjectTabBar({
                     background: blockers > 0 ? "#fee2e2" : pct >= 90 ? "#d1fae5" : pct > 0 ? "#fef3c7" : "#f1f5f9",
                     color: blockers > 0 ? "#dc2626" : pct >= 90 ? "#059669" : pct > 0 ? "#d97706" : "#94a3b8",
                   }}>
-                    {blockers > 0 ? `${blockers}!` : pct >= 90 ? "✓" : pct > 0 ? `${pct}%` : "—"}
+                    {blockers > 0 ? `${blockers}!` : pct >= 90 ? "●" : pct > 0 ? `${pct}%` : "—"}
                   </span>
                 )}
               </button>

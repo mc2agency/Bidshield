@@ -14,20 +14,20 @@ function isReviewed(add: any): boolean {
   return add.reviewStatus === "reviewed";
 }
 
-function getAddendumStatus(add: any): { label: string; color: string; icon: string } {
+function getAddendumStatus(add: any): { label: string; color: string; icon: "check" | "warning" } {
   if (!isReviewed(add)) {
-    return { label: "Pending Review", color: "text-red-600", icon: "!" };
+    return { label: "Pending Review", color: "text-red-600", icon: "warning" };
   }
   if (add.affectsScope === true && add.repriced) {
-    return { label: "Reviewed & Re-priced", color: "text-emerald-600", icon: "✓" };
+    return { label: "Reviewed & Re-priced", color: "text-emerald-600", icon: "check" };
   }
   if (add.affectsScope === false) {
-    return { label: "Reviewed — No impact", color: "text-emerald-600", icon: "✓" };
+    return { label: "Reviewed — No impact", color: "text-emerald-600", icon: "check" };
   }
   if (add.affectsScope === true && !add.repriced) {
-    return { label: "Reviewed — Needs Re-price", color: "text-amber-600", icon: "!" };
+    return { label: "Reviewed — Needs Re-price", color: "text-amber-600", icon: "warning" };
   }
-  return { label: "Reviewed", color: "text-emerald-600", icon: "✓" };
+  return { label: "Reviewed", color: "text-emerald-600", icon: "check" };
 }
 
 function cardBorderColor(add: any): string {
@@ -207,7 +207,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
         ) : pendingRePrice > 0 ? (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <div className="text-sm font-bold text-amber-800">
-              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — {reviewedCount} reviewed ✓ · {pendingRePrice} need{pendingRePrice === 1 ? "s" : ""} re-pricing
+              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — {reviewedCount} reviewed · {pendingRePrice} need{pendingRePrice === 1 ? "s" : ""} re-pricing
             </div>
             <p className="text-xs text-amber-600 mt-1">All addenda reviewed, but scope changes need updated pricing.</p>
             {netPriceImpact !== 0 && (
@@ -219,7 +219,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
         ) : (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
             <div className="text-sm font-bold text-emerald-700">
-              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — all {reviewedCount} reviewed ✓
+              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — all {reviewedCount} reviewed
             </div>
             <div className="text-xs text-emerald-600 mt-0.5">
               {scopeAffecting} affect scope · {repricedCount} re-priced
@@ -230,11 +230,11 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
       ) : (
         /* 0 addenda — prompt for confirmation */
         noAddendaAcknowledged ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
-            <span className="text-emerald-600 text-lg">✓</span>
+          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+            <svg className="w-4 h-4 shrink-0" style={{ color: "#059669" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
             <div>
-              <div className="text-sm font-bold text-emerald-700">No addenda confirmed</div>
-              <div className="text-xs text-emerald-600 mt-0.5">You&apos;ve confirmed no addenda were received for this project.</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#059669" }}>No addenda confirmed</div>
+              <div style={{ fontSize: 11, color: "#16a34a", marginTop: 2 }}>You&apos;ve confirmed no addenda were received for this project.</div>
             </div>
           </div>
         ) : (
@@ -248,7 +248,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
                 onClick={handleAcknowledgeNoAddenda}
                 className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors"
               >
-                ✓ Confirm — No Addenda Received
+                Confirm — No Addenda Received
               </button>
             )}
             {isDemo && (
@@ -411,7 +411,7 @@ function AddendumCard({
             {/* Review Status Badge */}
             {reviewed ? (
               <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
-                Reviewed ✓
+                Reviewed
               </span>
             ) : (
               <span className="text-[10px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-200">
@@ -449,7 +449,7 @@ function AddendumCard({
             onClick={() => onMarkReviewed(add._id)}
             className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
           >
-            Mark as Reviewed ✓
+            Mark as Reviewed
           </button>
         </div>
       )}
@@ -527,7 +527,7 @@ function AddendumCard({
                       : "bg-white text-slate-500 border border-slate-200 hover:text-slate-600"
                   }`}
                 >
-                  {impactCats.includes(cat) ? "✓ " : ""}{cat}
+                  {cat}
                 </button>
               ))}
             </div>
@@ -552,7 +552,7 @@ function AddendumCard({
                     : "bg-red-50 text-red-600 border border-red-500/30"
                 }`}
               >
-                {add.repriced ? "✓ Yes" : "✗ No"}
+                {add.repriced ? "Yes" : "No"}
               </button>
             </div>
             {add.repriced && add.repricedDate && (
@@ -618,7 +618,11 @@ function AddendumCard({
       {/* Status Footer */}
       <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`text-xs ${status.color}`}>{status.icon}</span>
+          {status.icon === "check" ? (
+            <svg className="w-3.5 h-3.5 shrink-0" style={{ color: "currentColor" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+          ) : (
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374L10.051 3.378c.866-1.5 3.032-1.5 3.898 0L21.303 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+          )}
           <span className={`text-xs font-medium ${status.color}`}>{status.label}</span>
         </div>
         {reviewed && (

@@ -434,7 +434,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                         color: p === minPrice ? "#10b981" : p !== null ? "#374151" : "#9ca3af",
                       }}>
                         {p !== null ? `$${p.toFixed(2)}` : "—"}
-                        {p === minPrice && <span className="ml-1 text-[10px]">✓</span>}
+                        {p === minPrice && <svg className="inline ml-1 w-3 h-3 align-middle" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>}
                       </td>
                     ))}
                   </tr>
@@ -488,11 +488,11 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
               : null;
 
             const statusStyle: Record<string, { bg: string; text: string; label: string }> = {
-              valid:     { bg: "#f0fdf4", text: "#16a34a", label: "✓ Active" },
+              valid:     { bg: "#f0fdf4", text: "#16a34a", label: "Active" },
               received:  { bg: "#eff6ff", text: "#2563eb", label: "Received" },
               requested: { bg: "#f5f3ff", text: "#7c3aed", label: "Requested" },
               expiring:  { bg: "#fffbeb", text: "#d97706", label: "Expiring" },
-              expired:   { bg: "#fef2f2", text: "#dc2626", label: "✗ Expired" },
+              expired:   { bg: "#fef2f2", text: "#dc2626", label: "Expired" },
               none:      { bg: "#f8fafc", text: "#94a3b8", label: "○ None" },
             };
             const ss = statusStyle[status] || statusStyle.none;
@@ -684,7 +684,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                   <p className="text-[12px] text-slate-400 mt-0.5">Upload a vendor PDF — AI extracts everything automatically</p>
                 )}
                 {modalStage === "review" && pdfStorageId && (
-                  <p className="text-[12px] text-emerald-600 mt-0.5">✓ Extracted from PDF — review and save</p>
+                  <p className="text-[12px] text-emerald-600 mt-0.5">Extracted from PDF — review and save</p>
                 )}
                 {modalStage === "review" && !pdfStorageId && (
                   <p className="text-[12px] text-slate-400 mt-0.5">Enter quote details manually</p>

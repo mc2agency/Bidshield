@@ -181,7 +181,8 @@ function PricingFlag({
   if (priceDiffPct < 3) {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded" title={`Quote: $${match.item.p.toFixed(2)}`}>
-        ✓ Quoted
+        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+        Quoted
       </span>
     );
   }
@@ -202,7 +203,7 @@ function WasteFlag({ material }: { material: any }) {
   if (wastePct > 0) {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600" title="Waste factor applied">
-        ✓
+        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
       </span>
     );
   }
@@ -1237,7 +1238,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                         Estimate is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
                                       </div>
                                     )}
-                                    {priceDiffPct < 3 && (m.unitPrice ?? 0) > 0 && <div className="mt-0.5 text-slate-400">Prices match ✓</div>}
+                                    {priceDiffPct < 3 && (m.unitPrice ?? 0) > 0 && <div className="mt-0.5 text-slate-400">Prices match</div>}
                                   </div>
                                   <div>
                                     <div className="text-slate-500 mb-0.5">Confidence</div>

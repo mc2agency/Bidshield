@@ -308,39 +308,25 @@ function AnalyticsInner() {
       </div>
 
       {/* Top Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
-          <div className="text-3xl font-bold text-emerald-600">{stats.winRate}%</div>
-          <div className="text-xs text-slate-500 mt-1">Win Rate</div>
-        </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
-          <div className="text-3xl font-bold text-blue-400">{totalBids}</div>
-          <div className="text-xs text-slate-500 mt-1">Decided Bids</div>
-        </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
-          <div className="text-3xl font-bold text-emerald-600">
-            ${(stats.wonValue / 1000).toFixed(0)}k
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {[
+          { label: "Win Rate", value: `${stats.winRate}%`, accent: "#059669" },
+          { label: "Decided Bids", value: String(totalBids), accent: "#334155" },
+          { label: "Revenue Won", value: `$${(stats.wonValue / 1000).toFixed(0)}K`, accent: "#059669" },
+          { label: "Active Pipeline", value: `$${(stats.pipelineValue / 1000).toFixed(0)}K`, accent: "#f59e0b" },
+          { label: "Avg $/SF", value: stats.avgDollarPerSf ? `$${stats.avgDollarPerSf.toFixed(2)}` : "—", accent: "#8b5cf6" },
+        ].map(({ label, value, accent }) => (
+          <div key={label} style={{ background: "white", borderRadius: 10, padding: "16px 18px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{value}</div>
           </div>
-          <div className="text-xs text-slate-500 mt-1">Revenue Won</div>
-        </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
-          <div className="text-3xl font-bold text-amber-600">
-            ${(stats.pipelineValue / 1000).toFixed(0)}k
-          </div>
-          <div className="text-xs text-slate-500 mt-1">Active Pipeline</div>
-        </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 text-center">
-          <div className="text-3xl font-bold text-purple-400">
-            ${stats.avgDollarPerSf ? stats.avgDollarPerSf.toFixed(2) : "—"}
-          </div>
-          <div className="text-xs text-slate-500 mt-1">Avg $/SF</div>
-        </div>
+        ))}
       </div>
 
       {/* $/SF by Project Chart */}
       {dollarPerSfData.length > 0 && (
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-base font-semibold text-slate-900 mb-1">$/SF by Project</h3>
+        <div className="bg-white rounded-xl p-5" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>$/SF by Project</h3>
           <p className="text-xs text-slate-500 mb-4">
             Color: <span className="text-emerald-600">Won</span> &middot; <span className="text-red-600">Lost</span> &middot; <span className="text-amber-600">Pending</span>
             {avgDpsf > 0 && <> &middot; Avg: <span className="text-purple-400">${avgDpsf.toFixed(2)}/SF</span></>}
@@ -373,8 +359,8 @@ function AnalyticsInner() {
 
       {/* Cost Breakdown */}
       {costBreakdownData.length > 0 && (
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-base font-semibold text-slate-900 mb-1">Cost Breakdown</h3>
+        <div className="bg-white rounded-xl p-5" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Cost Breakdown</h3>
           <p className="text-xs text-slate-500 mb-4">
             <span className="text-blue-400">Material</span> &middot; <span className="text-emerald-600">Labor</span> &middot; <span className="text-slate-500">Other</span>
           </p>

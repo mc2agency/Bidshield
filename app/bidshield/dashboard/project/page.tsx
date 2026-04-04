@@ -774,7 +774,7 @@ function ProjectDetail() {
                         {actionItems.length} need attention
                       </h2>
                       {passCount > 0 && (
-                        <span style={{ fontSize: 12, color: "#6b7280" }}>{passCount} passing ✓</span>
+                        <span style={{ fontSize: 12, color: "#6b7280" }}>{passCount} passing</span>
                       )}
                     </div>
                     {actionItems.map((item, i) => (
@@ -1121,11 +1121,17 @@ function ProjectDetail() {
                 </button>
               ) : (projectData as any)?.status === "won" ? (
                 <div style={{ textAlign: "center", padding: "10px 0" }}>
-                  <span style={{ fontSize: 13, color: "#059669", fontWeight: 600 }}>✓ Won</span>
+                  <span style={{ fontSize: 13, color: "#059669", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                    Won
+                  </span>
                 </div>
               ) : (projectData as any)?.status === "lost" ? (
                 <div style={{ textAlign: "center", padding: "10px 0" }}>
-                  <span style={{ fontSize: 13, color: "#dc2626", fontWeight: 600 }}>✗ Lost{(projectData as any)?.competitorName ? ` — ${(projectData as any).competitorName} won` : ""}</span>
+                  <span style={{ fontSize: 13, color: "#dc2626", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                    Lost{(projectData as any)?.competitorName ? ` — ${(projectData as any).competitorName} won` : ""}
+                  </span>
                 </div>
               ) : (
                 <button
