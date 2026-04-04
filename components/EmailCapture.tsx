@@ -38,11 +38,15 @@ export default function EmailCapture({ variant = 'full' }: EmailCaptureProps) {
 
   if (submitted) {
     return (
-      <div className={variant === 'banner' ? 'bg-emerald-50 border-y border-emerald-200 py-4' : 'bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 md:p-12 border border-emerald-200'}>
+      <div className={variant === 'banner' ? 'bg-emerald-50 border-y border-emerald-200 py-4' : 'rounded-2xl p-8 md:p-12 border border-emerald-500/20 bg-emerald-500/5'}>
         <div className="max-w-3xl mx-auto text-center">
-          <div className="text-4xl mb-3">✅</div>
-          <h3 className="text-xl font-bold text-emerald-800 mb-2">You&apos;re on the list!</h3>
-          <p className="text-emerald-700">We&apos;ll send your free Estimating Checklist soon. Keep an eye on your inbox.</p>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/30 mb-4">
+            <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">You&apos;re on the list!</h3>
+          <p className="text-slate-400">We&apos;ll send your free Estimating Checklist soon. Keep an eye on your inbox.</p>
         </div>
       </div>
     );
@@ -79,36 +83,22 @@ export default function EmailCapture({ variant = 'full' }: EmailCaptureProps) {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-br from-emerald-50 to-teal-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-2xl p-8 md:p-12 shadow-xl border border-emerald-200 text-center">
-          <div className="text-5xl mb-4">📋</div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Download Our FREE Bid Review Checklist
-          </h2>
-          <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
-            The 18-phase checklist commercial roofing estimators use to catch scope gaps, missed addenda, and pricing errors before submission.
-          </p>
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300 disabled:opacity-60"
-            >
-              {loading ? 'Saving...' : 'Get It Free'}
-            </button>
-          </form>
-          <p className="text-sm text-slate-500 mt-4">No spam. Unsubscribe anytime.</p>
-        </div>
-      </div>
-    </section>
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+      <input
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="flex-1 px-4 py-3 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-200 disabled:opacity-60 whitespace-nowrap"
+      >
+        {loading ? 'Saving...' : 'Get It Free'}
+      </button>
+    </form>
   );
 }
