@@ -18,8 +18,9 @@ import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-sys
 import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
 
 import type { TabId } from "./tab-types";
+import OverviewTab from "./tabs/OverviewTabRedesign";
 import {
-  OverviewTab, ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
+  ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
   SubmissionTab, PreBidMeetingsTab,
 } from "./tabs";
