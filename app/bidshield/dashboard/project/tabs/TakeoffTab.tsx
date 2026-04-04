@@ -91,14 +91,26 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
                         <input type="number" value={qtyInput} onChange={(e) => setQtyInput(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter") { const val = qtyInput.trim() === "" ? undefined : parseFloat(qtyInput); onUpdateItem(item._id, { quantity: val !== undefined && !isNaN(val) ? val : undefined }); setEditingQty(null); } if (e.key === "Escape") setEditingQty(null); }}
                           onBlur={() => { const val = qtyInput.trim() === "" ? undefined : parseFloat(qtyInput); onUpdateItem(item._id, { quantity: val !== undefined && !isNaN(val) ? val : undefined }); setEditingQty(null); }}
-                          className="bg-slate-50 border border-slate-300 rounded px-2 py-0.5 text-slate-900 text-xs w-20 text-right focus:outline-none focus:border-amber-500" autoFocus />
+                          className="bg-slate-50 border border-slate-300 rounded px-2 py-0.5 text-slate-900 text-xs w-20 text-right focus:outline-none focus:border-emerald-500" autoFocus />
                       ) : (
                         <button onClick={() => { setEditingQty(item._id); setQtyInput(hasQty ? String(item.quantity) : ""); }} className={`text-xs tabular-nums ${qtyColor} hover:text-slate-900 transition-colors`}>
                           {hasQty ? item.quantity!.toLocaleString("en-US") : "—"}
                         </button>
                       )}
                     </td>
-                    <td className="py-1.5 text-center"><button onClick={() => onUpdateItem(item._id, { verified: !item.verified })} className="text-base">{item.verified ? "✅" : "⬜"}</button></td>
+                    <td className="py-1.5 text-center">
+                      <button
+                        onClick={() => onUpdateItem(item._id, { verified: !item.verified })}
+                        className="cursor-pointer transition-colors"
+                        title={item.verified ? "Mark unverified" : "Mark verified"}
+                      >
+                        {item.verified ? (
+                          <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                        ) : (
+                          <svg className="w-4 h-4 text-slate-300 hover:text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        )}
+                      </button>
+                    </td>
                     <td className="py-1.5 text-slate-500 text-[11px] hidden sm:table-cell">{item.notes || ""}</td>
                     <td className="py-1.5 text-right">
                       {item.itemType === "custom" && (
@@ -125,12 +137,12 @@ function LineItemTable({ title, unit, items, isDemo, onUpdateItem, onDeleteItem,
         <div className="flex items-center gap-2 mt-1">
           <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && newLabel.trim()) { onAddItem(newLabel.trim()); setNewLabel(""); setShowAddForm(false); } if (e.key === "Escape") setShowAddForm(false); }}
-            placeholder="Item name" className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs flex-1 focus:outline-none focus:border-amber-500" autoFocus />
+            placeholder="Item name" className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs flex-1 focus:outline-none focus:border-emerald-500" autoFocus />
           <button onClick={() => { if (newLabel.trim()) { onAddItem(newLabel.trim()); setNewLabel(""); setShowAddForm(false); } }} className="text-[11px] text-emerald-600 hover:text-emerald-300">Add</button>
           <button onClick={() => setShowAddForm(false)} className="text-[11px] text-slate-500 hover:text-slate-600">Cancel</button>
         </div>
       ) : (
-        <button onClick={() => setShowAddForm(true)} className="text-xs text-amber-600 hover:text-amber-300 font-medium transition-colors mt-1">+ Add {title.split(" ")[0]} Item</button>
+        <button onClick={() => setShowAddForm(true)} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors mt-1 cursor-pointer">+ Add {title.split(" ")[0]} Item</button>
       )}
     </div>
   );
@@ -302,7 +314,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
             <div className="flex flex-col gap-1">
               <input type="number" value={controlInput} onChange={(e) => setControlInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSaveControl(); if (e.key === "Escape") setEditingControl(false); }}
-                className="bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" autoFocus placeholder="SF" />
+                className="bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" autoFocus placeholder="SF" />
               <div className="flex gap-1 justify-center">
                 <button onClick={handleSaveControl} className="text-[10px] text-emerald-600 hover:text-emerald-300">Save</button>
                 <button onClick={() => setEditingControl(false)} className="text-[10px] text-slate-500 hover:text-slate-600">Cancel</button>
@@ -373,9 +385,9 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
                     {displaySections.map((section) =>
                       editingId === section._id ? (
                         <tr key={section._id} className="border-b border-slate-200">
-                          <td className="py-2 pr-2"><input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-900 text-xs w-full focus:outline-none focus:border-amber-500" /></td>
-                          <td className="py-2 pr-2 hidden sm:table-cell"><select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-1 py-1 text-slate-900 text-xs w-full focus:outline-none focus:border-amber-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></td>
-                          <td className="py-2 pr-2"><input type="number" value={editData.squareFeet} onChange={(e) => setEditData({ ...editData, squareFeet: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-900 text-xs w-20 text-right focus:outline-none focus:border-amber-500" /></td>
+                          <td className="py-2 pr-2"><input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-900 text-xs w-full focus:outline-none focus:border-emerald-500" /></td>
+                          <td className="py-2 pr-2 hidden sm:table-cell"><select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-1 py-1 text-slate-900 text-xs w-full focus:outline-none focus:border-emerald-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></td>
+                          <td className="py-2 pr-2"><input type="number" value={editData.squareFeet} onChange={(e) => setEditData({ ...editData, squareFeet: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-900 text-xs w-20 text-right focus:outline-none focus:border-emerald-500" /></td>
                           <td colSpan={2} className="py-2 text-right"><button onClick={handleSaveEdit} className="text-[11px] text-emerald-600 hover:text-emerald-300 mr-2">Save</button><button onClick={() => setEditingId(null)} className="text-[11px] text-slate-500 hover:text-slate-600">Cancel</button></td>
                         </tr>
                       ) : (
@@ -383,7 +395,15 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
                           <td className="py-2 text-slate-700">{section.name}</td>
                           <td className="py-2 text-slate-500 text-xs hidden sm:table-cell">{section.assemblyType}</td>
                           <td className="py-2 text-right text-slate-700 tabular-nums">{fmt(section.squareFeet)}</td>
-                          <td className="py-2 text-center"><button onClick={() => handleToggleComplete(section)} className="text-base">{section.completed ? "✅" : "⬜"}</button></td>
+                          <td className="py-2 text-center">
+                            <button onClick={() => handleToggleComplete(section)} className="cursor-pointer transition-colors" title={section.completed ? "Mark incomplete" : "Mark complete"}>
+                              {section.completed ? (
+                                <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                              ) : (
+                                <svg className="w-4 h-4 text-slate-300 hover:text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                              )}
+                            </button>
+                          </td>
                           <td className="py-2 text-right"><span className="opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => handleStartEdit(section)} className="text-[11px] text-slate-500 hover:text-slate-700 mr-2">Edit</button><button onClick={() => handleDeleteSection(section._id)} className="text-[11px] text-red-600 hover:text-red-300">Del</button></span></td>
                         </tr>
                       )
@@ -399,10 +419,10 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
             {showAddForm ? (
               <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 mb-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                  <div><label className="text-[11px] text-slate-500 mb-1 block">Section Name *</label><input value={newSection.name} onChange={(e) => setNewSection({ ...newSection, name: e.target.value })} placeholder="e.g., Main Roof Area A" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                  <div><label className="text-[11px] text-slate-500 mb-1 block">Assembly Type *</label><select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })} className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
-                  <div><label className="text-[11px] text-slate-500 mb-1 block">Square Feet *</label><input type="number" value={newSection.squareFeet} onChange={(e) => setNewSection({ ...newSection, squareFeet: e.target.value })} placeholder="e.g., 22000" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                  <div><label className="text-[11px] text-slate-500 mb-1 block">Notes</label><input value={newSection.notes} onChange={(e) => setNewSection({ ...newSection, notes: e.target.value })} placeholder="Optional notes" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Section Name *</label><input value={newSection.name} onChange={(e) => setNewSection({ ...newSection, name: e.target.value })} placeholder="e.g., Main Roof Area A" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" /></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Assembly Type *</label><select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })} className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500">{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Square Feet *</label><input type="number" value={newSection.squareFeet} onChange={(e) => setNewSection({ ...newSection, squareFeet: e.target.value })} placeholder="e.g., 22000" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" /></div>
+                  <div><label className="text-[11px] text-slate-500 mb-1 block">Notes</label><input value={newSection.notes} onChange={(e) => setNewSection({ ...newSection, notes: e.target.value })} placeholder="Optional notes" className="bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" /></div>
                 </div>
                 <div className="flex gap-2"><button onClick={handleAddSection} className="bg-amber-600 hover:bg-amber-500 text-slate-900 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Add Section</button><button onClick={() => setShowAddForm(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button></div>
               </div>

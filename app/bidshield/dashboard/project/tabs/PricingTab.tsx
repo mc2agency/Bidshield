@@ -262,7 +262,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
       {/* Sanity check warning */}
       {componentSumMismatch && (
         <div className="bg-amber-50 border border-amber-400/50 rounded-xl px-4 py-3 flex items-start gap-2">
-          <span className="text-amber-500 text-base mt-0.5">⚠</span>
+          <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
           <div>
             <div className="text-xs font-semibold text-amber-700">Cost components don&rsquo;t add up to Total Bid</div>
             <div className="text-xs text-amber-600 mt-0.5">
@@ -281,7 +281,10 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
               {editing ? "Save" : "Edit"}
             </button>
           ) : (
-            <a href="/bidshield/pricing" className="text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">🔒 Edit · Pro</a>
+            <a href="/bidshield/pricing" className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+              Edit · Pro
+            </a>
           )}
         </div>
 
@@ -676,8 +679,9 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
         )}
 
         {!(isPro || isDemo) && (
-          <a href="/bidshield/pricing" className="text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">
-            🔒 Alternate Pricing · Pro
+          <a href="/bidshield/pricing" className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+            Alternate Pricing · Pro
           </a>
         )}
       </div>
