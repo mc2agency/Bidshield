@@ -16,7 +16,7 @@ const PRO_FEATURES = [
   "Material Reconciliation — verify pricing vs quotes",
   "Labor Verification — AI scope analysis",
   "General Conditions tracker",
-  "Full Bid Summary with $/SF",
+  "Full Bid Summary with $/SF benchmarking",
   "## Vendors & Quotes",
   "Vendor address book",
   "Quotes & Pricing library",
@@ -34,27 +34,26 @@ const PRO_FEATURES = [
   "✨ Draft RFI with AI",
   "✨ Addendum Impact Check",
   "## Support",
-  "14-day free trial",
+  "14-day free trial — no card required",
   "Priority support",
 ];
 
 const FREE_FEATURES = [
   "1 active project",
   "134-item bid checklist",
-  "Scope tracker (read-only edits)",
-  "Takeoff & Materials (read-only)",
+  "Scope tracker",
+  "Takeoff & Materials (view)",
   "RFIs & Addenda tracking",
-  "Up to 5 Decision Log entries",
+  "10 Decision Log entries",
 ];
 
 const FREE_LIMITS = [
   "No AI features",
   "No Labor Verification",
-  "No Gen. Conds / Bid Quals",
+  "No General Conditions / Bid Quals",
   "No GC Bid Forms",
   "No Vendor address book",
   "No full Bid Summary",
-  "No Material Reconciliation editing",
 ];
 
 export default function PricingCards() {
@@ -69,7 +68,7 @@ export default function PricingCards() {
 
   const planId = annual ? "pro_annual" : "pro_monthly";
   const monthlyDisplay = annual ? "$208" : "$249";
-  const billingNote = annual ? "Billed $2,490/year" : "Billed monthly";
+  const billingNote = annual ? "Billed $2,490/year" : "Billed monthly — cancel anytime";
 
   const handleCheckout = async () => {
     gtagEvent("begin_checkout", { plan: planId });
@@ -103,92 +102,107 @@ export default function PricingCards() {
   return (
     <>
       {/* Billing toggle */}
-      <div className="flex items-center justify-center gap-4 mb-10">
-        <span className={`text-sm font-medium ${!annual ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
+      <div className="flex items-center justify-center gap-4 mb-12">
+        <span className={`text-sm font-semibold transition-colors ${!annual ? "text-slate-900" : "text-slate-400"}`}>
+          Monthly
+        </span>
         <button
           onClick={() => setAnnual(a => !a)}
-          className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
-          style={{ background: annual ? "#10b981" : "#cbd5e1" }}
+          className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+          style={{ background: annual ? "#059669" : "#cbd5e1" }}
           aria-label="Toggle billing period"
         >
           <span
-            className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+            className="inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200"
             style={{ transform: annual ? "translateX(22px)" : "translateX(2px)" }}
           />
         </button>
-        <span className={`text-sm font-medium ${annual ? "text-slate-900" : "text-slate-400"}`}>
+        <span className={`text-sm font-semibold transition-colors ${annual ? "text-slate-900" : "text-slate-400"}`}>
           Annual
         </span>
-        {annual && (
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-            Save $498 · 2 months free
-          </span>
-        )}
+        <span
+          className={`text-xs font-bold px-2.5 py-1 rounded-full transition-all duration-300 ${
+            annual
+              ? "bg-emerald-100 text-emerald-700 opacity-100 scale-100"
+              : "bg-slate-100 text-slate-400 opacity-60 scale-95"
+          }`}
+        >
+          Save $498 · 2 months free
+        </span>
       </div>
 
       {/* Cards */}
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
 
-          {/* Free */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex flex-col">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">Free</h3>
-              <p className="text-sm text-slate-500 mt-1">Try BidShield on one project</p>
+        {/* Free */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex flex-col">
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-slate-900">Free</h3>
+            <p className="text-sm text-slate-500 mt-1">Try BidShield on one project — no card required.</p>
+          </div>
+          <div className="mb-8">
+            <div className="flex items-baseline gap-1">
+              <span className="text-5xl font-extrabold text-slate-900">$0</span>
             </div>
-            <div className="mb-6">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-slate-900">$0</span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">No credit card required</p>
+            <p className="text-xs text-slate-400 mt-1.5">No credit card · No commitment</p>
+          </div>
+          <ul className="flex-1 space-y-2.5 mb-8">
+            {FREE_FEATURES.map((f) => (
+              <li key={f} className="flex items-start gap-2.5 text-sm text-slate-700">
+                <svg className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                {f}
+              </li>
+            ))}
+            <li className="border-t border-slate-100 pt-2.5" />
+            {FREE_LIMITS.map((f) => (
+              <li key={f} className="flex items-start gap-2.5 text-sm text-slate-400">
+                <svg className="w-4 h-4 text-slate-300 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href={isSignedIn ? "/bidshield/dashboard" : "/sign-up"}
+            className="w-full py-3 rounded-xl text-sm font-semibold text-center bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+          >
+            {isSignedIn ? "Go to Dashboard" : "Start Free →"}
+          </Link>
+        </div>
+
+        {/* Pro */}
+        <div className="relative rounded-2xl p-[2px] shadow-2xl" style={{ background: "linear-gradient(135deg, #059669, #10b981, #34d399)" }}>
+          {/* Recommended badge */}
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+            <div className="flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-extrabold px-5 py-2 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-600/30">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Recommended
             </div>
-            <ul className="flex-1 space-y-2.5 mb-8">
-              {FREE_FEATURES.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-slate-700">
-                  <svg className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-              {FREE_LIMITS.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-slate-400">
-                  <svg className="w-4 h-4 text-slate-300 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={isSignedIn ? "/bidshield/dashboard" : "/sign-up"}
-              className="w-full py-3 rounded-xl text-sm font-semibold text-center bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
-            >
-              {isSignedIn ? "Go to Dashboard" : "Start Free"}
-            </Link>
           </div>
 
-          {/* Pro */}
-          <div className="relative bg-white rounded-2xl border-2 border-emerald-400 shadow-lg ring-4 ring-emerald-50 p-8 flex flex-col">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-              <span className="bg-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide">
-                Most Popular
-              </span>
+          <div className="bg-white rounded-[14px] p-8 flex flex-col h-full">
+            <div className="mb-6 pt-2">
+              <h3 className="text-xl font-bold text-slate-900">Pro</h3>
+              <p className="text-sm text-slate-500 mt-1">For active estimators bidding weekly — full workflow.</p>
             </div>
 
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">Pro</h3>
-              <p className="text-sm text-slate-500 mt-1">For active estimators bidding weekly</p>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-slate-900">{monthlyDisplay}</span>
-                <span className="text-slate-500">/mo</span>
+            <div className="mb-8">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-5xl font-extrabold text-slate-900">{monthlyDisplay}</span>
+                <span className="text-slate-500 text-base">/mo</span>
+                {annual && (
+                  <span className="ml-1 text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                    Save 17%
+                  </span>
+                )}
               </div>
-              <p className="text-xs mt-1 font-medium" style={{ color: annual ? "#059669" : "#94a3b8" }}>
+              <p className="text-xs mt-1.5 font-medium text-slate-500">
                 {billingNote}
-                {annual && <span className="ml-2 font-bold text-emerald-600">· Save $498</span>}
               </p>
             </div>
 
@@ -203,8 +217,11 @@ export default function PricingCards() {
                 }
                 const isAI = f.startsWith("✨");
                 return (
-                  <li key={f} className={`flex items-start gap-2 text-sm ${isAI ? "text-emerald-700 font-medium" : "text-slate-700"}`}>
-                    <svg className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <li key={f} className={`flex items-start gap-2.5 text-sm ${isAI ? "text-emerald-700 font-medium" : "text-slate-700"}`}>
+                    <svg
+                      className={`w-4 h-4 mt-0.5 shrink-0 ${isAI ? "text-emerald-500" : "text-emerald-500"}`}
+                      fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                     </svg>
                     {f}
@@ -216,9 +233,10 @@ export default function PricingCards() {
             <button
               onClick={handleCheckout}
               disabled={loading}
-              className="w-full py-3 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-wait"
+              className="w-full py-3.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:shadow-emerald-600/30 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-wait"
+              style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}
             >
-              {loading ? "Redirecting…" : "Start 14-Day Free Trial"}
+              {loading ? "Redirecting…" : "Start 14-Day Free Trial →"}
             </button>
             <p className="text-xs text-center text-slate-400 mt-3">No credit card required · Cancel anytime</p>
           </div>
