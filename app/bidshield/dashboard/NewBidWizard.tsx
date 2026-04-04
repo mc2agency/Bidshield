@@ -143,7 +143,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
           {/* ── Step 0: Project Type ── */}
           {step === 0 && (
             <div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">What kind of project?</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>What kind of project?</h3>
               <p className="text-sm text-slate-500 mb-5">This determines your checklist items and scope categories.</p>
               <div className="flex flex-col gap-2">
                 {PROJECT_TYPES.map((t) => (
@@ -175,7 +175,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
           {/* ── Step 1: System & Deck ── */}
           {step === 1 && (
             <div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Roofing system</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Roofing system</h3>
               <p className="text-sm text-slate-500 mb-5">Configures material checks and spec verification.</p>
 
               <div className="mb-5">
@@ -323,7 +323,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                 <div className="space-y-2">
                   {configs.map((c, i) => (
                     <div key={i} className="flex items-start gap-2 text-sm text-emerald-800">
-                      <span className="text-emerald-500 mt-0.5 flex-shrink-0">✓</span>
+                      <svg className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                       <span>{c}</span>
                     </div>
                   ))}

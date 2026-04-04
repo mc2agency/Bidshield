@@ -98,7 +98,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              <h2 className="app-display" style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 8 }}>
                 Welcome to BidShield
               </h2>
               <p className="text-slate-600 mb-8">
@@ -106,7 +106,8 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               </p>
               <button
                 onClick={() => setStep(1)}
-                className="w-full py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-colors"
+                className="w-full py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-colors cursor-pointer"
+                style={{ boxShadow: "0 1px 3px rgba(5,150,105,0.4)" }}
               >
                 Create My First Project
               </button>
@@ -376,22 +377,17 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               </div>
 
               <div className="space-y-2 mb-8">
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-emerald-600">✓</span>
-                  18-phase bid QA checklist customized for {systemType?.toUpperCase() || "roofing"}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-emerald-600">✓</span>
-                  40 scope gap items pre-loaded
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-emerald-600">✓</span>
-                  Bid readiness scoring active
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-emerald-600">✓</span>
-                  Takeoff reconciliation ready
-                </div>
+                {[
+                  `18-phase bid QA checklist customized for ${systemType?.toUpperCase() || "roofing"}`,
+                  "40 scope gap items pre-loaded",
+                  "Bid readiness scoring active",
+                  "Takeoff reconciliation ready",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2 text-sm text-slate-600">
+                    <svg className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                    {item}
+                  </div>
+                ))}
               </div>
 
               <div className="flex justify-between">
