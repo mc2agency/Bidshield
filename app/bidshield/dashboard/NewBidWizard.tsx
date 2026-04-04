@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 // ── Project types that determine what BidShield pre-configures ──
+const PROJECT_TYPE_ICONS: Record<string, React.ReactNode> = {
+  new_construction: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>,
+  reroof: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>,
+  recover: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" /></svg>,
+  repair: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.654m5.65-4.65 3.086-3.086a1 1 0 0 1 1.414 1.414l-3.086 3.086m-5.65 4.65-.649-.352M6.75 7.5l4.59-4.59a1.952 1.952 0 0 1 2.763 2.763L9.513 9.672" /></svg>,
+};
 const PROJECT_TYPES = [
-  { id: "new_construction", label: "New Construction", icon: "🏗️", desc: "New building, full roof system install" },
-  { id: "reroof", label: "Re-Roof / Tear-Off", icon: "🔄", desc: "Existing building, remove & replace" },
-  { id: "recover", label: "Recover / Overlay", icon: "📐", desc: "Install new system over existing" },
-  { id: "repair", label: "Repair / Maintenance", icon: "🔧", desc: "Targeted repairs, leak fixes" },
+  { id: "new_construction", label: "New Construction", desc: "New building, full roof system install" },
+  { id: "reroof", label: "Re-Roof / Tear-Off", desc: "Existing building, remove & replace" },
+  { id: "recover", label: "Recover / Overlay", desc: "Install new system over existing" },
+  { id: "repair", label: "Repair / Maintenance", desc: "Targeted repairs, leak fixes" },
 ];
 
 const SYSTEMS = [
@@ -150,7 +156,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                         : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                     }`}
                   >
-                    <span className="text-2xl flex-shrink-0">{t.icon}</span>
+                    <span className="text-slate-500 flex-shrink-0">{PROJECT_TYPE_ICONS[t.id]}</span>
                     <div>
                       <div className="text-sm font-semibold text-slate-900">{t.label}</div>
                       <div className="text-xs text-slate-500">{t.desc}</div>
@@ -313,7 +319,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
 
               {/* What BidShield configures */}
               <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">🛡️ BidShield will configure</div>
+                <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">BidShield will configure</div>
                 <div className="space-y-2">
                   {configs.map((c, i) => (
                     <div key={i} className="flex items-start gap-2 text-sm text-emerald-800">

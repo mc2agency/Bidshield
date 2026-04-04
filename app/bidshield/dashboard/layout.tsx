@@ -297,7 +297,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         {isDemo && (
           <div className="bg-emerald-600 text-white text-center py-2.5 text-sm font-medium shrink-0">
-            🎯 Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
+            Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
           </div>
         )}
         {showTrialBanner && !isDemo && !isPro && (

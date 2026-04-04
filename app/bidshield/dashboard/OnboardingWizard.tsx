@@ -5,12 +5,12 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 const TRADES = [
-  { id: "roofing", label: "Commercial Roofing", icon: "🏗️", available: true },
-  { id: "concrete", label: "Concrete", icon: "🧱", available: false },
-  { id: "electrical", label: "Electrical", icon: "⚡", available: false },
-  { id: "mechanical", label: "Mechanical / HVAC", icon: "⚙️", available: false },
-  { id: "plumbing", label: "Plumbing", icon: "🔧", available: false },
-  { id: "steel", label: "Structural Steel", icon: "🔩", available: false },
+  { id: "roofing", label: "Commercial Roofing", available: true },
+  { id: "concrete", label: "Concrete", available: false },
+  { id: "electrical", label: "Electrical", available: false },
+  { id: "mechanical", label: "Mechanical / HVAC", available: false },
+  { id: "plumbing", label: "Plumbing", available: false },
+  { id: "steel", label: "Structural Steel", available: false },
 ];
 
 const SYSTEMS: Record<string, { id: string; label: string }[]> = {
@@ -95,7 +95,9 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
           {/* Step 0: Welcome */}
           {step === 0 && (
             <div className="text-center">
-              <div className="text-4xl mb-4">🛡️</div>
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+              </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">
                 Welcome to BidShield
               </h2>
@@ -141,7 +143,6 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                         : "border-slate-100 opacity-40 cursor-not-allowed"
                     }`}
                   >
-                    <span className="text-lg">{t.icon}</span>
                     <span className="block mt-1 font-medium text-slate-700">{t.label}</span>
                     {!t.available && (
                       <span className="text-[10px] text-slate-400">Coming soon</span>
@@ -306,7 +307,9 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
           {/* Step 4: Success + Upgrade nudge */}
           {step === 4 && (
             <div className="text-center">
-              <div className="text-5xl mb-4">🎉</div>
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+              </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 Your bid review is ready
               </h3>
