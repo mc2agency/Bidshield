@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import PricingCards from "./PricingCards";
 import StickyBar from "./StickyBar";
 import ChecklistAccordion from "./ChecklistAccordion";
+import FaqAccordion from "./FaqAccordion";
 import AppMockup from "./AppMockup";
 import RevealSection from "./RevealSection";
 
@@ -15,37 +16,17 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.bidshield.co/bidshield/pricing" },
 };
 
-const faqItems = [
-  {
-    q: "Does this replace my estimating software?",
-    a: "No. BidShield is the last step before you submit — not a replacement for The EDGE, STACK, or your spreadsheets. It reviews your completed bid for things estimating software can't catch.",
-  },
-  {
-    q: "What's the difference between monthly and annual?",
-    a: "Same Pro features either way. Annual billing is $2,490/year — that's ~$208/mo effective, saving you $498 versus paying monthly. You're prepaying 12 months at the price of 10.",
-  },
-  {
-    q: "What does the free trial include?",
-    a: "Full Pro access for 14 days, no credit card required. Run a real bid through the complete checklist, AI quote extraction, and all Pro features before you decide.",
-  },
-  {
-    q: "Can I cancel anytime?",
-    a: "Yes. Cancel from your account settings at any time. Your data stays accessible until the end of your billing period.",
-  },
-  {
-    q: "How does AI quote extraction work?",
-    a: "Upload a supplier PDF quote and BidShield extracts line items — material name, unit, quantity, and price — directly into your Material Reconciliation sheet. No copy-paste.",
-  },
-  {
-    q: "Is BidShield only for roofing?",
-    a: "Currently yes — BidShield is purpose-built for commercial roofing estimators with checklist items, scope categories, and AI prompts tuned specifically for roofing. Additional trades are planned.",
-  },
-];
-
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: faqItems.map(({ q, a }) => ({
+  mainEntity: [
+    { q: "Does this replace my estimating software?", a: "No. BidShield is the last step before you submit — not a replacement for The EDGE, STACK, or your spreadsheets. It reviews your completed bid for things estimating software can't catch." },
+    { q: "What's the difference between monthly and annual?", a: "Same Pro features either way. Annual billing is $2,490/year — that's ~$208/mo effective, saving you $498 versus paying monthly. You're prepaying 12 months at the price of 10." },
+    { q: "What does the free trial include?", a: "Full Pro access for 14 days, no credit card required. Run a real bid through the complete checklist, AI quote extraction, and all Pro features before you decide." },
+    { q: "Can I cancel anytime?", a: "Yes. Cancel from your account settings at any time. Your data stays accessible until the end of your billing period." },
+    { q: "How does AI quote extraction work?", a: "Upload a supplier PDF quote and BidShield extracts line items — material name, unit, quantity, and price — directly into your Material Reconciliation sheet. No copy-paste." },
+    { q: "Is BidShield only for roofing?", a: "Currently yes — BidShield is purpose-built for commercial roofing estimators with checklist items, scope categories, and AI prompts tuned specifically for roofing. Additional trades are planned." },
+  ].map(({ q, a }) => ({
     "@type": "Question",
     name: q,
     acceptedAnswer: { "@type": "Answer", text: a },
@@ -90,34 +71,6 @@ export default function PricingPage() {
     <div className="min-h-screen bg-white">
       {/* Sticky bar — appears after scrolling past hero */}
       <StickyBar />
-
-      {/* Nav */}
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center shadow-sm">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-              </svg>
-            </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">BidShield</span>
-          </Link>
-          <div className="flex items-center gap-6">
-            <a href="#pricing" className="text-sm text-slate-500 hover:text-slate-900 transition-colors hidden sm:block">
-              Pricing
-            </a>
-            <Link href="/sign-in" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
-            >
-              Start Free Trial
-            </Link>
-          </div>
-        </div>
-      </nav>
 
       {/* ── HERO ── */}
       <section id="hero" className="relative overflow-hidden bg-white">
@@ -388,15 +341,8 @@ export default function PricingPage() {
       <RevealSection>
         <section className="py-20 bg-slate-50 border-t border-slate-100">
           <div className="max-w-2xl mx-auto px-6">
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-10 text-center">Common Questions</h2>
-            <div className="space-y-4">
-              {faqItems.map((item) => (
-                <div key={item.q} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow transition-shadow">
-                  <p className="font-bold text-slate-900 text-sm mb-2">{item.q}</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">{item.a}</p>
-                </div>
-              ))}
-            </div>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-8 text-center">Common Questions</h2>
+            <FaqAccordion />
           </div>
         </section>
       </RevealSection>

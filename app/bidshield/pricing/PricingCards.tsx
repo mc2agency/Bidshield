@@ -47,14 +47,7 @@ const FREE_FEATURES = [
   "10 Decision Log entries",
 ];
 
-const FREE_LIMITS = [
-  "No AI features",
-  "No Labor Verification",
-  "No General Conditions / Bid Quals",
-  "No GC Bid Forms",
-  "No Vendor address book",
-  "No full Bid Summary",
-];
+const FREE_UPGRADE_LINE = "Upgrade to Pro for AI features, Labor Verification, GC Bid Forms, and more.";
 
 export default function PricingCards() {
   const { isSignedIn } = useAuth();
@@ -135,46 +128,40 @@ export default function PricingCards() {
       <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
 
         {/* Free */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex flex-col">
+        <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8 flex flex-col">
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-slate-900">Free</h3>
-            <p className="text-sm text-slate-500 mt-1">Try BidShield on one project — no card required.</p>
+            <h3 className="text-xl font-bold text-slate-600">Free</h3>
+            <p className="text-sm text-slate-400 mt-1">Try BidShield on one project — no card required.</p>
           </div>
           <div className="mb-8">
             <div className="flex items-baseline gap-1">
-              <span className="text-5xl font-extrabold text-slate-900">$0</span>
+              <span className="text-5xl font-extrabold text-slate-500">$0</span>
             </div>
             <p className="text-xs text-slate-400 mt-1.5">No credit card · No commitment</p>
           </div>
-          <ul className="flex-1 space-y-2.5 mb-8">
+          <ul className="flex-1 space-y-2.5 mb-6">
             {FREE_FEATURES.map((f) => (
-              <li key={f} className="flex items-start gap-2.5 text-sm text-slate-700">
-                <svg className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+              <li key={f} className="flex items-start gap-2.5 text-sm text-slate-500">
+                <svg className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {f}
               </li>
             ))}
-            <li className="border-t border-slate-100 pt-2.5" />
-            {FREE_LIMITS.map((f) => (
-              <li key={f} className="flex items-start gap-2.5 text-sm text-slate-400">
-                <svg className="w-4 h-4 text-slate-300 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-                {f}
-              </li>
-            ))}
           </ul>
+          <p className="text-xs text-slate-400 italic mb-8 leading-relaxed">
+            {FREE_UPGRADE_LINE}
+          </p>
           <Link
             href={isSignedIn ? "/bidshield/dashboard" : "/sign-up"}
-            className="w-full py-3 rounded-xl text-sm font-semibold text-center bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+            className="w-full py-3 rounded-xl text-sm font-semibold text-center bg-white border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 transition-colors"
           >
-            {isSignedIn ? "Go to Dashboard" : "Start Free →"}
+            {isSignedIn ? "Go to Dashboard" : "Get Started Free"}
           </Link>
         </div>
 
         {/* Pro */}
-        <div className="relative rounded-2xl p-[2px] shadow-2xl" style={{ background: "linear-gradient(135deg, #059669, #10b981, #34d399)" }}>
+        <div className="relative rounded-2xl p-[2px]" style={{ background: "linear-gradient(135deg, #059669, #10b981, #34d399)", boxShadow: "0 20px 60px -10px rgba(5,150,105,0.35), 0 8px 24px -4px rgba(0,0,0,0.12)" }}>
           {/* Recommended badge */}
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
             <div className="flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-extrabold px-5 py-2 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-600/30">
@@ -185,7 +172,7 @@ export default function PricingCards() {
             </div>
           </div>
 
-          <div className="bg-white rounded-[14px] p-8 flex flex-col h-full">
+          <div className="rounded-[14px] p-8 flex flex-col h-full" style={{ background: "linear-gradient(160deg, #f0fdf4 0%, #ffffff 40%)" }}>
             <div className="mb-6 pt-2">
               <h3 className="text-xl font-bold text-slate-900">Pro</h3>
               <p className="text-sm text-slate-500 mt-1">For active estimators bidding weekly — full workflow.</p>

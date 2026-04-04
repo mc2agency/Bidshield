@@ -17,8 +17,8 @@ export default function RevealSection({ children, className = "", delay = 0 }: P
 
     // Apply initial hidden state after mount (so SSR content is visible by default)
     el.style.opacity = "0";
-    el.style.transform = "translateY(28px)";
-    el.style.transition = `opacity 0.65s ease-out ${delay}ms, transform 0.65s ease-out ${delay}ms`;
+    el.style.transform = "translateY(14px)";
+    el.style.transition = `opacity 0.22s ease-out ${delay}ms, transform 0.22s ease-out ${delay}ms`;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -28,7 +28,7 @@ export default function RevealSection({ children, className = "", delay = 0 }: P
           observer.disconnect();
         }
       },
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.05, rootMargin: "0px 0px 0px 0px" }
     );
 
     observer.observe(el);

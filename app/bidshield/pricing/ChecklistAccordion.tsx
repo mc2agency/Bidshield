@@ -148,19 +148,19 @@ export default function ChecklistAccordion() {
   const toggle = (n: number) => setOpen(prev => prev === n ? null : n);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {PHASES.map((phase) => {
         const isOpen = open === phase.n;
         return (
           <div
             key={phase.n}
-            className={`rounded-xl border transition-all duration-200 ${
-              isOpen ? "border-emerald-200 bg-emerald-50/50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+            className={`rounded-xl border transition-all duration-150 ${
+              isOpen ? "border-emerald-200 bg-emerald-50/60 shadow-md" : "border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/20 hover:shadow-sm"
             }`}
           >
             <button
               onClick={() => toggle(phase.n)}
-              className="w-full flex items-center gap-4 px-5 py-4 text-left"
+              className="w-full flex items-center gap-4 px-5 py-5 text-left"
               aria-expanded={isOpen}
             >
               {/* Phase number + icon */}
