@@ -12,6 +12,8 @@ function Reveal({ children, className = '', delay = 0 }: {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Respect user's motion preference
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     el.style.opacity = '0';
     el.style.transform = 'translateY(12px)';
     el.style.transition = `opacity 0.22s ease-out ${delay}ms, transform 0.22s ease-out ${delay}ms`;
@@ -192,7 +194,7 @@ function PhaseList() {
           >
             <button
               onClick={() => setOpen(isOpen ? null : i)}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset rounded-xl"
             >
               <span className="text-[10px] font-bold text-emerald-500 font-mono w-5 shrink-0">{p.num}</span>
               <span className={`text-sm font-medium flex-1 ${isOpen ? 'text-emerald-300' : 'text-slate-300'}`}>

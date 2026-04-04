@@ -15,6 +15,9 @@ export default function RevealSection({ children, className = "", delay = 0 }: P
     const el = ref.current;
     if (!el) return;
 
+    // Respect user's motion preference
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     // Apply initial hidden state after mount (so SSR content is visible by default)
     el.style.opacity = "0";
     el.style.transform = "translateY(14px)";

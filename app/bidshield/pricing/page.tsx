@@ -299,13 +299,25 @@ export default function PricingPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-6 sm:gap-10">
               {[
-                { icon: "🛡️", label: "SOC 2 Ready" },
-                { icon: "🔒", label: "Data encrypted at rest" },
-                { icon: "📱", label: "Works on mobile & desktop" },
-                { icon: "⚡", label: "Real-time sync — never lose work" },
+                {
+                  icon: <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>,
+                  label: "SOC 2 Ready",
+                },
+                {
+                  icon: <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>,
+                  label: "Data encrypted at rest",
+                },
+                {
+                  icon: <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 3.75h3m-3 3.75h3" /></svg>,
+                  label: "Works on mobile & desktop",
+                },
+                {
+                  icon: <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>,
+                  label: "Real-time sync — never lose work",
+                },
               ].map(({ icon, label }) => (
                 <div key={label} className="flex items-center gap-2 text-sm text-slate-600">
-                  <span>{icon}</span>
+                  {icon}
                   <span>{label}</span>
                 </div>
               ))}
