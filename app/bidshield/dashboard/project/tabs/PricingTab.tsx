@@ -169,12 +169,11 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const fmtDollar = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
   const assembly = pricing.primaryAssembly;
-  const similarProjects = (allProjects ?? []).filter((p: any) => {
-    const area = p.grossRoofArea ?? p.sqft;
-    return p.primaryAssembly === assembly && p.totalBidAmount && area && area > 0 && p._id !== projectId;
-  });
+  const similarProjects = (allProjects ?? []).filter((p: any) =>
+    p.primaryAssembly === assembly && p.totalBidAmount && p.grossRoofArea && p.grossRoofArea > 0 && p._id !== projectId
+  );
   const avgDollarPerSf = similarProjects.length >= 3
-    ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / (p.grossRoofArea ?? p.sqft), 0) / similarProjects.length
+    ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / p.grossRoofArea, 0) / similarProjects.length
     : null;
 
   // Sanity check: components should sum to total bid

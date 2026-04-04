@@ -83,9 +83,9 @@ export default function DecisionLogTab({ projectId, isDemo, isPro, userId }: Tab
       {!isPro && !isDemo && (
         <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-amber-200" style={{ background: "#fffbeb" }}>
           <span className="text-sm text-amber-700">
-            {decisions.length >= 5
-              ? `Decision Log full (${decisions.length}/5) — upgrade to log unlimited decisions`
-              : `Free plan: ${decisions.length}/5 decisions used`}
+            {decisions.length >= 10
+              ? `Decision Log full (${decisions.length}/10) — upgrade to log unlimited decisions`
+              : `Free plan: ${decisions.length}/10 decisions used`}
           </span>
           <a href="/bidshield/pricing" className="text-xs font-semibold text-emerald-600 hover:text-emerald-500 ml-4 shrink-0">
             Upgrade →

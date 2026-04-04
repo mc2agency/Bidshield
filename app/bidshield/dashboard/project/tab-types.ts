@@ -50,6 +50,7 @@ export interface TabProps {
     addenda?: any[];
     projectMaterials?: any[];
     scopeItems?: any[];
+    takeoffSections?: any[];
   };
 }
 

@@ -104,7 +104,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
     }
 
     // Use actual addenda numbers from records rather than sequential generation
-    const addendaNumbers = (addenda ?? []).map((a: any) => a.number).filter(Boolean).sort((a: number, b: number) => a - b);
+    const addendaNumbers = (addenda ?? []).map((a: any) => a.number).filter((n: any) => n !== null && n !== undefined).sort((a: number, b: number) => a - b);
 
     return {
       laborType: (q as any).laborType ?? null,

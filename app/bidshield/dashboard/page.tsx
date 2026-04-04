@@ -131,9 +131,12 @@ function StatCard({ value, label, dimmed }: {
 // ============================================================
 // WELCOME CARD (zero-project state)
 // ============================================================
-function WelcomeCard({ onNewBid }: { onNewBid: () => void }) {
+function WelcomeCard({ onNewBid, onDismiss }: { onNewBid: () => void; onDismiss: () => void }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-8 py-10 text-center">
+    <div className="relative bg-white rounded-xl border border-slate-200 shadow-sm px-8 py-10 text-center">
+      <button onClick={onDismiss} className="absolute top-3 right-3 text-slate-300 hover:text-slate-500 transition-colors" aria-label="Dismiss">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+      </button>
       <h2 className="text-xl font-bold text-slate-900 mb-2">Welcome to BidShield</h2>
       <p className="text-slate-500 text-sm mb-6">Start your first bid review to catch what estimating software misses.</p>
       <button
@@ -425,6 +428,15 @@ function DashboardContent() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
   const [deleteTarget, setDeleteTarget] = useState<{ id: Id<"bidshield_projects">; name: string } | null>(null);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("bidshield_welcome_dismissed") === "1";
+  });
+
+  const handleDismissWelcome = () => {
+    localStorage.setItem("bidshield_welcome_dismissed", "1");
+    setWelcomeDismissed(true);
+  };
 
   // Show onboarding for new users with zero projects
   useEffect(() => {
@@ -547,8 +559,8 @@ function DashboardContent() {
       </div>
 
       {/* Stats / Welcome */}
-      {!isDemo && projects.length === 0 ? (
-        <WelcomeCard onNewBid={handleNewBidClick} />
+      {!isDemo && projects.length === 0 && !welcomeDismissed ? (
+        <WelcomeCard onNewBid={handleNewBidClick} onDismiss={handleDismissWelcome} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard value={stats.activeProjects} label="Active Bids" />

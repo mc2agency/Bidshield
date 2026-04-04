@@ -320,7 +320,10 @@ function ProjectDetail() {
   }
   const blockerCount = actionItems.filter(a => a.level === "blocker").length;
   const warnCount = actionItems.filter(a => a.level === "warning").length;
-  const tabProps = { projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigateTab: openTab };
+  const tabProps = {
+    projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigateTab: openTab,
+    cachedData: isDemo ? undefined : { checklist: checklist ?? undefined, quotes: quotes ?? undefined, rfis: rfis ?? undefined, addenda: addenda ?? undefined, projectMaterials: projectMaterials ?? undefined, scopeItems: scopeItems ?? undefined, takeoffSections: takeoffSections ?? undefined },
+  };
   const activeTabLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label;
 
   const sysId = (projectData as any)?.systemType;

@@ -73,6 +73,23 @@ function ContactPageContent() {
         </div>
       </section>
 
+      {/* Calendly CTA */}
+      {process.env.NEXT_PUBLIC_CALENDLY_URL && (
+        <section className="py-10 bg-white border-b border-slate-100">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p className="text-slate-600 mb-4 text-sm">Prefer to talk directly? Book a 15-minute call.</p>
+            <a
+              href={process.env.NEXT_PUBLIC_CALENDLY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+            >
+              Book a Call
+            </a>
+          </div>
+        </section>
+      )}
+
       {/* Contact Form */}
       <section className="py-20 bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

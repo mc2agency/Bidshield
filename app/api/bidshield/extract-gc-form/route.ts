@@ -70,7 +70,7 @@ ${ctx.bondRequired !== undefined ? `Bond required: ${ctx.bondRequired}` : ""}
 ${ctx.prevailingWage !== undefined ? `Prevailing wage: ${ctx.prevailingWage}` : ""}
 ${ctx.mbeWbeGoals !== undefined ? `MBE/WBE goals: ${ctx.mbeWbeGoals}` : ""}
 ${ctx.scopeItems?.length ? `Scope items:\n${ctx.scopeItems.map((s: any) => `  - ${s.text} (${s.status})`).join("\n")}` : ""}
-${ctx.checklistItems?.length ? `Checklist items:\n${ctx.checklistItems.slice(0, 40).map((c: any) => `  - ${c.text} (${c.status})`).join("\n")}` : ""}
+${ctx.checklistItems?.length ? `Checklist items:\n${ctx.checklistItems.slice(0, 100).map((c: any) => `  - ${c.text} (${c.status})`).join("\n")}` : ""}
 
 === AUTO-CONFIRM RULES ===
 Only auto-confirm if the match is clear and unambiguous. Set autoConfirmed: true and populate confirmedValue and matchedField when:
@@ -113,7 +113,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
       message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 4096,
+          max_tokens: 8192,
           system: systemPrompt,
           messages: [
             {
@@ -145,6 +145,12 @@ Return only the JSON array. No explanation, no markdown fences.`;
         { status: 422 }
       );
     }
+
+    // Shape validation: filter out items missing required fields
+    items = items.filter((item: any) =>
+      typeof item.questionText === "string" && item.questionText.trim() !== "" &&
+      typeof item.itemType === "string"
+    );
 
     // Normalize items
     const normalized = items.map((item: any) => ({

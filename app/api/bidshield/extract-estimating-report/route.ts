@@ -83,7 +83,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
       message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 4096,
+          max_tokens: 8192,
           system: systemPrompt,
           messages: [
             {
@@ -116,7 +116,14 @@ Return only the JSON array. No explanation, no markdown fences.`;
       );
     }
 
-    return NextResponse.json({ items });
+    // Shape validation: filter out items missing required fields
+    const validItems = items.filter((item: any) =>
+      typeof item.materialName === "string" &&
+      typeof item.category === "string" &&
+      typeof item.unit === "string"
+    );
+
+    return NextResponse.json({ items: validItems });
   } catch (err: any) {
     console.error("extract-estimating-report error:", err);
     return NextResponse.json(

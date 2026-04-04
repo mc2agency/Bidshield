@@ -34,7 +34,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const _quotes = useQuery(api.bidshield.getQuotes, !hasCached && !isDemo && userId ? { userId, projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined } : "skip");
   const _rfis = useQuery(api.bidshield.getRFIs, !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const _addenda = useQuery(api.bidshield.getAddenda, !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
-  const takeoffSections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const takeoffSections = useQuery(api.bidshield.getTakeoffSections, !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const _projectMaterials = useQuery(api.bidshield.getProjectMaterials, !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const _scopeItems = useQuery(api.bidshield.getScopeItems, !hasCached && !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
 
@@ -53,7 +53,7 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
   const checklistPct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
 
   const demoSections = [{ squareFeet: 22000 }, { squareFeet: 12500 }, { squareFeet: 4200 }, { squareFeet: 2800 }];
-  const sections = isDemo ? demoSections : (takeoffSections ?? []);
+  const sections = isDemo ? demoSections : (cachedData?.takeoffSections ?? takeoffSections ?? []);
   const takenOff = sections.reduce((sum: number, s: any) => sum + (s.squareFeet || 0), 0);
   const controlSF = isDemo ? 68000 : project?.grossRoofArea ?? 0;
   const deltaSF = controlSF > 0 ? Math.abs(controlSF - takenOff) : 0;
