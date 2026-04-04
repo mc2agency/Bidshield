@@ -587,19 +587,24 @@ export default function VendorsPage() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
+  const activeCount = vendors.filter((v) => v.active).length;
+  const inactiveCount = vendors.filter((v) => !v.active).length;
+  const categoryCount = new Set(vendors.flatMap((v) => v.categories)).size;
+
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-2">
+      <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Vendors</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Your material supplier address book — linked to quotes and material pricing across all bids
+          <h1 className="app-display" style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>Vendors</h1>
+          <p className="text-sm text-slate-500">
+            Your material supplier address book — linked to quotes and pricing across all bids
           </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="shrink-0 flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer"
+          style={{ boxShadow: "0 1px 3px rgba(5,150,105,0.4)" }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -608,8 +613,24 @@ export default function VendorsPage() {
         </button>
       </div>
 
+      {/* Stat row */}
+      {vendors.length > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[
+            { label: "Active Vendors", value: String(activeCount), accent: "#059669" },
+            { label: "Inactive", value: String(inactiveCount), accent: "#94a3b8" },
+            { label: "Categories Covered", value: String(categoryCount), accent: "#334155" },
+          ].map(({ label, value, accent }) => (
+            <div key={label} style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Filter tabs */}
-      <div className="flex items-center gap-1 mt-5 mb-5 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1 mb-5 overflow-x-auto pb-1">
         <button
           onClick={() => setFilterCat("all")}
           className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterCat === "all" ? "bg-slate-900 text-white" : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"}`}
@@ -676,22 +697,26 @@ export default function VendorsPage() {
           {filteredVendors.map((vendor) => {
             const demoQuotes = isDemo ? (DEMO_QUOTES_FOR_VENDOR[String(vendor._id)] ?? []) : [];
             const lastQuote = demoQuotes.sort((a, b) => b.quoteDate.localeCompare(a.quoteDate))[0];
+            const accentColor = vendor.active ? "#059669" : "#94a3b8";
             return (
               <button
                 key={String(vendor._id)}
                 onClick={() => setSelectedId(String(vendor._id))}
-                className={`text-left w-full bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all p-5 flex flex-col gap-3 ${!vendor.active ? "opacity-60" : ""}`}
+                className={`text-left w-full flex flex-col gap-3 cursor-pointer ${!vendor.active ? "opacity-60" : ""}`}
+                style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: `3px solid ${accentColor}`, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", transition: "box-shadow 150ms ease, transform 150ms ease" }}
+                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = ""; }}
               >
                 {/* Top row */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-slate-900 text-[15px] leading-snug truncate">{vendor.companyName}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }} className="truncate">{vendor.companyName}</div>
                     {vendor.repName && (
-                      <div className="text-xs text-slate-500 mt-0.5 truncate">{vendor.repName}</div>
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }} className="truncate">{vendor.repName}</div>
                     )}
                   </div>
                   {!vendor.active && (
-                    <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999, background: "#f1f5f9", color: "#94a3b8", flexShrink: 0 }}>
                       Inactive
                     </span>
                   )}
@@ -718,14 +743,14 @@ export default function VendorsPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between mt-auto pt-1 border-t border-slate-50">
+                <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
                   {lastQuote ? (
-                    <span className="text-[11px] text-slate-500">Last quote: {lastQuote.quoteDate}</span>
+                    <span style={{ fontSize: 11, color: "#64748b" }}>Last quote: {lastQuote.quoteDate}</span>
                   ) : (
-                    <span className="text-[11px] text-slate-400">No quotes yet</span>
+                    <span style={{ fontSize: 11, color: "#94a3b8" }}>No quotes yet</span>
                   )}
                   {demoQuotes.length > 0 && (
-                    <span className="text-[11px] font-semibold text-emerald-600">{demoQuotes.length} quote{demoQuotes.length !== 1 ? "s" : ""}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#059669" }}>{demoQuotes.length} quote{demoQuotes.length !== 1 ? "s" : ""}</span>
                   )}
                 </div>
               </button>

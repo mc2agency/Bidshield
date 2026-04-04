@@ -262,8 +262,8 @@ function AnalyticsInner() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-semibold text-slate-900">Analytics & Reports</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="app-display" style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>Analytics & Reports</h1>
+        <p className="text-sm text-slate-500">
           Track your bidding performance, compare $/SF, and identify trends
         </p>
       </div>
@@ -388,7 +388,7 @@ function AnalyticsInner() {
       {/* Estimating Accuracy */}
       {projectsWithActuals.length > 0 && (
         <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-base font-semibold text-slate-900 mb-1">Estimating Accuracy</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Estimating Accuracy</h3>
           <p className="text-xs text-slate-500 mb-4">
             Comparing bid estimates to actual costs for completed projects
           </p>
@@ -482,7 +482,7 @@ function AnalyticsInner() {
       {/* GC Intelligence */}
       {gcIntelData.length > 0 && (
         <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-base font-semibold text-slate-900 mb-1">GC Intelligence</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>GC Intelligence</h3>
           <p className="text-xs text-slate-500 mb-4">
             Performance breakdown by general contractor
           </p>
@@ -553,7 +553,7 @@ function AnalyticsInner() {
         if (rows.length === 0) return null;
         return (
           <div className="bg-white rounded-xl p-5 border border-slate-200">
-            <h3 className="text-base font-semibold text-slate-900 mb-1">Win Rate by System Type</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Win Rate by System Type</h3>
             <p className="text-xs text-slate-500 mb-4">Performance broken down by membrane system</p>
             <div className="space-y-3">
               {rows.map(r => (
@@ -596,7 +596,7 @@ function AnalyticsInner() {
         if (rows.length === 0) return null;
         return (
           <div className="bg-white rounded-xl p-5 border border-slate-200">
-            <h3 className="text-base font-semibold text-slate-900 mb-1">Win Rate by Project Size</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Win Rate by Project Size</h3>
             <p className="text-xs text-slate-500 mb-4">Where you compete most effectively</p>
             <div className="space-y-3">
               {rows.map(r => (
@@ -627,7 +627,7 @@ function AnalyticsInner() {
         if (competitors.length === 0) return null;
         return (
           <div className="bg-white rounded-xl p-5 border border-slate-200">
-            <h3 className="text-base font-semibold text-slate-900 mb-1">Competitor Intelligence</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Competitor Intelligence</h3>
             <p className="text-xs text-slate-500 mb-4">Based on loss data — who is beating you and at what price</p>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -659,7 +659,7 @@ function AnalyticsInner() {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Win Rate by GC */}
         <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-base font-semibold text-slate-900 mb-4">Win Rate by GC</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 16 }}>Win Rate by GC</h3>
           {gcData.length > 0 ? (
             <div className="space-y-3">
               {gcData.map((g) => (
@@ -692,7 +692,7 @@ function AnalyticsInner() {
 
         {/* Loss Reasons */}
         <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-base font-semibold text-slate-900 mb-4">Loss Reasons</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 16 }}>Loss Reasons</h3>
           {lossReasonData.length > 0 ? (
             <div className="space-y-3">
               {lossReasonData.map((d) => (
@@ -718,7 +718,7 @@ function AnalyticsInner() {
 
       {/* Project History Table */}
       <div className="bg-white rounded-xl p-5 border border-slate-200">
-        <h3 className="text-base font-semibold text-slate-900 mb-4">Project History</h3>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 16 }}>Project History</h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

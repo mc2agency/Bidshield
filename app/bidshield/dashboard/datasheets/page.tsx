@@ -632,8 +632,8 @@ export default function QuotesPricingPage() {
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Quotes & Pricing</h2>
-          <p className="text-sm text-slate-400 mt-1">Unified vendor quote database and material price library</p>
+          <h1 className="app-display" style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>Quotes & Pricing</h1>
+          <p className="text-sm text-slate-500">Unified vendor quote database and material price library</p>
         </div>
       </div>
 
