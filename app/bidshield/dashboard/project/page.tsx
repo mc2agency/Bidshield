@@ -888,24 +888,35 @@ function ProjectDetail() {
 
               {/* 1. BID READINESS — top priority */}
               <div style={{ paddingBottom: 20 }}>
-                <div style={{ background: "#f8fafc", borderRadius: 8, padding: 14 }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
-                    Bid Readiness
+                <div style={{ background: "white", borderRadius: 10, padding: "16px 14px", borderLeft: `4px solid ${readinessColor}`, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>
+                      Bid Readiness
+                    </div>
+                    <div style={{
+                      fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
+                      color: readinessScore >= 80 ? "#059669" : readinessScore >= 50 ? "#d97706" : "#dc2626",
+                      background: readinessScore >= 80 ? "#f0fdf4" : readinessScore >= 50 ? "#fffbeb" : "#fef2f2",
+                      border: `1px solid ${readinessScore >= 80 ? "#bbf7d0" : readinessScore >= 50 ? "#fde68a" : "#fecaca"}`,
+                      borderRadius: 6, padding: "2px 7px",
+                    }}>
+                      {readinessScore >= 80 ? "On Track" : readinessScore >= 50 ? "At Risk" : "Blocked"}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: 1, marginBottom: 10, transition: "all 0.3s" }}>
-                    {readinessScore}%
+                  <div style={{ fontSize: 48, fontWeight: 800, color: "#0f172a", lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 12, transition: "all 0.3s" }}>
+                    {readinessScore}<span style={{ fontSize: 24, fontWeight: 600, color: "#94a3b8" }}>%</span>
                   </div>
-                  <div style={{ height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden", marginBottom: 8 }}>
+                  <div style={{ height: 8, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden", marginBottom: 10 }}>
                     <div style={{ height: "100%", width: `${readinessScore}%`, background: readinessColor, borderRadius: 9999, transition: "width 0.5s" }} />
                   </div>
                   {msUntilBid !== null && (
                     <div style={{
                       fontSize: 12,
-                      color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#6b7280",
+                      color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#64748b",
                       fontWeight: hoursUntilBid !== null && hoursUntilBid <= 24 ? 600 : 400,
                       fontVariantNumeric: "tabular-nums",
                     }}>
-                      {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `⏰ ${formatCountdown(msUntilBid)} remaining` : `${daysUntilBid} day${daysUntilBid !== 1 ? "s" : ""} until bid`}
+                      {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `${formatCountdown(msUntilBid)} remaining` : `${daysUntilBid} day${daysUntilBid !== 1 ? "s" : ""} until bid`}
                     </div>
                   )}
                 </div>
@@ -939,14 +950,17 @@ function ProjectDetail() {
                 </div>
               )}
 
-              {/* 2. SF / BID / $/SF stat card */}
-              <div style={{ paddingBottom: 20 }}>
-                <div style={{ background: "#f8fafc", borderRadius: 8, padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>{grossArea ? grossArea.toLocaleString() : "—"}</div>
-                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>SF</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
+              {/* 2. SF / BID / $/SF stat cards */}
+              <div style={{ paddingBottom: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+                {/* Square Footage */}
+                <div style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: "3px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>Square Footage</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>{grossArea ? grossArea.toLocaleString() : "—"} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>
+                </div>
+                {/* Total Bid */}
+                <div style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: "3px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>Total Bid</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
                     {editingBidInline && !isDemo ? (
                       <input
                         autoFocus
@@ -955,23 +969,23 @@ function ProjectDetail() {
                         onChange={e => setBidInlineValue(e.target.value)}
                         onBlur={saveBidInline}
                         onKeyDown={e => { if (e.key === "Enter") saveBidInline(); if (e.key === "Escape") setEditingBidInline(false); }}
-                        style={{ width: "100%", textAlign: "center", fontSize: 13, fontWeight: 600, border: "1px solid #10b981", borderRadius: 4, padding: "2px 4px", outline: "none", background: "white" }}
+                        style={{ width: 90, textAlign: "right", fontSize: 14, fontWeight: 700, border: "1px solid #10b981", borderRadius: 4, padding: "2px 4px", outline: "none", background: "white" }}
                       />
                     ) : (
-                      <div
+                      <span
                         onClick={() => { if (!isDemo) { setBidInlineValue(bidAmt?.toString() ?? ""); setEditingBidInline(true); } }}
-                        style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2, cursor: isDemo ? undefined : "pointer" }}
+                        style={{ cursor: isDemo ? undefined : "pointer" }}
                         title={isDemo ? undefined : "Click to edit"}
                       >
                         {bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—"}
-                      </div>
+                      </span>
                     )}
-                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Bid</div>
                   </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
-                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>$/SF</div>
-                  </div>
+                </div>
+                {/* Cost per SF */}
+                <div style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: "3px solid #3b82f6", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>Cost / SF</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
                 </div>
               </div>
 

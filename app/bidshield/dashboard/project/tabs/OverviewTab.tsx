@@ -171,8 +171,12 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
     yellow: { borderColor: "#f59e0b", bg: "#fffbeb", dot: "#f59e0b", text: "#78350f" },
   };
 
+  const completeSections = Object.values(sectionScores).filter(s => s >= 75).length;
+  const totalSections = Object.values(sectionScores).length;
+
   return (
     <div className="flex flex-col gap-4">
+
       {/* Bid deadline card */}
       {msUntilBid !== null && (() => {
         const isOverdue = msUntilBid <= 0;
@@ -181,44 +185,35 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
         const accentColor = isOverdue || isCritical ? "#ef4444" : isWarning ? "#f59e0b" : "#10b981";
         const countdownText = isOverdue ? "Past due" : hoursUntilBid! < 24 ? formatCountdown(msUntilBid) : (daysUntilBid === 1 ? "1 day" : `${daysUntilBid} days`);
         const countdownLabel = isOverdue ? "" : hoursUntilBid! < 24 ? "until bid" : "to bid";
+        const statusLabel = isOverdue ? "Overdue" : isCritical ? "Critical" : isWarning ? "Due today" : "On track";
         return (
           <div style={{
-            background: "white",
+            background: isOverdue || isCritical ? "#fef2f2" : isWarning ? "#fffbeb" : "white",
             borderRadius: 12,
-            boxShadow: "0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)",
+            border: `1px solid ${isOverdue || isCritical ? "#fecaca" : isWarning ? "#fde68a" : "#e5e7eb"}`,
             borderLeft: `4px solid ${accentColor}`,
             padding: "16px 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
           }}>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
-                Bid Deadline
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em" }}>Bid Deadline</span>
+                <span style={{ fontSize: 10, fontWeight: 700, background: `${accentColor}18`, color: accentColor, padding: "1px 6px", borderRadius: 99, textTransform: "uppercase", letterSpacing: "0.06em" }}>{statusLabel}</span>
               </div>
-              <div style={{
-                fontSize: 30, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
-                color: isOverdue || isCritical ? "#dc2626" : isWarning ? "#d97706" : "#111827",
-                letterSpacing: "-0.03em",
-                fontFamily: "'Barlow Condensed', system-ui, sans-serif",
-              }}>
+              <div style={{ fontSize: 32, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1, color: isOverdue || isCritical ? "#dc2626" : isWarning ? "#d97706" : "#111827", letterSpacing: "-0.03em" }}>
                 {countdownText}
-                {countdownLabel && <span style={{ fontSize: 14, fontWeight: 500, color: "#6b7280", marginLeft: 6, fontFamily: "inherit" }}>{countdownLabel}</span>}
+                {countdownLabel && <span style={{ fontSize: 14, fontWeight: 500, color: "#6b7280", marginLeft: 6 }}>{countdownLabel}</span>}
               </div>
-              <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 5 }}>
-                {project?.bidDate
-                  ? (() => {
-                      const bidTimeStr = (project as any)?.bidTime as string | undefined;
-                      const dateLabel = new Date(`${project.bidDate}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-                      return bidTimeStr ? `${dateLabel} at ${bidTimeStr}` : dateLabel;
-                    })()
-                  : "No deadline set"
-                }
+              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>
+                {project?.bidDate ? (() => {
+                  const bidTimeStr = (project as any)?.bidTime as string | undefined;
+                  const dateLabel = new Date(`${project.bidDate}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                  return bidTimeStr ? `${dateLabel} at ${bidTimeStr}` : dateLabel;
+                })() : "No deadline set"}
               </div>
             </div>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${accentColor}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke={accentColor}>
+            <div style={{ width: 44, height: 44, borderRadius: 10, background: `${accentColor}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke={accentColor}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
             </div>
@@ -226,96 +221,137 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
         );
       })()}
 
-      {/* Quick stats row */}
+      {/* Key stats — 3-column stat cards */}
       {(bidAmt || grossArea) && (
-        <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-          {bidAmt ? <span className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 font-medium">${bidAmt.toLocaleString()} bid</span> : null}
-          {dpsf ? <span className="bg-white px-3 py-1.5 rounded-lg border border-slate-200">${dpsf.toFixed(2)}/SF</span> : null}
-          {grossArea ? <span className="bg-white px-3 py-1.5 rounded-lg border border-slate-200">{grossArea.toLocaleString()} SF</span> : null}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          {[
+            { label: "Sq. Footage", value: grossArea ? `${grossArea.toLocaleString()}` : "—", unit: "SF", accent: "#334155" },
+            { label: "Total Bid", value: bidAmt ? `$${(bidAmt / 1000).toFixed(0)}K` : "—", unit: null, accent: "#059669" },
+            { label: "Cost / SF", value: dpsf ? `$${dpsf.toFixed(2)}` : "—", unit: null, accent: "#3b82f6" },
+          ].map(({ label, value, unit, accent }) => (
+            <div key={label} style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 5 }}>{label}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>
+                {value}{unit && <span style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginLeft: 3 }}>{unit}</span>}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Action items — the core of this tab */}
+      {/* Action items */}
       {actionItems.length === 0 ? (
-        <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "20px 20px", border: "1px solid #bbf7d0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#16a34a">
+        <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "18px 20px", border: "1px solid #bbf7d0", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#dcfce7", border: "1px solid #86efac", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#16a34a">
               <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
             </svg>
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#065f46" }}>All clear — bid is ready to submit</div>
-            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 2 }}>{greenCount} item{greenCount !== 1 ? "s" : ""} passing</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#065f46", lineHeight: 1.3 }}>All clear — bid is ready to submit</div>
+            <div style={{ fontSize: 12, color: "#16a34a", marginTop: 3 }}>{greenCount} section{greenCount !== 1 ? "s" : ""} passing</div>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1 mb-0.5">
-            Needs Attention ({actionItems.length})
+        <div style={{ background: "white", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          {/* Header */}
+          <div style={{ padding: "10px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#374151", textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>Needs Attention</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {greenCount > 0 && <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>{greenCount} passing</span>}
+              <span style={{ fontSize: 11, fontWeight: 700, background: actionItems.some(a => a.level === "red") ? "#fef2f2" : "#fffbeb", color: actionItems.some(a => a.level === "red") ? "#dc2626" : "#d97706", padding: "2px 8px", borderRadius: 99 }}>
+                {actionItems.length} issue{actionItems.length !== 1 ? "s" : ""}
+              </span>
+            </div>
           </div>
-          {actionItems.map((item, i) => {
-            const style = levelStyles[item.level as "red" | "yellow"];
-            return (
-              <button
-                key={`${item.tab}-${i}`}
-                onClick={() => onNavigateTab?.(item.tab)}
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  width: "100%", textAlign: "left", padding: "10px 14px",
-                  borderRadius: 10, borderLeft: `4px solid ${style.borderColor}`,
-                  background: style.bg,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  cursor: "pointer", transition: "box-shadow 0.15s",
-                  border: "none", outline: "none",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.10)")}
-                onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)")}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: style.dot, flexShrink: 0, display: "inline-block" }} />
-                  <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{item.text}</span>
-                </div>
-                <span style={{ fontSize: 11, color: "#9ca3af", flexShrink: 0, marginLeft: 12, fontWeight: 500 }}>
-                  {tabLabels[item.tab]} →
-                </span>
-              </button>
-            );
-          })}
-          {greenCount > 0 && (
-            <div style={{ fontSize: 11, color: "#16a34a", padding: "4px 4px 0", fontWeight: 500 }}>{greenCount} item{greenCount > 1 ? "s" : ""} passing ✓</div>
-          )}
+          {/* Items */}
+          <div style={{ padding: "4px 0" }}>
+            {actionItems.map((item, i) => {
+              const style = levelStyles[item.level as "red" | "yellow"];
+              const isRed = item.level === "red";
+              return (
+                <button
+                  key={`${item.tab}-${i}`}
+                  onClick={() => onNavigateTab?.(item.tab)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
+                    padding: "10px 16px", cursor: "pointer", transition: "background 0.1s",
+                    background: "transparent", border: "none", outline: "none", borderLeft: `3px solid ${style.borderColor}`, marginLeft: 0,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = style.bg; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: `${style.borderColor}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {isRed ? (
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke={style.borderColor}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke={style.borderColor}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      </svg>
+                    )}
+                  </div>
+                  <span style={{ flex: 1, fontSize: 13, color: "#1e293b", fontWeight: 500, lineHeight: 1.35 }}>{item.text}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: `${style.borderColor}15`, color: style.borderColor, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
+                      {tabLabels[item.tab]}
+                    </span>
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Section progress bars */}
-      <div style={{ background: "white", borderRadius: 12, padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 14 }}>Section Progress</div>
-        <div className="flex flex-col gap-3">
-          {Object.entries(sectionScores).map(([key, score]) => {
+      {/* Section progress — table style */}
+      <div style={{ background: "white", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+        <div style={{ padding: "10px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#374151", textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>Section Progress</span>
+          <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 500 }}>{completeSections}/{totalSections} ready</span>
+        </div>
+        <div>
+          {Object.entries(sectionScores).map(([key, score], idx, arr) => {
             const color = score >= 75 ? "#10b981" : score >= 25 ? "#f59e0b" : "#ef4444";
             const tabId = key as any;
             return (
               <button
                 key={key}
                 onClick={() => onNavigateTab?.(tabId)}
-                className="flex items-center gap-3 w-full text-left group"
+                style={{
+                  display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
+                  padding: "9px 16px", cursor: "pointer", transition: "background 0.1s", background: "transparent",
+                  border: "none", outline: "none",
+                  borderBottom: idx < arr.length - 1 ? "1px solid #f8fafc" : "none",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#f8fafc"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
               >
-                <span style={{ fontSize: 12, color: "#6b7280", width: 72, flexShrink: 0, textAlign: "right" as const, fontWeight: 500 }}>{sectionLabels[key]}</span>
-                <div style={{ flex: 1, height: 6, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
+                <div style={{ width: 36, height: 22, borderRadius: 4, background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color, letterSpacing: "-0.01em" }}>{score}%</span>
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#374151", width: 80, flexShrink: 0 }}>{sectionLabels[key]}</span>
+                <div style={{ flex: 1, height: 5, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
                   <div style={{ height: "100%", borderRadius: 9999, background: color, width: `${score}%`, transition: "width 0.6s cubic-bezier(0.34,1.56,0.64,1)" }} />
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 700, width: 32, flexShrink: 0, color }}>{score}%</span>
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#d1d5db" strokeWidth={2.5} style={{ flexShrink: 0 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Project notes (only if they exist) */}
+      {/* Project notes */}
       {project?.notes && (
-        <div className="bg-white rounded-lg p-3 border border-slate-200">
-          <div className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Notes</div>
-          <p className="text-xs text-slate-600">{project.notes}</p>
+        <div style={{ background: "white", borderRadius: 10, padding: "12px 16px", border: "1px solid #e5e7eb" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 6 }}>Notes</div>
+          <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.6 }}>{project.notes}</p>
         </div>
       )}
     </div>
