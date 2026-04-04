@@ -51,17 +51,21 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
         <div className="text-center">
-          <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div>
+          <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">You&apos;ve reached your free plan limit</h2>
           <p className="text-slate-500 text-sm mb-6">Upgrade to Pro for unlimited projects &mdash; $249/month</p>
-          <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm">
+          <a href="/bidshield/pricing" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-center transition-colors shadow-sm cursor-pointer">
             Upgrade to Pro &rarr;
           </a>
-          <button onClick={onClose} className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+          <button onClick={onClose} className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">Cancel</button>
         </div>
       </div>
     </div>
@@ -115,15 +119,29 @@ const demoStats = {
 // ============================================================
 // STAT CARD
 // ============================================================
-function StatCard({ value, label, dimmed }: {
+function StatCard({ value, label, dimmed, icon, accent = "#059669" }: {
   value: string | number;
   label: string;
   dimmed?: boolean;
+  icon?: React.ReactNode;
+  accent?: string;
 }) {
   return (
-    <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 20, opacity: dimmed ? 0.5 : 1 }}>
-      <div style={{ fontSize: 30, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em", lineHeight: 1 }}>{dimmed ? "—" : value}</div>
-      <div style={{ fontSize: 13, color: "#6b7280", marginTop: 6, fontWeight: 500 }}>{label}</div>
+    <div style={{
+      background: "white",
+      border: "1px solid #e5e7eb",
+      borderLeft: `3px solid ${dimmed ? "#e5e7eb" : accent}`,
+      borderRadius: 10,
+      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+      padding: "18px 20px",
+    }}>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+        {icon && <span style={{ color: dimmed ? "#d1d5db" : accent, opacity: 0.7 }}>{icon}</span>}
+      </div>
+      <div style={{ fontSize: 32, fontWeight: 800, color: dimmed ? "#d1d5db" : "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>
+        {dimmed ? "—" : value}
+      </div>
     </div>
   );
 }
@@ -563,17 +581,31 @@ function DashboardContent() {
         <WelcomeCard onNewBid={handleNewBidClick} onDismiss={handleDismissWelcome} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard value={stats.activeProjects} label="Active Bids" />
+          <StatCard
+            value={stats.activeProjects}
+            label="Active Bids"
+            accent="#059669"
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" /></svg>}
+          />
           <StatCard
             value={`${stats.winRate}%`}
             label="Win Rate"
+            accent="#3b82f6"
             dimmed={stats.winRate === 0 && stats.wonProjects + stats.lostProjects === 0}
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>}
           />
-          <StatCard value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`} label="Won / Decided" />
+          <StatCard
+            value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`}
+            label="Won / Decided"
+            accent="#059669"
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" /></svg>}
+          />
           <StatCard
             value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`}
             label="Pipeline Value"
+            accent="#334155"
             dimmed={stats.pipelineValue === 0}
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
           />
         </div>
       )}
@@ -587,7 +619,9 @@ function DashboardContent() {
               className="flex items-start gap-3 p-4 rounded-xl border border-red-200 bg-red-50 hover:shadow-md transition-all cursor-pointer"
               onClick={() => document.getElementById("active-bids")?.scrollIntoView({ behavior: "smooth" })}
             >
-              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 bg-red-100 text-red-600">📋</span>
+              <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
+              </span>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-slate-800">{stats.expiringQuotes} quote{stats.expiringQuotes !== 1 ? "s" : ""} expiring soon</p>
                 <p className="text-sm text-slate-600 mt-0.5">Review your vendor quotes and request updates before they expire.</p>
@@ -600,7 +634,9 @@ function DashboardContent() {
               className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:shadow-md transition-all cursor-pointer"
               onClick={() => document.getElementById("active-bids")?.scrollIntoView({ behavior: "smooth" })}
             >
-              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 bg-amber-100 text-amber-600">📨</span>
+              <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-amber-100 text-amber-600">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+              </span>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-slate-800">{stats.openRFIs} RFI{stats.openRFIs !== 1 ? "s" : ""} pending response</p>
                 <p className="text-sm text-slate-600 mt-0.5">Follow up with GC/Architect to keep your bid on track.</p>

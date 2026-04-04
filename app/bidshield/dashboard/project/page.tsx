@@ -553,7 +553,7 @@ function ProjectDetail() {
                 border: `1px solid ${msUntilBid <= 0 ? "rgba(239,68,68,0.4)" : hoursUntilBid! <= 4 ? "rgba(239,68,68,0.3)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.3)" : "#10b981"}`,
                 fontVariantNumeric: "tabular-nums",
               }}>
-                {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `⏰ ${formatCountdown(msUntilBid)}` : `${daysUntilBid}d to bid`}
+                {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `${formatCountdown(msUntilBid)} left` : `${daysUntilBid}d to bid`}
               </span>
             )}
             {/* Static readiness — no spinner */}
@@ -574,7 +574,13 @@ function ProjectDetail() {
             flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 16 }}>{activeWarning === "1h" ? "🚨" : "⏰"}</span>
+              <span style={{ color: activeWarning === "1h" ? "#dc2626" : "#d97706", display: "flex", alignItems: "center" }}>
+                {activeWarning === "1h" ? (
+                  <svg width={16} height={16} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                ) : (
+                  <svg width={16} height={16} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                )}
+              </span>
               <div>
                 <span style={{
                   fontSize: 13, fontWeight: 700,
@@ -733,13 +739,16 @@ function ProjectDetail() {
 
                 {/* Action items */}
                 {actionItems.length === 0 ? (
-                  <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: "2rem", textAlign: "center" }}>
-                    <div className="text-3xl mb-3">✅</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#059669", marginBottom: 4 }}>Bid ready to submit</div>
-                    <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>All sections are complete and passing.</div>
+                  <div style={{ background: "white", borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", padding: "2rem", textAlign: "center", border: "1px solid #d1fae5" }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+                      <svg width={24} height={24} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#059669"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#059669", marginBottom: 4 }}>Bid ready to submit</div>
+                    <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 18 }}>All sections are complete and passing.</div>
                     <button
                       onClick={() => openTab("validator")}
-                      style={{ padding: "10px 24px", background: "#10b981", color: "white", fontSize: 14, fontWeight: 500, borderRadius: 8 }}
+                      style={{ padding: "10px 24px", background: "#059669", color: "white", fontSize: 14, fontWeight: 600, borderRadius: 8, cursor: "pointer", border: "none" }}
+                      className="hover:opacity-90 transition-opacity"
                     >
                       Review & Export →
                     </button>
@@ -921,8 +930,9 @@ function ProjectDetail() {
                       {formatCountdown(msUntilBid)}
                     </div>
                     {blockerCount > 0 && (
-                      <div style={{ fontSize: 11, color: "#ef4444", marginTop: 6, fontWeight: 600 }}>
-                        ⚠ {blockerCount} unresolved blocker{blockerCount > 1 ? "s" : ""}
+                      <div style={{ fontSize: 11, color: "#ef4444", marginTop: 6, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                        <svg width={11} height={11} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                        {blockerCount} unresolved blocker{blockerCount > 1 ? "s" : ""}
                       </div>
                     )}
                   </div>
@@ -999,13 +1009,15 @@ function ProjectDetail() {
                     </span>
                   )}
                   {(projectData as any)?.pre1990 === true && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", padding: "3px 8px", borderRadius: 4 }}>
-                      ⚠ Pre-1990 — DSS Required
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", padding: "3px 8px", borderRadius: 4, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <svg width={11} height={11} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                      Pre-1990 — DSS Required
                     </span>
                   )}
                   {(projectData as any)?.energyCode === true && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#4338ca", background: "#eef2ff", border: "1px solid #c7d2fe", padding: "3px 8px", borderRadius: 4 }}>
-                      ⚡ Energy Code{(projectData as any)?.climateZone ? ` CZ${(projectData as any).climateZone}` : ""}
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#4338ca", background: "#eef2ff", border: "1px solid #c7d2fe", padding: "3px 8px", borderRadius: 4, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <svg width={11} height={11} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                      Energy Code{(projectData as any)?.climateZone ? ` CZ${(projectData as any).climateZone}` : ""}
                     </span>
                   )}
                 </div>
@@ -1075,7 +1087,7 @@ function ProjectDetail() {
               {(projectData as any)?.status === "submitted" ? (
                 <button
                   onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
-                  style={{ width: "100%", padding: "12px 0", borderRadius: 8, fontSize: 14, fontWeight: 500, background: "#6366f1", color: "#ffffff", cursor: "pointer", transition: "opacity 0.15s" }}
+                  style={{ width: "100%", padding: "12px 0", borderRadius: 8, fontSize: 14, fontWeight: 600, background: "#059669", color: "#ffffff", cursor: "pointer", transition: "opacity 0.15s", border: "none" }}
                   className="hover:opacity-90"
                 >
                   Record Outcome →
@@ -1176,7 +1188,8 @@ function ProjectDetail() {
               textDecoration: "none",
             }}
           >
-            🔒 Decision Log (5/5) · Upgrade
+            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+            Decision Log (5/5) · Upgrade
           </a>
         ) : (
           <button
@@ -1334,8 +1347,8 @@ function ProjectDetail() {
           {/* Outcome buttons */}
           <div className="grid grid-cols-2 gap-3" style={{ marginBottom: 20 }}>
             {([
-              { label: "🏆 Won", value: "won" as const, bg: "#ecfdf5", border: "#10b981", color: "#065f46" },
-              { label: "✗ Lost", value: "lost" as const, bg: "#fef2f2", border: "#ef4444", color: "#991b1b" },
+              { label: "Won", value: "won" as const, bg: "#ecfdf5", border: "#10b981", color: "#065f46" },
+              { label: "Lost", value: "lost" as const, bg: "#fef2f2", border: "#ef4444", color: "#991b1b" },
               { label: "No Award", value: "no_award" as const, bg: "#f8fafc", border: "#94a3b8", color: "#475569" },
               { label: "Still Pending", value: "pending" as const, bg: "#fffbeb", border: "#f59e0b", color: "#92400e" },
             ] as const).map(opt => (
