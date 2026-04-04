@@ -278,33 +278,19 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   return (
     <div className="flex flex-col gap-4">
 
-      {/* Stat line + progress bar */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[13px] text-slate-500">
-            {totalCount} items
-            {" · "}
-            <span className="font-medium text-slate-700">{decidedPct}% decided</span>
-            {includedCost > 0 && (
-              <>
-                {" · "}
-                <span className="text-emerald-600 font-medium">${includedCost.toLocaleString()} included</span>
-              </>
-            )}
-          </span>
-          <div className="flex gap-2 text-[11px] font-medium">
-            {includedCount > 0  && <span style={{ color: "#10b981" }}>{includedCount} in</span>}
-            {excludedCount > 0  && <span style={{ color: "#ef4444" }}>{excludedCount} out</span>}
-            {byOthersCount > 0  && <span style={{ color: "#3b82f6" }}>{byOthersCount} others</span>}
-            {naCount > 0        && <span style={{ color: "#94a3b8" }}>{naCount} N/A</span>}
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Total Items", value: String(totalCount), accent: "#334155" },
+          { label: "Decided", value: `${decidedPct}%`, accent: "#059669" },
+          ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost.toLocaleString()}`, accent: "#059669" }] : []),
+          ...(includedCount > 0 || excludedCount > 0 ? [{ label: "In / Out", value: `${includedCount} / ${excludedCount}`, accent: includedCount > excludedCount ? "#059669" : "#334155" }] : []),
+        ].map(({ label, value, accent }) => (
+          <div key={label} style={{ background: "white", borderRadius: 10, padding: "10px 14px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
           </div>
-        </div>
-        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-            style={{ width: `${decidedPct}%` }}
-          />
-        </div>
+        ))}
       </div>
 
       {/* Filter tabs — segmented control (Linear/Vercel pattern) */}

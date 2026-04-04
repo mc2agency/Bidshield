@@ -185,20 +185,20 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-          <div className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">Line Items</div>
-          <div className="text-2xl font-bold text-slate-800">{fmt(lineItemsTotal)}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">direct GC costs</div>
+        <div style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: "3px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Line Items</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(lineItemsTotal)}</div>
+          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>direct GC costs</div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-          <div className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">Markups</div>
-          <div className="text-2xl font-bold text-slate-800">{fmt(markupTotal)}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">on {fmt(markupBase)} base</div>
+        <div style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: "3px solid #8b5cf6", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Markups</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(markupTotal)}</div>
+          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>on {fmt(markupBase)} base</div>
         </div>
-        <div className="bg-white rounded-xl border-l-4 border-l-emerald-500 border-t border-r border-b border-slate-200 shadow-sm p-4">
-          <div className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">GC Total</div>
-          <div className="text-2xl font-bold text-emerald-600">{fmt(gcTotal)}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">all-in GC</div>
+        <div style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: "3px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>GC Total</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "#059669", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(gcTotal)}</div>
+          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>all-in GC</div>
         </div>
       </div>
 
@@ -212,7 +212,8 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
           <div key={cat.id} className="bg-white rounded-xl border border-slate-200 shadow-sm mb-3 overflow-hidden">
             {/* Category header */}
             <div
-              className="flex items-center justify-between px-4 py-3 bg-slate-50 cursor-pointer select-none"
+              className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
+              style={{ background: "#f8fafc", borderBottom: isCollapsed ? "none" : "1px solid #f1f5f9" }}
               onClick={() => setCollapsed((c) => ({ ...c, [cat.id]: !c[cat.id] }))}
             >
               <div className="flex items-center gap-2">

@@ -319,7 +319,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                   })}
                   className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100"
                 >
-                  <span className="text-[12px] font-semibold text-emerald-700">✓ Auto-Confirmed ({confirmedItems.length})</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "2px 8px", borderRadius: 9999 }}>Auto-Confirmed ({confirmedItems.length})</span>
                   <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isConfirmedCollapsed ? "" : "rotate-180"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                   </svg>
@@ -380,7 +380,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Scope Item</span>
                                   {item.foundInScope !== undefined || item.foundInChecklist !== undefined ? (
                                     inScope ? (
-                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">✓ In Scope</span>
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">In Scope</span>
                                     ) : (
                                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Not in Scope</span>
                                     )

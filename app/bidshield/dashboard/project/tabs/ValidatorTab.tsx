@@ -284,7 +284,7 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
 
   // Hero status
   const heroTitle = allPass
-    ? "Ready to Submit ✓"
+    ? "Ready to Submit"
     : isReady
     ? `Ready with ${warns.length} warning${warns.length !== 1 ? "s" : ""}`
     : `Not ready — ${fails.length} check${fails.length !== 1 ? "s" : ""} failing`;
@@ -349,7 +349,7 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
 
       {/* ── ZONE 2: Section health grid ── */}
       <div>
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Section Health</h3>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Section Health</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {SECTION_DEFS.map(({ tabId, label, Icon }) => {
             const key = tabId ?? "__meta__";
