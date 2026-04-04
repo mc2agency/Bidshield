@@ -365,16 +365,16 @@ function ProjectDetail() {
         </Link>
 
         {/* Project info */}
-        <div className="px-4 pt-4 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#ffffff", lineHeight: 1.3 }}>
+        <div className="px-4 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4, marginBottom: 6 }}>
+            <div className="app-display" style={{ fontSize: 18, fontWeight: 700, color: "#f1f5f9", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
               {projectData?.name}
             </div>
             {!isDemo && (
               <button
                 onClick={openEditProject}
-                style={{ color: "#4b5563", flexShrink: 0, marginTop: 2, background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
+                style={{ color: "#4b5563", flexShrink: 0, marginTop: 2, background: "none", border: "none", cursor: "pointer", padding: 2 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#94a3b8"}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#4b5563"}
                 title="Edit project"
               >
@@ -384,17 +384,17 @@ function ProjectDetail() {
               </button>
             )}
           </div>
-          <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>
-            {projectData?.location}
+          <div style={{ fontSize: 12, color: "#64748b" }}>
+            {projectData?.location}{(projectData as any)?.gc ? ` · ${(projectData as any).gc}` : ""}
           </div>
-          {(projectData as any)?.gc && (
-            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{(projectData as any).gc}</div>
-          )}
-          {/* Progress bar — 4px, #10b981 fill */}
-          <div style={{ marginTop: 14, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 9999, overflow: "hidden" }}>
-            <div style={{ height: "100%", borderRadius: 9999, width: `${readinessScore}%`, background: "#10b981", transition: "width 0.5s" }} />
+          {/* Progress bar */}
+          <div style={{ marginTop: 14, height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 9999, overflow: "hidden" }}>
+            <div style={{ height: "100%", borderRadius: 9999, width: `${readinessScore}%`, background: readinessColor, transition: "width 0.5s" }} />
           </div>
-          <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 6 }}>{readinessScore}% bid ready</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
+            <span style={{ fontSize: 11, color: "#475569" }}>Bid readiness</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
+          </div>
         </div>
 
         {/* Section nav — icons + label + status dot */}
@@ -478,23 +478,29 @@ function ProjectDetail() {
 
         </nav>
 
-        {/* Status pills */}
-        <div className="px-3 pb-4 pt-2 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          {blockerCount > 0 && (
-            <span style={{ fontSize: 12, fontWeight: 700, background: "rgba(239,68,68,0.15)", color: "#f87171", padding: "3px 10px", borderRadius: 9999 }}>
-              {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
-            </span>
-          )}
-          {warnCount > 0 && (
-            <span style={{ fontSize: 12, fontWeight: 700, background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "3px 10px", borderRadius: 9999 }}>
-              {warnCount} warning{warnCount > 1 ? "s" : ""}
-            </span>
-          )}
-          {passCount > 0 && (
-            <span style={{ fontSize: 12, fontWeight: 700, background: "rgba(16,185,129,0.15)", color: "#34d399", padding: "3px 10px", borderRadius: 9999 }}>
-              {passCount} passing
-            </span>
-          )}
+        {/* Status summary */}
+        <div className="px-3 pb-3 pt-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Status</div>
+          <div className="flex flex-wrap gap-1.5">
+            {blockerCount > 0 && (
+              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(239,68,68,0.12)", color: "#f87171", padding: "2px 8px", borderRadius: 5, border: "1px solid rgba(239,68,68,0.2)" }}>
+                {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
+              </span>
+            )}
+            {warnCount > 0 && (
+              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(245,158,11,0.12)", color: "#fbbf24", padding: "2px 8px", borderRadius: 5, border: "1px solid rgba(245,158,11,0.2)" }}>
+                {warnCount} warning{warnCount > 1 ? "s" : ""}
+              </span>
+            )}
+            {passCount > 0 && (
+              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(16,185,129,0.12)", color: "#34d399", padding: "2px 8px", borderRadius: 5, border: "1px solid rgba(16,185,129,0.2)" }}>
+                {passCount} passing
+              </span>
+            )}
+            {blockerCount === 0 && warnCount === 0 && passCount === 0 && (
+              <span style={{ fontSize: 11, color: "#374151" }}>No issues yet</span>
+            )}
+          </div>
         </div>
       </aside>
 
@@ -556,8 +562,15 @@ function ProjectDetail() {
                 {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `${formatCountdown(msUntilBid)} left` : `${daysUntilBid}d to bid`}
               </span>
             )}
-            {/* Static readiness — no spinner */}
-            <span style={{ fontSize: 13, color: "#6b7280" }}>{readinessScore}% ready</span>
+            {/* Readiness badge */}
+            <span style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+              padding: "3px 9px", borderRadius: 6,
+              background: readinessScore >= 80 ? "rgba(5,150,105,0.12)" : readinessScore >= 50 ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)",
+              color: readinessScore >= 80 ? "#34d399" : readinessScore >= 50 ? "#fbbf24" : "#f87171",
+              border: `1px solid ${readinessScore >= 80 ? "rgba(52,211,153,0.2)" : readinessScore >= 50 ? "rgba(251,191,36,0.2)" : "rgba(248,113,113,0.2)"}`,
+              fontVariantNumeric: "tabular-nums",
+            }}>{readinessScore}%</span>
           </div>
         </div>
 
@@ -623,20 +636,20 @@ function ProjectDetail() {
               <>
                 {/* Tab header */}
                 <div
-                  className="px-6 py-3 border-b flex items-center gap-3 sticky top-0 z-10"
-                  style={{ background: "#ffffff", borderColor: "#e5e7eb" }}
+                  className="px-6 flex items-center gap-3 sticky top-0 z-10"
+                  style={{ background: "#ffffff", height: 52, borderBottom: "1px solid #f1f5f9" }}
                 >
                   <button
                     onClick={() => setActiveTab(null)}
                     className="flex items-center gap-1 lg:hidden"
-                    style={{ fontSize: 13, color: "#9ca3af" }}
+                    style={{ fontSize: 13, color: "#9ca3af", cursor: "pointer" }}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                     </svg>
                     Back
                   </button>
-                  <h2 style={{ fontSize: 22, fontWeight: 700, color: "#0f172a" }}>{activeTabLabel}</h2>
+                  <h2 className="app-display" style={{ fontSize: 26, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.01em", lineHeight: 1 }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
                   {activeTab === "overview"  && <TabErrorBoundary tabLabel="Overview"><OverviewTab {...tabProps} /></TabErrorBoundary>}
