@@ -670,22 +670,22 @@ export default function QuotesPricingPage() {
               placeholder="Search vendor, quote #..."
               value={qSearch}
               onChange={e => setQSearch(e.target.value)}
-              className="flex-1 min-w-[180px] bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 min-w-[180px] bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             />
             {quoteVendors.length > 0 && (
-              <select value={qFilterVendor} onChange={e => setQFilterVendor(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select value={qFilterVendor} onChange={e => setQFilterVendor(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 <option value="">All Vendors</option>
                 {quoteVendors.map(v => <option key={v}>{v}</option>)}
               </select>
             )}
             {quoteProjects.length > 0 && (
-              <select value={qFilterProject} onChange={e => setQFilterProject(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select value={qFilterProject} onChange={e => setQFilterProject(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 <option value="">All Projects</option>
                 <option value="__general">General (no project)</option>
                 {quoteProjects.map(p => <option key={p}>{p}</option>)}
               </select>
             )}
-            <select value={qFilterStatus} onChange={e => setQFilterStatus(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select value={qFilterStatus} onChange={e => setQFilterStatus(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
               <option value="">All Statuses</option>
               <option value="active">Active</option>
               <option value="expired">Expired</option>
@@ -703,7 +703,7 @@ export default function QuotesPricingPage() {
             </button>
             <button
               onClick={openQuoteModal}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
             >
               + Upload Quote PDF
             </button>
@@ -893,15 +893,15 @@ export default function QuotesPricingPage() {
               placeholder="Search products, categories, vendors..."
               value={dsSearch}
               onChange={e => setDsSearch(e.target.value)}
-              className="flex-1 min-w-[200px] bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 min-w-[200px] bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             />
             {allDsVendors.length > 0 && (
-              <select value={dsFilterVendor} onChange={e => setDsFilterVendor(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select value={dsFilterVendor} onChange={e => setDsFilterVendor(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 <option value="">All Vendors</option>
                 {allDsVendors.map(v => <option key={v}>{v}</option>)}
               </select>
             )}
-            <select value={dsFilterCategory} onChange={e => setDsFilterCategory(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select value={dsFilterCategory} onChange={e => setDsFilterCategory(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
               <option value="">All Categories</option>
               {DATASHEET_CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
@@ -937,7 +937,7 @@ export default function QuotesPricingPage() {
                   onClick={() => { if (!atLimit) setPdfModal(true); }}
                   disabled={atLimit}
                   title={atLimit ? `Monthly limit of ${MONTHLY_LIMIT} reached` : "Upload a vendor price sheet PDF"}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <span>Upload Price Sheet</span>
                   <span className="text-xs opacity-75">{extractionsUsed}/{MONTHLY_LIMIT}</span>
@@ -976,7 +976,7 @@ export default function QuotesPricingPage() {
                         {!dsSearch && !dsFilterVendor && !dsFilterCategory && (
                           <>
                             <p className="text-xs text-slate-400 max-w-sm mx-auto mb-4">Add products with pricing and coverage rates. This library carries across all projects.</p>
-                            <button onClick={() => { setDsForm(BLANK_DS); setManualModal(true); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">+ Add First Product</button>
+                            <button onClick={() => { setDsForm(BLANK_DS); setManualModal(true); }} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg">+ Add First Product</button>
                           </>
                         )}
                       </td>
@@ -1055,7 +1055,7 @@ export default function QuotesPricingPage() {
                   <button
                     onClick={handleQuoteExtract}
                     disabled={quoteExtracting}
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-[13px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-[13px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {quoteExtracting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -1168,7 +1168,7 @@ export default function QuotesPricingPage() {
                 <button
                   onClick={handleQuoteSave}
                   disabled={quoteSaving || !quoteForm.vendorName.trim()}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {quoteSaving ? "Saving..." : "Save to Library"}
                 </button>
@@ -1189,18 +1189,18 @@ export default function QuotesPricingPage() {
             <div className="px-6 py-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Product Name *</label>
-                <input type="text" value={dsForm.productName} onChange={e => setDsForm(f => ({ ...f, productName: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., TPO 60mil Membrane (10' wide)" />
+                <input type="text" value={dsForm.productName} onChange={e => setDsForm(f => ({ ...f, productName: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="e.g., TPO 60mil Membrane (10' wide)" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Category *</label>
-                  <select value={dsForm.category} onChange={e => setDsForm(f => ({ ...f, category: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select value={dsForm.category} onChange={e => setDsForm(f => ({ ...f, category: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     {DATASHEET_CATEGORIES.map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Unit *</label>
-                  <input type="text" list="units-list" value={dsForm.unit} onChange={e => setDsForm(f => ({ ...f, unit: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="RL, BD, GL..." />
+                  <input type="text" list="units-list" value={dsForm.unit} onChange={e => setDsForm(f => ({ ...f, unit: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="RL, BD, GL..." />
                   <datalist id="units-list">{COMMON_UNITS.map(u => <option key={u} value={u} />)}</datalist>
                 </div>
               </div>
@@ -1209,35 +1209,35 @@ export default function QuotesPricingPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">Unit Price *</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                    <input type="number" value={dsForm.unitPrice} onChange={e => setDsForm(f => ({ ...f, unitPrice: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg pl-7 pr-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" step="0.01" />
+                    <input type="number" value={dsForm.unitPrice} onChange={e => setDsForm(f => ({ ...f, unitPrice: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg pl-7 pr-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="0.00" step="0.01" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Coverage Rate</label>
                   <div className="flex gap-1">
-                    <input type="number" value={dsForm.coverage} onChange={e => setDsForm(f => ({ ...f, coverage: e.target.value }))} className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="1000" />
-                    <input type="text" value={dsForm.coverageUnit} onChange={e => setDsForm(f => ({ ...f, coverageUnit: e.target.value }))} className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="SF" />
+                    <input type="number" value={dsForm.coverage} onChange={e => setDsForm(f => ({ ...f, coverage: e.target.value }))} className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="1000" />
+                    <input type="text" value={dsForm.coverageUnit} onChange={e => setDsForm(f => ({ ...f, coverageUnit: e.target.value }))} className="w-20 bg-white border border-slate-300 rounded-lg px-2 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="SF" />
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Vendor</label>
-                  <input type="text" value={dsForm.vendorName} onChange={e => setDsForm(f => ({ ...f, vendorName: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Distributor name" />
+                  <input type="text" value={dsForm.vendorName} onChange={e => setDsForm(f => ({ ...f, vendorName: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="Distributor name" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Price List Date</label>
-                  <input type="date" value={dsForm.quoteDate} onChange={e => setDsForm(f => ({ ...f, quoteDate: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <input type="date" value={dsForm.quoteDate} onChange={e => setDsForm(f => ({ ...f, quoteDate: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                <input type="text" value={dsForm.notes} onChange={e => setDsForm(f => ({ ...f, notes: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 10' wide roll, mechanically attached only" />
+                <input type="text" value={dsForm.notes} onChange={e => setDsForm(f => ({ ...f, notes: e.target.value }))} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="e.g. 10' wide roll, mechanically attached only" />
               </div>
             </div>
             <div className="flex gap-3 justify-end px-6 py-4 border-t border-slate-200">
               <button onClick={() => setManualModal(false)} className="px-5 py-2.5 border border-slate-300 text-slate-600 rounded-lg text-sm hover:bg-slate-50">Cancel</button>
-              <button onClick={handleManualSave} disabled={dsSaving || !dsForm.productName.trim() || !dsForm.unitPrice} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={handleManualSave} disabled={dsSaving || !dsForm.productName.trim() || !dsForm.unitPrice} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 {dsSaving ? "Saving..." : "Add to Library"}
               </button>
             </div>
@@ -1269,15 +1269,15 @@ export default function QuotesPricingPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Vendor Name</label>
-                      <input type="text" value={pdfVendor} onChange={e => setPdfVendor(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., ABC Roofing Supply" />
+                      <input type="text" value={pdfVendor} onChange={e => setPdfVendor(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" placeholder="e.g., ABC Roofing Supply" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Price List Date</label>
-                      <input type="date" value={pdfDate} onChange={e => setPdfDate(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input type="date" value={pdfDate} onChange={e => setPdfDate(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
                     </div>
                   </div>
                   {extractError && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{extractError}</div>}
-                  <button onClick={handleExtract} disabled={extracting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  <button onClick={handleExtract} disabled={extracting} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     {extracting ? (
                       <span className="flex items-center justify-center gap-2">
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
@@ -1342,7 +1342,7 @@ export default function QuotesPricingPage() {
             <div className="flex gap-3 justify-end px-6 py-4 border-t border-slate-200 flex-shrink-0">
               <button onClick={closePdfModal} className="px-5 py-2.5 border border-slate-300 text-slate-600 rounded-lg text-sm hover:bg-slate-50">Cancel</button>
               {previewItems && (
-                <button onClick={handleSaveExtracted} disabled={savingExtracted || previewItems.filter(i => i.selected).length === 0} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={handleSaveExtracted} disabled={savingExtracted || previewItems.filter(i => i.selected).length === 0} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                   {savingExtracted ? "Saving..." : `Save ${previewItems.filter(i => i.selected).length} Products to Library`}
                 </button>
               )}

@@ -349,7 +349,7 @@ function VendorDrawer({
         <div className="flex-1 px-6 py-5 flex flex-col gap-6">
           {/* Contact */}
           <div className="flex flex-col gap-2.5">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</h3>
+            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Contact</h3>
             {vendor.repName && (
               <div className="flex items-center gap-2.5 text-sm text-slate-700">
                 <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -380,7 +380,7 @@ function VendorDrawer({
 
           {/* Categories */}
           <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Categories Supplied</h3>
+            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Categories Supplied</h3>
             <div className="flex flex-wrap gap-1.5">
               {vendor.categories.map((cat) => {
                 const meta = categoryMeta(cat);
@@ -397,7 +397,7 @@ function VendorDrawer({
           {/* Notes */}
           {vendor.notes && (
             <div>
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Notes</h3>
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Notes</h3>
               <p className="text-sm text-slate-700 leading-relaxed">{vendor.notes}</p>
             </div>
           )}
@@ -405,7 +405,7 @@ function VendorDrawer({
           {/* Quote history */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quote History</h3>
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quote History</h3>
               {quotes.length > 0 && (
                 <span className="text-xs text-slate-500">{quotes.length} quote{quotes.length !== 1 ? "s" : ""} · ${totalQuoteValue.toLocaleString()} total</span>
               )}
@@ -438,7 +438,7 @@ function VendorDrawer({
           {/* Price trend warnings */}
           {warnings.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Price Trends</h3>
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Price Trends</h3>
               <div className="flex flex-col gap-2">
                 {warnings.map((w, i) => (
                   <div key={i} className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-800">
@@ -621,7 +621,7 @@ export default function VendorsPage() {
             { label: "Inactive", value: String(inactiveCount), accent: "#94a3b8" },
             { label: "Categories Covered", value: String(categoryCount), accent: "#334155" },
           ].map(({ label, value, accent }) => (
-            <div key={label} style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+            <div key={label} style={{ background: "white", borderRadius: 12, padding: "12px 14px", borderLeft: `4px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{value}</div>
             </div>
@@ -703,8 +703,8 @@ export default function VendorsPage() {
                 key={String(vendor._id)}
                 onClick={() => setSelectedId(String(vendor._id))}
                 className={`text-left w-full flex flex-col gap-3 cursor-pointer ${!vendor.active ? "opacity-60" : ""}`}
-                style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: `3px solid ${accentColor}`, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)", transition: "box-shadow 150ms ease, transform 150ms ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                style={{ background: "white", borderRadius: 12, padding: "14px 16px", borderLeft: `4px solid ${accentColor}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: "box-shadow 200ms ease, transform 150ms ease" }}
+                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = ""; }}
               >
                 {/* Top row */}

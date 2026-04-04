@@ -316,7 +316,7 @@ function AnalyticsInner() {
           { label: "Active Pipeline", value: `$${(stats.pipelineValue / 1000).toFixed(0)}K`, accent: "#f59e0b" },
           { label: "Avg $/SF", value: stats.avgDollarPerSf ? `$${stats.avgDollarPerSf.toFixed(2)}` : "—", accent: "#8b5cf6" },
         ].map(({ label, value, accent }) => (
-          <div key={label} style={{ background: "white", borderRadius: 10, padding: "16px 18px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+          <div key={label} style={{ background: "white", borderRadius: 12, padding: "16px 18px", borderLeft: `4px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
             <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{value}</div>
           </div>
@@ -425,7 +425,7 @@ function AnalyticsInner() {
               <thead>
                 <tr>
                   {["Project", "Estimated", "Actual", "Variance $", "Variance %", "Status"].map((h) => (
-                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">{h}</th>
+                    <th key={h} className="text-left p-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -491,7 +491,7 @@ function AnalyticsInner() {
               <thead>
                 <tr>
                   {["General Contractor", "Bids", "Wins", "Win %", "Avg $/SF", "Won $/SF", "Revenue"].map((h) => (
-                    <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">{h}</th>
+                    <th key={h} className="text-left p-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -634,7 +634,7 @@ function AnalyticsInner() {
                 <thead>
                   <tr>
                     {["Competitor", "Times Won vs You", "Avg Bid ($)", "Avg $/SF"].map(h => (
-                      <th key={h} className="text-left p-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">{h}</th>
+                      <th key={h} className="text-left p-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -726,7 +726,7 @@ function AnalyticsInner() {
                 {["Project", "GC", "Assembly", "SF", "$/SF", "Amount", "Result", "Date"].map((h) => (
                   <th
                     key={h}
-                    className="text-left p-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200"
+                    className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 bg-slate-50"
                   >
                     {h}
                   </th>
