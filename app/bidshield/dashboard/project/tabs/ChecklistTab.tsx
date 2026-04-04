@@ -472,7 +472,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         {/* Status legend — inline pills below filters */}
         <div className="flex items-center gap-2 flex-wrap px-1">
           <span style={{ fontSize: 11, color: "#9ca3af" }}>Click to mark:</span>
-          <span style={{ fontSize: 11, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>✓ Done</span>
+          <span style={{ fontSize: 11, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", borderRadius: 99, padding: "2px 10px", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <svg style={{ width: 10, height: 10, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Done
+          </span>
           <span style={{ fontSize: 11, background: "#f8fafc", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>N/A</span>
           <span style={{ fontSize: 11, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>⚑ Flag</span>
           <span style={{ fontSize: 11, background: "#fffbeb", color: "#d97706", border: "1px solid #fde68a", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>? RFI</span>
@@ -562,7 +565,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                         {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
                         {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
                         {isComplete && (
-                          <span style={{ fontSize: 11, color: "#059669", fontWeight: 600, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 99, padding: "1px 8px" }}>✓ Complete</span>
+                          <span style={{ fontSize: 11, color: "#059669", fontWeight: 600, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 99, padding: "1px 8px", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                            <svg style={{ width: 10, height: 10, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                            Complete
+                          </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-1.5">
@@ -596,7 +602,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 {/* All complete state */}
                 {isOpen && items.length === 0 && (
                   <div className="px-4 py-2.5 border-t border-[#e2e8f0] text-xs text-emerald-600 font-medium flex items-center gap-1.5">
-                    <span>✓</span> All items complete
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                    All items complete
                   </div>
                 )}
 
@@ -748,7 +755,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "done"); }}
                                         className="shrink-0 h-8 rounded-lg text-sm font-semibold px-4 border transition-all whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300"
                                       >
-                                        ✓ Done
+                                        Done
                                       </button>
                                     </>
                                   ) : (
@@ -762,7 +769,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                       `}
                                       title="Click to undo"
                                     >
-                                      <span>{status === "done" ? "✓ Done" : "N/A"}</span>
+                                      <span>{status === "done" ? "Done" : "N/A"}</span>
                                       <span className="text-xs">✕</span>
                                     </button>
                                   )}
@@ -785,12 +792,12 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 {formatNoteDate(noteTs) ? `· ${formatNoteDate(noteTs)}` : ""}
                               </span>
                               {noteSaved && (
-                                <span className="text-[10px] text-emerald-600 font-semibold shrink-0 ml-1">Saved ✓</span>
+                                <span className="text-[10px] text-emerald-600 font-semibold shrink-0 ml-1">Saved</span>
                               )}
                             </div>
                           )}
                           {noteSaved && !note && (
-                            <div className="mx-4 mb-2 text-[11px] text-emerald-600 font-medium px-2">Saved ✓</div>
+                            <div className="mx-4 mb-2 text-[11px] text-emerald-600 font-medium px-2">Saved</div>
                           )}
 
                           {/* Note editing textarea */}
