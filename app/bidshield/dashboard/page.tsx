@@ -489,7 +489,9 @@ function DashboardContent() {
     return project.status;
   };
 
-  const activeProjects = projects.filter((p) => { const s = getProjectStatus(p); return s === "setup" || s === "in_progress"; });
+  const activeProjects = projects
+    .filter((p) => { const s = getProjectStatus(p); return s === "setup" || s === "in_progress"; })
+    .sort((a, b) => new Date(a.bidDate).getTime() - new Date(b.bidDate).getTime());
   const completedProjects = projects.filter((p) => { const s = getProjectStatus(p); return s === "won" || s === "lost"; });
 
   const handleNewBidClick = () => {
@@ -569,28 +571,36 @@ function DashboardContent() {
         <div className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Alerts</h2>
           {stats.expiringQuotes > 0 && (
-            <div className="flex items-start gap-3 p-4 rounded-xl border border-red-200 bg-red-50 hover:shadow-sm transition-all">
+            <div
+              className="flex items-start gap-3 p-4 rounded-xl border border-red-200 bg-red-50 hover:shadow-md transition-all cursor-pointer"
+              onClick={() => document.getElementById("active-bids")?.scrollIntoView({ behavior: "smooth" })}
+            >
               <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 bg-red-100 text-red-600">📋</span>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-semibold text-slate-800">{stats.expiringQuotes} quote{stats.expiringQuotes !== 1 ? "s" : ""} expiring soon</p>
                 <p className="text-sm text-slate-600 mt-0.5">Review your vendor quotes and request updates before they expire.</p>
               </div>
+              <span className="text-xs text-red-400 shrink-0 self-center">View bids →</span>
             </div>
           )}
           {stats.openRFIs > 0 && (
-            <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:shadow-sm transition-all">
+            <div
+              className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:shadow-md transition-all cursor-pointer"
+              onClick={() => document.getElementById("active-bids")?.scrollIntoView({ behavior: "smooth" })}
+            >
               <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 bg-amber-100 text-amber-600">📨</span>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-semibold text-slate-800">{stats.openRFIs} RFI{stats.openRFIs !== 1 ? "s" : ""} pending response</p>
                 <p className="text-sm text-slate-600 mt-0.5">Follow up with GC/Architect to keep your bid on track.</p>
               </div>
+              <span className="text-xs text-amber-500 shrink-0 self-center">View bids →</span>
             </div>
           )}
         </div>
       )}
 
       {/* Active Bids — table on desktop, cards on mobile */}
-      <div>
+      <div id="active-bids">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Active Bids</h2>
 
         {/* Desktop: pipeline table */}

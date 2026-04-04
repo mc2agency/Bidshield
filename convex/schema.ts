@@ -80,11 +80,11 @@ export default defineSchema({
     gc: v.optional(v.string()), // General Contractor
     owner: v.optional(v.string()),
     sqft: v.optional(v.number()),
-    estimatedValue: v.optional(v.number()),
+    estimatedValue: v.optional(v.number()), // DEPRECATED — use totalBidAmount. Kept for legacy doc compatibility.
     assemblies: v.array(v.string()), // ["RT-1 IRMA", "RT-2 Green Roof"]
     grossRoofArea: v.optional(v.number()), // Control number from site plan (SF)
     notes: v.optional(v.string()),
-    // Bid pricing
+    // Bid pricing — canonical field is totalBidAmount
     totalBidAmount: v.optional(v.number()),
     materialCost: v.optional(v.number()),
     laborCost: v.optional(v.number()),

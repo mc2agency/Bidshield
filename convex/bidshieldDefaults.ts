@@ -54,6 +54,8 @@ export const trades: TradeConfig[] = [
       { id: "concrete", label: "Concrete Deck" },
       { id: "wood", label: "Wood/Plywood Deck" },
       { id: "lightweight", label: "Lightweight Insulating Concrete" },
+      { id: "gypsum", label: "Gypsum Deck" },
+      { id: "tectum", label: "Tectum / Cementwood" },
     ],
   },
   { id: "concrete", label: "Concrete / Masonry", available: false, systemTypes: [], deckTypes: [] },

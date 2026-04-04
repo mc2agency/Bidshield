@@ -31,6 +31,8 @@ const DECKS = [
   { id: "concrete", label: "Concrete Deck" },
   { id: "wood", label: "Wood Deck" },
   { id: "lightweight", label: "Lightweight Concrete" },
+  { id: "gypsum", label: "Gypsum Deck" },
+  { id: "tectum", label: "Tectum / Cementwood" },
 ];
 
 interface Props {
@@ -309,7 +311,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                 Your bid review is ready
               </h3>
               <p className="text-sm text-slate-500 mb-6">
-                <strong>{projectName}</strong> is set up with your 17-phase checklist, takeoff tracker, scope gap checker, and bid readiness scoring.
+                <strong>{projectName}</strong> is set up with your 18-phase checklist, takeoff tracker, scope gap checker, and bid readiness scoring.
               </p>
 
               <button

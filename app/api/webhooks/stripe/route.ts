@@ -9,7 +9,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://www.bidshield.co';
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY not configured');
-  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-12-15.clover' });
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' as any });
 }
 
 function getConvex() {

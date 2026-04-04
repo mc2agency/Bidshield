@@ -8,9 +8,9 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-// P1-1: Admin ID moved to env var. Set ADMIN_USER_ID in .env.local and Vercel.
-// Falls back to the original hardcoded ID if the env var is not set.
-const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID || "user_3Aid1uIjrlbv2KrZsADW4SkYKlp";
+// P1-1: Admin ID from env var only. Set NEXT_PUBLIC_ADMIN_USER_ID in Vercel env vars.
+// If not set, the admin page will be inaccessible (fails closed, not open).
+const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID ?? null;
 
 function fmt(ts: number) {
   return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -21,12 +21,12 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoaded && userId !== ADMIN_ID) router.push("/");
+    if (isLoaded && (!ADMIN_ID || userId !== ADMIN_ID)) router.push("/");
   }, [isLoaded, userId, router]);
 
-  const data = useQuery(api.users.adminGetAllData, userId === ADMIN_ID ? {} : "skip");
+  const data = useQuery(api.users.adminGetAllData, ADMIN_ID && userId === ADMIN_ID ? {} : "skip");
 
-  if (!isLoaded || userId !== ADMIN_ID) {
+  if (!isLoaded || !ADMIN_ID || userId !== ADMIN_ID) {
     return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Access denied.</div>;
   }
 
