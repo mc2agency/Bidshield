@@ -46,10 +46,10 @@ const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React
 ];
 
 function scoreDot(s: number): string {
-  if (s === 100) return "#10b981";
-  if (s >= 67)   return "#3b82f6";
-  if (s >= 34)   return "#f59e0b";
-  return "#ef4444";
+  if (s === 100) return "var(--bs-teal)";
+  if (s >= 67)   return "var(--bs-blue)";
+  if (s >= 34)   return "var(--bs-amber)";
+  return "var(--bs-red)";
 }
 
 type ActionLevel = "blocker" | "warning" | "info";
@@ -417,8 +417,8 @@ function ProjectDetail() {
                 onClick={() => setActiveTab(isActive ? null : id)}
                 className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-all group/item"
                 style={isActive
-                  ? { background: "rgba(16,185,129,0.15)", color: "#ffffff", borderLeft: "3px solid #10b981", paddingLeft: 10 }
-                  : { color: "#9ca3af", borderLeft: "3px solid transparent" }
+                  ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", borderLeft: "3px solid var(--bs-teal)", paddingLeft: 10 }
+                  : { color: "var(--bs-text-muted)", borderLeft: "3px solid transparent" }
                 }
                 onMouseEnter={e => {
                   if (!isActive) {
@@ -438,26 +438,26 @@ function ProjectDetail() {
                   <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>{shortLabel ?? label}</span>
                   {id === "labor" && unverifiedLaborCount !== null && unverifiedLaborCount !== undefined && (
                     unverifiedLaborCount > 0 ? (
-                      <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
                         {unverifiedLaborCount}
                       </span>
                     ) : (
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", display: "inline-block", flexShrink: 0 }} title="All tasks verified" />
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--bs-teal)", display: "inline-block", flexShrink: 0 }} title="All tasks verified" />
                     )
                   )}
                   {id === "scope" && scopeConflictCount > 0 && (
-                    <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }} title={`${scopeConflictCount} scope-pricing conflict${scopeConflictCount !== 1 ? "s" : ""} detected`}>
+                    <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }} title={`${scopeConflictCount} scope-pricing conflict${scopeConflictCount !== 1 ? "s" : ""} detected`}>
                       {scopeConflictCount}
                     </span>
                   )}
                   {id === "bidquals" && unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0 && (
-                    <span style={{ fontSize: 10, fontWeight: 700, background: "#f59e0b", color: "#fff", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
+                    <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
                       {unconfirmedGcFormCount}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span title={dotLabel} style={{ width: 8, height: 8, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default", flexShrink: 0 }} />
+                  <span title={dotLabel} style={{ width: 6, height: 6, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default", flexShrink: 0 }} />
                   {showCount && (
                     <span style={{
                       fontSize: 11, fontWeight: 600, lineHeight: 1,
@@ -479,22 +479,22 @@ function ProjectDetail() {
           <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "#4b5563" }}>Status</div>
           <div className="flex flex-wrap gap-1.5">
             {blockerCount > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(239,68,68,0.12)", color: "#f87171", padding: "2px 8px", borderRadius: 5, border: "1px solid rgba(239,68,68,0.2)" }}>
+              <span style={{ fontSize: 11, fontWeight: 500, background: "var(--bs-red-dim)", color: "var(--bs-red)", padding: "3px 9px", borderRadius: 6, border: "1px solid var(--bs-red-border)" }}>
                 {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
               </span>
             )}
             {warnCount > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(245,158,11,0.12)", color: "#fbbf24", padding: "2px 8px", borderRadius: 5, border: "1px solid rgba(245,158,11,0.2)" }}>
+              <span style={{ fontSize: 11, fontWeight: 500, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", padding: "3px 9px", borderRadius: 6, border: "1px solid var(--bs-amber-border)" }}>
                 {warnCount} warning{warnCount > 1 ? "s" : ""}
               </span>
             )}
             {passCount > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(16,185,129,0.12)", color: "#34d399", padding: "2px 8px", borderRadius: 5, border: "1px solid rgba(16,185,129,0.2)" }}>
+              <span style={{ fontSize: 11, fontWeight: 500, background: "var(--bs-teal-dim)", color: "var(--bs-teal)", padding: "3px 9px", borderRadius: 6, border: "1px solid var(--bs-teal-border)" }}>
                 {passCount} passing
               </span>
             )}
             {blockerCount === 0 && warnCount === 0 && passCount === 0 && (
-              <span style={{ fontSize: 11, color: "#374151" }}>No issues yet</span>
+              <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>No issues yet</span>
             )}
           </div>
         </div>
