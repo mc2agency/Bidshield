@@ -333,145 +333,120 @@ function ProjectDetail() {
   const bidAmt = (projectData as any)?.totalBidAmount;
   const dpsf = grossArea && bidAmt ? Math.round((bidAmt / grossArea) * 100) / 100 : null;
 
-  const readinessColor = readinessScore === 100 ? "#10b981" : readinessScore >= 67 ? "#3b82f6" : readinessScore >= 34 ? "#f59e0b" : "#ef4444";
+  const readinessColor = readinessScore >= 75 ? "var(--bs-teal)" : readinessScore >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
 
   return (
     <>
     <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
 
-      {/* Panel A — premium dark sidebar */}
+      {/* Panel A — sidebar */}
       <aside
         className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
         style={{
-          width: 256,
+          width: 230,
           minHeight: "calc(100vh - 4rem)",
-          background: "linear-gradient(180deg, #0f1117 0%, #141820 100%)",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
+          background: "var(--bs-bg-secondary)",
+          borderRight: "1px solid var(--bs-border)",
         }}
       >
-        {/* Back to dashboard */}
-        <Link
-          href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-          className="flex items-center gap-1.5 px-4 py-2.5 text-xs transition-colors"
-          style={{ color: "#6b7280", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#ffffff"}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#6b7280"}
-        >
-          ← Dashboard
-        </Link>
+        {/* Logo */}
+        <div style={{ padding: "16px 18px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--bs-teal)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#13151a" strokeWidth="1.8" fill="none"/><path d="M7 5V9M5 7H9" stroke="#13151a" strokeWidth="1.4"/></svg>
+          </div>
+          <span style={{ fontWeight: 500, fontSize: 15, color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>BidShield</span>
+        </div>
 
-        {/* Project info */}
-        <div className="px-4 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4, marginBottom: 6 }}>
-            <div className="app-display" style={{ fontSize: 18, fontWeight: 700, color: "#f1f5f9", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
-              {projectData?.name}
+        {/* Project card */}
+        <div style={{ padding: "0 12px 14px" }}>
+          <div style={{ background: "var(--bs-bg-card)", borderRadius: 10, padding: "11px 13px", border: "1px solid var(--bs-border)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-primary)" }}>{projectData?.name}</span>
+                {!isDemo && (
+                  <button
+                    onClick={openEditProject}
+                    style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex" }}
+                    title="Edit project"
+                  >
+                    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 500, color: readinessColor }}>{readinessScore}%</span>
             </div>
-            {!isDemo && (
-              <button
-                onClick={openEditProject}
-                style={{ color: "#4b5563", flexShrink: 0, marginTop: 2, background: "none", border: "none", cursor: "pointer", padding: 2 }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#94a3b8"}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#4b5563"}
-                title="Edit project"
-              >
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
-                </svg>
-              </button>
-            )}
-          </div>
-          <div style={{ fontSize: 12, color: "#64748b" }}>
-            {projectData?.location}{(projectData as any)?.gc ? ` · ${(projectData as any).gc}` : ""}
-          </div>
-          {/* Progress bar */}
-          <div style={{ marginTop: 14, height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 9999, overflow: "hidden" }}>
-            <div style={{ height: "100%", borderRadius: 9999, width: `${readinessScore}%`, background: readinessColor, transition: "width 0.5s" }} />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
-            <span style={{ fontSize: 11, color: "#6b7280" }}>Bid readiness</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
+            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 2, width: `${readinessScore}%`, background: readinessColor, transition: "width 0.5s" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 5 }}>
+              <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Bid readiness</span>
+              {projectData?.location && <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>{projectData.location}</span>}
+            </div>
           </div>
         </div>
 
-        {/* Section nav — icons + label + status dot */}
-        <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5">
-          {BROWSE_ITEMS.map(({ id, label, shortLabel, Icon }) => {
-            const sectionScore = scores[id as keyof typeof scores];
-            const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
-            const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
-            const dot = sectionScore !== undefined
-              ? scoreDot(sectionScore)
-              : (hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#6b7280");
-            const isActive = activeTab === id;
-            const remainingCount = remaining[id as keyof typeof remaining] ?? 0;
-            const showCount = sectionScore !== undefined && sectionScore > 0 && sectionScore < 100 && remainingCount > 0;
-            const dotLabel =
-              dot === "#10b981" ? "Complete" :
-              dot === "#3b82f6" ? (remainingCount > 0 ? `In progress · ${remainingCount} left` : "In progress") :
-              dot === "#f59e0b" ? (remainingCount > 0 ? `${remainingCount} item${remainingCount !== 1 ? "s" : ""} need attention` : "Needs attention") :
-              "Not started";
+        {/* Section nav with groups */}
+        <nav className="flex-1 px-2 flex flex-col" style={{ fontSize: 13 }}>
+          {[
+            { label: "Review", ids: ["overview", "checklist", "scope", "takeoff", "materials"] },
+            { label: "Pricing", ids: ["pricing", "labor", "generalconditions"] },
+            { label: "Docs", ids: ["quotes", "addenda", "rfis", "bidquals", "validator", "decisions", "submission", "prebidmeetings"] },
+          ].map(({ label: groupLabel, ids }) => (
+            <div key={groupLabel}>
+              <div style={{ fontSize: 10, color: "var(--bs-text-dim)", padding: "14px 10px 4px", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 500 }}>
+                {groupLabel}
+              </div>
+              {BROWSE_ITEMS.filter(b => ids.includes(b.id)).map(({ id, label, shortLabel, Icon }) => {
+                const sectionScore = scores[id as keyof typeof scores];
+                const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
+                const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
+                const rawScore = sectionScore ?? (hasBlocker ? 0 : hasWarning ? 33 : undefined);
+                const dot = rawScore !== undefined ? scoreDot(rawScore) : "var(--bs-text-dim)";
+                const isActive = activeTab === id;
+                const remainingCount = remaining[id as keyof typeof remaining] ?? 0;
+                const showCount = sectionScore !== undefined && sectionScore > 0 && sectionScore < 100 && remainingCount > 0;
 
-            return (
-              <button
-                key={id}
-                onClick={() => setActiveTab(isActive ? null : id)}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-all group/item"
-                style={isActive
-                  ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", borderLeft: "3px solid var(--bs-teal)", paddingLeft: 10 }
-                  : { color: "var(--bs-text-muted)", borderLeft: "3px solid transparent" }
-                }
-                onMouseEnter={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.color = "#e5e7eb";
-                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.color = "#9ca3af";
-                    (e.currentTarget as HTMLElement).style.background = "transparent";
-                  }
-                }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Icon size={17} strokeWidth={1.75} />
-                  <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>{shortLabel ?? label}</span>
-                  {id === "labor" && unverifiedLaborCount !== null && unverifiedLaborCount !== undefined && (
-                    unverifiedLaborCount > 0 ? (
-                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(isActive ? null : id)}
+                    className="bs-nav-item w-full text-left"
+                    style={isActive
+                      ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500, border: "1px solid var(--bs-teal-border)" }
+                      : { color: "var(--bs-text-muted)", border: "1px solid transparent" }
+                    }
+                  >
+                    <Icon size={15} strokeWidth={1.6} />
+                    <span style={{ flex: 1 }}>{shortLabel ?? label}</span>
+                    {id === "labor" && unverifiedLaborCount !== null && unverifiedLaborCount !== undefined && unverifiedLaborCount > 0 && (
+                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", flexShrink: 0 }}>
                         {unverifiedLaborCount}
                       </span>
+                    )}
+                    {id === "scope" && scopeConflictCount > 0 && (
+                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", flexShrink: 0 }}>
+                        {scopeConflictCount}
+                      </span>
+                    )}
+                    {id === "bidquals" && unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0 && (
+                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", flexShrink: 0 }}>
+                        {unconfirmedGcFormCount}
+                      </span>
+                    )}
+                    {showCount ? (
+                      <span style={{ fontSize: 11, fontWeight: 500, background: "rgba(255,255,255,0.06)", color: "var(--bs-text-dim)", borderRadius: 9999, padding: "1px 6px", flexShrink: 0 }}>
+                        {remainingCount}
+                      </span>
                     ) : (
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--bs-teal)", display: "inline-block", flexShrink: 0 }} title="All tasks verified" />
-                    )
-                  )}
-                  {id === "scope" && scopeConflictCount > 0 && (
-                    <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }} title={`${scopeConflictCount} scope-pricing conflict${scopeConflictCount !== 1 ? "s" : ""} detected`}>
-                      {scopeConflictCount}
-                    </span>
-                  )}
-                  {id === "bidquals" && unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0 && (
-                    <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", lineHeight: 1.5, flexShrink: 0 }}>
-                      {unconfirmedGcFormCount}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span title={dotLabel} style={{ width: 6, height: 6, borderRadius: "50%", background: dot, display: "inline-block", cursor: "default", flexShrink: 0 }} />
-                  {showCount && (
-                    <span style={{
-                      fontSize: 11, fontWeight: 600, lineHeight: 1,
-                      minWidth: 18, height: 18, borderRadius: 9999,
-                      background: "rgba(255,255,255,0.1)", color: "#d1d5db",
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                      padding: "0 5px",
-                    }}>{remainingCount}</span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Status summary */}
