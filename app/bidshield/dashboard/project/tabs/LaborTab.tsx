@@ -431,7 +431,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
               { label: "Labor / SF", value: resolvedAnalysis.laborPerSf ? `$${resolvedAnalysis.laborPerSf.toFixed(2)}` : "—", accent: "#3b82f6" },
               { label: "Loaded Rate / Day", value: `$${Math.round(resolvedAnalysis.loadedRate).toLocaleString()}`, accent: "#8b5cf6" },
             ].map(({ label, value, unit, accent }) => (
-              <div key={label} style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: `4px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+              <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
                 <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>
                   {value}{unit && <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8", marginLeft: 4 }}>{unit}</span>}

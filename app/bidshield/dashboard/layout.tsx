@@ -278,7 +278,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       #bidshield-app { font-family: 'DM Sans', system-ui, sans-serif; }
       #bidshield-app .app-display { font-family: 'Barlow Condensed', system-ui, sans-serif; }
     `}</style>
-    <div id="bidshield-app" className="flex bg-slate-50" style={{ minHeight: "calc(100vh - 4rem)" }}>
+    <div id="bidshield-app" className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "var(--bs-bg-page)" }}>
       <Sidebar isDemo={isDemo} pathname={pathname} isPro={isPro} />
 
       <div className="flex-1 flex flex-col min-w-0">

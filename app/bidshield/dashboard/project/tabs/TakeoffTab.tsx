@@ -312,7 +312,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         {/* Control # */}
-        <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "4px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
           {editingControl ? (
             <div className="flex flex-col gap-1.5">
               <input type="number" value={controlInput} onChange={(e) => setControlInput(e.target.value)}
@@ -336,12 +336,12 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
           )}
         </div>
         {/* Taken Off */}
-        <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: "4px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Taken Off</div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1 }}>{fmt(takenOff)} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>
         </div>
         {/* Delta */}
-        <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: `4px solid ${delta !== null ? (delta >= 0 ? "#059669" : "#ef4444") : "#e2e8f0"}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Delta</div>
           {delta !== null ? (
             <div style={{ fontSize: 20, fontWeight: 800, color: delta >= 0 ? "#059669" : "#dc2626", letterSpacing: "-0.02em", lineHeight: 1 }}>{delta >= 0 ? "-" : "+"}{fmt(Math.abs(delta))} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>

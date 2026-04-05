@@ -185,17 +185,17 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: "4px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Line Items</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(lineItemsTotal)}</div>
           <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>direct GC costs</div>
         </div>
-        <div style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: "4px solid #8b5cf6", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Markups</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(markupTotal)}</div>
           <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>on {fmt(markupBase)} base</div>
         </div>
-        <div style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: "4px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
           <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>GC Total</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#059669", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(gcTotal)}</div>
           <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>all-in GC</div>

@@ -633,7 +633,7 @@ function ProjectDetail() {
         <div className="flex-1 flex overflow-hidden">
 
           {/* Panel B — main content, #f8fafc bg */}
-          <main className="flex-1 overflow-auto min-w-0" style={{ background: "#f1f5f9" }}>
+          <main className="flex-1 overflow-auto min-w-0" style={{ background: "var(--bs-bg-page)" }}>
             {activeTab ? (
               <>
                 {/* Tab header */}

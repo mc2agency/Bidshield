@@ -361,24 +361,24 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       {/* Stats bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-stretch gap-3 flex-wrap">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #334155" }}>
+          <div className="bg-white rounded-xl border border-slate-100 px-4 py-2.5" style={{ boxShadow: "var(--bs-shadow-card)" }}>
             <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Quotes</div>
             <div className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">{stats.total}</div>
           </div>
           {stats.bestDpsf && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #059669" }}>
+            <div className="bg-white rounded-xl border border-slate-100 px-4 py-2.5" style={{ boxShadow: "var(--bs-shadow-card)" }}>
               <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Best $/SF</div>
               <div className="text-2xl font-extrabold tracking-tight leading-none" style={{ color: "#059669" }}>${stats.bestDpsf.toFixed(2)}</div>
             </div>
           )}
           {stats.expiring > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #f59e0b" }}>
+            <div className="bg-white rounded-xl border border-slate-100 px-4 py-2.5" style={{ boxShadow: "var(--bs-shadow-card)" }}>
               <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Expiring</div>
               <div className="text-2xl font-extrabold tracking-tight leading-none" style={{ color: "#d97706" }}>{stats.expiring}</div>
             </div>
           )}
           {stats.expired > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-2.5" style={{ borderLeft: "4px solid #ef4444" }}>
+            <div className="bg-white rounded-xl border border-slate-100 px-4 py-2.5" style={{ boxShadow: "var(--bs-shadow-card)" }}>
               <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Expired</div>
               <div className="text-2xl font-extrabold tracking-tight leading-none" style={{ color: "#dc2626" }}>{stats.expired}</div>
             </div>

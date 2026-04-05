@@ -125,7 +125,7 @@ const sectionColors: Record<string, { bg: string; color: string }> = {
 export default function BidShieldDemoPage() {
   return (
     <DemoGate>
-    <div style={{ background: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ background: "var(--bs-bg-page)" }}>
 
       {/* ── HERO ── */}
       <section style={{ background: "linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #0f2e20 100%)" }} className="px-4 pt-20 pb-24 text-center">

@@ -286,7 +286,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
           ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost.toLocaleString()}`, accent: "#059669" }] : []),
           ...(includedCount > 0 || excludedCount > 0 ? [{ label: "In / Out", value: `${includedCount} / ${excludedCount}`, accent: includedCount > excludedCount ? "#059669" : "#334155" }] : []),
         ].map(({ label, value, accent }) => (
-          <div key={label} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4" style={{ borderLeft: `4px solid ${accent}` }}>
+          <div key={label} className="bg-white rounded-xl border border-slate-100 p-4" style={{ boxShadow: "var(--bs-shadow-card)" }}>
             <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{label}</div>
             <div className="text-xl font-extrabold text-slate-900 tracking-tight leading-none">{value}</div>
           </div>

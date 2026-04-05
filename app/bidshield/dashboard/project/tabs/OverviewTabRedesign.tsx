@@ -267,7 +267,7 @@ export default function OverviewTabRedesign({
   // Render
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-6 min-h-full" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="flex flex-col gap-6 min-h-full">
 
       {/* ── DEADLINE BANNER ─────────────────────────────────────────────────── */}
       {showBanner && (

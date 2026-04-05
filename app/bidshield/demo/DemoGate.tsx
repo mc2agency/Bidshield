@@ -48,7 +48,7 @@ export default function DemoGate({ children }: Props) {
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: "inherit",
       }}
     >
       <div

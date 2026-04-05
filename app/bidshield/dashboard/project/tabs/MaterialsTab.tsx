@@ -848,7 +848,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
             accent: unpricedCount > 0 ? "#f59e0b" : "#059669",
           },
         ].map(({ label, value, accent }) => (
-          <div key={label} style={{ background: "white", borderRadius: 10, padding: "14px 16px", borderLeft: `3px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" }}>
+          <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
             <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
           </div>

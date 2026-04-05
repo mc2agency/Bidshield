@@ -290,12 +290,12 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
           {/* Total Bid */}
-          <div style={{ background: "white", borderRadius: 12, padding: "12px 14px", borderLeft: "4px solid #334155", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
             {editing ? <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="Total" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" style={{ marginBottom: 4 }} /> : <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>}
             <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Total Bid</div>
           </div>
           {/* Material */}
-          <div style={{ background: "white", borderRadius: 12, padding: "12px 14px", borderLeft: "4px solid #3b82f6", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
             {computedMaterialTotal > 0 ? (
               <div style={{ fontSize: 20, fontWeight: 800, color: "#1d4ed8", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{fmtDollar(computedMaterialTotal)}</div>
             ) : (
@@ -307,7 +307,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             </button>
           </div>
           {/* Labor */}
-          <div style={{ background: "white", borderRadius: 12, padding: "12px 14px", borderLeft: "4px solid #059669", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
             {computedLaborTotal > 0 ? (
               <div style={{ fontSize: 20, fontWeight: 800, color: "#059669", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{fmtDollar(computedLaborTotal)}</div>
             ) : (
@@ -319,7 +319,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             </button>
           </div>
           {/* Gen. Conds */}
-          <div style={{ background: "white", borderRadius: 12, padding: "12px 14px", borderLeft: "4px solid #8b5cf6", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
             {editing ? (
               <div>
                 <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" style={{ marginBottom: 4 }} />
@@ -337,7 +337,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Gen. Conds</div>
           </div>
           {/* $/SF */}
-          <div style={{ background: "white", borderRadius: 10, padding: "12px 14px", borderLeft: `4px solid ${dollarPerSf ? (healthColor === "text-emerald-600" ? "#059669" : healthColor === "text-amber-600" ? "#f59e0b" : "#ef4444") : "#e2e8f0"}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }} className="col-span-2 sm:col-span-1">
+          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }} className="col-span-2 sm:col-span-1">
             <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1, color: dollarPerSf ? (healthColor === "text-emerald-600" ? "#059669" : healthColor === "text-amber-600" ? "#d97706" : "#dc2626") : "#cbd5e1" }}>{dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
             <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Cost / SF</div>
           </div>

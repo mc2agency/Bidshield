@@ -9,6 +9,37 @@
   --primary-dark: #059669; /* emerald-600 */
   --secondary: #fbbf24;    /* amber-400 */
   --accent: #a855f7;       /* purple-500 */
+
+  /* ── BidShield Design Tokens ─────────────────────────────────────── */
+
+  /* Colors */
+  --bs-bg-page:          #F8FAFC;
+  --bs-bg-card:          #FFFFFF;
+  --bs-bg-sidebar:       #0f1117;
+  --bs-border-subtle:    #E2E8F0;
+  --bs-border-card:      #F1F5F9;
+  --bs-text-primary:     #0F172A;
+  --bs-text-secondary:   #475569;
+  --bs-text-muted:       #94A3B8;
+  --bs-text-label:       #64748B;
+  --bs-accent-green:     #059669;
+  --bs-accent-green-light: #ECFDF5;
+  --bs-accent-red:       #DC2626;
+  --bs-accent-red-light: #FEF2F2;
+  --bs-accent-amber:     #D97706;
+  --bs-accent-amber-light: #FFFBEB;
+  --bs-accent-blue:      #2563EB;
+  --bs-accent-blue-light: #EFF6FF;
+
+  /* Shadows */
+  --bs-shadow-card:      0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.04);
+  --bs-shadow-card-hover:0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -4px rgba(0,0,0,0.06);
+  --bs-shadow-stat:      0 1px 2px 0 rgba(0,0,0,0.03);
+
+  /* Spacing */
+  --bs-card-padding:     24px;
+  --bs-card-radius:      12px;
+  --bs-section-gap:      24px;
 }
 
 @theme inline {

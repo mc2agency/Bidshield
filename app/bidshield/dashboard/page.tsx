@@ -127,12 +127,15 @@ function StatCard({ value, label, dimmed, icon, accent = "#059669" }: {
   accent?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 p-5" style={{ borderLeft: `4px solid ${dimmed ? "#e2e8f0" : accent}` }}>
+    <div
+      className="bg-white rounded-xl border border-slate-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5"
+      style={{ boxShadow: "var(--bs-shadow-card)" }}
+    >
       <div className="flex items-start justify-between gap-2 mb-3">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">{label}</span>
         {icon && <span style={{ color: dimmed ? "#cbd5e1" : accent }} className="opacity-60">{icon}</span>}
       </div>
-      <div className="text-3xl font-extrabold tracking-tight leading-none" style={{ color: dimmed ? "#cbd5e1" : "#0f172a" }}>
+      <div className="text-3xl font-extrabold tracking-tight leading-none" style={{ color: dimmed ? "#cbd5e1" : "var(--bs-text-primary)" }}>
         {dimmed ? "—" : value}
       </div>
     </div>
