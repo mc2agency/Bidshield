@@ -7,12 +7,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
-import {
-  LayoutList, AlignLeft, Ruler, Package,
-  DollarSign, Users, Briefcase, Quote, FileText,
-  HelpCircle, CheckSquare, ClipboardList, History, LayoutDashboard,
-  Send, CalendarDays,
-} from "lucide-react";
 
 import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-systems";
 import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
@@ -26,23 +20,50 @@ import {
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
-const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
-  { id: "overview",          label: "Overview",               Icon: LayoutDashboard },
-  { id: "checklist",         label: "Checklist",              Icon: LayoutList },
-  { id: "scope",             label: "Scope",                  Icon: AlignLeft },
-  { id: "takeoff",           label: "Takeoff",                Icon: Ruler },
-  { id: "materials",         label: "Material Reconciliation", shortLabel: "Reconciliation", Icon: Package },
-  { id: "pricing",           label: "Pricing",                Icon: DollarSign },
-  { id: "labor",             label: "Labor Verification", shortLabel: "Labor", Icon: Users },
-  { id: "generalconditions", label: "Gen. Conds",   Icon: Briefcase },
-  { id: "quotes",            label: "Quotes",       Icon: Quote },
-  { id: "addenda",           label: "Addenda",      Icon: FileText },
-  { id: "rfis",              label: "RFIs",         Icon: HelpCircle },
-  { id: "bidquals",          label: "Bid Quals",        Icon: ClipboardList },
-  { id: "validator",         label: "Validator",        Icon: CheckSquare },
-  { id: "decisions",         label: "Decision Log",     Icon: History },
-  { id: "submission",        label: "Submission",       Icon: Send },
-  { id: "prebidmeetings",    label: "Pre-Bid Meetings", shortLabel: "Pre-Bid", Icon: CalendarDays },
+function NavIcon({ paths }: { paths: React.ReactNode }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      {paths}
+    </svg>
+  );
+}
+
+const NAV_ICONS: Record<string, React.ReactNode> = {
+  overview:          <><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
+  checklist:         <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
+  scope:             <><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 5v3l2 2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
+  takeoff:           <path d="M3 13L8 3l5 10H3z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" fill="none"/>,
+  materials:         <><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
+  pricing:           <><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
+  labor:             <><path d="M4 4h8v8H4z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M6 2v4M10 2v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
+  generalconditions: <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" fill="none"/>,
+  quotes:            <><path d="M4 3h8a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M6 7h4M6 9.5h2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
+  addenda:           <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M9 3v3h3" stroke="currentColor" strokeWidth="1.1"/></>,
+  rfis:              <><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 7v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><circle cx="8" cy="5.5" r="0.6" fill="currentColor"/></>,
+  bidquals:          <><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></>,
+  validator:         <><path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
+  decisions:         <><path d="M3 5h10M3 8h7M3 11h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
+  submission:        <><path d="M14 2L2 7l5 2.5M14 2L9 14l-2-4.5M14 2L7 9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
+  prebidmeetings:    <><rect x="2.5" y="3.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M2.5 7h11M6 2v3M10 2v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
+};
+
+const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
+  { id: "overview",          label: "Overview" },
+  { id: "checklist",         label: "Checklist" },
+  { id: "scope",             label: "Scope" },
+  { id: "takeoff",           label: "Takeoff" },
+  { id: "materials",         label: "Material Reconciliation", shortLabel: "Reconciliation" },
+  { id: "pricing",           label: "Pricing" },
+  { id: "labor",             label: "Labor Verification",      shortLabel: "Labor" },
+  { id: "generalconditions", label: "Gen. Conds" },
+  { id: "quotes",            label: "Quotes" },
+  { id: "addenda",           label: "Addenda" },
+  { id: "rfis",              label: "RFIs" },
+  { id: "bidquals",          label: "Bid Quals" },
+  { id: "validator",         label: "Validator" },
+  { id: "decisions",         label: "Decision Log" },
+  { id: "submission",        label: "Submission" },
+  { id: "prebidmeetings",    label: "Pre-Bid Meetings", shortLabel: "Pre-Bid" },
 ];
 
 function scoreDot(s: number): string {
@@ -398,7 +419,7 @@ function ProjectDetail() {
               <div style={{ fontSize: 10, color: "var(--bs-text-dim)", padding: "14px 10px 4px", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 500 }}>
                 {groupLabel}
               </div>
-              {BROWSE_ITEMS.filter(b => ids.includes(b.id)).map(({ id, label, shortLabel, Icon }) => {
+              {BROWSE_ITEMS.filter(b => ids.includes(b.id)).map(({ id, label, shortLabel }) => {
                 const sectionScore = scores[id as keyof typeof scores];
                 const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
                 const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
@@ -418,7 +439,7 @@ function ProjectDetail() {
                       : { color: "var(--bs-text-muted)", border: "1px solid transparent" }
                     }
                   >
-                    <Icon size={15} strokeWidth={1.6} />
+                    <NavIcon paths={NAV_ICONS[id]} />
                     <span style={{ flex: 1 }}>{shortLabel ?? label}</span>
                     {id === "labor" && unverifiedLaborCount !== null && unverifiedLaborCount !== undefined && unverifiedLaborCount > 0 && (
                       <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", flexShrink: 0 }}>
@@ -725,7 +746,7 @@ function ProjectDetail() {
               <div className="p-6 max-w-2xl">
                 {/* Mobile section nav */}
                 <div className="lg:hidden flex flex-wrap gap-2 mb-6">
-                  {BROWSE_ITEMS.map(({ id, label, shortLabel, Icon }) => {
+                  {BROWSE_ITEMS.map(({ id, label, shortLabel }) => {
                     const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
                     const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
                     const dot = hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#10b981";
