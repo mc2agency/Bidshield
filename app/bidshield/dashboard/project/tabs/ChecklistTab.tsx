@@ -104,13 +104,13 @@ function ChecklistTemplatesPanel({
   }
 
   return (
-    <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
-      <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+    <div style={{ background: "var(--bs-bg-card)", borderRadius: 10, border: "1px solid var(--bs-border)", padding: 16 }}>
+      <div style={{ fontSize: 11, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
         Checklist Templates
       </div>
 
       {templateFlash && (
-        <div style={{ fontSize: 12, color: "#059669", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "var(--bs-teal)", background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
           {templateFlash}
         </div>
       )}
@@ -121,9 +121,7 @@ function ChecklistTemplatesPanel({
             setTemplateName(systemType ? `${systemType.toUpperCase()} Template` : "My Template");
             setShowSaveTemplate(true);
           }}
-          style={{ fontSize: 12, fontWeight: 500, color: "#4f46e5", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 6, padding: "6px 10px", cursor: "pointer", width: "100%", textAlign: "left" }}
-          onMouseEnter={e => (e.currentTarget.style.background = "#e0e7ff")}
-          onMouseLeave={e => (e.currentTarget.style.background = "#eef2ff")}
+          style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-teal)", background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", borderRadius: 6, padding: "6px 10px", cursor: "pointer", width: "100%", textAlign: "left" }}
         >
           + Save current checklist as template
         </button>
@@ -136,19 +134,19 @@ function ChecklistTemplatesPanel({
             onChange={e => setTemplateName(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") handleSaveTemplate(); if (e.key === "Escape") setShowSaveTemplate(false); }}
             placeholder="Template name..."
-            style={{ fontSize: 12, border: "1px solid #c7d2fe", borderRadius: 6, padding: "6px 8px", outline: "none", width: "100%" }}
+            style={{ fontSize: 12, border: "1px solid var(--bs-border)", background: "var(--bs-bg-input)", color: "var(--bs-text-secondary)", borderRadius: 6, padding: "6px 8px", outline: "none", width: "100%" }}
           />
           <div style={{ display: "flex", gap: 6 }}>
             <button
               onClick={handleSaveTemplate}
               disabled={templateSaving || !templateName.trim()}
-              style={{ flex: 1, fontSize: 12, fontWeight: 600, background: templateSaving || !templateName.trim() ? "#a5b4fc" : "#4f46e5", color: "white", border: "none", borderRadius: 6, padding: "6px 0", cursor: templateSaving || !templateName.trim() ? "not-allowed" : "pointer" }}
+              style={{ flex: 1, fontSize: 12, fontWeight: 500, background: "var(--bs-teal)", color: "#13151a", border: "none", borderRadius: 6, padding: "6px 0", cursor: templateSaving || !templateName.trim() ? "not-allowed" : "pointer", opacity: templateSaving || !templateName.trim() ? 0.5 : 1 }}
             >
               {templateSaving ? "Saving..." : "Save"}
             </button>
             <button
               onClick={() => setShowSaveTemplate(false)}
-              style={{ fontSize: 12, color: "#6b7280", background: "none", border: "1px solid #e5e7eb", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}
+              style={{ fontSize: 12, color: "var(--bs-text-muted)", background: "none", border: "1px solid var(--bs-border)", borderRadius: 6, padding: "6px 10px", cursor: "pointer" }}
             >
               Cancel
             </button>
@@ -161,32 +159,28 @@ function ChecklistTemplatesPanel({
           {templates.map((tpl: Doc<"bidshield_checklist_templates">) => (
             <div
               key={tpl._id}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 7 }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", borderRadius: 7 }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {tpl.name}
                 </div>
                 {tpl.systemType && (
-                  <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}>{tpl.systemType.toUpperCase()}</div>
+                  <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{tpl.systemType.toUpperCase()}</div>
                 )}
               </div>
               <button
                 onClick={() => handleApplyTemplate(tpl._id as Id<"bidshield_checklist_templates">)}
                 disabled={applyingTemplateId === tpl._id}
                 title="Apply this template to the current project"
-                style={{ fontSize: 11, fontWeight: 500, color: "#059669", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 5, padding: "3px 8px", cursor: applyingTemplateId === tpl._id ? "wait" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#dcfce7")}
-                onMouseLeave={e => (e.currentTarget.style.background = "#f0fdf4")}
+                style={{ fontSize: 11, fontWeight: 500, color: "var(--bs-teal)", background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", borderRadius: 5, padding: "3px 8px", cursor: applyingTemplateId === tpl._id ? "wait" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
               >
                 {applyingTemplateId === tpl._id ? "..." : "Apply"}
               </button>
               <button
                 onClick={() => handleDeleteTemplate(tpl._id as Id<"bidshield_checklist_templates">)}
                 title="Delete this template"
-                style={{ fontSize: 11, color: "#ef4444", background: "none", border: "none", cursor: "pointer", padding: "3px 4px", flexShrink: 0, lineHeight: 1 }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#b91c1c")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#ef4444")}
+                style={{ fontSize: 11, color: "var(--bs-red)", background: "none", border: "none", cursor: "pointer", padding: "3px 4px", flexShrink: 0, lineHeight: 1 }}
               >
                 ✕
               </button>
@@ -196,7 +190,7 @@ function ChecklistTemplatesPanel({
       )}
 
       {templates && templates.length === 0 && !showSaveTemplate && (
-        <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 8 }}>
+        <p style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 8 }}>
           No templates yet. Save your current checklist to reuse it on future bids.
         </p>
       )}
@@ -449,59 +443,47 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         {/* ── TOOLBAR: filters + summary ── */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Filter pills */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f1f5f9", padding: 3, borderRadius: 8 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 0, borderBottom: "1px solid var(--bs-border)", width: "100%" }}>
             {FILTERS.map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => setFilter(id)}
                 className="cursor-pointer transition-all"
                 style={{
-                  height: 28, padding: "0 12px", borderRadius: 6, fontSize: 12,
-                  fontWeight: filter === id ? 600 : 400,
-                  background: filter === id ? "#ffffff" : "transparent",
-                  color: filter === id ? "#0f172a" : "#64748b",
-                  boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
-                  whiteSpace: "nowrap",
+                  height: 36, padding: "0 16px", fontSize: 13, background: "none", border: "none",
+                  borderBottom: filter === id ? `2px solid var(--bs-teal)` : "2px solid transparent",
+                  color: filter === id ? "#fff" : "var(--bs-text-dim)",
+                  fontWeight: filter === id ? 500 : 400,
+                  whiteSpace: "nowrap", cursor: "pointer",
                 }}
               >
                 {label}
               </button>
             ))}
-          </div>
-          {/* Summary stats */}
-          <div className="ml-auto hidden lg:flex items-center gap-3 text-[12px]">
-            {filterCounts.incomplete > 0 && <span className="text-slate-500">{filterCounts.incomplete} incomplete</span>}
-            {rfiCount > 0 && <span className="font-semibold text-amber-600">{rfiCount} RFI{rfiCount !== 1 ? "s" : ""}</span>}
-            {blockerCount > 0 && <span className="font-semibold text-red-600">{blockerCount} blocked</span>}
-            <span className="font-semibold text-emerald-600">{filterCounts.done} done</span>
-          </div>
-          {/* Status legend */}
-          <div className="w-full flex items-center gap-2 flex-wrap">
-            <span style={{ fontSize: 11, color: "#9ca3af" }}>Click to mark:</span>
-            <span style={{ fontSize: 11, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", borderRadius: 99, padding: "2px 10px", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <svg style={{ width: 10, height: 10, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-              Done
-            </span>
-            <span style={{ fontSize: 11, background: "#f8fafc", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>N/A</span>
-            <span style={{ fontSize: 11, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>Flag</span>
-            <span style={{ fontSize: 11, background: "#fffbeb", color: "#d97706", border: "1px solid #fde68a", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>? RFI</span>
+            {/* Summary stats right side */}
+            <div className="ml-auto hidden lg:flex items-center gap-3 text-[12px] pr-2">
+              {filterCounts.incomplete > 0 && <span style={{ color: "var(--bs-text-dim)" }}>{filterCounts.incomplete} incomplete</span>}
+              {rfiCount > 0 && <span className="font-medium" style={{ color: "var(--bs-amber)" }}>{rfiCount} RFI{rfiCount !== 1 ? "s" : ""}</span>}
+              {blockerCount > 0 && <span className="font-medium" style={{ color: "var(--bs-red)" }}>{blockerCount} blocked</span>}
+              <span className="font-medium" style={{ color: "var(--bs-teal)" }}>{filterCounts.done} done</span>
+            </div>
           </div>
         </div>
 
         {/* Checklist table — single container, flat groups */}
         {visiblePhases.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl border border-slate-100 shadow-md">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-3">
+          <div className="text-center py-16 rounded-[10px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
               {filter === "incomplete" ? (
-                <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
               ) : (
-                <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" /></svg>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bs-text-dim)"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
               )}
             </div>
-            <p className="text-sm font-semibold text-slate-700">{filter === "incomplete" ? "All items complete!" : "No items match this filter"}</p>
+            <p className="text-[13px] font-medium" style={{ color: "var(--bs-text-muted)" }}>{filter === "incomplete" ? "All items complete!" : "No items match this filter"}</p>
           </div>
         ) : (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
+        <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
           {visiblePhases.map(({ phaseKey, phase, items }, phaseIdx) => {
             const stats       = getPhaseStats(phaseKey);
             const isComplete  = stats.total > 0 && stats.pct === 100;
@@ -518,10 +500,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             return (
               <div
                 key={phaseKey}
-                className={phaseIdx > 0 ? "border-t border-slate-100" : ""}
+                style={phaseIdx > 0 ? { borderTop: "1px solid var(--bs-border)" } : {}}
               >
                 {/* Phase header — sticky group row */}
-                <div className="flex items-center sticky top-[52px] z-10" style={{ background: "#F8FAFC", borderBottom: "1px solid #F1F5F9" }}>
+                <div className="flex items-center sticky top-[52px] z-10" style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
                   {/* Select-all checkbox */}
                   <div
                     className="pl-4 flex items-center justify-center self-stretch"
@@ -544,38 +526,36 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                       checked={allPhaseSelected}
                       ref={el => { if (el) el.indeterminate = somePhaseSelected; }}
                       onChange={() => {}}
-                      style={{ width: 13, height: 13, cursor: "pointer", accentColor: "#64748b", flexShrink: 0 }}
+                      style={{ width: 13, height: 13, cursor: "pointer", accentColor: "var(--bs-teal)", flexShrink: 0 }}
                       title={allPhaseSelected ? "Deselect all" : "Select all incomplete"}
                     />
                   </div>
                   <button
                     onClick={() => setExpanded(p => ({ ...p, [phaseKey]: !isOpen }))}
                     className="flex-1 flex items-center gap-3 px-3 py-3 transition-colors text-left"
-                    onMouseEnter={e => { (e.currentTarget.parentElement as HTMLElement).style.background = "#f1f5f9"; }}
-                    onMouseLeave={e => { (e.currentTarget.parentElement as HTMLElement).style.background = "#f8fafc"; }}
                   >
                     <span className="text-base shrink-0">{phase.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{phase.title}</span>
-                        {isHighRisk && <span className="text-[9px] font-bold bg-red-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wide">Critical</span>}
-                        {stats.blockers > 0 && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{stats.blockers} blocked</span>}
-                        {stats.rfis > 0    && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{stats.rfis} RFI</span>}
+                        <span style={{ fontSize: 13, fontWeight: 500, color: "#fff" }}>{phase.title}</span>
+                        {isHighRisk && <span className="text-[9px] font-medium px-2 py-0.5 rounded uppercase tracking-wide" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)" }}>Critical</span>}
+                        {stats.blockers > 0 && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)" }}>{stats.blockers} blocked</span>}
+                        {stats.rfis > 0    && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded" style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)" }}>{stats.rfis} RFI</span>}
                         {isComplete && (
-                          <span style={{ fontSize: 11, color: "#059669", fontWeight: 600, background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 99, padding: "1px 8px", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                            <svg style={{ width: 10, height: 10, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                          <span className="text-[11px] font-medium px-2 py-0.5 rounded inline-flex items-center gap-1" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
+                            <svg style={{ width: 9, height: 9, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                             Complete
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span style={{ fontSize: 12, color: "#9ca3af" }} className="shrink-0">{(phase as any).items.length} items · {stats.pct}%</span>
-                        <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                        <span className="shrink-0" style={{ fontSize: 12, color: "var(--bs-text-dim)" }}>{(phase as any).items.length} items · {stats.pct}%</span>
+                        <div className="w-20 h-[3px] rounded-full overflow-hidden shrink-0" style={{ background: "rgba(255,255,255,0.06)" }}>
                           <div className="h-full rounded-full transition-all duration-500" style={{ width: `${stats.pct}%`, background: pctColor }} />
                         </div>
                       </div>
                     </div>
-                    <svg className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <svg className={`w-4 h-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ color: "var(--bs-text-dim)" }}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                     </svg>
                   </button>
@@ -583,22 +563,21 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
                 {/* Critical rule banner */}
                 {phase.criticalRule && isOpen && (
-                  <div className="px-4 py-2 bg-red-50 border-t border-red-100 text-xs text-red-700 font-medium">
-                    <svg className="w-3.5 h-3.5 inline-block mr-1 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                  <div className="px-4 py-2 text-xs font-medium flex items-center gap-1.5" style={{ background: "var(--bs-amber-dim)", borderTop: "1px solid var(--bs-border)", borderLeft: "3px solid var(--bs-amber)", color: "var(--bs-amber)" }}>
                     {phase.criticalRule}
                   </div>
                 )}
 
                 {/* No system selected note — spec review only */}
                 {phaseKey === "phase9" && !systemType && isOpen && (
-                  <div className="px-4 py-2 bg-amber-50 border-t border-amber-100 text-xs text-amber-700">
+                  <div className="px-4 py-2 text-xs" style={{ background: "var(--bs-amber-dim)", borderTop: "1px solid var(--bs-border)", color: "var(--bs-amber)" }}>
                     Select a roof system in Project Settings to filter spec items to your system type. All items are shown until then.
                   </div>
                 )}
 
                 {/* All complete state */}
                 {isOpen && items.length === 0 && (
-                  <div className="px-4 py-2.5 border-t border-[#e2e8f0] text-xs text-emerald-600 font-medium flex items-center gap-1.5">
+                  <div className="px-4 py-2.5 text-xs font-medium flex items-center gap-1.5" style={{ borderTop: "1px solid var(--bs-border)", color: "var(--bs-teal)" }}>
                     <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                     All items complete
                   </div>
@@ -606,7 +585,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
                 {/* Items */}
                 {isOpen && items.length > 0 && (
-                  <div className="border-t border-[#e2e8f0] divide-y divide-[#f1f5f9]">
+                  <div style={{ borderTop: "1px solid var(--bs-border)" }}>
                     {items.map((item: any) => {
                       const status            = getItemStatus(phaseKey, item.id);
                       const note              = getItemNote(phaseKey, item.id);
@@ -624,19 +603,20 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                       return (
                         <div
                           key={item.id}
-                          className={`group transition-colors ${isSwipe ? "bg-slate-100" : ""}`}
+                          className="group transition-colors"
+                          style={{ borderBottom: "1px solid var(--bs-border)" }}
                         >
                           {/* Main row */}
                           <div
                             className="flex items-center gap-3 select-none"
                             style={{
                               padding: "10px 16px",
-                              background: flashedItem === rowKey ? "#f0fdf4" : undefined,
+                              background: flashedItem === rowKey ? "var(--bs-teal-dim)" : isSwipe ? "var(--bs-bg-elevated)" : undefined,
                               transition: "background 0.5s",
-                              borderLeft: itemIsHighRisk && !isDone ? "2px solid #fca5a5" : "2px solid transparent",
+                              borderLeft: itemIsHighRisk && !isDone ? "2px solid var(--bs-red)" : "2px solid transparent",
                             }}
-                            onMouseEnter={e => { if (flashedItem !== rowKey) (e.currentTarget as HTMLElement).style.background = itemIsHighRisk ? "#fef2f2" : "#f8fafc"; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = flashedItem === rowKey ? "#f0fdf4" : ""; }}
+                            onMouseEnter={e => { if (flashedItem !== rowKey) (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = flashedItem === rowKey ? "var(--bs-teal-dim)" : ""; }}
                             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; setSwipeActive(rowKey); }}
                             onTouchEnd={(e) => {
                               const dx = e.changedTouches[0].clientX - touchStartX.current;
@@ -650,19 +630,18 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               checked={selected.has(selKey(phaseKey, item.id))}
                               onChange={e => { e.stopPropagation(); toggleSelect(selKey(phaseKey, item.id)); }}
                               onClick={e => e.stopPropagation()}
-                              style={{ width: 13, height: 13, accentColor: "#64748b", flexShrink: 0, cursor: "pointer" }}
+                              style={{ width: 13, height: 13, accentColor: "var(--bs-teal)", flexShrink: 0, cursor: "pointer" }}
                             />
                             {/* Item text */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: isDone ? 400 : itemIsHighRisk ? 500 : 400, color: isDone ? "#9ca3af" : itemIsHighRisk ? "#111827" : "#374151", textDecoration: isDone ? "line-through" : "none" }}>
+                                <span style={{ fontSize: 13, lineHeight: 1.4, color: isDone ? "var(--bs-text-dim)" : "var(--bs-text-secondary)", textDecoration: isDone ? "line-through" : "none" }}>
                                   {item.id === "p9-ec1" && climateZone
                                     ? `${item.text} ${climateZone}`
                                     : item.text}
                                 </span>
-                                {/* Optional badge */}
                                 {isOptional && !isDone && (
-                                  <span style={{ fontSize: 9, background: "#f1f5f9", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 4, padding: "1px 5px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
+                                  <span style={{ fontSize: 9, background: "rgba(255,255,255,0.04)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)", borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0 }}>
                                     Optional
                                   </span>
                                 )}
@@ -673,7 +652,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={e => e.stopPropagation()}
-                                  style={{ fontSize: 11, color: "#6366f1", marginTop: 2, display: "block", textDecoration: "none" }}
+                                  style={{ fontSize: 11, color: "var(--bs-blue)", marginTop: 2, display: "block", textDecoration: "none" }}
                                   className="hover:underline"
                                 >
                                   ASHRAE 90.1 Climate Zone Table ↗
@@ -683,13 +662,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 <div style={{ marginTop: 3 }}>
                                   <button
                                     onClick={e => { e.stopPropagation(); setExpandedHelp(prev => prev === rowKey ? null : rowKey); }}
-                                    style={{ fontSize: 11, color: "#f59e0b", fontWeight: 500, background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
+                                    style={{ fontSize: 11, color: "var(--bs-amber)", fontWeight: 500, background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}
                                   >
                                     <span>{expandedHelp === rowKey ? "▲" : "▼"}</span>
                                     <span>Why this matters</span>
                                   </button>
                                   {expandedHelp === rowKey && (
-                                    <p style={{ fontSize: 12, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 6, padding: "8px 10px", marginTop: 5, lineHeight: 1.5 }}>
+                                    <p style={{ fontSize: 12, color: "var(--bs-amber)", background: "var(--bs-amber-dim)", border: "1px solid var(--bs-amber-border)", borderRadius: 6, padding: "8px 10px", marginTop: 5, lineHeight: 1.5 }}>
                                       {item.helpText}
                                     </p>
                                   )}
@@ -697,13 +676,13 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                               )}
                             </div>
 
-                            {/* Action buttons — always visible, right-aligned */}
+                            {/* Action buttons */}
                             <div className="flex items-center gap-2 shrink-0 ml-auto">
-                              {/* RFI badge */}
                               {status === "rfi" && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setRfiDrawerKey(prev => prev === rowKey ? null : rowKey); setRfiQuestion(item.text); }}
-                                  className={`text-sm px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-colors ${isRfiDrawerOpen ? "bg-amber-200 text-amber-800" : "bg-amber-100 hover:bg-amber-200 text-amber-700"}`}
+                                  className="shrink-0 text-[12px] font-medium px-3 py-1.5 rounded cursor-pointer transition-colors"
+                                  style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)", border: "1px solid var(--bs-blue-border)" }}
                                 >
                                   RFI {isRfiDrawerOpen ? "▲" : "▼"}
                                 </button>
@@ -711,46 +690,44 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
                               {status !== "rfi" && status !== "warning" && (
                                 <>
-                                  {/* Flag button */}
                                   {!isEditingThisNote && (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, isFlagged ? "pending" : "warning"); }}
-                                      className={`shrink-0 h-8 px-3 flex items-center gap-1.5 rounded-lg border text-sm transition-all ${isFlagged ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-white text-slate-400 border-slate-200 hover:text-orange-500 hover:border-orange-300 hover:bg-orange-50"}`}
+                                      className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded text-[12px] transition-all cursor-pointer"
+                                      style={{ background: isFlagged ? "var(--bs-red-dim)" : "rgba(255,255,255,0.04)", color: isFlagged ? "var(--bs-red)" : "var(--bs-text-dim)", border: `1px solid ${isFlagged ? "var(--bs-red-border)" : "var(--bs-border)"}` }}
                                     >
-                                      <span>⚑</span>
-                                      <span className="text-xs font-medium">Flag</span>
+                                      ⚑ Flag
                                     </button>
                                   )}
-
-                                  {/* Add note button */}
                                   {!isEditingThisNote && (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
-                                      className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50 transition-all"
+                                      className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded text-[12px] transition-all cursor-pointer"
+                                      style={{ background: "rgba(255,255,255,0.04)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)" }}
                                     >
-                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" /></svg>
-                                      <span className="text-xs font-medium">{note ? "Edit" : "Note"}</span>
+                                      {note ? "Edit note" : "Note"}
                                     </button>
                                   )}
-
-                                  {/* Status action buttons */}
                                   {status === "pending" ? (
                                     <>
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "na"); }}
-                                        className="shrink-0 h-8 rounded-lg text-sm font-medium px-4 border transition-all whitespace-nowrap bg-white text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 hover:border-slate-300"
+                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap cursor-pointer"
+                                        style={{ background: "rgba(255,255,255,0.04)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
                                       >
                                         N/A
                                       </button>
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "rfi"); }}
-                                        className="shrink-0 h-8 rounded-lg text-sm font-semibold px-4 border transition-all whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300"
+                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap cursor-pointer"
+                                        style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }}
                                       >
                                         ? RFI
                                       </button>
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "done"); }}
-                                        className="shrink-0 h-8 rounded-lg text-sm font-semibold px-4 border transition-all whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300"
+                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap cursor-pointer"
+                                        style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
                                       >
                                         Done
                                       </button>
@@ -758,16 +735,12 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                   ) : (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "pending"); }}
-                                      className={`
-                                        shrink-0 h-8 rounded-lg text-sm font-semibold px-4 border transition-all whitespace-nowrap flex items-center gap-1.5
-                                        ${status === "done"
-                                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
-                                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200"}
-                                      `}
+                                      className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
+                                      style={{ background: status === "done" ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.04)", color: status === "done" ? "var(--bs-teal)" : "var(--bs-text-dim)", border: "1px solid var(--bs-border)" }}
                                       title="Click to undo"
                                     >
                                       <span>{status === "done" ? "Done" : "N/A"}</span>
-                                      <span className="text-xs">✕</span>
+                                      <span className="text-xs opacity-60">✕</span>
                                     </button>
                                   )}
                                 </>
@@ -775,26 +748,26 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                             </div>
                           </div>
 
-                          {/* Note display — styled amber callout */}
+                          {/* Note display */}
                           {note && !isEditingThisNote && (
                             <div
                               className="mx-4 mb-2 flex items-start justify-between cursor-pointer"
-                              style={{ background: "#fffbeb", borderLeft: "3px solid #fbbf24", borderRadius: 4, padding: "6px 10px" }}
+                              style={{ background: "rgba(255,255,255,0.03)", borderLeft: "3px solid var(--bs-amber)", padding: "6px 10px" }}
                               onClick={e => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
                             >
-                              <p style={{ fontSize: 12, color: "#92400e", lineHeight: 1.4, flex: 1 }}>
-                                <span style={{ fontWeight: 600 }}>Note: </span>{note}
+                              <p style={{ fontSize: 12, color: "var(--bs-amber)", lineHeight: 1.4, flex: 1 }}>
+                                <span style={{ fontWeight: 500 }}>Note: </span>{note}
                               </p>
-                              <span style={{ fontSize: 10, color: "#d97706", marginLeft: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
+                              <span style={{ fontSize: 10, color: "var(--bs-text-dim)", marginLeft: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
                                 {formatNoteDate(noteTs) ? `· ${formatNoteDate(noteTs)}` : ""}
                               </span>
                               {noteSaved && (
-                                <span className="text-[10px] text-emerald-600 font-semibold shrink-0 ml-1">Saved</span>
+                                <span className="text-[10px] font-medium shrink-0 ml-1" style={{ color: "var(--bs-teal)" }}>Saved</span>
                               )}
                             </div>
                           )}
                           {noteSaved && !note && (
-                            <div className="mx-4 mb-2 text-[11px] text-emerald-600 font-medium px-2">Saved</div>
+                            <div className="mx-4 mb-2 text-[11px] font-medium px-2" style={{ color: "var(--bs-teal)" }}>Saved</div>
                           )}
 
                           {/* Note editing textarea */}
@@ -808,22 +781,24 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 onKeyDown={e => { if (e.key === "Escape") setEditingNote(null); if (e.key === "Enter" && e.metaKey) saveNote(phaseKey, item.id, noteText); }}
                                 placeholder="Add a note..."
                                 rows={2}
-                                className="w-full text-xs text-slate-700 bg-white border border-amber-300 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-200"
+                                className="w-full resize-none focus:outline-none"
+                                style={{ fontSize: 12, color: "var(--bs-text-secondary)", background: "var(--bs-bg-input)", border: "1px solid var(--bs-amber-border)", borderRadius: 6, padding: "8px 10px" }}
                               />
-                              <p className="text-[10px] text-slate-400 mt-0.5">Blur or ⌘↵ to save · Esc to cancel</p>
+                              <p className="text-[10px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>Blur or ⌘↵ to save · Esc to cancel</p>
                             </div>
                           )}
 
                           {/* RFI inline drawer */}
                           {isRfiDrawerOpen && (
-                            <div className="mx-4 mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg" onClick={e => e.stopPropagation()}>
-                              <div className="text-[11px] font-semibold text-amber-800 mb-2">RFI Details</div>
+                            <div className="mx-4 mb-3 p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--bs-border)" }} onClick={e => e.stopPropagation()}>
+                              <div className="text-[11px] font-medium mb-2" style={{ color: "var(--bs-amber)" }}>RFI Details</div>
                               <textarea
                                 value={rfiQuestion}
                                 onChange={e => setRfiQuestion(e.target.value)}
                                 placeholder="Describe your question or clarification needed..."
                                 rows={2}
-                                className="w-full text-xs text-slate-700 bg-white border border-amber-200 rounded px-3 py-2 resize-none focus:outline-none focus:border-amber-400"
+                                className="w-full resize-none focus:outline-none"
+                                style={{ fontSize: 12, color: "var(--bs-text-secondary)", background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", borderRadius: 6, padding: "8px 10px" }}
                               />
                               <div className="flex items-center gap-2 mt-2">
                                 <button
@@ -838,13 +813,15 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                     setRfiDrawerKey(null);
                                     onNavigateTab?.("rfis");
                                   }}
-                                  className="text-[11px] bg-amber-600 text-white px-3 py-1.5 rounded font-medium hover:bg-amber-700 transition-colors"
+                                  className="text-[11px] font-medium px-3 py-1.5 rounded cursor-pointer transition-colors"
+                                  style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }}
                                 >
                                   + Create RFI
                                 </button>
                                 <button
                                   onClick={() => setRfiDrawerKey(null)}
-                                  className="text-[11px] text-slate-500 hover:text-slate-700 transition-colors"
+                                  className="text-[11px] cursor-pointer transition-colors"
+                                  style={{ color: "var(--bs-text-dim)", background: "none", border: "none" }}
                                 >
                                   Close
                                 </button>
@@ -890,54 +867,34 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
         opacity: selected.size > 0 ? 1 : 0,
         pointerEvents: selected.size > 0 ? "auto" : "none",
         transition: "transform 0.25s ease-out, opacity 0.2s",
-        background: "#1e293b",
-        color: "white",
-        borderRadius: 12,
+        background: "var(--bs-bg-elevated)",
+        border: "1px solid var(--bs-border)",
+        borderRadius: 10,
         padding: "10px 16px",
         display: "flex",
         alignItems: "center",
         gap: 8,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+        boxShadow: "var(--bs-shadow-dropdown)",
         zIndex: 50,
         minWidth: 360,
         maxWidth: 560,
         width: "calc(100vw - 48px)",
       }}
     >
-      <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8", flexShrink: 0, marginRight: 4 }}>
+      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-muted)", flexShrink: 0, marginRight: 4 }}>
         {selected.size} selected
       </span>
       <div style={{ flex: 1 }} />
-      <button
-        onClick={() => bulkSetStatus("done")}
-        style={{ fontSize: 12, fontWeight: 600, background: "#10b981", color: "white", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#059669"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#10b981"}
-      >
+      <button onClick={() => bulkSetStatus("done")} className="cursor-pointer" style={{ fontSize: 12, fontWeight: 500, background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)", borderRadius: 6, padding: "6px 12px", whiteSpace: "nowrap" }}>
         Mark Done
       </button>
-      <button
-        onClick={() => bulkSetStatus("na")}
-        style={{ fontSize: 12, fontWeight: 500, background: "#334155", color: "#94a3b8", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#475569"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#334155"}
-      >
+      <button onClick={() => bulkSetStatus("na")} className="cursor-pointer" style={{ fontSize: 12, fontWeight: 500, background: "rgba(255,255,255,0.04)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", borderRadius: 6, padding: "6px 12px", whiteSpace: "nowrap" }}>
         Mark N/A
       </button>
-      <button
-        onClick={() => bulkSetStatus("warning")}
-        style={{ fontSize: 12, fontWeight: 500, background: "#334155", color: "#fb923c", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#475569"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#334155"}
-      >
+      <button onClick={() => bulkSetStatus("warning")} className="cursor-pointer" style={{ fontSize: 12, fontWeight: 500, background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)", borderRadius: 6, padding: "6px 12px", whiteSpace: "nowrap" }}>
         Flag
       </button>
-      <button
-        onClick={clearSelection}
-        style={{ fontSize: 12, fontWeight: 500, color: "#64748b", background: "none", border: "none", padding: "6px 8px", cursor: "pointer", whiteSpace: "nowrap" }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#94a3b8"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#64748b"}
-      >
+      <button onClick={clearSelection} className="cursor-pointer" style={{ fontSize: 12, color: "var(--bs-text-dim)", background: "none", border: "none", padding: "6px 8px", whiteSpace: "nowrap" }}>
         ✕ Clear
       </button>
     </div>

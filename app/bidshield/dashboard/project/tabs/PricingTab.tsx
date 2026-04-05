@@ -252,419 +252,370 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
     setAltForm({ label: "", type: "add", amount: "", description: "" });
   };
 
+  const inputStyle = { fontSize: 13, color: "var(--bs-text-secondary)", background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", borderRadius: 6, padding: "7px 10px", width: "100%", outline: "none" };
+  const labelStyle = { fontSize: 11, color: "var(--bs-text-dim)", textTransform: "uppercase" as const, letterSpacing: "0.5px", display: "block" as const, marginBottom: 4 };
+
+  const healthBg = healthLabel === "On Target" ? "var(--bs-teal-dim)" : healthLabel === "Watch" ? "var(--bs-amber-dim)" : healthLabel === "Off Target" ? "var(--bs-red-dim)" : "rgba(255,255,255,0.04)";
+  const healthBorder = healthLabel === "On Target" ? "var(--bs-teal-border)" : healthLabel === "Watch" ? "var(--bs-amber-border)" : healthLabel === "Off Target" ? "var(--bs-red-border)" : "var(--bs-border)";
+  const healthTextColor = healthLabel === "On Target" ? "var(--bs-teal)" : healthLabel === "Watch" ? "var(--bs-amber)" : healthLabel === "Off Target" ? "var(--bs-red)" : "var(--bs-text-muted)";
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Section subtitle */}
-      <p className="text-sm text-slate-500 -mb-1">
-        Your bid total rollup — material, labor, and general conditions costs flow in automatically from their respective sections.
-      </p>
 
       {/* Sanity check warning */}
       {componentSumMismatch && (
-        <div className="bg-amber-50 border border-amber-400/50 rounded-xl px-4 py-3 flex items-start gap-2">
-          <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+        <div className="flex items-start gap-3 px-4 py-3" style={{ background: "var(--bs-amber-dim)", borderLeft: "3px solid var(--bs-amber)" }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginTop: 1, flexShrink: 0 }}><path d="M8 2l6 11H2L8 2z" stroke="var(--bs-amber)" strokeWidth="1.3" fill="none" strokeLinejoin="round"/><path d="M8 7v2.5" stroke="var(--bs-amber)" strokeWidth="1.3" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.6" fill="var(--bs-amber)"/></svg>
           <div>
-            <div className="text-xs font-semibold text-amber-700">Cost components don&rsquo;t add up to Total Bid</div>
-            <div className="text-xs text-amber-600 mt-0.5">
-              Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}) = {fmtDollar(componentSum)}, but Total Bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} difference).
+            <div className="text-[13px] font-medium" style={{ color: "var(--bs-amber)" }}>Cost components don&rsquo;t add up to Total Bid</div>
+            <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+              Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}) = {fmtDollar(componentSum)} — total bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} gap)
             </div>
           </div>
         </div>
       )}
 
       {/* Bid Pricing Card */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-        <div className="flex justify-between items-center mb-5">
-          <h3 className="text-sm font-bold text-slate-900 tracking-tight">Bid Pricing & Outcome</h3>
-          {(isPro || isDemo) ? (
-            <button onClick={editing ? handleSave : startEdit} className={`text-xs font-medium transition-colors ${editing ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
-              {editing ? "Save" : "Edit"}
-            </button>
-          ) : (
-            <a href="/bidshield/pricing" className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-              Edit · Pro
-            </a>
-          )}
+      <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        <div className="flex justify-between items-center px-[18px] py-[14px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+          <h3 className="text-[15px] font-medium" style={{ color: "#fff" }}>Bid pricing &amp; outcome</h3>
+          <div className="flex items-center gap-2">
+            {(isPro || isDemo) ? (
+              <button onClick={editing ? handleSave : startEdit} className="bs-btn bs-btn-outline cursor-pointer">
+                {editing ? "Save" : "Edit"}
+              </button>
+            ) : (
+              <a href="/bidshield/pricing" className="bs-btn bs-btn-outline" style={{ textDecoration: "none" }}>Edit · Pro</a>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+        {/* ── 5-column metric grid ── */}
+        <div className="grid p-[18px] gap-3" style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}>
           {/* Total Bid */}
-          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-            {editing ? <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="Total" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" style={{ marginBottom: 4 }} /> : <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>}
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Total Bid</div>
+          <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+            <div className="bs-metric-label">Total bid</div>
+            {editing ? (
+              <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="0" style={inputStyle} />
+            ) : (
+              <div className="text-[24px] font-medium tabular-nums" style={{ color: "#fff", letterSpacing: "-0.5px" }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>
+            )}
           </div>
           {/* Material */}
-          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-            {computedMaterialTotal > 0 ? (
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#1d4ed8", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{fmtDollar(computedMaterialTotal)}</div>
-            ) : (
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#cbd5e1" }}>—</div>
-            )}
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Material</div>
-            <button type="button" onClick={() => onNavigateTab?.("materials")} style={{ fontSize: 9, color: computedMaterialTotal > 0 ? "#3b82f6" : "#f59e0b", marginTop: 4, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
-              {computedMaterialTotal > 0 ? "→ Reconciliation" : "→ Upload report"}
+          <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+            <div className="bs-metric-label">Material</div>
+            <div className="text-[24px] font-medium tabular-nums" style={{ color: computedMaterialTotal > 0 ? "#fff" : "var(--bs-text-dim)", letterSpacing: "-0.5px" }}>
+              {computedMaterialTotal > 0 ? fmtDollar(computedMaterialTotal) : "--"}
+            </div>
+            <button type="button" onClick={() => onNavigateTab?.("materials")} className="text-[11px] mt-2 cursor-pointer transition-colors bs-link">
+              {computedMaterialTotal > 0 ? "Reconciliation" : "Run analysis"}
             </button>
           </div>
           {/* Labor */}
-          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-            {computedLaborTotal > 0 ? (
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#059669", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{fmtDollar(computedLaborTotal)}</div>
-            ) : (
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#cbd5e1" }}>—</div>
-            )}
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Labor</div>
-            <button type="button" onClick={() => onNavigateTab?.("labor")} style={{ fontSize: 9, color: computedLaborTotal > 0 ? "#059669" : "#f59e0b", marginTop: 4, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
-              {computedLaborTotal > 0 ? "→ Verification" : "→ Run analysis"}
+          <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+            <div className="bs-metric-label">Labor</div>
+            <div className="text-[24px] font-medium tabular-nums" style={{ color: computedLaborTotal > 0 ? "#fff" : "var(--bs-text-dim)", letterSpacing: "-0.5px" }}>
+              {computedLaborTotal > 0 ? fmtDollar(computedLaborTotal) : "--"}
+            </div>
+            <button type="button" onClick={() => onNavigateTab?.("labor")} className="text-[11px] mt-2 cursor-pointer transition-colors" style={{ color: "var(--bs-blue)", background: "none", border: "none" }}>
+              {computedLaborTotal > 0 ? "Verification" : "Run analysis"}
             </button>
           </div>
           {/* Gen. Conds */}
-          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
+          <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+            <div className="bs-metric-label">Gen. conds</div>
             {editing ? (
-              <div>
-                <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="Other" className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500" style={{ marginBottom: 4 }} />
+              <div className="flex flex-col gap-1">
+                <input type="number" value={form.otherCost} onChange={(e) => setForm({ ...form, otherCost: e.target.value })} placeholder="0" style={inputStyle} />
                 {computedGCTotal > 0 && (
-                  <button type="button" onClick={() => setForm((f) => ({ ...f, otherCost: computedGCTotal.toString() }))} style={{ fontSize: 9, color: "#f59e0b", cursor: "pointer", background: "none", border: "none", padding: 0 }}>
+                  <button type="button" onClick={() => setForm((f) => ({ ...f, otherCost: computedGCTotal.toString() }))} className="text-[11px] cursor-pointer text-left bs-link">
                     Pull from GC ({fmtDollar(computedGCTotal)})
                   </button>
                 )}
               </div>
             ) : (
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#7c3aed", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
-                {pricing.otherCost ? fmtDollar(pricing.otherCost) : computedGCTotal > 0 ? <span title="Computed from Gen. Conditions tab">{fmtDollar(computedGCTotal)}</span> : "—"}
+              <div className="text-[24px] font-medium tabular-nums" style={{ color: "#fff", letterSpacing: "-0.5px" }}>
+                {pricing.otherCost ? fmtDollar(pricing.otherCost) : computedGCTotal > 0 ? fmtDollar(computedGCTotal) : "—"}
               </div>
             )}
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Gen. Conds</div>
           </div>
-          {/* $/SF */}
-          <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "12px 14px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }} className="col-span-2 sm:col-span-1">
-            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1, color: dollarPerSf ? (healthColor === "text-emerald-600" ? "#059669" : healthColor === "text-amber-600" ? "#d97706" : "#dc2626") : "#cbd5e1" }}>{dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}</div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>Cost / SF</div>
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <label className="text-[11px] text-slate-500 mb-1 block">Primary Assembly</label>
-          {editing ? (
-            <select value={form.primaryAssembly} onChange={(e) => setForm({ ...form, primaryAssembly: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">
-              <option value="">Select assembly...</option>
-              {ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          ) : (
-            <div className="text-sm text-slate-700">{pricing.primaryAssembly || "Not set"}</div>
-          )}
-        </div>
-
-        {(dollarPerSf || assembly) && (
-          <div className={`mb-4 p-3 rounded-lg border ${healthLabel === "On Target" ? "bg-emerald-50 border-emerald-500/30" : healthLabel === "Watch" ? "bg-amber-50 border-amber-500/30" : healthLabel === "Off Target" ? "bg-red-50 border-red-500/30" : "bg-slate-50 border-slate-300"}`}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">Bid Health</span>
-              <span className={`text-xs font-bold ${healthColor}`}>{healthLabel}</span>
+          {/* Cost/SF */}
+          <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-teal)" }}>
+            <div className="bs-metric-label">Cost / SF</div>
+            <div className="text-[24px] font-medium tabular-nums" style={{ color: "var(--bs-teal)", letterSpacing: "-0.5px" }}>
+              {dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}
             </div>
-            {variance !== null && (
-              <div className="text-[11px] text-slate-500 mt-1">
-                Your $/SF is {variance > 0 ? "+" : ""}{variance.toFixed(1)}% vs avg ${avgDollarPerSf!.toFixed(2)}/SF across {similarProjects.length} similar projects
-              </div>
-            )}
-            {similarProjects.length < 3 && assembly && (
-              <div className="text-[11px] text-slate-500 mt-1">Need at least 3 projects with &ldquo;{assembly}&rdquo; to compare. Have {similarProjects.length}.</div>
+          </div>
+        </div>
+
+        {/* Primary Assembly + Bid Health */}
+        <div className="grid px-[18px] pb-[18px] gap-3" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <div className="flex items-center justify-between px-4 py-3 rounded-[10px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+            <div>
+              <div style={labelStyle}>Primary assembly</div>
+              {editing ? (
+                <select value={form.primaryAssembly} onChange={(e) => setForm({ ...form, primaryAssembly: e.target.value })} style={inputStyle}>
+                  <option value="">Select assembly...</option>
+                  {ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              ) : (
+                <div className="text-[14px]" style={{ color: pricing.primaryAssembly ? "var(--bs-text-secondary)" : "var(--bs-text-dim)" }}>{pricing.primaryAssembly || "Not set"}</div>
+              )}
+            </div>
+            {!editing && (
+              <button onClick={startEdit} className="bs-btn bs-btn-outline cursor-pointer text-[12px] shrink-0">Set type</button>
             )}
           </div>
-        )}
+          <div className="flex items-center justify-between px-4 py-3 rounded-[10px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+            <span className="text-[14px]" style={{ color: "var(--bs-text-secondary)" }}>Bid health</span>
+            {(dollarPerSf || assembly) ? (
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1">
+                  {[0,1,2,3,4].map(i => (
+                    <span key={i} className="w-7 h-[5px] rounded-sm" style={{ background: healthLabel === "On Target" && i < 5 ? "var(--bs-teal)" : healthLabel === "Watch" && i < 3 ? (i < 2 ? "var(--bs-teal)" : "var(--bs-amber)") : healthLabel === "Off Target" && i < 2 ? "var(--bs-red)" : "rgba(255,255,255,0.06)" }} />
+                  ))}
+                </div>
+                <span className="text-[12px] font-medium" style={{ color: healthTextColor }}>{healthLabel}</span>
+              </div>
+            ) : (
+              <span className="text-[12px]" style={{ color: "var(--bs-text-dim)" }}>Enter bid amount</span>
+            )}
+          </div>
+        </div>
 
         {isLost && (
-          <div className="p-4 bg-red-50 border border-red-500/30 rounded-lg">
-            <h4 className="text-xs font-semibold text-red-600 mb-2">Loss Details</h4>
+          <div className="mx-[18px] mb-[18px] p-4 rounded-[10px]" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
+            <h4 className="text-[12px] font-medium mb-2" style={{ color: "var(--bs-red)" }}>Loss Details</h4>
             {editing ? (
-              <div className="space-y-2">
-                <select value={form.lossReason} onChange={(e) => setForm({ ...form, lossReason: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">
+              <div className="flex flex-col gap-2">
+                <select value={form.lossReason} onChange={(e) => setForm({ ...form, lossReason: e.target.value })} style={inputStyle}>
                   <option value="">Select reason...</option>
                   {LOSS_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
-                <input value={form.lossReasonNote} onChange={(e) => setForm({ ...form, lossReasonNote: e.target.value })} placeholder="Additional notes (optional)" className="bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" />
+                <input value={form.lossReasonNote} onChange={(e) => setForm({ ...form, lossReasonNote: e.target.value })} placeholder="Additional notes (optional)" style={inputStyle} />
               </div>
             ) : (
-              <div className="text-sm text-slate-600">
+              <div className="text-[13px]" style={{ color: "var(--bs-text-muted)" }}>
                 {pricing.lossReason || "No reason recorded"}
-                {pricing.lossReasonNote && <span className="text-slate-500 ml-2">— {pricing.lossReasonNote}</span>}
+                {pricing.lossReasonNote && <span className="ml-2" style={{ color: "var(--bs-text-dim)" }}>— {pricing.lossReasonNote}</span>}
               </div>
             )}
           </div>
         )}
 
         {editing && (
-          <div className="mt-4 flex gap-2">
-            <button onClick={handleSave} style={{ background: "#10b981" }} className="text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors hover:opacity-90">Save Changes</button>
-            <button onClick={() => setEditing(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
+          <div className="px-[18px] pb-[18px] flex gap-2">
+            <button onClick={handleSave} className="bs-btn bs-btn-primary cursor-pointer">Save Changes</button>
+            <button onClick={() => setEditing(false)} className="bs-btn bs-btn-outline cursor-pointer">Cancel</button>
           </div>
         )}
       </div>
 
       {/* Actual Costs Section (won projects only) */}
       {isWon && (
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <div className="flex justify-between items-center mb-4">
+        <div className="rounded-[10px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="flex justify-between items-center px-[18px] py-[14px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-slate-900">Actual Costs (Post-Completion)</h3>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase ${
-                postJobStatus === "actuals_entered" ? "bg-emerald-50 text-emerald-600" :
-                postJobStatus === "completed" ? "bg-blue-50 text-blue-600" :
-                "bg-amber-50 text-amber-600"
-              }`}>
+              <h3 className="text-[15px] font-medium" style={{ color: "#fff" }}>Actual Costs</h3>
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded" style={{
+                background: postJobStatus === "actuals_entered" ? "var(--bs-teal-dim)" : postJobStatus === "completed" ? "var(--bs-blue-dim)" : "var(--bs-amber-dim)",
+                color: postJobStatus === "actuals_entered" ? "var(--bs-teal)" : postJobStatus === "completed" ? "var(--bs-blue)" : "var(--bs-amber)",
+              }}>
                 {postJobStatus === "actuals_entered" ? "Actuals Entered" : postJobStatus === "completed" ? "Completed" : "In Progress"}
               </span>
             </div>
             {!isDemo && (
-              <button onClick={editingActuals ? handleSaveActuals : startEditActuals} className={`text-xs font-medium transition-colors ${editingActuals ? "text-emerald-600 hover:text-emerald-300" : "text-slate-500 hover:text-slate-700"}`}>
+              <button onClick={editingActuals ? handleSaveActuals : startEditActuals} className="bs-btn bs-btn-outline cursor-pointer">
                 {editingActuals ? "Save" : "Edit"}
               </button>
             )}
           </div>
 
+          <div className="p-[18px]">
           {editingActuals ? (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] text-slate-500 mb-1 block">Post-Job Status</label>
-                  <select value={actualsForm.postJobStatus} onChange={(e) => setActualsForm({ ...actualsForm, postJobStatus: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500">
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="actuals_entered">Actuals Entered</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-500 mb-1 block">Completion Date</label>
-                  <input type="date" value={actualsForm.completedDate} onChange={(e) => setActualsForm({ ...actualsForm, completedDate: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" />
-                </div>
+                <div><label style={labelStyle}>Post-Job Status</label><select value={actualsForm.postJobStatus} onChange={(e) => setActualsForm({ ...actualsForm, postJobStatus: e.target.value })} style={inputStyle}><option value="in_progress">In Progress</option><option value="completed">Completed</option><option value="actuals_entered">Actuals Entered</option></select></div>
+                <div><label style={labelStyle}>Completion Date</label><input type="date" value={actualsForm.completedDate} onChange={(e) => setActualsForm({ ...actualsForm, completedDate: e.target.value })} style={inputStyle} /></div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Total</label><input type="number" value={actualsForm.actualCost} onChange={(e) => setActualsForm({ ...actualsForm, actualCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Material</label><input type="number" value={actualsForm.actualMaterialCost} onChange={(e) => setActualsForm({ ...actualsForm, actualMaterialCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Labor</label><input type="number" value={actualsForm.actualLaborCost} onChange={(e) => setActualsForm({ ...actualsForm, actualLaborCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
-                <div><label className="text-[10px] text-slate-500 mb-1 block">Actual Other</label><input type="number" value={actualsForm.actualOtherCost} onChange={(e) => setActualsForm({ ...actualsForm, actualOtherCost: e.target.value })} className="bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-slate-900 text-sm w-full focus:outline-none focus:border-amber-500" /></div>
+                <div><label style={labelStyle}>Actual Total</label><input type="number" value={actualsForm.actualCost} onChange={(e) => setActualsForm({ ...actualsForm, actualCost: e.target.value })} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Actual Material</label><input type="number" value={actualsForm.actualMaterialCost} onChange={(e) => setActualsForm({ ...actualsForm, actualMaterialCost: e.target.value })} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Actual Labor</label><input type="number" value={actualsForm.actualLaborCost} onChange={(e) => setActualsForm({ ...actualsForm, actualLaborCost: e.target.value })} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Actual Other</label><input type="number" value={actualsForm.actualOtherCost} onChange={(e) => setActualsForm({ ...actualsForm, actualOtherCost: e.target.value })} style={inputStyle} /></div>
               </div>
-              <div>
-                <label className="text-[10px] text-slate-500 mb-1 block">Notes / Lessons Learned</label>
-                <textarea value={actualsForm.postJobNotes} onChange={(e) => setActualsForm({ ...actualsForm, postJobNotes: e.target.value })} placeholder="What caused variances? Lessons for future bids..." rows={2} className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm resize-none focus:outline-none focus:border-amber-500" />
-              </div>
+              <div><label style={labelStyle}>Notes / Lessons Learned</label><textarea value={actualsForm.postJobNotes} onChange={(e) => setActualsForm({ ...actualsForm, postJobNotes: e.target.value })} placeholder="What caused variances? Lessons for future bids..." rows={2} className="w-full resize-none focus:outline-none" style={inputStyle} /></div>
               <div className="flex gap-2">
-                <button onClick={handleSaveActuals} style={{ background: "#10b981" }} className="text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors hover:opacity-90">Save Actuals</button>
-                <button onClick={() => setEditingActuals(false)} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors">Cancel</button>
+                <button onClick={handleSaveActuals} className="bs-btn bs-btn-primary cursor-pointer">Save Actuals</button>
+                <button onClick={() => setEditingActuals(false)} className="bs-btn bs-btn-outline cursor-pointer">Cancel</button>
               </div>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-                  <div className="text-lg font-bold text-slate-900">{pricing.actualCost ? fmtDollar(pricing.actualCost) : "—"}</div>
-                  <div className="text-[10px] text-slate-500">Actual Total</div>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-                  <div className="text-lg font-bold text-blue-600">{pricing.actualMaterialCost ? fmtDollar(pricing.actualMaterialCost) : "—"}</div>
-                  <div className="text-[10px] text-slate-500">Actual Material</div>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-                  <div className="text-lg font-bold text-emerald-600">{pricing.actualLaborCost ? fmtDollar(pricing.actualLaborCost) : "—"}</div>
-                  <div className="text-[10px] text-slate-500">Actual Labor</div>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-200">
-                  <div className="text-lg font-bold text-slate-600">{pricing.actualOtherCost ? fmtDollar(pricing.actualOtherCost) : "—"}</div>
-                  <div className="text-[10px] text-slate-500">Actual Other</div>
-                </div>
+                {[
+                  { label: "Actual Total", value: pricing.actualCost, color: "#fff" },
+                  { label: "Actual Material", value: pricing.actualMaterialCost, color: "var(--bs-blue)" },
+                  { label: "Actual Labor", value: pricing.actualLaborCost, color: "var(--bs-teal)" },
+                  { label: "Actual Other", value: pricing.actualOtherCost, color: "var(--bs-text-muted)" },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="rounded-[10px] p-3 text-center" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                    <div className="text-[18px] font-medium tabular-nums" style={{ color }}>{value ? fmtDollar(value) : "—"}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>{label}</div>
+                  </div>
+                ))}
               </div>
-              {pricing.completedDate && (
-                <div className="text-xs text-slate-500 mb-2">Completed: {pricing.completedDate}</div>
-              )}
-              {pricing.postJobNotes && (
-                <div className="p-3 bg-slate-50 rounded-lg text-sm text-slate-600 mb-3">{pricing.postJobNotes}</div>
-              )}
-              {!hasActuals && (
-                <div className="text-center py-4 text-sm text-slate-500">
-                  No actual costs entered yet. Click Edit to log post-completion costs.
-                </div>
-              )}
+              {pricing.completedDate && <div className="text-[12px] mb-2" style={{ color: "var(--bs-text-dim)" }}>Completed: {pricing.completedDate}</div>}
+              {pricing.postJobNotes && <div className="p-3 rounded-[8px] text-[13px] mb-3" style={{ background: "rgba(255,255,255,0.04)", color: "var(--bs-text-muted)" }}>{pricing.postJobNotes}</div>}
+              {!hasActuals && <div className="text-center py-4 text-[13px]" style={{ color: "var(--bs-text-dim)" }}>No actual costs entered yet. Click Edit to log post-completion costs.</div>}
             </>
           )}
+          </div>
         </div>
       )}
 
-      {/* Estimate vs Actual Comparison (won projects with actuals) */}
+      {/* Estimate vs Actual Comparison */}
       {isWon && hasActuals && pricing.totalBidAmount && (
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Estimate vs. Actual Comparison</h3>
-
-          {/* Comparison Table */}
-          <div className="overflow-x-auto mb-4">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 px-3 text-xs text-slate-500 font-semibold">Category</th>
-                  <th className="text-right py-2 px-3 text-xs text-slate-500 font-semibold">Estimated</th>
-                  <th className="text-right py-2 px-3 text-xs text-slate-500 font-semibold">Actual</th>
-                  <th className="text-right py-2 px-3 text-xs text-slate-500 font-semibold">Variance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <ComparisonRow label="Total" estimated={pricing.totalBidAmount} actual={pricing.actualCost} varianceAmt={totalVariance} variancePct={totalVariancePct} bold />
-                {effectiveMaterialCost > 0 && <ComparisonRow label="Material" estimated={effectiveMaterialCost} actual={pricing.actualMaterialCost} varianceAmt={matVariance} variancePct={matVariancePct} />}
-                {pricing.laborCost && <ComparisonRow label="Labor" estimated={pricing.laborCost} actual={pricing.actualLaborCost} varianceAmt={labVariance} variancePct={labVariancePct} />}
-                {pricing.otherCost && <ComparisonRow label="Other" estimated={pricing.otherCost} actual={pricing.actualOtherCost} varianceAmt={othVariance} variancePct={othVariancePct} />}
-                {dollarPerSf && actualDpsf && (
-                  <tr className="border-t border-slate-200">
-                    <td className="py-2 px-3 text-slate-600">$/SF</td>
-                    <td className="py-2 px-3 text-right text-slate-600 tabular-nums">${dollarPerSf.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-right text-slate-600 tabular-nums">${actualDpsf.toFixed(2)}</td>
-                    <td className={`py-2 px-3 text-right tabular-nums ${dpsfVariancePct !== null ? varianceColor(dpsfVariancePct) : "text-slate-500"}`}>
-                      {dpsfVariance !== null ? `${dpsfVariance > 0 ? "+" : ""}$${dpsfVariance.toFixed(2)} (${dpsfVariancePct!.toFixed(1)}%)` : "—"}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+        <div className="rounded-[10px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="px-[18px] py-[14px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+            <h3 className="text-[15px] font-medium" style={{ color: "#fff" }}>Estimate vs. Actual</h3>
           </div>
-
-          {/* Overall Assessment */}
-          {totalVariancePct !== null && (
-            <div className={`p-3 rounded-lg border ${varianceBg(totalVariancePct)}`}>
-              <div className={`text-sm font-semibold ${varianceColor(totalVariancePct)}`}>
-                {Math.abs(totalVariancePct) <= 5 ? "On budget" : totalVariancePct > 0 ? "Over budget" : "Under budget"} ({totalVariancePct > 0 ? "+" : ""}{totalVariancePct.toFixed(1)}%)
-              </div>
+          <div className="p-[18px]">
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full" style={{ fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                    {["Category", "Estimated", "Actual", "Variance"].map((h, i) => (
+                      <th key={h} className={`py-2 px-3 text-[11px] uppercase tracking-[0.5px]${i > 0 ? " text-right" : " text-left"}`} style={{ color: "var(--bs-text-dim)" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <ComparisonRow label="Total" estimated={pricing.totalBidAmount} actual={pricing.actualCost} varianceAmt={totalVariance} variancePct={totalVariancePct} bold />
+                  {effectiveMaterialCost > 0 && <ComparisonRow label="Material" estimated={effectiveMaterialCost} actual={pricing.actualMaterialCost} varianceAmt={matVariance} variancePct={matVariancePct} />}
+                  {pricing.laborCost && <ComparisonRow label="Labor" estimated={pricing.laborCost} actual={pricing.actualLaborCost} varianceAmt={labVariance} variancePct={labVariancePct} />}
+                  {pricing.otherCost && <ComparisonRow label="Other" estimated={pricing.otherCost} actual={pricing.actualOtherCost} varianceAmt={othVariance} variancePct={othVariancePct} />}
+                  {dollarPerSf && actualDpsf && (
+                    <tr style={{ borderTop: "1px solid var(--bs-border)" }}>
+                      <td className="py-2 px-3" style={{ color: "var(--bs-text-muted)" }}>$/SF</td>
+                      <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--bs-text-muted)" }}>${dollarPerSf.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--bs-text-muted)" }}>${actualDpsf.toFixed(2)}</td>
+                      <td className={`py-2 px-3 text-right tabular-nums ${dpsfVariancePct !== null ? varianceColor(dpsfVariancePct) : ""}`} style={{ color: dpsfVariancePct !== null ? undefined : "var(--bs-text-dim)" }}>
+                        {dpsfVariance !== null ? `${dpsfVariance > 0 ? "+" : ""}$${dpsfVariance.toFixed(2)} (${dpsfVariancePct!.toFixed(1)}%)` : "—"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          )}
-
-          {/* Variance Bars */}
-          {(matVariancePct !== null || labVariancePct !== null || othVariancePct !== null) && (
-            <div className="mt-4 space-y-2">
-              <div className="text-[11px] text-slate-500">Variance Breakdown:</div>
-              {[
-                { label: "Material", pct: matVariancePct },
-                { label: "Labor", pct: labVariancePct },
-                { label: "Other", pct: othVariancePct },
-              ].filter(v => v.pct !== null).map((v) => (
-                <div key={v.label} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500 w-16">{v.label}</span>
-                  <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden relative">
-                    <div className="absolute inset-0 flex">
-                      <div className="w-1/2" />
-                      <div className="w-px bg-slate-500" />
-                      <div className="w-1/2" />
-                    </div>
-                    {v.pct! > 0 ? (
-                      <div className="absolute top-0 left-1/2 h-full bg-red-500/70 rounded-r-full" style={{ width: `${Math.min(50, Math.abs(v.pct!) * 2)}%` }} />
-                    ) : (
-                      <div className="absolute top-0 h-full bg-emerald-500/70 rounded-l-full" style={{ width: `${Math.min(50, Math.abs(v.pct!) * 2)}%`, right: "50%" }} />
-                    )}
-                  </div>
-                  <span className={`text-xs font-bold w-16 text-right ${varianceColor(v.pct!)}`}>
-                    {v.pct! > 0 ? "+" : ""}{v.pct!.toFixed(1)}%
-                  </span>
+            {totalVariancePct !== null && (
+              <div className="p-3 rounded-[8px]" style={{ background: Math.abs(totalVariancePct) <= 5 ? "var(--bs-teal-dim)" : totalVariancePct > 0 ? "var(--bs-red-dim)" : "var(--bs-teal-dim)", border: `1px solid ${Math.abs(totalVariancePct) <= 5 ? "var(--bs-teal-border)" : totalVariancePct > 0 ? "var(--bs-red-border)" : "var(--bs-teal-border)"}` }}>
+                <div className="text-[13px] font-medium" style={{ color: Math.abs(totalVariancePct) <= 5 ? "var(--bs-teal)" : totalVariancePct > 0 ? "var(--bs-red)" : "var(--bs-teal)" }}>
+                  {Math.abs(totalVariancePct) <= 5 ? "On budget" : totalVariancePct > 0 ? "Over budget" : "Under budget"} ({totalVariancePct > 0 ? "+" : ""}{totalVariancePct.toFixed(1)}%)
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Alternate Pricing */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-semibold text-slate-900">Alternate Pricing</h3>
+      <div className="rounded-[10px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        <div className="flex justify-between items-center px-[18px] py-[14px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+          <h3 className="text-[16px] font-medium" style={{ color: "#fff" }}>Alternate pricing</h3>
           {(isPro || isDemo) && !showAltForm && !editingAltId && (
             <button
               onClick={() => { if (!isDemo) setShowAltForm(true); }}
-              className="text-xs text-emerald-600 hover:text-emerald-800 font-medium transition-colors"
+              className="bs-btn bs-btn-ghost-teal cursor-pointer"
             >
-              + Add Alternate
+              + Add alternate
             </button>
           )}
         </div>
-        <p className="text-xs text-slate-500 mb-3 -mt-2">
-          Base bid add/deduct alternates requested by the GC. These are listed separately from the base bid total.
-        </p>
 
-        {altList.length > 0 && (
-          <div className="mb-3">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-1.5 px-2 text-xs text-slate-400 font-medium">Label</th>
-                  <th className="text-center py-1.5 px-2 text-xs text-slate-400 font-medium">Type</th>
-                  <th className="text-right py-1.5 px-2 text-xs text-slate-400 font-medium">Amount</th>
-                  {!isDemo && <th className="w-10" />}
-                </tr>
-              </thead>
-              <tbody>
-                {altList.map((a: any) => (
-                  editingAltId === a._id ? (
-                    <tr key={a._id}>
-                      <td colSpan={4} className="py-2 px-1">
-                        <AltForm form={altForm} setForm={setAltForm} saving={altSaving} onSave={saveAlt} onCancel={cancelAlt} fmtDollar={fmtDollar} />
-                      </td>
-                    </tr>
-                  ) : (
-                    <tr key={a._id} className="border-b border-slate-50 hover:bg-slate-50/50 group">
-                      <td className="py-2 px-2">
-                        <div className="text-xs font-medium text-slate-800">{a.label}</div>
-                        {a.description && <div className="text-[10px] text-slate-400 mt-0.5">{a.description}</div>}
-                      </td>
-                      <td className="py-2 px-2 text-center">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase ${a.type === "add" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-                          {a.type === "add" ? "Add" : "Deduct"}
-                        </span>
-                      </td>
-                      <td className="py-2 px-2 text-right tabular-nums text-xs text-slate-700">
-                        {a.amount != null ? (
-                          <span className={a.type === "add" ? "text-emerald-700 font-semibold" : "text-red-600 font-semibold"}>
-                            {a.type === "add" ? "+" : "-"}{fmtDollar(a.amount)}
-                          </span>
-                        ) : "—"}
-                      </td>
-                      {!isDemo && (
-                        <td className="py-2 px-1">
-                          <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => startEditAlt(a)} className="text-xs text-slate-400 hover:text-slate-700 px-1">✎</button>
-                            <button onClick={() => deleteAlternate({ alternateId: a._id as Id<"bidshield_alternates">, userId: userId! })} className="text-xs text-slate-400 hover:text-red-500 px-1">✕</button>
-                          </div>
+        <div className="p-[18px]">
+          {altList.length > 0 && (
+            <div className="mb-3">
+              <table className="w-full" style={{ fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                    {["Label", "Type", "Amount", !isDemo ? "" : null].filter(Boolean).map((h, i) => (
+                      <th key={i} className={`py-2 px-2 text-[11px] uppercase tracking-[0.5px]${i > 0 && i < 2 ? " text-center" : i === 2 ? " text-right" : " text-left"}`} style={{ color: "var(--bs-text-dim)" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {altList.map((a: any) => (
+                    editingAltId === a._id ? (
+                      <tr key={a._id}>
+                        <td colSpan={4} className="py-2 px-1">
+                          <AltForm form={altForm} setForm={setAltForm} saving={altSaving} onSave={saveAlt} onCancel={cancelAlt} fmtDollar={fmtDollar} />
                         </td>
-                      )}
-                    </tr>
-                  )
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                      </tr>
+                    ) : (
+                      <tr key={a._id} className="group" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                        <td className="py-2 px-2">
+                          <div className="text-[13px] font-medium" style={{ color: "var(--bs-text-secondary)" }}>{a.label}</div>
+                          {a.description && <div className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>{a.description}</div>}
+                        </td>
+                        <td className="py-2 px-2 text-center">
+                          <span className="text-[11px] font-medium px-2 py-0.5 rounded uppercase" style={{ background: a.type === "add" ? "var(--bs-teal-dim)" : "var(--bs-red-dim)", color: a.type === "add" ? "var(--bs-teal)" : "var(--bs-red)" }}>
+                            {a.type === "add" ? "Add" : "Deduct"}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums">
+                          {a.amount != null ? (
+                            <span className="text-[13px] font-medium" style={{ color: a.type === "add" ? "var(--bs-teal)" : "var(--bs-red)" }}>
+                              {a.type === "add" ? "+" : "-"}{fmtDollar(a.amount)}
+                            </span>
+                          ) : <span style={{ color: "var(--bs-text-dim)" }}>—</span>}
+                        </td>
+                        {!isDemo && (
+                          <td className="py-2 px-1">
+                            <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => startEditAlt(a)} className="text-xs px-1 cursor-pointer" style={{ color: "var(--bs-text-dim)", background: "none", border: "none" }}>✎</button>
+                              <button onClick={() => deleteAlternate({ alternateId: a._id as Id<"bidshield_alternates">, userId: userId! })} className="text-xs px-1 cursor-pointer" style={{ color: "var(--bs-red)", background: "none", border: "none" }}>✕</button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {altList.length === 0 && !showAltForm && (
-          <div className="text-center py-4 text-xs text-slate-400">
-            No alternates — add one if the GC requested add/deduct pricing.
-          </div>
-        )}
+          {altList.length === 0 && !showAltForm && (
+            <div className="py-8 text-center" style={{ border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 10 }}>
+              <div className="text-[13px]" style={{ color: "var(--bs-text-dim)" }}>No alternates — add one if the GC requested add/deduct pricing</div>
+            </div>
+          )}
 
-        {showAltForm && !editingAltId && (
-          <AltForm form={altForm} setForm={setAltForm} saving={altSaving} onSave={saveAlt} onCancel={cancelAlt} fmtDollar={fmtDollar} />
-        )}
+          {showAltForm && !editingAltId && (
+            <AltForm form={altForm} setForm={setAltForm} saving={altSaving} onSave={saveAlt} onCancel={cancelAlt} fmtDollar={fmtDollar} />
+          )}
 
-        {!(isPro || isDemo) && (
-          <a href="/bidshield/pricing" className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-            Alternate Pricing · Pro
-          </a>
-        )}
+          {!(isPro || isDemo) && (
+            <a href="/bidshield/pricing" className="inline-flex items-center gap-1 text-xs font-medium transition-colors bs-link">
+              Alternate Pricing · Pro
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Info callout */}
-      <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-        <p className="text-sm text-slate-500">
-          Material cost pulls automatically from{" "}
-          <button onClick={() => onNavigateTab?.("materials")} className="text-blue-500 hover:text-blue-700 underline underline-offset-2 font-medium">
-            Material Reconciliation
+      <div className="px-4 py-3 rounded-[10px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        <p className="text-[12px]" style={{ color: "var(--bs-text-muted)" }}>
+          Material cost pulls from{" "}
+          <button onClick={() => onNavigateTab?.("materials")} className="bs-link cursor-pointer" style={{ background: "none", border: "none" }}>
+            Material reconciliation
           </button>
-          {" "}and labor cost from{" "}
-          <button onClick={() => onNavigateTab?.("labor")} className="text-emerald-600 hover:text-emerald-800 underline underline-offset-2 font-medium">
-            Labor Verification
+          {" "}and labor from{" "}
+          <button onClick={() => onNavigateTab?.("labor")} className="bs-link cursor-pointer" style={{ background: "none", border: "none" }}>
+            Labor verification
           </button>
-          . Add Gen. Conds costs to complete your bid total.
+          . Add gen. conds to complete your bid total.
         </p>
       </div>
     </div>
@@ -680,7 +631,7 @@ function AltForm({ form, setForm, saving, onSave, onCancel, fmtDollar }: {
   fmtDollar: (n: number) => string;
 }) {
   return (
-    <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+    <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
         <div className="sm:col-span-2">
           <input
@@ -688,7 +639,8 @@ function AltForm({ form, setForm, saving, onSave, onCancel, fmtDollar }: {
             value={form.label}
             onChange={(e) => setForm({ ...form, label: e.target.value })}
             placeholder="Label (e.g. Alt 1 — Add tapered ISO)"
-            className="w-full bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+            className="w-full rounded px-2.5 py-1.5 text-[13px] focus:outline-none"
+            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
           />
         </div>
         <div className="flex gap-2">
@@ -696,7 +648,11 @@ function AltForm({ form, setForm, saving, onSave, onCancel, fmtDollar }: {
             <button
               key={t}
               onClick={() => setForm({ ...form, type: t })}
-              className={`flex-1 text-xs font-semibold py-1.5 rounded transition-colors ${form.type === t ? (t === "add" ? "bg-emerald-600 text-white" : "bg-red-500 text-white") : "bg-white border border-slate-300 text-slate-500"}`}
+              className="flex-1 text-[12px] font-medium py-1.5 rounded transition-colors cursor-pointer"
+              style={form.type === t
+                ? { background: t === "add" ? "var(--bs-teal-dim)" : "var(--bs-red-dim)", color: t === "add" ? "var(--bs-teal)" : "var(--bs-red)", border: `1px solid ${t === "add" ? "var(--bs-teal-border)" : "var(--bs-red-border)"}` }
+                : { background: "transparent", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }
+              }
             >
               {t === "add" ? "Add" : "Deduct"}
             </button>
@@ -709,21 +665,27 @@ function AltForm({ form, setForm, saving, onSave, onCancel, fmtDollar }: {
           value={form.amount}
           onChange={(e) => setForm({ ...form, amount: e.target.value })}
           placeholder="Amount ($)"
-          className="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+          className="rounded px-2.5 py-1.5 text-[13px] focus:outline-none"
+          style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
         />
         <input
           type="text"
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
           placeholder="Description (optional)"
-          className="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+          className="rounded px-2.5 py-1.5 text-[13px] focus:outline-none"
+          style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
         />
       </div>
       <div className="flex gap-2">
-        <button onClick={onSave} disabled={saving || !form.label.trim()} style={{ background: "#10b981" }} className="text-white text-xs font-medium px-3 py-1.5 rounded hover:opacity-90 disabled:opacity-50 transition-opacity">
+        <button
+          onClick={onSave}
+          disabled={saving || !form.label.trim()}
+          className="bs-btn bs-btn-primary text-[12px] disabled:opacity-50 cursor-pointer"
+        >
           {saving ? "Saving…" : "Save"}
         </button>
-        <button onClick={onCancel} className="text-xs text-slate-500 hover:text-slate-700 px-3 py-1.5 transition-colors">Cancel</button>
+        <button onClick={onCancel} className="text-[12px] px-3 py-1.5 cursor-pointer" style={{ color: "var(--bs-text-muted)" }}>Cancel</button>
       </div>
     </div>
   );
@@ -733,12 +695,13 @@ function ComparisonRow({ label, estimated, actual, varianceAmt, variancePct, bol
   label: string; estimated?: number; actual?: number; varianceAmt: number | null; variancePct: number | null; bold?: boolean;
 }) {
   const fmt = (n?: number) => n != null ? `$${n.toLocaleString()}` : "—";
+  const varColor = variancePct !== null ? varianceColor(variancePct) : "";
   return (
-    <tr className="border-b border-slate-200">
-      <td className={`py-2 px-3 ${bold ? "text-slate-900 font-semibold" : "text-slate-600"}`}>{label}</td>
-      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">{fmt(estimated)}</td>
-      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">{fmt(actual)}</td>
-      <td className={`py-2 px-3 text-right tabular-nums ${variancePct !== null ? varianceColor(variancePct) : "text-slate-500"}`}>
+    <tr style={{ borderBottom: "1px solid var(--bs-border)" }}>
+      <td className={`py-2 px-3 text-[13px] ${bold ? "font-medium" : ""}`} style={{ color: bold ? "var(--bs-text-primary)" : "var(--bs-text-secondary)" }}>{label}</td>
+      <td className="py-2 px-3 text-right text-[13px] tabular-nums" style={{ color: "var(--bs-text-secondary)" }}>{fmt(estimated)}</td>
+      <td className="py-2 px-3 text-right text-[13px] tabular-nums" style={{ color: "var(--bs-text-secondary)" }}>{fmt(actual)}</td>
+      <td className={`py-2 px-3 text-right text-[13px] tabular-nums ${varColor}`} style={!varColor ? { color: "var(--bs-text-muted)" } : {}}>
         {varianceAmt !== null ? `${varianceAmt > 0 ? "+" : ""}$${varianceAmt.toLocaleString()} (${variancePct!.toFixed(1)}%)` : "—"}
       </td>
     </tr>

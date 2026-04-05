@@ -66,24 +66,25 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto" style={{ background: "#0b0f14", borderRight: "1px solid rgba(255,255,255,0.05)" }}>
+    <aside
+      className="hidden lg:flex flex-col w-56 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto"
+      style={{ background: "var(--bs-bg-secondary)", borderRight: "1px solid var(--bs-border)" }}
+    >
       {/* Logo */}
-      <div className="px-5 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0" style={{ boxShadow: "0 0 0 1px rgba(5,150,105,0.3), 0 4px 12px rgba(5,150,105,0.25)" }}>
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+      <div className="px-[18px] py-4 flex items-center gap-[10px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+        <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="flex items-center gap-[10px] hover:opacity-80 transition-opacity">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--bs-teal)" }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#13151a" strokeWidth="1.8" fill="none"/>
+              <path d="M7 5V9M5 7H9" stroke="#13151a" strokeWidth="1.4"/>
             </svg>
           </div>
-          <div>
-            <span className="text-white font-bold text-sm tracking-tight">BidShield</span>
-            <div className="text-[10px] text-slate-600 font-medium tracking-widest uppercase mt-0.5">Estimating</div>
-          </div>
+          <span style={{ fontWeight: 500, fontSize: 15, color: "#fff", letterSpacing: "-0.3px" }}>BidShield</span>
         </a>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
+      <nav className="flex-1 px-2 py-3 flex flex-col">
         {NAV_ITEMS.map(({ href, label, exact, icon }) => {
           const active = isActive(href, exact);
           const fullHref = href + demoSuffix;
@@ -91,15 +92,9 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
             <Link
               key={href}
               href={fullHref}
-              className={`relative flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer ${
-                active
-                  ? "text-white bg-white/10"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-              }`}
-              style={active ? {} : {}}
+              className={`bs-nav-item${active ? " bs-nav-item-active" : ""}`}
             >
-              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-emerald-400 rounded-full" style={{ left: -4 }} />}
-              <span className={active ? "text-emerald-400" : "text-slate-600"}>{icon}</span>
+              <span style={{ width: 16, height: 16, flexShrink: 0 }}>{icon}</span>
               <span>{label}</span>
             </Link>
           );
@@ -108,47 +103,43 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
 
       {/* Free plan upgrade nudge */}
       {!isDemo && !isPro && isSignedIn && (
-        <div className="mx-3 mb-3 px-3 py-3 rounded-xl" style={{ background: "rgba(5,150,105,0.07)", border: "1px solid rgba(5,150,105,0.18)" }}>
-          <p className="text-[11px] font-semibold text-slate-300 mb-0.5">Free Plan</p>
-          <p className="text-[10px] text-slate-500 mb-2">Unlock unlimited projects & PDF export</p>
-          <Link href="/bidshield/pricing" className="flex items-center justify-center gap-1.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer">
+        <div className="mx-2 mb-2 px-3 py-3 rounded-lg" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
+          <p className="text-[11px] font-medium mb-0.5" style={{ color: "var(--bs-text-secondary)" }}>Free Plan</p>
+          <p className="text-[10px] mb-2" style={{ color: "var(--bs-text-dim)" }}>Unlock unlimited projects & PDF export</p>
+          <Link href="/bidshield/pricing" className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
             Upgrade to Pro
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
           </Link>
         </div>
       )}
 
       {/* User / Plan footer */}
-      <div className="px-3 pb-3 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+      <div className="px-2 pb-3 pt-2" style={{ borderTop: "1px solid var(--bs-border)" }}>
         {isDemo ? (
           <div className="flex flex-col gap-2 px-2 py-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 text-[10px] font-bold shrink-0">D</div>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)" }}>D</div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-semibold text-slate-300">Demo Mode</div>
-                <div className="text-[10px] text-slate-600">Not saved to account</div>
+                <div className="text-xs font-medium" style={{ color: "var(--bs-text-secondary)" }}>Demo Mode</div>
+                <div className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>Not saved to account</div>
               </div>
             </div>
-            <Link href="/sign-up" className="block text-center py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer">
+            <Link href="/sign-up" className="block text-center py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
               Start Free →
             </Link>
           </div>
         ) : (
           <div className="flex items-center gap-2.5 px-2 py-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-700 to-teal-800 flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>
               {userId ? userId.slice(5, 7).toUpperCase() : "??"}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-slate-300 truncate">
+              <div className="text-xs font-medium truncate" style={{ color: "var(--bs-text-secondary)" }}>
                 {isSignedIn ? "Signed in" : "—"}
               </div>
-              <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 tracking-wider uppercase ${isPro ? "bg-emerald-900/70 text-emerald-400" : "bg-slate-800 text-slate-500"}`}>
+              <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 tracking-wider uppercase" style={{ background: isPro ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.05)", color: isPro ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
                 {isPro ? "Pro" : "Free"}
               </span>
             </div>
-            <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="text-slate-700 hover:text-slate-400 transition-colors">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-            </a>
           </div>
         )}
       </div>
@@ -185,14 +176,15 @@ function MobileNav({ pathname, isDemo, isPro }: { pathname: string; isDemo: bool
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center bg-slate-900 border-t border-slate-800" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center" style={{ background: "var(--bs-bg-secondary)", borderTop: "1px solid var(--bs-border)", paddingBottom: "env(safe-area-inset-bottom)" }}>
       {tabs.map(({ href, label, exact, icon }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link
             key={href}
             href={href + demoSuffix}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${active ? "text-emerald-400" : "text-slate-500"}`}
+            style={{ color: active ? "var(--bs-teal)" : "var(--bs-text-dim)" }}
+            className="flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors"
           >
             {icon}
             {label}
@@ -278,7 +270,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       #bidshield-app { font-family: 'DM Sans', system-ui, sans-serif; }
       #bidshield-app .app-display { font-family: 'Barlow Condensed', system-ui, sans-serif; }
     `}</style>
-    <div id="bidshield-app" className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "var(--bs-bg-page)" }}>
+    <div id="bidshield-app" className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "var(--bs-bg-primary)" }}>
       <Sidebar isDemo={isDemo} pathname={pathname} isPro={isPro} />
 
       <div className="flex-1 flex flex-col min-w-0">

@@ -20,31 +20,12 @@ function formatCountdown(ms: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-// ─── Section progress bar with % inside ──────────────────────────────────────
+// ─── Section progress bar (dark theme) ───────────────────────────────────────
 function ProgressBar({ score, color }: { score: number; color: string }) {
   const pct = Math.max(0, Math.min(100, score));
-  const showInside = pct >= 28;
   return (
-    <div className="relative h-7 rounded-lg overflow-hidden bg-slate-100 flex-1">
-      <div
-        className="absolute inset-y-0 left-0 rounded-lg transition-all duration-700"
-        style={{ width: `${pct}%`, background: color }}
-      />
-      {showInside ? (
-        <span
-          className="absolute inset-y-0 left-0 flex items-center pl-2.5 text-[11px] font-bold text-white"
-          style={{ width: `${pct}%`, textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}
-        >
-          {pct}%
-        </span>
-      ) : (
-        <span
-          className="absolute inset-y-0 flex items-center text-[11px] font-bold text-slate-500"
-          style={{ left: `calc(${pct}% + 8px)` }}
-        >
-          {pct}%
-        </span>
-      )}
+    <div className="flex-1 h-[6px] rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+      <div className="h-full rounded-sm transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
     </div>
   );
 }
@@ -208,22 +189,25 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
     : null;
 
   return (
-    <div className="flex flex-col gap-6" style={{ background: "#F8FAFC", minHeight: "100%" }}>
+    <div className="flex flex-col gap-7" style={{ background: "var(--bs-bg-primary)", minHeight: "100%" }}>
 
       {/* ── 1. DEADLINE BANNER ───────────────────────────────────────────────── */}
       {showBanner && msUntilBid !== null && (
         <div
-          className="flex items-center gap-4 px-6 py-3.5 -mx-6 -mt-6"
+          className="flex items-center gap-4 px-6 py-3 -mx-7 -mt-7"
           style={{
-            background: isOverdue || isCritical ? "#DC2626" : "#D97706",
-            borderBottom: `1px solid ${isOverdue || isCritical ? "#B91C1C" : "#B45309"}`,
+            background: isOverdue || isCritical ? "var(--bs-red-dim)" : "var(--bs-amber-dim)",
+            borderLeft: `3px solid ${isOverdue || isCritical ? "var(--bs-red)" : "var(--bs-amber)"}`,
+            borderBottom: "1px solid var(--bs-border)",
           }}
         >
-          <svg className="w-5 h-5 text-white shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: isOverdue || isCritical ? "var(--bs-red)" : "var(--bs-amber)" }}>
+            <path d="M8 2l6 11H2L8 2z" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinejoin="round"/>
+            <path d="M8 7v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <circle cx="8" cy="11" r="0.6" fill="currentColor"/>
           </svg>
           <div className="flex-1 min-w-0">
-            <span className="text-white font-semibold text-sm">
+            <span className="text-[13px] font-medium" style={{ color: isOverdue || isCritical ? "var(--bs-red)" : "var(--bs-amber)" }}>
               {isOverdue
                 ? "Bid deadline has passed"
                 : isCritical
@@ -231,220 +215,185 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
                 : `Bid deadline today — ${formatCountdown(msUntilBid)} remaining`}
             </span>
             {bidDateLabel && (
-              <span className="text-white/70 text-sm ml-2">· {bidDateLabel}</span>
+              <span className="text-[12px] ml-2" style={{ color: "var(--bs-text-muted)" }}>· {bidDateLabel}</span>
             )}
           </div>
           {redCount > 0 && (
-            <span className="text-white/90 text-sm font-medium shrink-0">
+            <span className="text-[12px] shrink-0" style={{ color: "var(--bs-text-muted)" }}>
               {redCount} unresolved blocker{redCount !== 1 ? "s" : ""}
             </span>
           )}
           <button
             onClick={() => setDismissedBanner(true)}
-            className="text-white/70 hover:text-white transition-colors cursor-pointer shrink-0 ml-2"
+            className="cursor-pointer shrink-0 ml-2 transition-colors"
+            style={{ color: "var(--bs-text-dim)" }}
             aria-label="Dismiss"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
           </button>
         </div>
       )}
 
       {/* ── 2. KPI CARDS ─────────────────────────────────────────────────────── */}
       {(bidAmt || grossArea) && (
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            {
-              label: "Square Footage",
-              value: grossArea ? grossArea.toLocaleString("en-US") : "—",
-              suffix: grossArea ? "SF" : "",
-              underline: "#334155",
-              sub: null,
-            },
-            {
-              label: "Total Bid",
-              value: bidAmt ? `$${(bidAmt / 1000).toFixed(0)}K` : "—",
-              suffix: "",
-              underline: "#059669",
-              sub: bidAmt ? `$${bidAmt.toLocaleString("en-US")}` : null,
-            },
-            {
-              label: "Cost per SF",
-              value: dpsf ? `$${dpsf.toFixed(2)}` : "—",
-              suffix: dpsf ? "/SF" : "",
-              underline: dpsf ? (dpsf < 15 ? "#059669" : dpsf < 25 ? "#F59E0B" : "#EF4444") : "#CBD5E1",
-              sub: null,
-            },
-          ].map(({ label, value, suffix, underline, sub }) => (
-            <div
-              key={label}
-              className="bg-white rounded-xl px-6 py-5 flex flex-col gap-1"
-              style={{
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                borderBottom: `3px solid ${underline}`,
-                border: "1px solid #E2E8F0",
-                borderBottomWidth: 3,
-                borderBottomColor: underline,
-              }}
-            >
-              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{label}</span>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-4xl font-bold text-slate-900 tracking-tight leading-none tabular-nums">{value}</span>
-                {suffix && <span className="text-base font-semibold text-slate-400">{suffix}</span>}
+        <div className="grid grid-cols-4 gap-3">
+          {/* Readiness ring */}
+          <div className="rounded-[10px] p-5 flex items-center gap-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="relative w-14 h-14 shrink-0">
+              <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: "rotate(-90deg)" }}>
+                <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5"/>
+                <circle cx="28" cy="28" r="24" fill="none" stroke="var(--bs-teal)" strokeWidth="5"
+                  strokeDasharray="150.8"
+                  strokeDashoffset={150.8 * (1 - (completeSections / totalSections))}
+                  strokeLinecap="round"/>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-[13px] font-medium" style={{ color: "var(--bs-teal)" }}>
+                {Math.round((completeSections / totalSections) * 100)}%
               </div>
-              {sub && <span className="text-xs text-slate-400 tabular-nums">{sub}</span>}
             </div>
-          ))}
+            <div>
+              <div className="text-[15px] font-medium" style={{ color: "#fff" }}>
+                {completeSections === totalSections ? "Ready" : "On track"}
+              </div>
+              <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
+                {completeSections}/{totalSections} sections ready
+              </div>
+            </div>
+          </div>
+          {/* Square footage */}
+          <div className="rounded-[10px] p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="bs-metric-label">Square footage</div>
+            <div className="text-[28px] font-medium tabular-nums" style={{ color: "#fff", letterSpacing: "-1px" }}>
+              {grossArea ? `${(grossArea / 1000).toFixed(1)}K` : "—"}
+            </div>
+            <div className="text-[12px] mt-1" style={{ color: "var(--bs-text-dim)" }}>SF gross roof area</div>
+          </div>
+          {/* Total bid */}
+          <div className="rounded-[10px] p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="bs-metric-label">Total bid</div>
+            <div className="text-[28px] font-medium tabular-nums" style={{ color: "#fff", letterSpacing: "-1px" }}>
+              {bidAmt ? `$${(bidAmt / 1_000_000).toFixed(2)}M` : "—"}
+            </div>
+            {bidAmt && (
+              <div className="text-[12px] mt-1" style={{ color: "var(--bs-text-dim)" }}>${bidAmt.toLocaleString("en-US")}</div>
+            )}
+          </div>
+          {/* Cost/SF */}
+          <div className="rounded-[10px] p-5" style={{ background: "var(--bs-bg-card)", border: `1px solid var(--bs-teal)` }}>
+            <div className="bs-metric-label">Cost / SF</div>
+            <div className="text-[28px] font-medium tabular-nums" style={{ color: "var(--bs-teal)", letterSpacing: "-1px" }}>
+              {dpsf ? `$${dpsf.toFixed(2)}` : "—"}
+            </div>
+            <div className="text-[12px] mt-1" style={{ color: "var(--bs-text-dim)" }}>per square foot</div>
+          </div>
         </div>
       )}
 
-      {/* ── 3. NEEDS ATTENTION TABLE ─────────────────────────────────────────── */}
+      {/* ── 3. ACTION ITEMS TABLE ────────────────────────────────────────────── */}
       {actionItems.length === 0 ? (
-        <div
-          className="bg-white rounded-xl px-6 py-5 flex items-center gap-4"
-          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: "1px solid #D1FAE5" }}
-        >
-          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
+        <div className="rounded-[10px] px-5 py-4 flex items-center gap-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-teal-border)" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--bs-teal-dim)" }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="var(--bs-teal)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">All sections passing</p>
-            <p className="text-xs text-slate-500 mt-0.5">{greenCount} of {totalSections} sections complete — bid is ready to submit</p>
+            <p className="text-[13px] font-medium" style={{ color: "#fff" }}>All sections passing</p>
+            <p className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>{greenCount} of {totalSections} sections complete — bid is ready to submit</p>
           </div>
           <button
             onClick={() => onNavigateTab?.("validator")}
-            className="ml-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors duration-150 cursor-pointer whitespace-nowrap"
+            className="ml-auto px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer whitespace-nowrap bs-btn-ghost-teal"
           >
             Run Validator →
           </button>
         </div>
       ) : (
-        <div
-          className="bg-white rounded-xl overflow-hidden"
-          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: "1px solid #E2E8F0" }}
-        >
+        <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
           {/* Card header */}
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-[18px] py-[10px] flex items-center justify-between" style={{ borderBottom: "1px solid var(--bs-border)" }}>
             <div className="flex items-center gap-3">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Needs Attention</span>
+              <span className="text-[11px] uppercase tracking-[0.5px]" style={{ color: "var(--bs-text-dim)" }}>Action items</span>
               <div className="flex items-center gap-1.5">
                 {redCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: "var(--bs-red)" }} />
                     {redCount} blocker{redCount !== 1 ? "s" : ""}
                   </span>
                 )}
                 {yellowCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: "var(--bs-amber)" }} />
                     {yellowCount} warning{yellowCount !== 1 ? "s" : ""}
                   </span>
                 )}
               </div>
             </div>
-            {greenCount > 0 && (
-              <span className="text-[11px] font-medium text-emerald-600">{greenCount} passing</span>
-            )}
+            <button
+              onClick={() => onNavigateTab?.("validator")}
+              className="text-[12px] cursor-pointer transition-colors bs-link"
+            >
+              Run validator
+            </button>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 w-full">Issue</th>
-                  <th className="text-left px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">Section</th>
-                  <th className="text-left px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">Severity</th>
-                  <th className="px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {actionItems.map((item, i) => {
-                  const isRed = item.level === "red";
-                  return (
-                    <tr
-                      key={`${item.tab}-${i}`}
-                      className="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors duration-100 cursor-pointer"
-                      onClick={() => onNavigateTab?.(item.tab)}
-                    >
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-1.5 h-1.5 rounded-full shrink-0"
-                            style={{ background: isRed ? "#EF4444" : "#F59E0B" }}
-                          />
-                          <span className="text-sm text-slate-700">{item.text}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded capitalize">
-                          {item.tab === "checklist" ? "Checklist"
-                           : item.tab === "scope" ? "Scope"
-                           : item.tab === "takeoff" ? "Takeoff"
-                           : item.tab === "quotes" ? "Quotes"
-                           : item.tab === "rfis" ? "RFIs"
-                           : item.tab === "addenda" ? "Addenda"
-                           : item.tab === "materials" ? "Materials"
-                           : item.tab === "pricing" ? "Pricing"
-                           : item.tab}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span
-                          className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
-                          style={{
-                            background: isRed ? "#FEE2E2" : "#FEF3C7",
-                            color: isRed ? "#DC2626" : "#D97706",
-                          }}
-                        >
-                          {isRed ? "Blocker" : "Warning"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-right whitespace-nowrap">
-                        <button
-                          className="text-[12px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
-                          onClick={(e) => { e.stopPropagation(); onNavigateTab?.(item.tab); }}
-                        >
-                          {isRed ? "Fix →" : "Review →"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* Table header */}
+          <div className="grid px-[18px] py-[10px]" style={{ gridTemplateColumns: "1fr 120px 100px 80px", borderBottom: "1px solid var(--bs-border)" }}>
+            {["Issue", "Section", "Status", "Action"].map(h => (
+              <span key={h} className="text-[11px] uppercase tracking-[0.5px]" style={{ color: "var(--bs-text-dim)", textAlign: h === "Action" ? "right" : "left" }}>{h}</span>
+            ))}
           </div>
+
+          {/* Rows */}
+          {actionItems.map((item, i) => {
+            const isRed = item.level === "red";
+            return (
+              <div
+                key={`${item.tab}-${i}`}
+                className="grid px-[18px] py-3 cursor-pointer transition-colors bs-table-row"
+                style={{ gridTemplateColumns: "1fr 120px 100px 80px", alignItems: "center" }}
+                onClick={() => onNavigateTab?.(item.tab)}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="bs-dot shrink-0" style={{ background: isRed ? "var(--bs-red)" : "var(--bs-amber)" }} />
+                  <span className="text-[13px]" style={{ color: "var(--bs-text-secondary)" }}>{item.text}</span>
+                </div>
+                <span className="text-[12px] px-[10px] py-0.5 rounded w-fit" style={{ background: "rgba(255,255,255,0.04)", color: "var(--bs-text-muted)" }}>
+                  {item.tab.charAt(0).toUpperCase() + item.tab.slice(1)}
+                </span>
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded w-fit" style={{ background: isRed ? "var(--bs-red-dim)" : "var(--bs-amber-dim)", color: isRed ? "var(--bs-red)" : "var(--bs-amber)" }}>
+                  {isRed ? "Blocker" : "Warning"}
+                </span>
+                <button
+                  className="text-[12px] text-right w-full cursor-pointer transition-colors bs-link"
+                  onClick={(e) => { e.stopPropagation(); onNavigateTab?.(item.tab); }}
+                >
+                  Review
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* ── 4. SECTION PROGRESS ──────────────────────────────────────────────── */}
-      <div
-        className="bg-white rounded-xl overflow-hidden"
-        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: "1px solid #E2E8F0" }}
-      >
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Section Progress</span>
-          <span className="text-[11px] font-medium text-slate-400 tabular-nums">
-            {completeSections} <span className="text-slate-300">/</span> {totalSections} ready
-          </span>
+      <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        <div className="px-[18px] py-[14px] flex items-center justify-between" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+          <h2 className="text-[15px] font-medium" style={{ color: "#fff" }}>Section progress</h2>
+          <span className="text-[12px]" style={{ color: "var(--bs-text-dim)" }}>{completeSections}/{totalSections} ready</span>
         </div>
-        <div className="px-6 py-4 flex flex-col gap-3">
+        <div className="px-[18px] py-4 flex flex-col gap-2">
           {Object.entries(sectionScores).map(([key, score]) => {
             const pct = Math.max(0, Math.min(100, score));
-            const color = pct >= 75 ? "#10B981" : pct >= 25 ? "#F59E0B" : "#EF4444";
+            const color = pct >= 75 ? "var(--bs-teal)" : pct >= 25 ? "var(--bs-amber)" : "var(--bs-red)";
             return (
               <button
                 key={key}
                 onClick={() => onNavigateTab?.(key as TabId)}
-                className="flex items-center gap-4 w-full text-left cursor-pointer group"
+                className="grid items-center gap-3 w-full text-left cursor-pointer"
+                style={{ gridTemplateColumns: "110px 1fr 50px" }}
               >
-                <span className="text-[13px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors w-20 shrink-0">
-                  {sectionLabels[key]}
-                </span>
+                <span className="text-[13px]" style={{ color: "var(--bs-text-muted)" }}>{sectionLabels[key]}</span>
                 <ProgressBar score={pct} color={color} />
+                <span className="text-[12px] font-medium text-right tabular-nums" style={{ color }}>{pct}%</span>
               </button>
             );
           })}
@@ -453,12 +402,9 @@ export default function OverviewTab({ projectId, isDemo, project, userId, onNavi
 
       {/* ── 5. PROJECT NOTES ─────────────────────────────────────────────────── */}
       {project?.notes && (
-        <div
-          className="bg-white rounded-xl px-6 py-5"
-          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: "1px solid #E2E8F0" }}
-        >
-          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 block mb-3">Notes</span>
-          <p className="text-sm text-slate-600 leading-relaxed">{project.notes}</p>
+        <div className="rounded-[10px] px-[18px] py-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <span className="text-[11px] uppercase tracking-[0.5px] block mb-3" style={{ color: "var(--bs-text-dim)" }}>Notes</span>
+          <p className="text-[13px] leading-relaxed" style={{ color: "var(--bs-text-muted)" }}>{project.notes}</p>
         </div>
       )}
 

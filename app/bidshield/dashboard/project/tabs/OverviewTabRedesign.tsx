@@ -5,7 +5,6 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps, TabId } from "../tab-types";
-import { PieChart, Pie, Cell } from "recharts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -32,71 +31,41 @@ function daysBetween(ms: number) {
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Circular donut ring showing bid readiness % */
+/** Circular SVG donut ring showing bid readiness % */
 function ReadinessRing({ pct }: { pct: number }) {
-  const color = pct >= 75 ? "#10B981" : pct >= 40 ? "#F59E0B" : "#EF4444";
-  const data = [
-    { value: pct },
-    { value: 100 - pct },
-  ];
+  const color = pct >= 75 ? "var(--bs-teal)" : pct >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
+  const r = 34;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
   return (
-    <div className="relative w-20 h-20 shrink-0">
-      <PieChart width={80} height={80}>
-        <Pie
-          data={data}
-          cx={40}
-          cy={40}
-          innerRadius={28}
-          outerRadius={38}
-          startAngle={90}
-          endAngle={-270}
-          dataKey="value"
-          strokeWidth={0}
-        >
-          <Cell fill={color} />
-          <Cell fill="#F1F5F9" />
-        </Pie>
-      </PieChart>
+    <div className="relative shrink-0" style={{ width: 80, height: 80 }}>
+      <svg width={80} height={80} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={40} cy={40} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={7} />
+        <circle
+          cx={40} cy={40} r={r} fill="none"
+          stroke={color} strokeWidth={7}
+          strokeDasharray={`${dash} ${circ}`}
+          strokeLinecap="round"
+        />
+      </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[15px] font-bold text-slate-900 tabular-nums leading-none">{pct}%</span>
+        <span className="text-[15px] font-medium tabular-nums leading-none" style={{ color: "var(--bs-text-primary)" }}>{pct}%</span>
       </div>
     </div>
   );
 }
 
-/** Chunky horizontal progress bar with % inside */
+/** Thin dark progress bar for section scores */
 function SectionBar({ label, pct, onClick }: { label: string; pct: number; onClick: () => void }) {
-  const color = pct >= 75 ? "#10B981" : pct >= 25 ? "#F59E0B" : "#EF4444";
-  const showInside = pct >= 22;
+  const color = pct >= 75 ? "var(--bs-teal)" : pct >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
+  const textColor = pct >= 75 ? "var(--bs-teal)" : pct >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
   return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-4 w-full group cursor-pointer"
-    >
-      <span className="w-24 shrink-0 text-[13px] font-medium text-slate-500 group-hover:text-slate-800 transition-colors text-left">
-        {label}
-      </span>
-      <div className="relative flex-1 h-7 rounded-md bg-slate-100 overflow-hidden">
-        <div
-          className="absolute inset-y-0 left-0 rounded-md transition-all duration-700"
-          style={{ width: `${pct}%`, background: color }}
-        />
-        {showInside ? (
-          <span
-            className="absolute inset-y-0 left-0 flex items-center pl-3 text-[11px] font-bold text-white"
-            style={{ width: `${pct}%` }}
-          >
-            {pct}%
-          </span>
-        ) : (
-          <span
-            className="absolute inset-y-0 flex items-center text-[11px] font-bold text-slate-400"
-            style={{ left: `calc(${pct}% + 8px)` }}
-          >
-            {pct}%
-          </span>
-        )}
+    <button onClick={onClick} className="flex items-center gap-3 w-full cursor-pointer group">
+      <span className="w-20 shrink-0 text-[12px] text-left" style={{ color: "var(--bs-text-muted)" }}>{label}</span>
+      <div className="flex-1 h-[4px] rounded-sm overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+        <div className="h-full rounded-sm transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
       </div>
+      <span className="text-[11px] tabular-nums w-8 text-right shrink-0" style={{ color: textColor }}>{pct}%</span>
     </button>
   );
 }
@@ -109,7 +78,7 @@ function SectionBadge({ tab }: { tab: string }) {
     materials: "Materials", pricing: "Pricing",
   };
   return (
-    <span className="inline-block text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+    <span className="bs-badge" style={{ background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)" }}>
       {MAP[tab] ?? tab}
     </span>
   );
@@ -267,141 +236,149 @@ export default function OverviewTabRedesign({
   // Render
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-6 min-h-full">
+    <div className="flex flex-col gap-5 min-h-full">
 
       {/* ── DEADLINE BANNER ─────────────────────────────────────────────────── */}
       {showBanner && (
         <div
-          className="-mx-6 -mt-6 mb-2 flex items-center gap-4 px-6 py-3.5"
-          style={{ background: isOverdue ? "#DC2626" : "#B45309" }}
+          className="-mx-6 -mt-6 mb-1 flex items-center gap-4 px-6 py-3"
+          style={{
+            background: isOverdue ? "var(--bs-red-dim)" : "var(--bs-amber-dim)",
+            borderLeft: `3px solid ${isOverdue ? "var(--bs-red)" : "var(--bs-amber)"}`,
+          }}
         >
-          <svg className="w-4 h-4 text-white/90 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ minWidth: 16, color: isOverdue ? "var(--bs-red)" : "var(--bs-amber)" }}>
+            <path d="M8 2l6 11H2L8 2z" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinejoin="round"/>
+            <path d="M8 7v2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <circle cx="8" cy="11.5" r="0.6" fill="currentColor"/>
           </svg>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white leading-none">
+            <p className="text-[13px] font-medium leading-none" style={{ color: isOverdue ? "var(--bs-red)" : "var(--bs-amber)" }}>
               {isOverdue ? "Bid deadline has passed" : `Bid deadline in ${countdown ?? "less than a day"}`}
             </p>
             {blockers > 0 && (
-              <p className="text-xs text-white/75 mt-0.5">
+              <p className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
                 {blockers} unresolved blocker{blockers !== 1 ? "s" : ""} — review action items below
               </p>
             )}
           </div>
           <button
             onClick={() => setDismissed(true)}
-            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors cursor-pointer text-white/75 hover:text-white"
+            className="shrink-0 w-6 h-6 flex items-center justify-center rounded cursor-pointer"
+            style={{ color: "var(--bs-text-dim)" }}
             aria-label="Dismiss"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         </div>
       )}
 
-      {/* ── KPI CARDS ────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-5">
+      {/* ── HERO ROW: Readiness + Metrics ─────────────────────────────────────── */}
+      <div className="grid grid-cols-5 gap-3">
 
-        {/* Bid Readiness */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex items-center gap-5">
-          <ReadinessRing pct={readinessPct} />
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Bid Readiness</p>
-            <p className="text-base font-bold text-slate-800 leading-tight">
-              {readinessPct >= 75 ? "On track" : readinessPct >= 40 ? "Needs work" : "Critical gaps"}
-            </p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              {Object.values(sectionScores).filter(s => s >= 75).length}/{Object.values(sectionScores).length} sections ready
-            </p>
+        {/* LEFT: Bid Readiness Panel (3 cols) */}
+        <div className="col-span-3 rounded-[10px] p-5 flex flex-col gap-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="text-[10px] font-medium uppercase tracking-widest" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}>Bid Readiness</div>
+          <div className="flex items-center gap-5">
+            <ReadinessRing pct={readinessPct} />
+            <div className="flex flex-col gap-1">
+              <span
+                className="bs-badge inline-block"
+                style={readinessPct >= 75
+                  ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }
+                  : readinessPct >= 40
+                  ? { background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }
+                  : { background: "var(--bs-red-dim)", color: "var(--bs-red)" }
+                }
+              >
+                {readinessPct >= 75 ? "On Track" : readinessPct >= 40 ? "Needs Work" : "Critical"}
+              </span>
+              <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>
+                {Object.values(sectionScores).filter(s => s >= 75).length}/{Object.values(sectionScores).length} sections ready
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            {Object.entries(sectionScores).map(([label, score]) => (
+              <SectionBar
+                key={label}
+                label={label}
+                pct={Math.max(0, Math.min(100, score))}
+                onClick={() => onNavigateTab?.(tabForSection[label] ?? ("overview" as TabId))}
+              />
+            ))}
           </div>
         </div>
 
-        {/* Square Footage */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex flex-col">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Square Footage</p>
-          <p className="text-6xl font-black text-slate-900 tracking-tight leading-none tabular-nums">
-            {grossArea ? fmtSF(grossArea) : "—"}
-          </p>
-          <p className="text-[11px] font-semibold text-slate-400 mt-2">
-            {grossArea ? "SF · gross roof area" : "Not set"}
-          </p>
-          {takenOff > 0 && grossArea > 0 && (
-            <p className="text-[11px] text-slate-400 mt-auto pt-3 tabular-nums">
-              {takenOff.toLocaleString()} SF taken off
-              {deltaPct !== null && (
-                <span className={deltaPct > 5 ? " text-red-500 font-semibold" : ""}>
-                  {" "}· {deltaPct.toFixed(1)}% gap
-                </span>
-              )}
-            </p>
-          )}
-        </div>
+        {/* RIGHT: Metric Stack (2 cols) */}
+        <div className="col-span-2 flex flex-col gap-3">
 
-        {/* Total Bid */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex flex-col">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Total Bid</p>
-          <p className="text-6xl font-black text-slate-900 tracking-tight leading-none tabular-nums">
-            {bidAmt ? fmt$K(bidAmt) : "—"}
-          </p>
-          <p className="text-[11px] font-semibold text-slate-400 mt-2">
-            {bidAmt ? `$${bidAmt.toLocaleString()}` : "Not entered"}
-          </p>
-          <div className="mt-auto pt-3 h-1.5 rounded-full w-full bg-slate-100">
-            <div
-              className="h-1.5 rounded-full transition-all duration-500"
-              style={{
-                width: pricingComplete ? "100%" : bidAmt ? "60%" : "0%",
-                background: pricingComplete ? "#10B981" : "#F59E0B",
-              }}
-            />
+          {/* Square Footage */}
+          <div className="rounded-[10px] p-[18px] flex-1 flex flex-col justify-between" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="text-[11px] uppercase mb-2" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.5px" }}>Square Footage</div>
+            <div>
+              <div className="text-[24px] font-medium tabular-nums leading-none" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>
+                {grossArea ? fmtSF(grossArea) : "—"}
+              </div>
+              <div className="text-[11px] mt-1.5" style={{ color: "var(--bs-text-dim)" }}>
+                {grossArea ? "SF · gross roof area" : "Not set"}
+                {takenOff > 0 && grossArea > 0 && deltaPct !== null && (
+                  <span style={{ color: deltaPct > 5 ? "var(--bs-red)" : "var(--bs-text-dim)" }}> · {deltaPct.toFixed(1)}% gap</span>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Cost / SF */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex flex-col">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Cost / SF</p>
-          <p
-            className="text-6xl font-black tracking-tight leading-none tabular-nums"
-            style={{ color: dpsf ? (dpsf < 15 ? "#10B981" : dpsf < 25 ? "#F59E0B" : "#EF4444") : "#CBD5E1" }}
-          >
-            {dpsf ? `$${dpsf.toFixed(2)}` : "—"}
-          </p>
-          <p className="text-[11px] font-semibold text-slate-400 mt-2">
-            {dpsf ? "per square foot" : "Pending pricing"}
-          </p>
-          {dpsf && (
-            <p
-              className="text-[11px] font-semibold mt-auto pt-3"
-              style={{ color: dpsf < 15 ? "#10B981" : dpsf < 25 ? "#F59E0B" : "#EF4444" }}
-            >
-              {dpsf < 15 ? "Below market" : dpsf < 25 ? "Mid-range" : "Above market"}
-            </p>
-          )}
+          {/* Total Bid */}
+          <div className="rounded-[10px] p-[18px] flex-1 flex flex-col justify-between" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="text-[11px] uppercase mb-2" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.5px" }}>Total Bid</div>
+            <div>
+              <div className="text-[24px] font-medium tabular-nums leading-none" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>
+                {bidAmt ? fmt$K(bidAmt) : "—"}
+              </div>
+              <div className="text-[11px] mt-1.5" style={{ color: "var(--bs-text-dim)" }}>
+                {bidAmt ? `$${bidAmt.toLocaleString()}` : "Not entered"}
+              </div>
+            </div>
+          </div>
+
+          {/* Cost / SF */}
+          <div className="rounded-[10px] p-[18px] flex-1 flex flex-col justify-between" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-teal)" }}>
+            <div className="text-[11px] uppercase mb-2" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.5px" }}>Cost / SF</div>
+            <div>
+              <div className="text-[24px] font-medium tabular-nums leading-none" style={{ color: "var(--bs-teal)", letterSpacing: "-0.3px" }}>
+                {dpsf ? `$${dpsf.toFixed(2)}` : "—"}
+              </div>
+              <div className="text-[11px] mt-1.5" style={{ color: "var(--bs-text-dim)" }}>
+                {dpsf ? (dpsf < 15 ? "Below market" : dpsf < 25 ? "Mid-range" : "Above market") : "Pending pricing"}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* ── ACTION ITEMS TABLE ───────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      {/* ── ACTION ITEMS ─────────────────────────────────────────────────────── */}
+      <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        <div className="flex items-center justify-between px-[18px] py-[12px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
           <div className="flex items-center gap-3">
-            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Action Items</h2>
+            <span className="text-[11px] font-medium uppercase" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}>Action Items</span>
             {blockers > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="bs-badge bs-badge-danger inline-flex items-center gap-1.5">
+                <span className="bs-dot" style={{ background: "var(--bs-red)" }} />
                 {blockers} blocker{blockers !== 1 ? "s" : ""}
               </span>
             )}
             {warnings > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span className="bs-badge bs-badge-warning inline-flex items-center gap-1.5">
+                <span className="bs-dot" style={{ background: "var(--bs-amber)" }} />
                 {warnings} warning{warnings !== 1 ? "s" : ""}
               </span>
             )}
           </div>
           <button
             onClick={() => onNavigateTab?.("validator")}
-            className="text-[12px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+            className="bs-link cursor-pointer"
           >
             Run validator →
           </button>
@@ -409,99 +386,69 @@ export default function OverviewTabRedesign({
 
         {actionItems.length === 0 ? (
           <div className="px-6 py-10 flex flex-col items-center gap-2 text-center">
-            <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
-              <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bs-teal)" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
               </svg>
             </div>
-            <p className="text-sm font-semibold text-slate-900">All sections passing</p>
-            <p className="text-xs text-slate-400">No action items — bid is ready to submit</p>
+            <p className="text-[13px] font-medium" style={{ color: "var(--bs-text-primary)" }}>All sections passing</p>
+            <p className="text-[12px]" style={{ color: "var(--bs-text-dim)" }}>No action items — bid is ready to submit</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-2.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400">Issue</th>
-                  <th className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400">Section</th>
-                  <th className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400">Status</th>
-                  <th className="px-6 py-2.5 text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {actionItems.map((item, i) => {
-                  const isRed = item.level === "red";
-                  return (
-                    <tr
-                      key={`${item.tab}-${i}`}
-                      className="border-b border-slate-50 last:border-0 hover:bg-slate-50/80 transition-colors cursor-pointer"
-                      onClick={() => onNavigateTab?.(item.tab)}
+          <div>
+            {/* Table header */}
+            <div className="grid grid-cols-[1fr_120px_100px_80px] bs-table-header">
+              <span>Issue</span>
+              <span>Section</span>
+              <span>Status</span>
+              <span className="text-right">Action</span>
+            </div>
+            {actionItems.map((item, i) => {
+              const isRed = item.level === "red";
+              return (
+                <div
+                  key={`${item.tab}-${i}`}
+                  className="grid grid-cols-[1fr_120px_100px_80px] bs-table-row cursor-pointer"
+                  onClick={() => onNavigateTab?.(item.tab)}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="bs-dot shrink-0" style={{ background: isRed ? "var(--bs-red)" : "var(--bs-amber)" }} />
+                    <span className="text-[13px]" style={{ color: "var(--bs-text-secondary)" }}>{item.text}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <SectionBadge tab={item.tab} />
+                  </div>
+                  <div className="flex items-center">
+                    <span
+                      className="bs-badge"
+                      style={isRed
+                        ? { background: "var(--bs-red-dim)", color: "var(--bs-red)" }
+                        : { background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }
+                      }
                     >
-                      <td className="px-6 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-2 h-2 rounded-full shrink-0"
-                            style={{ background: isRed ? "#EF4444" : "#F59E0B" }}
-                          />
-                          <span className="text-sm text-slate-700 leading-snug">{item.text}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <SectionBadge tab={item.tab} />
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span
-                          className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest"
-                          style={{
-                            background: isRed ? "#DC2626" : "#D97706",
-                            color: "#ffffff",
-                          }}
-                        >
-                          {isRed ? "Blocker" : "Warning"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3.5 text-right">
-                        <button
-                          className="text-[12px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
-                          onClick={(e) => { e.stopPropagation(); onNavigateTab?.(item.tab); }}
-                        >
-                          {isRed ? "Fix →" : "Review →"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      {isRed ? "Blocker" : "Warning"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-end">
+                    <button
+                      className="bs-link cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); onNavigateTab?.(item.tab); }}
+                    >
+                      {isRed ? "Fix →" : "Review →"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* ── SECTION PROGRESS ────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Section Progress</h2>
-          <span className="text-[11px] font-semibold tabular-nums" style={{ color: Object.values(sectionScores).filter(s => s >= 75).length === Object.values(sectionScores).length ? "#10B981" : "#94A3B8" }}>
-            {Object.values(sectionScores).filter(s => s >= 75).length}/{Object.values(sectionScores).length} ready
-          </span>
-        </div>
-        <div className="px-6 py-5 grid grid-cols-2 gap-x-8 gap-y-3">
-          {Object.entries(sectionScores).map(([label, score]) => (
-            <SectionBar
-              key={label}
-              label={label}
-              pct={Math.max(0, Math.min(100, score))}
-              onClick={() => onNavigateTab?.(tabForSection[label] ?? ("overview" as TabId))}
-            />
-          ))}
-        </div>
-      </div>
-
       {/* ── PROJECT NOTES ────────────────────────────────────────────────────── */}
       {project?.notes && (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm px-6 py-5">
-          <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3">Notes</h2>
-          <p className="text-sm text-slate-600 leading-relaxed">{project.notes}</p>
+        <div className="rounded-[10px] px-[18px] py-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="text-[11px] font-medium uppercase mb-3" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}>Notes</div>
+          <p className="text-[13px] leading-relaxed" style={{ color: "var(--bs-text-secondary)" }}>{project.notes}</p>
         </div>
       )}
 
