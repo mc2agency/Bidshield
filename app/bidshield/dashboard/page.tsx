@@ -200,14 +200,10 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
   return (
     <tr
       onClick={() => router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
-      className="cursor-pointer transition-colors group"
-      style={{ borderBottom: "1px solid #f1f5f9" }}
-      onMouseEnter={e => (e.currentTarget.style.background = "#f8fafc")}
-      onMouseLeave={e => (e.currentTarget.style.background = "")}
+      className="cursor-pointer hover:bg-slate-50 transition-colors group border-b border-slate-100 last:border-0"
     >
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-2.5">
-          <div style={{ width: 3, height: 28, borderRadius: 9999, background: isPastDue ? "#ef4444" : isUrgent ? "#f59e0b" : "#059669", flexShrink: 0 }} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }} className="truncate max-w-[180px] group-hover:text-emerald-700 transition-colors">{project.name}</div>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }} className="truncate">{project.location}</div>
@@ -216,7 +212,7 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
       </td>
       <td className="px-4 py-3.5" style={{ fontSize: 13, color: "#475569" }}>{project.gc || <span style={{ color: "#cbd5e1" }}>—</span>}</td>
       <td className="px-4 py-3.5 whitespace-nowrap">
-        <span style={{ fontSize: 13, fontWeight: 600, color: isPastDue ? "#dc2626" : isUrgent ? "#d97706" : "#334155", fontVariantNumeric: "tabular-nums" }}>
+        <span className={`text-sm font-medium tabular-nums ${isPastDue ? "text-red-500" : isUrgent ? "text-amber-600" : "text-slate-600"}`}>
           {isPastDue ? "Past due" : daysUntil === 0 ? "Today" : `${daysUntil}d`}
         </span>
         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{project.bidDate}</div>
@@ -233,10 +229,10 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
       </td>
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-2 justify-end">
-          <div style={{ width: 56, height: 5, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${displayProgress}%`, borderRadius: 9999, background: displayProgress >= 75 ? "#059669" : displayProgress >= 25 ? "#f59e0b" : "#ef4444", transition: "width 0.4s" }} />
+          <div className="w-14 h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full rounded-full transition-all duration-400" style={{ width: `${displayProgress}%`, background: displayProgress >= 75 ? "#059669" : displayProgress >= 25 ? "#f59e0b" : "#ef4444" }} />
           </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: displayProgress >= 75 ? "#059669" : displayProgress >= 25 ? "#d97706" : "#ef4444", fontVariantNumeric: "tabular-nums", width: 32, textAlign: "right" }}>{displayProgress}%</span>
+          <span className="text-sm font-medium text-slate-700 tabular-nums w-8 text-right">{displayProgress}%</span>
         </div>
       </td>
       <td className="px-4 py-3">
@@ -300,16 +296,16 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
   onNewBid: () => void;
 }) {
   return (
-    <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+    <div className="bg-white rounded-xl overflow-hidden border border-slate-100" style={{ boxShadow: "var(--bs-shadow-card)" }}>
       <table className="w-full text-sm">
         <thead className="sticky top-0 z-10">
-          <tr className="bg-slate-50 border-b border-slate-200">
-            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Project</th>
-            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">GC</th>
-            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Bid Date</th>
-            <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">System</th>
-            <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">$/SF</th>
-            <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Ready</th>
+          <tr className="bg-slate-50 border-b border-slate-100">
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">Project</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">GC</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">Bid Date</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">System</th>
+            <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">$/SF</th>
+            <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">Ready</th>
             <th className="px-4 py-3 w-24" />
           </tr>
         </thead>
@@ -318,8 +314,8 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
             <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} router={router} />
           ))}
           <tr>
-            <td colSpan={7} className="px-4 py-3">
-              <button onClick={onNewBid} className="flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors">
+            <td colSpan={7} className="px-4 py-3 border-t border-slate-50">
+              <button onClick={onNewBid} className="flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 {projects.length === 0 ? "Create your first bid" : "New Bid"}
               </button>
@@ -327,6 +323,15 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
           </tr>
         </tbody>
       </table>
+      {/* Empty state — shown when pipeline is sparse */}
+      {projects.length < 3 && (
+        <div className="flex flex-col items-center justify-center py-12 border-t border-slate-50">
+          <svg className="w-10 h-10 text-slate-200 mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          <p className="text-sm text-slate-400">Start a new bid to build your pipeline</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -610,6 +615,7 @@ function DashboardContent() {
             value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`}
             label="Won / Decided"
             accent="#059669"
+            dimmed={stats.wonProjects + stats.lostProjects === 0}
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" /></svg>}
           />
           <StatCard
@@ -625,35 +631,27 @@ function DashboardContent() {
       {/* Alerts */}
       {(stats.expiringQuotes > 0 || stats.openRFIs > 0) && (
         <div className="flex flex-col gap-2">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Alerts</h2>
+          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-1">Alerts</h2>
           {stats.expiringQuotes > 0 && (
             <div
-              className="flex items-start gap-3 p-4 rounded-xl border border-red-200 bg-red-50 hover:shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-4 px-4 py-3.5 rounded-xl bg-amber-50 border border-amber-100 border-l-4 border-l-amber-400 hover:bg-amber-100/60 transition-colors cursor-pointer"
               onClick={() => document.getElementById("active-bids")?.scrollIntoView({ behavior: "smooth" })}
             >
-              <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-red-100 text-red-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
-              </span>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-slate-800">{stats.expiringQuotes} quote{stats.expiringQuotes !== 1 ? "s" : ""} expiring soon</p>
-                <p className="text-sm text-slate-600 mt-0.5">Review your vendor quotes and request updates before they expire.</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-slate-700">{stats.expiringQuotes} quote{stats.expiringQuotes !== 1 ? "s" : ""} expiring soon — review vendor quotes before they expire.</p>
               </div>
-              <span className="text-xs text-red-400 shrink-0 self-center">View bids →</span>
+              <span className="text-sm font-medium text-amber-600 hover:text-amber-700 shrink-0 whitespace-nowrap">View bids →</span>
             </div>
           )}
           {stats.openRFIs > 0 && (
             <div
-              className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-4 px-4 py-3.5 rounded-xl bg-amber-50 border border-amber-100 border-l-4 border-l-amber-400 hover:bg-amber-100/60 transition-colors cursor-pointer"
               onClick={() => document.getElementById("active-bids")?.scrollIntoView({ behavior: "smooth" })}
             >
-              <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-amber-100 text-amber-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
-              </span>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-slate-800">{stats.openRFIs} RFI{stats.openRFIs !== 1 ? "s" : ""} pending response</p>
-                <p className="text-sm text-slate-600 mt-0.5">Follow up with GC/Architect to keep your bid on track.</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-slate-700">{stats.openRFIs} RFI{stats.openRFIs !== 1 ? "s" : ""} pending response — follow up with GC/Architect to keep your bid on track.</p>
               </div>
-              <span className="text-xs text-amber-500 shrink-0 self-center">View bids →</span>
+              <span className="text-sm font-medium text-amber-600 hover:text-amber-700 shrink-0 whitespace-nowrap">View bids →</span>
             </div>
           )}
         </div>

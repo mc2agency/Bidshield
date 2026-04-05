@@ -91,12 +91,12 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
             <Link
               key={href}
               href={fullHref}
-              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer ${
+              className={`relative flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer ${
                 active
-                  ? "text-white"
-                  : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
+                  ? "text-white bg-white/10"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               }`}
-              style={active ? { background: "rgba(5,150,105,0.12)", boxShadow: "inset 0 0 0 1px rgba(5,150,105,0.2)" } : {}}
+              style={active ? {} : {}}
             >
               {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-emerald-400 rounded-full" style={{ left: -4 }} />}
               <span className={active ? "text-emerald-400" : "text-slate-600"}>{icon}</span>
