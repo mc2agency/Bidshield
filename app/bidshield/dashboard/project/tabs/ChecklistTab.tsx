@@ -452,7 +452,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                 style={{
                   height: 36, padding: "0 16px", fontSize: 13, background: "none", border: "none",
                   borderBottom: filter === id ? `2px solid var(--bs-teal)` : "2px solid transparent",
-                  color: filter === id ? "#fff" : "var(--bs-text-dim)",
+                  color: filter === id ? "var(--bs-text-primary)" : "var(--bs-text-dim)",
                   fontWeight: filter === id ? 500 : 400,
                   whiteSpace: "nowrap", cursor: "pointer",
                 }}
@@ -489,7 +489,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             const isComplete  = stats.total > 0 && stats.pct === 100;
             const isOpen      = expanded[phaseKey] ?? (filter !== "done" && !isComplete);
             const isHighRisk  = !!phase.critical;
-            const pctColor    = stats.pct === 100 ? "#10b981" : stats.pct >= 67 ? "#3b82f6" : stats.pct >= 34 ? "#f59e0b" : "#ef4444";
+            const pctColor    = stats.pct === 100 ? "var(--bs-teal)" : stats.pct >= 67 ? "var(--bs-blue)" : stats.pct >= 34 ? "var(--bs-amber)" : "var(--bs-red)";
             const incompleteInPhase = (phase as any).items.filter((item: any) => {
               const s = getItemStatus(phaseKey, item.id);
               return s === "pending" || s === "rfi" || s === "warning";
@@ -537,7 +537,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                     <span className="text-base shrink-0">{phase.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span style={{ fontSize: 13, fontWeight: 500, color: "#fff" }}>{phase.title}</span>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-primary)" }}>{phase.title}</span>
                         {isHighRisk && <span className="text-[9px] font-medium px-2 py-0.5 rounded uppercase tracking-wide" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)" }}>Critical</span>}
                         {stats.blockers > 0 && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)" }}>{stats.blockers} blocked</span>}
                         {stats.rfis > 0    && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded" style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)" }}>{stats.rfis} RFI</span>}
