@@ -278,59 +278,65 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   return (
     <div className="flex flex-col gap-4">
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* ── INLINE STATS BAR — replaces floating cards ── */}
+      <div className="flex items-center gap-0 bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
         {[
-          { label: "Total Items", value: String(totalCount), accent: "#334155" },
-          { label: "Decided", value: `${decidedPct}%`, accent: "#059669" },
-          ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost.toLocaleString()}`, accent: "#059669" }] : []),
-          ...(includedCount > 0 || excludedCount > 0 ? [{ label: "In / Out", value: `${includedCount} / ${excludedCount}`, accent: includedCount > excludedCount ? "#059669" : "#334155" }] : []),
-        ].map(({ label, value, accent }) => (
-          <div key={label} className="bg-white rounded-xl border border-slate-100 p-4" style={{ boxShadow: "var(--bs-shadow-card)" }}>
-            <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{label}</div>
-            <div className="text-xl font-extrabold text-slate-900 tracking-tight leading-none">{value}</div>
+          { label: "Total", value: String(totalCount), color: "#0f172a" },
+          { label: "Decided", value: `${decidedPct}%`, color: decidedPct === 100 ? "#059669" : decidedPct > 50 ? "#d97706" : "#ef4444" },
+          { label: "Included", value: String(includedCount), color: "#059669" },
+          { label: "Excluded", value: String(excludedCount), color: "#ef4444" },
+          { label: "By Others", value: String(byOthersCount), color: "#3b82f6" },
+          ...(unaddressedCount > 0 ? [{ label: "Undecided", value: String(unaddressedCount), color: "#94a3b8" }] : []),
+          ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost >= 1000 ? `${(includedCost/1000).toFixed(0)}K` : includedCost.toLocaleString()}`, color: "#059669" }] : []),
+        ].map(({ label, value, color }, i, arr) => (
+          <div key={label} className="flex flex-col items-center justify-center px-6 py-3.5 flex-1" style={{ borderRight: i < arr.length - 1 ? "1px solid #f1f5f9" : "none" }}>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</span>
+            <span className="text-2xl font-black tabular-nums leading-none" style={{ color }}>{value}</span>
           </div>
         ))}
       </div>
 
-      {/* Filter tabs — segmented control (Linear/Vercel pattern) */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f3f4f6", padding: 4, borderRadius: 8 }}>
-        {FILTERS.map(({ id, label, count }) => (
-          <button
-            key={id}
-            onClick={() => setFilter(id)}
-            style={{
-              height: 30,
-              padding: "0 12px",
-              borderRadius: 6,
-              fontSize: 13,
-              fontWeight: filter === id ? 500 : 400,
-              background: filter === id ? "#ffffff" : "transparent",
-              color: filter === id ? "#111827" : "#6b7280",
-              boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
-              transition: "all 0.15s",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {label} ({count})
-          </button>
-        ))}
+      {/* ── TOOLBAR: filters + actions ── */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div style={{ display: "flex", gap: 2, background: "#f1f5f9", padding: 3, borderRadius: 8 }}>
+          {FILTERS.map(({ id, label, count }) => (
+            <button
+              key={id}
+              onClick={() => setFilter(id)}
+              className="cursor-pointer transition-all"
+              style={{
+                height: 28, padding: "0 11px", borderRadius: 6, fontSize: 12,
+                fontWeight: filter === id ? 600 : 400,
+                background: filter === id ? "#ffffff" : "transparent",
+                color: filter === id ? "#0f172a" : "#64748b",
+                boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.07)" : "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {label} {count > 0 && <span style={{ opacity: 0.6 }}>({count})</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Item list */}
+      {/* ── SCOPE TABLE — single surface, no card-per-category ── */}
       {filteredItems.length === 0 ? (
-        <div className="text-center py-12 text-slate-400 text-sm">
+        <div className="text-center py-12 bg-white rounded-xl border border-slate-100 shadow-md text-slate-400 text-sm">
           No items match this filter
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {Array.from(groups.entries()).map(([category, catItems]) => (
-            <div key={category} className="rounded-lg overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
-              {/* Category header */}
-              <div className="px-4 py-2 flex items-center gap-2" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{category}</span>
-                <span className="text-[11px] text-slate-300">·</span>
-                <span className="text-[11px] text-slate-400">{catItems.length} items</span>
+        <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
+          {Array.from(groups.entries()).map(([category, catItems], groupIdx) => (
+            <div key={category} style={{ borderTop: groupIdx > 0 ? "1px solid #F1F5F9" : "none" }}>
+              {/* Category header — sticky group row */}
+              <div className="px-5 py-2 flex items-center gap-2 sticky top-[44px] z-10" style={{ background: "#F8FAFC", borderBottom: "1px solid #F1F5F9" }}>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{category}</span>
+                <span className="text-[10px] text-slate-300 font-medium">{catItems.length}</span>
+                {catItems.filter((i: any) => i.status === "unaddressed").length > 0 && (
+                  <span className="ml-auto text-[10px] font-semibold text-amber-500">
+                    {catItems.filter((i: any) => i.status === "unaddressed").length} undecided
+                  </span>
+                )}
               </div>
 
               {/* Rows */}

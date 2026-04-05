@@ -417,8 +417,8 @@ function ProjectDetail() {
                 onClick={() => setActiveTab(isActive ? null : id)}
                 className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-all group/item"
                 style={isActive
-                  ? { background: "rgba(16,185,129,0.12)", color: "#ffffff", borderLeft: "2px solid #10b981" }
-                  : { color: "#9ca3af" }
+                  ? { background: "rgba(16,185,129,0.15)", color: "#ffffff", borderLeft: "3px solid #10b981", paddingLeft: 10 }
+                  : { color: "#9ca3af", borderLeft: "3px solid transparent" }
                 }
                 onMouseEnter={e => {
                   if (!isActive) {
@@ -503,70 +503,148 @@ function ProjectDetail() {
       {/* Right side: breadcrumb + panels B + C */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* Breadcrumb bar — unified dark bg, 48px */}
+        {/* ── PROJECT COMMAND BAR ── always visible, carries full context across all tabs */}
         <div
-          className="flex items-center justify-between shrink-0 px-5"
-          style={{ background: "#0f1117", height: 48, borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          className="shrink-0 px-5"
+          style={{ background: "#0f1117", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
         >
-          <div className="flex items-center gap-1.5 min-w-0">
+          {/* Row 1 — breadcrumb */}
+          <div className="flex items-center gap-1.5 pt-2.5 pb-1">
             <Link
               href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-              className="shrink-0 flex items-center gap-1 transition-colors"
-              style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none", cursor: "pointer" }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#10b981"}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
+              className="flex items-center gap-0.5 transition-colors cursor-pointer"
+              style={{ fontSize: 11, color: "#4b5563", textDecoration: "none" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#4b5563"}
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
-              All projects
+              Projects
             </Link>
-            <span style={{ fontSize: 13, color: "#374151" }}>/</span>
+            <span style={{ fontSize: 11, color: "#2d3748" }}>/</span>
             <span
-              style={{
-                fontSize: 13,
-                color: activeTab ? "#6b7280" : "#e5e7eb",
-                cursor: activeTab ? "pointer" : undefined,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                maxWidth: 200,
-              }}
+              style={{ fontSize: 11, color: activeTab ? "#4b5563" : "#94a3b8", cursor: activeTab ? "pointer" : undefined, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
               onClick={activeTab ? () => setActiveTab(null) : undefined}
             >
               {projectData?.name ?? "Project"}
             </span>
             {activeTab && (
               <>
-                <span style={{ fontSize: 13, color: "#374151" }}>/</span>
-                <span style={{ fontSize: 13, color: "#e5e7eb", fontWeight: 500, flexShrink: 0 }}>{activeTabLabel}</span>
+                <span style={{ fontSize: 11, color: "#2d3748" }}>/</span>
+                <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>{activeTabLabel}</span>
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            {msUntilBid !== null && (
-              <span style={{
-                fontSize: 12, fontWeight: 600,
-                padding: "3px 10px",
-                borderRadius: 8,
-                background: msUntilBid <= 0 ? "rgba(239,68,68,0.15)" : hoursUntilBid! <= 4 ? "rgba(239,68,68,0.12)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.12)" : "#1a2332",
-                color: msUntilBid <= 0 ? "#f87171" : hoursUntilBid! <= 4 ? "#f87171" : hoursUntilBid! <= 24 ? "#fbbf24" : "#10b981",
-                border: `1px solid ${msUntilBid <= 0 ? "rgba(239,68,68,0.4)" : hoursUntilBid! <= 4 ? "rgba(239,68,68,0.3)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.3)" : "#10b981"}`,
-                fontVariantNumeric: "tabular-nums",
+          {/* Row 2 — project identity + key numbers + CTA */}
+          <div className="flex items-center gap-0 pb-3 min-w-0">
+            {/* Project name */}
+            <div className="app-display mr-3 shrink-0" style={{ fontSize: 20, fontWeight: 800, color: "#f1f5f9", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+              {projectData?.name ?? "Project"}
+            </div>
+
+            {/* Status badge */}
+            {(projectData as any)?.status && (projectData as any).status !== "in_progress" && (
+              <span className="mr-3 shrink-0" style={{
+                fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
+                padding: "2px 7px", borderRadius: 3,
+                background: (projectData as any).status === "won" ? "rgba(16,185,129,0.2)" : (projectData as any).status === "lost" ? "rgba(239,68,68,0.2)" : (projectData as any).status === "submitted" ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.1)",
+                color: (projectData as any).status === "won" ? "#34d399" : (projectData as any).status === "lost" ? "#f87171" : (projectData as any).status === "submitted" ? "#60a5fa" : "#94a3b8",
               }}>
-                {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `${formatCountdown(msUntilBid)} left` : `${daysUntilBid}d to bid`}
+                {(projectData as any).status === "in_progress" ? "Active" : (projectData as any).status?.replace("_", " ")}
               </span>
             )}
-            {/* Readiness badge */}
-            <span style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
-              padding: "3px 9px", borderRadius: 6,
-              background: readinessScore >= 80 ? "rgba(5,150,105,0.12)" : readinessScore >= 50 ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)",
-              color: readinessScore >= 80 ? "#34d399" : readinessScore >= 50 ? "#fbbf24" : "#f87171",
-              border: `1px solid ${readinessScore >= 80 ? "rgba(52,211,153,0.2)" : readinessScore >= 50 ? "rgba(251,191,36,0.2)" : "rgba(248,113,113,0.2)"}`,
-              fontVariantNumeric: "tabular-nums",
-            }}>{readinessScore}%</span>
+
+            {/* Divider */}
+            <div className="mr-4 shrink-0" style={{ width: 1, height: 14, background: "rgba(255,255,255,0.08)" }} />
+
+            {/* Key numbers inline */}
+            <div className="flex items-center gap-4 min-w-0 flex-1">
+              {grossArea ? (
+                <span style={{ fontSize: 13, color: "#64748b", whiteSpace: "nowrap" }}>
+                  <span style={{ color: "#94a3b8", fontWeight: 600 }}>{grossArea >= 1000 ? `${(grossArea/1000).toFixed(0)}K` : grossArea.toLocaleString()}</span>
+                  <span style={{ color: "#374151", marginLeft: 3 }}>SF</span>
+                </span>
+              ) : null}
+              {bidAmt ? (
+                <span style={{ fontSize: 13, color: "#64748b", whiteSpace: "nowrap" }}>
+                  <span style={{ color: "#94a3b8", fontWeight: 600 }}>${bidAmt >= 1_000_000 ? `${(bidAmt/1_000_000).toFixed(2)}M` : bidAmt >= 1000 ? `${(bidAmt/1000).toFixed(0)}K` : bidAmt.toLocaleString()}</span>
+                  <span style={{ color: "#374151", marginLeft: 3 }}>bid</span>
+                </span>
+              ) : null}
+              {dpsf ? (
+                <span style={{ fontSize: 13, color: "#64748b", whiteSpace: "nowrap" }}>
+                  <span style={{ color: "#94a3b8", fontWeight: 600 }}>${dpsf.toFixed(2)}</span>
+                  <span style={{ color: "#374151", marginLeft: 3 }}>/SF</span>
+                </span>
+              ) : null}
+              {projectData?.location && (
+                <span style={{ fontSize: 12, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
+                  {[projectData.location, (projectData as any)?.gc].filter(Boolean).join(" · ")}
+                </span>
+              )}
+            </div>
+
+            {/* Right: countdown + readiness + CTA */}
+            <div className="flex items-center gap-2.5 shrink-0 ml-4">
+              {/* Bid countdown */}
+              {msUntilBid !== null && (
+                <div style={{
+                  fontSize: 12, fontWeight: 700,
+                  padding: "4px 10px", borderRadius: 6,
+                  background: msUntilBid <= 0 ? "rgba(239,68,68,0.18)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.15)" : "rgba(16,185,129,0.1)",
+                  color: msUntilBid <= 0 ? "#f87171" : hoursUntilBid! <= 24 ? "#fbbf24" : "#34d399",
+                  border: `1px solid ${msUntilBid <= 0 ? "rgba(239,68,68,0.35)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.25)" : "rgba(16,185,129,0.2)"}`,
+                  fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
+                }}>
+                  {msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d to bid` : formatCountdown(msUntilBid!)}
+                </div>
+              )}
+
+              {/* Readiness */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "4px 10px", borderRadius: 6,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.07)",
+              }}>
+                <div style={{ width: 28, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 9999, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${readinessScore}%`, background: readinessColor, borderRadius: 9999, transition: "width 0.4s" }} />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
+              </div>
+
+              {/* Primary CTA */}
+              {(projectData as any)?.status === "submitted" ? (
+                <button
+                  onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
+                  className="cursor-pointer transition-opacity hover:opacity-90"
+                  style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, background: "#059669", color: "#fff", border: "none", whiteSpace: "nowrap" }}
+                >
+                  Record Outcome →
+                </button>
+              ) : (projectData as any)?.status === "won" ? (
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#34d399", display: "flex", alignItems: "center", gap: 5 }}>
+                  <svg width={13} height={13} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                  Won
+                </span>
+              ) : (projectData as any)?.status === "lost" ? (
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#f87171" }}>Lost</span>
+              ) : (
+                <button
+                  onClick={() => openTab("validator")}
+                  className="cursor-pointer transition-all hover:opacity-90"
+                  style={{
+                    fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, border: "none", whiteSpace: "nowrap",
+                    background: blockerCount > 0 ? "#1c2537" : "#059669",
+                    color: blockerCount > 0 ? "#f87171" : "#fff",
+                  }}
+                >
+                  {blockerCount > 0 ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""} · Fix` : "Validate →"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -631,64 +709,22 @@ function ProjectDetail() {
           <main className="flex-1 overflow-auto min-w-0" style={{ background: "var(--bs-bg-page)" }}>
             {activeTab ? (
               <>
-                {/* Tab header */}
+                {/* Tab section header — minimal, just a label */}
                 <div
                   className="px-6 flex items-center gap-3 sticky top-0 z-10"
-                  style={{ background: "#ffffff", height: 52, borderBottom: "1px solid #f1f5f9" }}
+                  style={{ background: "var(--bs-bg-page)", height: 44, borderBottom: "1px solid #E2E8F0" }}
                 >
                   <button
                     onClick={() => setActiveTab(null)}
-                    className="flex items-center gap-1.5 lg:hidden"
-                    style={{ fontSize: 13, color: "#9ca3af", cursor: "pointer" }}
+                    className="flex items-center gap-1 lg:hidden cursor-pointer"
+                    style={{ fontSize: 12, color: "#9ca3af" }}
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                     </svg>
                     Back
                   </button>
-                  <h2 className="app-display" style={{ fontSize: 26, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.01em", lineHeight: 1 }}>{activeTabLabel}</h2>
-                  <div className="ml-auto hidden lg:flex items-center gap-3">
-                    {/* Readiness badge */}
-                    <span
-                      className="text-[11px] font-bold px-3 py-1 rounded-full"
-                      style={{
-                        background: readinessScore >= 80 ? "#f0fdf4" : readinessScore >= 50 ? "#fffbeb" : "#fef2f2",
-                        color: readinessColor,
-                        border: `1px solid ${readinessScore >= 80 ? "#bbf7d0" : readinessScore >= 50 ? "#fde68a" : "#fecaca"}`,
-                      }}
-                    >
-                      {readinessScore}% ready
-                    </span>
-                    {/* CTA */}
-                    {(projectData as any)?.status === "submitted" ? (
-                      <button
-                        onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
-                        className="text-sm font-semibold px-4 py-1.5 rounded-lg cursor-pointer transition-opacity hover:opacity-90"
-                        style={{ background: "#059669", color: "#fff", border: "none" }}
-                      >
-                        Record Outcome →
-                      </button>
-                    ) : (projectData as any)?.status === "won" ? (
-                      <span className="text-sm font-semibold text-emerald-600 flex items-center gap-1.5">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                        Won
-                      </span>
-                    ) : (projectData as any)?.status === "lost" ? (
-                      <span className="text-sm font-semibold text-red-600">Lost</span>
-                    ) : activeTab !== "validator" ? (
-                      <button
-                        onClick={() => openTab("validator")}
-                        className="text-sm font-semibold px-4 py-1.5 rounded-lg cursor-pointer transition-all hover:opacity-90"
-                        style={{
-                          background: blockerCount > 0 ? "#F1F5F9" : "#10b981",
-                          color: blockerCount > 0 ? "#94A3B8" : "#fff",
-                          border: "none",
-                        }}
-                      >
-                        {blockerCount > 0 ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""}` : "Validate →"}
-                      </button>
-                    ) : null}
-                  </div>
+                  <h2 className="app-display" style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase" }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
                   {activeTab === "overview"  && <TabErrorBoundary tabLabel="Overview"><OverviewTab {...tabProps} /></TabErrorBoundary>}
