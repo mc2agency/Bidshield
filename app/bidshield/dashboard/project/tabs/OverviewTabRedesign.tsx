@@ -272,34 +272,25 @@ export default function OverviewTabRedesign({
       {/* ── DEADLINE BANNER ─────────────────────────────────────────────────── */}
       {showBanner && (
         <div
-          className="flex items-center gap-3 px-5 py-3 rounded-xl -mt-2"
-          style={{
-            background: isOverdue ? "#FEF2F2" : "#FFFBEB",
-            border: `1px solid ${isOverdue ? "#FECACA" : "#FDE68A"}`,
-          }}
+          className="-mx-6 -mt-6 mb-2 flex items-center gap-4 px-6 py-3.5"
+          style={{ background: isOverdue ? "#DC2626" : "#B45309" }}
         >
-          <div
-            className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
-            style={{ background: isOverdue ? "#EF4444" : "#F59E0B" }}
-          >
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-            </svg>
-          </div>
+          <svg className="w-4 h-4 text-white/90 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold" style={{ color: isOverdue ? "#DC2626" : "#D97706" }}>
+            <p className="text-sm font-bold text-white leading-none">
               {isOverdue ? "Bid deadline has passed" : `Bid deadline in ${countdown ?? "less than a day"}`}
             </p>
             {blockers > 0 && (
-              <p className="text-xs mt-0.5" style={{ color: isOverdue ? "#EF4444" : "#F59E0B" }}>
+              <p className="text-xs text-white/75 mt-0.5">
                 {blockers} unresolved blocker{blockers !== 1 ? "s" : ""} — review action items below
               </p>
             )}
           </div>
           <button
             onClick={() => setDismissed(true)}
-            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors cursor-pointer"
-            style={{ color: isOverdue ? "#DC2626" : "#D97706" }}
+            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors cursor-pointer text-white/75 hover:text-white"
             aria-label="Dismiss"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -310,42 +301,36 @@ export default function OverviewTabRedesign({
       )}
 
       {/* ── KPI CARDS ────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-5">
 
         {/* Bid Readiness */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex items-center gap-5">
           <ReadinessRing pct={readinessPct} />
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1">Bid Readiness</p>
-            <p className="text-sm font-semibold text-slate-700 leading-snug">
-              {readinessPct >= 75
-                ? "On track"
-                : readinessPct >= 40
-                ? "Needs work"
-                : "Critical gaps"}
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Bid Readiness</p>
+            <p className="text-base font-bold text-slate-800 leading-tight">
+              {readinessPct >= 75 ? "On track" : readinessPct >= 40 ? "Needs work" : "Critical gaps"}
             </p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              {Object.values(sectionScores).filter(s => s >= 75).length} of {Object.values(sectionScores).length} sections ready
+            <p className="text-[11px] text-slate-400 mt-1">
+              {Object.values(sectionScores).filter(s => s >= 75).length}/{Object.values(sectionScores).length} sections ready
             </p>
           </div>
         </div>
 
         {/* Square Footage */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Square Footage</p>
-          <div className="mt-3">
-            <p className="text-4xl font-extrabold text-slate-900 tracking-tight leading-none tabular-nums">
-              {grossArea ? fmtSF(grossArea) : "—"}
-            </p>
-            <p className="text-[11px] font-semibold text-slate-400 mt-1">
-              {grossArea ? "SF · gross roof area" : "Not set"}
-            </p>
-          </div>
+        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex flex-col">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Square Footage</p>
+          <p className="text-6xl font-black text-slate-900 tracking-tight leading-none tabular-nums">
+            {grossArea ? fmtSF(grossArea) : "—"}
+          </p>
+          <p className="text-[11px] font-semibold text-slate-400 mt-2">
+            {grossArea ? "SF · gross roof area" : "Not set"}
+          </p>
           {takenOff > 0 && grossArea > 0 && (
-            <p className="text-[11px] text-slate-400 mt-2 tabular-nums">
+            <p className="text-[11px] text-slate-400 mt-auto pt-3 tabular-nums">
               {takenOff.toLocaleString()} SF taken off
               {deltaPct !== null && (
-                <span className={deltaPct > 5 ? " text-red-500 font-semibold" : " text-slate-400"}>
+                <span className={deltaPct > 5 ? " text-red-500 font-semibold" : ""}>
                   {" "}· {deltaPct.toFixed(1)}% gap
                 </span>
               )}
@@ -354,21 +339,17 @@ export default function OverviewTabRedesign({
         </div>
 
         {/* Total Bid */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Total Bid</p>
-          <div className="mt-3">
-            <p className="text-4xl font-extrabold text-slate-900 tracking-tight leading-none tabular-nums">
-              {bidAmt ? fmt$K(bidAmt) : "—"}
-            </p>
-            <p className="text-[11px] font-semibold text-slate-400 mt-1">
-              {bidAmt ? `$${bidAmt.toLocaleString()} · total amount` : "Not entered"}
-            </p>
-          </div>
-          <div
-            className="mt-2 h-1 rounded-full w-full bg-slate-100"
-          >
+        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex flex-col">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Total Bid</p>
+          <p className="text-6xl font-black text-slate-900 tracking-tight leading-none tabular-nums">
+            {bidAmt ? fmt$K(bidAmt) : "—"}
+          </p>
+          <p className="text-[11px] font-semibold text-slate-400 mt-2">
+            {bidAmt ? `$${bidAmt.toLocaleString()}` : "Not entered"}
+          </p>
+          <div className="mt-auto pt-3 h-1.5 rounded-full w-full bg-slate-100">
             <div
-              className="h-1 rounded-full"
+              className="h-1.5 rounded-full transition-all duration-500"
               style={{
                 width: pricingComplete ? "100%" : bidAmt ? "60%" : "0%",
                 background: pricingComplete ? "#10B981" : "#F59E0B",
@@ -378,30 +359,30 @@ export default function OverviewTabRedesign({
         </div>
 
         {/* Cost / SF */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Cost / SF</p>
-          <div className="mt-3">
-            <p className="text-4xl font-extrabold tracking-tight leading-none tabular-nums"
-              style={{ color: dpsf ? (dpsf < 15 ? "#10B981" : dpsf < 25 ? "#F59E0B" : "#EF4444") : "#94A3B8" }}
-            >
-              {dpsf ? `$${dpsf.toFixed(2)}` : "—"}
-            </p>
-            <p className="text-[11px] font-semibold text-slate-400 mt-1">
-              {dpsf ? "per square foot" : "Pending pricing"}
-            </p>
-          </div>
+        <div className="bg-white rounded-xl border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-7 flex flex-col">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Cost / SF</p>
+          <p
+            className="text-6xl font-black tracking-tight leading-none tabular-nums"
+            style={{ color: dpsf ? (dpsf < 15 ? "#10B981" : dpsf < 25 ? "#F59E0B" : "#EF4444") : "#CBD5E1" }}
+          >
+            {dpsf ? `$${dpsf.toFixed(2)}` : "—"}
+          </p>
+          <p className="text-[11px] font-semibold text-slate-400 mt-2">
+            {dpsf ? "per square foot" : "Pending pricing"}
+          </p>
           {dpsf && (
-            <p className="text-[11px] mt-2"
+            <p
+              className="text-[11px] font-semibold mt-auto pt-3"
               style={{ color: dpsf < 15 ? "#10B981" : dpsf < 25 ? "#F59E0B" : "#EF4444" }}
             >
-              {dpsf < 15 ? "Below average" : dpsf < 25 ? "Mid-range" : "Above average"}
+              {dpsf < 15 ? "Below market" : dpsf < 25 ? "Mid-range" : "Above market"}
             </p>
           )}
         </div>
       </div>
 
       {/* ── ACTION ITEMS TABLE ───────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Action Items</h2>
@@ -470,10 +451,10 @@ export default function OverviewTabRedesign({
                       </td>
                       <td className="px-4 py-3.5">
                         <span
-                          className="text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide"
+                          className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest"
                           style={{
-                            background: isRed ? "#FEF2F2" : "#FFFBEB",
-                            color:      isRed ? "#DC2626" : "#D97706",
+                            background: isRed ? "#DC2626" : "#D97706",
+                            color: "#ffffff",
                           }}
                         >
                           {isRed ? "Blocker" : "Warning"}
@@ -497,16 +478,14 @@ export default function OverviewTabRedesign({
       </div>
 
       {/* ── SECTION PROGRESS ────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Section Progress</h2>
-          <span className="text-[11px] font-medium text-slate-400 tabular-nums">
-            {Object.values(sectionScores).filter(s => s >= 75).length}
-            <span className="text-slate-300 mx-1">/</span>
-            {Object.values(sectionScores).length} ready
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Section Progress</h2>
+          <span className="text-[11px] font-semibold tabular-nums" style={{ color: Object.values(sectionScores).filter(s => s >= 75).length === Object.values(sectionScores).length ? "#10B981" : "#94A3B8" }}>
+            {Object.values(sectionScores).filter(s => s >= 75).length}/{Object.values(sectionScores).length} ready
           </span>
         </div>
-        <div className="px-6 py-5 grid grid-cols-1 gap-3">
+        <div className="px-6 py-5 grid grid-cols-2 gap-x-8 gap-y-3">
           {Object.entries(sectionScores).map(([label, score]) => (
             <SectionBar
               key={label}

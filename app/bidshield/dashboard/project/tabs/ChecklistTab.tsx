@@ -444,63 +444,67 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
   return (
     <>
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
+    <div className="flex flex-col gap-4">
 
-      {/* ── LEFT: Checklist ── */}
-      <div className="flex flex-col gap-3 min-w-0">
-
-        {/* Filter tabs */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f3f4f6", padding: 4, borderRadius: 8 }}>
-          {FILTERS.map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setFilter(id)}
-              style={{
-                height: 30, padding: "0 12px", borderRadius: 6, fontSize: 13,
-                fontWeight: filter === id ? 500 : 400,
-                background: filter === id ? "#ffffff" : "transparent",
-                color: filter === id ? "#111827" : "#6b7280",
-                boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
-                transition: "all 0.15s", whiteSpace: "nowrap",
-              }}
-            >
-              {label}
-            </button>
-          ))}
+        {/* ── TOOLBAR: filters + summary ── */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter pills */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 2, background: "#f1f5f9", padding: 3, borderRadius: 8 }}>
+            {FILTERS.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setFilter(id)}
+                className="cursor-pointer transition-all"
+                style={{
+                  height: 28, padding: "0 12px", borderRadius: 6, fontSize: 12,
+                  fontWeight: filter === id ? 600 : 400,
+                  background: filter === id ? "#ffffff" : "transparent",
+                  color: filter === id ? "#0f172a" : "#64748b",
+                  boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {/* Summary stats */}
+          <div className="ml-auto hidden lg:flex items-center gap-3 text-[12px]">
+            {filterCounts.incomplete > 0 && <span className="text-slate-500">{filterCounts.incomplete} incomplete</span>}
+            {rfiCount > 0 && <span className="font-semibold text-amber-600">{rfiCount} RFI{rfiCount !== 1 ? "s" : ""}</span>}
+            {blockerCount > 0 && <span className="font-semibold text-red-600">{blockerCount} blocked</span>}
+            <span className="font-semibold text-emerald-600">{filterCounts.done} done</span>
+          </div>
+          {/* Status legend */}
+          <div className="w-full flex items-center gap-2 flex-wrap">
+            <span style={{ fontSize: 11, color: "#9ca3af" }}>Click to mark:</span>
+            <span style={{ fontSize: 11, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", borderRadius: 99, padding: "2px 10px", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <svg style={{ width: 10, height: 10, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+              Done
+            </span>
+            <span style={{ fontSize: 11, background: "#f8fafc", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>N/A</span>
+            <span style={{ fontSize: 11, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>Flag</span>
+            <span style={{ fontSize: 11, background: "#fffbeb", color: "#d97706", border: "1px solid #fde68a", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>? RFI</span>
+          </div>
         </div>
 
-        {/* Status legend — inline pills below filters */}
-        <div className="flex items-center gap-2 flex-wrap px-1">
-          <span style={{ fontSize: 11, color: "#9ca3af" }}>Click to mark:</span>
-          <span style={{ fontSize: 11, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", borderRadius: 99, padding: "2px 10px", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
-            <svg style={{ width: 10, height: 10, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-            Done
-          </span>
-          <span style={{ fontSize: 11, background: "#f8fafc", color: "#94a3b8", border: "1px solid #e2e8f0", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>N/A</span>
-          <span style={{ fontSize: 11, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>⚑ Flag</span>
-          <span style={{ fontSize: 11, background: "#fffbeb", color: "#d97706", border: "1px solid #fde68a", borderRadius: 99, padding: "2px 10px", fontWeight: 500 }}>? RFI</span>
-        </div>
-
-        {/* Empty state */}
-        {visiblePhases.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+        {/* Checklist table — single container, flat groups */}
+        {visiblePhases.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-slate-100 shadow-md">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-3">
               {filter === "incomplete" ? (
-                <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
               ) : (
                 <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" /></svg>
               )}
             </div>
             <p className="text-sm font-semibold text-slate-700">{filter === "incomplete" ? "All items complete!" : "No items match this filter"}</p>
           </div>
-        )}
-
-        {/* Phase cards */}
-        <div className="flex flex-col gap-2">
-          {visiblePhases.map(({ phaseKey, phase, items }) => {
+        ) : (
+        <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
+          {visiblePhases.map(({ phaseKey, phase, items }, phaseIdx) => {
             const stats       = getPhaseStats(phaseKey);
             const isComplete  = stats.total > 0 && stats.pct === 100;
-            // Auto-collapse completed phases; expand incomplete ones by default
             const isOpen      = expanded[phaseKey] ?? (filter !== "done" && !isComplete);
             const isHighRisk  = !!phase.critical;
             const pctColor    = stats.pct === 100 ? "#10b981" : stats.pct >= 67 ? "#3b82f6" : stats.pct >= 34 ? "#f59e0b" : "#ef4444";
@@ -514,17 +518,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             return (
               <div
                 key={phaseKey}
-                className="overflow-hidden"
-                style={{
-                  background: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 12,
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03)",
-                  borderLeft: `4px solid ${pctColor}`,
-                }}
+                className={phaseIdx > 0 ? "border-t border-slate-100" : ""}
               >
-                {/* Phase header */}
-                <div className="flex items-center" style={{ background: "#f8fafc" }}>
+                {/* Phase header — sticky group row */}
+                <div className="flex items-center sticky top-[52px] z-10" style={{ background: "#F8FAFC", borderBottom: "1px solid #F1F5F9" }}>
                   {/* Select-all checkbox */}
                   <div
                     className="pl-4 flex items-center justify-center self-stretch"
@@ -863,60 +860,11 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
             );
           })}
         </div>
-      </div>
-
-      {/* ── RIGHT: Sticky panel ── */}
-      <div className="hidden lg:flex flex-col gap-3 sticky top-4">
-
-        {/* Bid readiness */}
-        <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
-          <div className="flex items-center justify-between mb-2">
-            <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Bid Readiness</div>
-            <span className="text-2xl font-bold text-slate-900">{overall}%</span>
-          </div>
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${overall}%`, background: "#10b981" }} />
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
-            <div className="text-[13px] font-semibold text-slate-900 leading-snug">{project?.name || "—"}</div>
-            {(project as any)?.gc && <div className="text-[11px] text-slate-500">GC: {(project as any).gc}</div>}
-            {project?.bidDate && daysUntil !== null && (
-              <div className={`text-[11px] font-medium ${daysUntil <= 0 ? "text-red-600" : daysUntil <= 3 ? "text-amber-600" : "text-slate-500"}`}>
-                {daysUntil <= 0 ? "Past due" : daysUntil === 0 ? "Due today" : `${daysUntil}d until bid`}
-              </div>
-            )}
-            {dpsf && <div className="text-[11px] text-slate-400">${dpsf}/SF</div>}
-          </div>
-        </div>
-
-        {/* Compact stats */}
-        <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: "12px 16px" }}>
-          <div className="text-[14px]" style={{ color: "#64748b" }}>
-            <span>{filterCounts.incomplete} incomplete</span>
-            {rfiCount > 0 && <span> · <span className="text-amber-600 font-medium">{rfiCount} RFI{rfiCount !== 1 ? "s" : ""}</span></span>}
-            {blockerCount > 0 && <span> · <span className="text-red-600 font-medium">{blockerCount} blocked</span></span>}
-            <span> · <span className="text-emerald-600 font-medium">{filterCounts.done} done</span></span>
-          </div>
-        </div>
-
-        {/* Quick actions */}
-        {quickActions.length > 0 && (
-          <div style={{ background: "white", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", padding: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 500, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>Quick Actions</div>
-            <div className="flex flex-col gap-2.5">
-              {quickActions.map((action, i) => (
-                <button key={i} onClick={action.onClick} className="text-[13px] text-slate-600 hover:text-emerald-600 text-left transition-colors flex items-start gap-1.5">
-                  <span className="shrink-0 mt-px">→</span>
-                  <span>{action.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         )}
 
-        {/* Checklist Templates — silently hidden if the Convex function isn't
-            deployed yet; SilentBoundary renders null on any query error */}
-        {!isDemo && (
+      {/* ── TEMPLATES (bottom, only for non-demo) ── */}
+      {!isDemo && (
+        <div className="hidden lg:block">
           <SilentBoundary>
             <ChecklistTemplatesPanel
               userId={userId}
@@ -926,8 +874,10 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
               isValidConvexId={!!isValidConvexId}
             />
           </SilentBoundary>
-        )}
-      </div>
+        </div>
+      )}
+
+
     </div>
 
     {/* Floating bulk action bar */}

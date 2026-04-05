@@ -74,7 +74,6 @@ function ProjectDetail() {
     lossReason: string;
   }>({ result: null, competitorName: "", competitorPrice: "", lossReason: "" });
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
-  const [panelOverrides, setPanelOverrides] = useState<Record<string, boolean>>({});
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [dismissedWarnings, setDismissedWarnings] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -334,10 +333,6 @@ function ProjectDetail() {
   const bidAmt = (projectData as any)?.totalBidAmount;
   const dpsf = grossArea && bidAmt ? Math.round((bidAmt / grossArea) * 100) / 100 : null;
 
-  const panelKey = activeTab ?? "__overview__";
-  const defaultPanelOpen = activeTab === null || activeTab === "checklist";
-  const panelOpen = panelKey in panelOverrides ? panelOverrides[panelKey] : defaultPanelOpen;
-  const togglePanel = () => setPanelOverrides(prev => ({ ...prev, [panelKey]: !panelOpen }));
   const readinessColor = readinessScore === 100 ? "#10b981" : readinessScore >= 67 ? "#3b82f6" : readinessScore >= 34 ? "#f59e0b" : "#ef4444";
 
   return (
@@ -643,7 +638,7 @@ function ProjectDetail() {
                 >
                   <button
                     onClick={() => setActiveTab(null)}
-                    className="flex items-center gap-1 lg:hidden"
+                    className="flex items-center gap-1.5 lg:hidden"
                     style={{ fontSize: 13, color: "#9ca3af", cursor: "pointer" }}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -652,6 +647,48 @@ function ProjectDetail() {
                     Back
                   </button>
                   <h2 className="app-display" style={{ fontSize: 26, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.01em", lineHeight: 1 }}>{activeTabLabel}</h2>
+                  <div className="ml-auto hidden lg:flex items-center gap-3">
+                    {/* Readiness badge */}
+                    <span
+                      className="text-[11px] font-bold px-3 py-1 rounded-full"
+                      style={{
+                        background: readinessScore >= 80 ? "#f0fdf4" : readinessScore >= 50 ? "#fffbeb" : "#fef2f2",
+                        color: readinessColor,
+                        border: `1px solid ${readinessScore >= 80 ? "#bbf7d0" : readinessScore >= 50 ? "#fde68a" : "#fecaca"}`,
+                      }}
+                    >
+                      {readinessScore}% ready
+                    </span>
+                    {/* CTA */}
+                    {(projectData as any)?.status === "submitted" ? (
+                      <button
+                        onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
+                        className="text-sm font-semibold px-4 py-1.5 rounded-lg cursor-pointer transition-opacity hover:opacity-90"
+                        style={{ background: "#059669", color: "#fff", border: "none" }}
+                      >
+                        Record Outcome →
+                      </button>
+                    ) : (projectData as any)?.status === "won" ? (
+                      <span className="text-sm font-semibold text-emerald-600 flex items-center gap-1.5">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                        Won
+                      </span>
+                    ) : (projectData as any)?.status === "lost" ? (
+                      <span className="text-sm font-semibold text-red-600">Lost</span>
+                    ) : activeTab !== "validator" ? (
+                      <button
+                        onClick={() => openTab("validator")}
+                        className="text-sm font-semibold px-4 py-1.5 rounded-lg cursor-pointer transition-all hover:opacity-90"
+                        style={{
+                          background: blockerCount > 0 ? "#F1F5F9" : "#10b981",
+                          color: blockerCount > 0 ? "#94A3B8" : "#fff",
+                          border: "none",
+                        }}
+                      >
+                        {blockerCount > 0 ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""}` : "Validate →"}
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="p-6">
                   {activeTab === "overview"  && <TabErrorBoundary tabLabel="Overview"><OverviewTab {...tabProps} /></TabErrorBoundary>}
@@ -883,319 +920,6 @@ function ProjectDetail() {
             </div>
           </main>
 
-          {/* Panel C — right info card */}
-          {panelOpen ? (
-            <aside
-              className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
-              style={{ width: 320, background: "#ffffff", borderLeft: "1px solid #e5e7eb", overflowX: "hidden" }}
-            >
-              <button
-                onClick={togglePanel}
-                className="hidden lg:flex items-center justify-center shrink-0 hover:bg-slate-50 transition-colors"
-                style={{ height: 36, borderBottom: "1px solid #e5e7eb", color: "#9ca3af", flexShrink: 0 }}
-                title="Collapse panel"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
-              <div style={{ padding: "20px 16px 0" }}>
-
-              {/* 1. BID READINESS — top priority */}
-              <div style={{ paddingBottom: 20 }}>
-                <div style={{ background: "white", borderRadius: 10, padding: "16px 14px", borderLeft: `4px solid ${readinessColor}`, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, color: "#94a3b8" }}>
-                      Bid Readiness
-                    </div>
-                    <div style={{
-                      fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
-                      color: readinessScore >= 80 ? "#059669" : readinessScore >= 50 ? "#d97706" : "#dc2626",
-                      background: readinessScore >= 80 ? "#f0fdf4" : readinessScore >= 50 ? "#fffbeb" : "#fef2f2",
-                      border: `1px solid ${readinessScore >= 80 ? "#bbf7d0" : readinessScore >= 50 ? "#fde68a" : "#fecaca"}`,
-                      borderRadius: 6, padding: "2px 7px",
-                    }}>
-                      {readinessScore >= 80 ? "On Track" : readinessScore >= 50 ? "At Risk" : "Blocked"}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 48, fontWeight: 800, color: "#0f172a", lineHeight: 1, letterSpacing: "-0.03em", marginBottom: 12, transition: "all 0.3s" }}>
-                    {readinessScore}<span style={{ fontSize: 24, fontWeight: 600, color: "#94a3b8" }}>%</span>
-                  </div>
-                  <div style={{ height: 8, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden", marginBottom: 10 }}>
-                    <div style={{ height: "100%", width: `${readinessScore}%`, background: readinessColor, borderRadius: 9999, transition: "width 0.5s" }} />
-                  </div>
-                  {msUntilBid !== null && (
-                    <div style={{
-                      fontSize: 12,
-                      color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#64748b",
-                      fontWeight: hoursUntilBid !== null && hoursUntilBid <= 24 ? 600 : 400,
-                      fontVariantNumeric: "tabular-nums",
-                    }}>
-                      {msUntilBid <= 0 ? "Past due" : hoursUntilBid! < 24 ? `${formatCountdown(msUntilBid)} remaining` : `${daysUntilBid} day${daysUntilBid !== 1 ? "s" : ""} until bid`}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 1b. DEADLINE COUNTDOWN — only when < 24h */}
-              {msUntilBid !== null && msUntilBid > 0 && hoursUntilBid! <= 24 && (
-                <div style={{ paddingBottom: 20 }}>
-                  <div style={{
-                    borderRadius: 8, padding: 14,
-                    background: hoursUntilBid! <= 4 ? "#fef2f2" : "#fffbeb",
-                    border: `1px solid ${hoursUntilBid! <= 4 ? "#fecaca" : "#fde68a"}`,
-                  }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: hoursUntilBid! <= 4 ? "#ef4444" : "#f59e0b", marginBottom: 4 }}>
-                      Time Remaining
-                    </div>
-                    <div style={{
-                      fontSize: 30, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
-                      color: hoursUntilBid! <= 4 ? "#dc2626" : "#d97706",
-                      letterSpacing: "-0.02em",
-                    }}>
-                      {formatCountdown(msUntilBid)}
-                    </div>
-                    {blockerCount > 0 && (
-                      <div style={{ fontSize: 11, color: "#ef4444", marginTop: 6, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-                        <svg width={11} height={11} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                        {blockerCount} unresolved blocker{blockerCount > 1 ? "s" : ""}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* 2. SF / BID / $/SF stat cards */}
-              <div style={{ paddingBottom: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-                {/* Square Footage */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between px-3.5 py-2.5" style={{ borderLeft: "4px solid #334155" }}>
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Square Footage</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>{grossArea ? grossArea.toLocaleString() : "—"} <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8" }}>SF</span></div>
-                </div>
-                {/* Total Bid */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between px-3.5 py-2.5" style={{ borderLeft: "4px solid #059669" }}>
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Total Bid</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
-                    {editingBidInline && !isDemo ? (
-                      <input
-                        autoFocus
-                        type="number"
-                        value={bidInlineValue}
-                        onChange={e => setBidInlineValue(e.target.value)}
-                        onBlur={saveBidInline}
-                        onKeyDown={e => { if (e.key === "Enter") saveBidInline(); if (e.key === "Escape") setEditingBidInline(false); }}
-                        style={{ width: 90, textAlign: "right", fontSize: 14, fontWeight: 700, border: "1px solid #10b981", borderRadius: 4, padding: "2px 4px", outline: "none", background: "white" }}
-                      />
-                    ) : (
-                      <span
-                        onClick={() => { if (!isDemo) { setBidInlineValue(bidAmt?.toString() ?? ""); setEditingBidInline(true); } }}
-                        style={{ cursor: isDemo ? undefined : "pointer" }}
-                        title={isDemo ? undefined : "Click to edit"}
-                      >
-                        {bidAmt ? `$${Math.round(bidAmt / 1000)}K` : "—"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {/* Cost per SF */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between px-3.5 py-2.5" style={{ borderLeft: "4px solid #3b82f6" }}>
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Cost / SF</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>{dpsf ? `$${dpsf.toFixed(2)}` : "—"}</div>
-                </div>
-              </div>
-
-              {/* 3. Roof system name + seam method */}
-              <div style={{ paddingBottom: 20 }}>
-                <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
-                  Roof System
-                </div>
-                {(() => {
-                  const raw = assembly || sys?.fullName || sysId?.toUpperCase() || "Not set";
-                  const m = raw.match(/^([^(]+?)(?:\s*\(([^)]+)\))?$/);
-                  const main = m?.[1]?.trim() ?? raw;
-                  const sub = m?.[2]?.trim() ?? null;
-                  return (
-                    <>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#111827", lineHeight: 1.4 }}>{main}</div>
-                      {sub && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 1 }}>{sub}</div>}
-                    </>
-                  );
-                })()}
-                {sys && (
-                  <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
-                    {sys.seamMethod.split("(")[0].trim()}
-                  </div>
-                )}
-                {sys && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>CSI {sys.csiSection}</div>}
-              </div>
-
-              {/* 3b. Project flags (FM Global, Pre-1990, Energy Code) */}
-              {((projectData as any)?.fmGlobal === true || (projectData as any)?.pre1990 === true || (projectData as any)?.energyCode === true) && (
-                <div style={{ marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {(projectData as any)?.fmGlobal === true && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#1d4ed8", background: "#eff6ff", border: "1px solid #bfdbfe", padding: "3px 8px", borderRadius: 4 }}>
-                      FM Global Insured
-                    </span>
-                  )}
-                  {(projectData as any)?.pre1990 === true && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#92400e", background: "#fffbeb", border: "1px solid #fcd34d", padding: "3px 8px", borderRadius: 4, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <svg width={11} height={11} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                      Pre-1990 — DSS Required
-                    </span>
-                  )}
-                  {(projectData as any)?.energyCode === true && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#4338ca", background: "#eef2ff", border: "1px solid #c7d2fe", padding: "3px 8px", borderRadius: 4, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <svg width={11} height={11} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
-                      Energy Code{(projectData as any)?.climateZone ? ` CZ${(projectData as any).climateZone}` : ""}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* 4. Manufacturers */}
-              {sys && (
-                <div style={{ paddingBottom: 20 }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 8 }}>
-                    Manufacturers
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {sys.manufacturers.slice(0, 4).map(m => (
-                      <span key={m} style={{ fontSize: 12, background: "#f1f5f9", color: "#475569", padding: "2px 8px", borderRadius: 4 }}>{m}</span>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => openTab("materials")}
-                    style={{ fontSize: 12, color: "#10b981", marginTop: 8, fontWeight: 500 }}
-                    className="hover:opacity-80 transition-opacity"
-                  >
-                    {sys.requiredMaterials.length} materials →
-                  </button>
-                </div>
-              )}
-
-              {/* 5. Warranty + Thickness (smaller) */}
-              {sys && (
-                <div style={{ paddingBottom: 20, display: "flex", gap: 16 }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
-                      Warranty
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                      {sys.warrantyOptions.map(w => (
-                        <span key={w} style={{ fontSize: 11, background: "#f0fdf4", color: "#166534", padding: "2px 6px", borderRadius: 4 }}>{w}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
-                      Thickness
-                    </div>
-                    <div style={{ fontSize: 12, color: "#374151", wordBreak: "break-word" }}>
-                      {sys.thicknessOptions.join(" · ")}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 6. Notes */}
-              {(projectData as any)?.notes && (
-                <div style={{ paddingBottom: 20 }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 500, color: "#9ca3af", marginBottom: 6 }}>
-                    Notes
-                  </div>
-                  <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, wordBreak: "break-word" }}>
-                    {(projectData as any).notes}
-                  </p>
-                </div>
-              )}
-
-            </div>
-
-            {/* CTA — pinned to bottom */}
-            <div style={{ padding: "0 16px 16px", marginTop: "auto" }}>
-              {(projectData as any)?.status === "submitted" ? (
-                <button
-                  onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
-                  style={{ width: "100%", padding: "12px 0", borderRadius: 8, fontSize: 14, fontWeight: 600, background: "#059669", color: "#ffffff", cursor: "pointer", transition: "opacity 0.15s", border: "none" }}
-                  className="hover:opacity-90"
-                >
-                  Record Outcome →
-                </button>
-              ) : (projectData as any)?.status === "won" ? (
-                <div style={{ textAlign: "center", padding: "10px 0" }}>
-                  <span style={{ fontSize: 13, color: "#059669", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                    Won
-                  </span>
-                </div>
-              ) : (projectData as any)?.status === "lost" ? (
-                <div style={{ textAlign: "center", padding: "10px 0" }}>
-                  <span style={{ fontSize: 13, color: "#dc2626", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-                    Lost{(projectData as any)?.competitorName ? ` — ${(projectData as any).competitorName} won` : ""}
-                  </span>
-                </div>
-              ) : (
-                <button
-                  onClick={() => openTab("validator")}
-                  disabled={blockerCount > 0}
-                  style={{
-                    width: "100%",
-                    padding: "12px 0",
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    background: blockerCount > 0 ? "#f3f4f6" : "#10b981",
-                    color: blockerCount > 0 ? "#9ca3af" : "#ffffff",
-                    cursor: blockerCount > 0 ? "not-allowed" : "pointer",
-                    transition: "opacity 0.15s",
-                  }}
-                  className={blockerCount === 0 ? "hover:opacity-90" : ""}
-                >
-                  {blockerCount > 0
-                    ? `Fix ${blockerCount} blocker${blockerCount > 1 ? "s" : ""} →`
-                    : actionItems.length > 0 ? "Review & Submit →" : "Submit Bid →"}
-                </button>
-              )}
-            </div>
-            </aside>
-          ) : (
-            <aside
-              className="hidden lg:flex flex-col items-center shrink-0"
-              style={{ width: 40, background: "#ffffff", borderLeft: "1px solid #e5e7eb" }}
-            >
-              <button
-                onClick={togglePanel}
-                className="flex items-center justify-center shrink-0 hover:bg-slate-50 transition-colors"
-                style={{ width: 40, height: 40, borderBottom: "1px solid #e5e7eb", color: "#9ca3af", flexShrink: 0 }}
-                title="Expand panel"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-              </button>
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  writingMode: "vertical-rl",
-                  transform: "rotate(180deg)",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: activeTab === "validator" ? readinessColor : "#9ca3af",
-                  whiteSpace: "nowrap",
-                  paddingBottom: 16,
-                  paddingTop: 16,
-                }}
-              >
-                {activeTab === "validator" ? `${readinessScore}/100` : `Bid Readiness · ${readinessScore}%`}
-              </div>
-            </aside>
-          )}
 
         </div>
       </div>
