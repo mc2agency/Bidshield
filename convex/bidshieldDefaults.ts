@@ -520,18 +520,19 @@ const universalPhases: Record<string, ChecklistPhaseDef> = {
 
 function filterItems(
   items: ChecklistItemDef[],
-  systemType?: string,
+  systemType?: string | string[],
   deckType?: string,
   fmGlobal?: boolean,
   pre1990?: boolean,
   energyCode?: boolean
 ): ChecklistItemDef[] {
+  const systemTypes = Array.isArray(systemType) ? systemType : systemType ? [systemType] : [];
   return items.filter(item => {
     // If item is system-specific:
-    // - When systemType IS set: only include items matching that system
+    // - When systemType IS set: only include items matching any selected system
     // - When systemType is NOT set: show all items (UI adds "select a system" note)
-    if (item.systems && systemType) {
-      if (!item.systems.includes(systemType)) return false;
+    if (item.systems && systemTypes.length > 0) {
+      if (!item.systems.some(s => systemTypes.includes(s))) return false;
     }
     // If item is deck-specific, only include when matching deck is selected
     if (item.decks) {
@@ -555,7 +556,7 @@ function filterItems(
 
 export function getChecklistForTrade(
   trade: string,
-  systemType?: string,
+  systemType?: string | string[],
   deckType?: string,
   fmGlobal?: boolean,
   pre1990?: boolean,

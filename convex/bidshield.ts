@@ -107,6 +107,23 @@ export const createProject = mutation({
     grossRoofArea: v.optional(v.number()),
     totalBidAmount: v.optional(v.number()),
     assemblies: v.array(v.string()),
+    roofAssemblies: v.optional(v.array(v.object({
+      label: v.string(),
+      name: v.optional(v.string()),
+      systemType: v.string(),
+      deckType: v.optional(v.string()),
+      insulationType: v.optional(v.string()),
+      insulationThickness: v.optional(v.string()),
+      rValue: v.optional(v.number()),
+      surfaceType: v.optional(v.string()),
+      vaporRetarder: v.optional(v.boolean()),
+      protectionBoard: v.optional(v.string()),
+      drainageMat: v.optional(v.boolean()),
+      coverBoard: v.optional(v.string()),
+      aiDescription: v.optional(v.string()),
+      enabled: v.optional(v.boolean()),
+    }))),
+    systemDescription: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
@@ -144,12 +161,18 @@ export const createProject = mutation({
       grossRoofArea: args.grossRoofArea ?? args.sqft,
       totalBidAmount: args.totalBidAmount,
       assemblies: args.assemblies,
+      roofAssemblies: args.roofAssemblies,
+      systemDescription: args.systemDescription,
       createdAt: now,
       updatedAt: now,
     });
 
     // Initialize checklist items from trade-specific template
-    const checklist = getChecklistForTrade(trade, args.systemType, args.deckType);
+    // When roofAssemblies exist, union checklist items across all unique systems
+    const systemTypes = args.roofAssemblies
+      ? [...new Set(args.roofAssemblies.map(a => a.systemType))]
+      : args.systemType ? [args.systemType] : [];
+    const checklist = getChecklistForTrade(trade, systemTypes.length > 0 ? systemTypes : undefined, args.deckType);
     for (const [phaseKey, phase] of Object.entries(checklist)) {
       for (const item of phase.items) {
         await ctx.db.insert("bidshield_checklist_items", {
@@ -209,6 +232,23 @@ export const updateProject = mutation({
     competitorPrice: v.optional(v.number()),
     energyCode: v.optional(v.boolean()),
     climateZone: v.optional(v.string()),
+    roofAssemblies: v.optional(v.array(v.object({
+      label: v.string(),
+      name: v.optional(v.string()),
+      systemType: v.string(),
+      deckType: v.optional(v.string()),
+      insulationType: v.optional(v.string()),
+      insulationThickness: v.optional(v.string()),
+      rValue: v.optional(v.number()),
+      surfaceType: v.optional(v.string()),
+      vaporRetarder: v.optional(v.boolean()),
+      protectionBoard: v.optional(v.string()),
+      drainageMat: v.optional(v.boolean()),
+      coverBoard: v.optional(v.string()),
+      aiDescription: v.optional(v.string()),
+      enabled: v.optional(v.boolean()),
+    }))),
+    systemDescription: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await assertProjectOwnership(ctx, args.projectId);

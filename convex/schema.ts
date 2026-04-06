@@ -82,6 +82,24 @@ export default defineSchema({
     sqft: v.optional(v.number()),
     estimatedValue: v.optional(v.number()), // DEPRECATED — use totalBidAmount. Kept for legacy doc compatibility.
     assemblies: v.array(v.string()), // ["RT-1 IRMA", "RT-2 Green Roof"]
+    // Structured roof assemblies — each assembly defines a roof area with its layer stack
+    roofAssemblies: v.optional(v.array(v.object({
+      label: v.string(),                       // "RT-01", "RT-02"
+      name: v.optional(v.string()),            // "IRMA Roof w/ Drained Pavers"
+      systemType: v.string(),                  // "sbs", "epdm", "tpo"
+      deckType: v.optional(v.string()),        // per-assembly deck override
+      insulationType: v.optional(v.string()),  // "xps", "polyiso", "eps", "vacuum"
+      insulationThickness: v.optional(v.string()), // "8in", "3in", "1.5in"
+      rValue: v.optional(v.number()),          // assembly R-value (e.g. 41.73)
+      surfaceType: v.optional(v.string()),     // "pavers_pedestals", "green_roof", "exposed"
+      vaporRetarder: v.optional(v.boolean()),
+      protectionBoard: v.optional(v.string()),
+      drainageMat: v.optional(v.boolean()),
+      coverBoard: v.optional(v.string()),
+      aiDescription: v.optional(v.string()),   // per-assembly AI layer description
+      enabled: v.optional(v.boolean()),        // ON/OFF toggle
+    }))),
+    systemDescription: v.optional(v.string()), // AI-generated project-level system summary
     grossRoofArea: v.optional(v.number()), // Control number from site plan (SF)
     notes: v.optional(v.string()),
     // Bid pricing — canonical field is totalBidAmount

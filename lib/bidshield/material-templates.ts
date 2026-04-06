@@ -87,10 +87,12 @@ export const MATERIAL_TEMPLATES: MaterialTemplate[] = [
  * Get material templates filtered by system type.
  * Returns templates that match the system type or have "all" in their systemTypes.
  */
-export function getTemplatesForSystem(systemType?: string): MaterialTemplate[] {
+export function getTemplatesForSystem(systemType?: string | string[]): MaterialTemplate[] {
   if (!systemType) return MATERIAL_TEMPLATES;
+  const types = Array.isArray(systemType) ? systemType : [systemType];
+  if (types.length === 0) return MATERIAL_TEMPLATES;
   return MATERIAL_TEMPLATES.filter(
-    (t) => t.systemTypes.includes(systemType) || t.systemTypes.length === 4 // all systems
+    (t) => types.some(st => t.systemTypes.includes(st)) || t.systemTypes.length === 4 // all systems
   );
 }
 
