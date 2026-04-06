@@ -520,7 +520,7 @@ function DashboardContent() {
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
     if (!userId) return;
     const isFirst = (convexProjects?.length ?? 0) === 0;
-    const projectId = await createProjectMut({
+    const baseArgs = {
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
       trade: np.trade || "roofing",
       systemType: np.systemType || undefined,
@@ -529,10 +529,21 @@ function DashboardContent() {
       sqft: np.sqft ? parseInt(np.sqft) : undefined,
       grossRoofArea: np.sqft ? parseInt(np.sqft) : undefined,
       totalBidAmount: np.totalBidAmount ? parseInt(np.totalBidAmount) : undefined,
-      assemblies: np.assemblies ? np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean) : [],
-      roofAssemblies: np.roofAssemblies || undefined,
-      systemDescription: np.systemDescription || undefined,
-    });
+      assemblies: np.assemblies
+        ? (Array.isArray(np.assemblies) ? np.assemblies : np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean))
+        : [],
+    };
+    let projectId: string;
+    try {
+      projectId = await createProjectMut({
+        ...baseArgs,
+        roofAssemblies: np.roofAssemblies || undefined,
+        systemDescription: np.systemDescription || undefined,
+      });
+    } catch {
+      // Fallback: backend may not support roofAssemblies yet
+      projectId = await createProjectMut(baseArgs as Parameters<typeof createProjectMut>[0]);
+    }
     if (isFirst) track("first_project_created");
     setShowNewProject(false);
     router.push(`/bidshield/dashboard/project?id=${projectId}`);

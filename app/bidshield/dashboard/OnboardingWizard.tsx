@@ -66,7 +66,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
     if (!projectName || !location || !bidDate) return;
     setCreating(true);
     try {
-      const projectId = await createProject({
+      const baseArgs = {
         userId,
         name: projectName,
         location,
@@ -76,11 +76,19 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
         deckType: deckType || undefined,
         gc: gc || undefined,
         sqft: sqft ? parseInt(sqft) : undefined,
-        assemblies: systemTypes.map((s: string) => s.toUpperCase()),
-        roofAssemblies: systemTypes.length > 0
-          ? systemTypes.map((s: string, i: number) => ({ label: `RT-0${i + 1}`, systemType: s }))
-          : undefined,
-      });
+        assemblies: systemTypes.length > 0 ? systemTypes.map((s: string) => s.toUpperCase()) : [],
+      };
+      const roofAssemblies = systemTypes.length > 0
+        ? systemTypes.map((s: string, i: number) => ({ label: `RT-0${i + 1}`, systemType: s }))
+        : undefined;
+
+      let projectId: string;
+      try {
+        projectId = await createProject({ ...baseArgs, roofAssemblies });
+      } catch {
+        // Fallback: backend may not support roofAssemblies yet
+        projectId = await createProject(baseArgs as Parameters<typeof createProject>[0]);
+      }
       setCreatedProjectId(projectId);
       setStep(4); // success + upgrade nudge screen
     } catch (err) {
