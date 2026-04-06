@@ -16,7 +16,7 @@ import OverviewTab from "./tabs/OverviewTabRedesign";
 import {
   ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
-  SubmissionTab, PreBidMeetingsTab,
+  SubmissionTab, PreBidMeetingsTab, SetupTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -29,6 +29,7 @@ function NavIcon({ paths }: { paths: React.ReactNode }) {
 }
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
+  setup:             <><path d="M8 2v2M8 12v2M2 8h2M12 8h2M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/></>,
   overview:          <><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
   checklist:         <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
   scope:             <><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 5v3l2 2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
@@ -48,6 +49,7 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
 };
 
 const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
+  { id: "setup",             label: "Project Setup", shortLabel: "Setup" },
   { id: "overview",          label: "Overview" },
   { id: "checklist",         label: "Checklist" },
   { id: "scope",             label: "Scope" },
@@ -411,7 +413,7 @@ function ProjectDetail() {
         {/* Section nav with groups */}
         <nav className="flex-1 px-2 flex flex-col" style={{ fontSize: 13 }}>
           {[
-            { label: "Review", ids: ["overview", "checklist", "scope", "takeoff", "materials"] },
+            { label: "Review", ids: ["setup", "overview", "checklist", "scope", "takeoff", "materials"] },
             { label: "Pricing", ids: ["pricing", "labor", "generalconditions"] },
             { label: "Docs", ids: ["quotes", "addenda", "rfis", "bidquals", "validator", "decisions", "submission", "prebidmeetings"] },
           ].map(({ label: groupLabel, ids }) => (
@@ -725,6 +727,7 @@ function ProjectDetail() {
                   <h2 className="app-display" style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-dim)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
+                  {activeTab === "setup"    && <TabErrorBoundary tabLabel="Setup"><SetupTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "overview"  && <TabErrorBoundary tabLabel="Overview"><OverviewTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "checklist" && <TabErrorBoundary tabLabel="Checklist"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "takeoff"   && <TabErrorBoundary tabLabel="Takeoff"><TakeoffTab {...tabProps} /></TabErrorBoundary>}

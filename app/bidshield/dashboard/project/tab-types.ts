@@ -8,6 +8,7 @@
 
 export type TabId =
   | "overview"
+  | "setup"
   | "checklist"
   | "takeoff"
   | "pricing"

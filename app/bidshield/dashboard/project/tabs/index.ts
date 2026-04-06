@@ -1,4 +1,5 @@
 export { default as OverviewTab } from "./OverviewTabRedesign";
+export { default as SetupTab } from "./SetupTab";
 export { default as ChecklistTab } from "./ChecklistTab";
 export { default as TakeoffTab } from "./TakeoffTab";
 export { default as PricingTab } from "./PricingTab";
