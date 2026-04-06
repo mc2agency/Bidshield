@@ -383,7 +383,6 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
               onClick={() => setActiveTab(tab)}
               className="py-2.5 text-center text-xs font-medium transition-colors"
               style={{
-                borderBottom: isActive ? "2px solid var(--bs-teal)" : "2px solid transparent",
                 background: isActive ? "var(--bs-bg-elevated)" : "transparent",
                 color: isActive ? "var(--bs-text-primary)" : "var(--bs-text-muted)",
                 borderRadius: i === 0 ? "8px 0 0 0" : i === 2 ? "0 8px 0 0" : undefined,
