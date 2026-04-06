@@ -255,12 +255,15 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
 
   const trade             = project?.trade || "roofing";
   const systemType        = project?.systemType;
+  // Use all system types from roofAssemblies if available, fall back to single systemType
+  const systemTypes       = (project as any)?.roofAssemblies?.map((a: any) => a.systemType) as string[] | undefined;
+  const effectiveSystemType = systemTypes && systemTypes.length > 0 ? [...new Set(systemTypes)] : systemType;
   const deckType          = project?.deckType;
   const fmGlobal          = project?.fmGlobal ?? false;
   const pre1990           = project?.pre1990 ?? false;
   const energyCode        = project?.energyCode ?? false;
   const climateZone       = project?.climateZone ?? "";
-  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, systemType, deckType, fmGlobal, pre1990, energyCode);
+  const checklistTemplate = isDemo ? demoChecklist : getChecklistForTrade(trade, effectiveSystemType, deckType, fmGlobal, pre1990, energyCode);
   const resolvedItems     = isDemo ? demoState : (checklistItems ?? []);
 
   const bulkSetStatus = useCallback(async (target: ChecklistStatus) => {

@@ -44,8 +44,14 @@ interface Props {
 export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) {
   const [step, setStep] = useState(0);
   const [trade, setTrade] = useState("roofing");
-  const [systemType, setSystemType] = useState("");
+  const [systemTypes, setSystemTypes] = useState<string[]>([]);
   const [deckType, setDeckType] = useState("");
+
+  const toggleSystem = (id: string) => {
+    setSystemTypes((prev: string[]) =>
+      prev.includes(id) ? prev.filter((s: string) => s !== id) : [...prev, id]
+    );
+  };
   const [projectName, setProjectName] = useState("");
   const [location, setLocation] = useState("");
   const [bidDate, setBidDate] = useState("");
@@ -66,11 +72,14 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
         location,
         bidDate,
         trade,
-        systemType: systemType || undefined,
+        systemType: systemTypes[0] || undefined,
         deckType: deckType || undefined,
         gc: gc || undefined,
         sqft: sqft ? parseInt(sqft) : undefined,
-        assemblies: systemType ? [systemType.toUpperCase()] : [],
+        assemblies: systemTypes.map((s: string) => s.toUpperCase()),
+        roofAssemblies: systemTypes.length > 0
+          ? systemTypes.map((s: string, i: number) => ({ label: `RT-0${i + 1}`, systemType: s }))
+          : undefined,
       });
       setCreatedProjectId(projectId);
       setStep(4); // success + upgrade nudge screen
@@ -155,22 +164,28 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               {trade === "roofing" && (
                 <>
                   <label className="text-sm font-medium block mb-2" style={{ color: "var(--bs-text-secondary)" }}>
-                    Primary roofing system
+                    Roofing systems <span className="font-normal" style={{ color: "var(--bs-text-dim)" }}>(select all that apply)</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     {SYSTEMS.roofing.map((s) => (
                       <button
                         key={s.id}
-                        onClick={() => setSystemType(s.id)}
-                        className="py-2 px-3 rounded-lg text-sm transition-all"
-                        style={systemType === s.id
+                        onClick={() => toggleSystem(s.id)}
+                        className="py-2 px-3 rounded-lg text-sm transition-all flex items-center justify-between"
+                        style={systemTypes.includes(s.id)
                           ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", fontWeight: 500, color: "var(--bs-teal)" }
                           : { border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
                       >
                         {s.label}
+                        {systemTypes.includes(s.id) && (
+                          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                        )}
                       </button>
                     ))}
                   </div>
+                  {systemTypes.length > 1 && (
+                    <p className="text-xs mb-4" style={{ color: "var(--bs-teal)" }}>{systemTypes.length} systems selected</p>
+                  )}
 
                   <label className="text-sm font-medium block mb-2" style={{ color: "var(--bs-text-secondary)" }}>
                     Deck type
@@ -371,10 +386,14 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                   <span style={{ color: "var(--bs-text-muted)" }}>Bid Date</span>
                   <span style={{ color: "var(--bs-text-secondary)" }}>{bidDate}</span>
                 </div>
-                {systemType && (
+                {systemTypes.length > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span style={{ color: "var(--bs-text-muted)" }}>System</span>
-                    <span className="uppercase" style={{ color: "var(--bs-text-secondary)" }}>{systemType}</span>
+                    <span style={{ color: "var(--bs-text-muted)" }}>Systems</span>
+                    <div className="flex flex-wrap gap-1 justify-end">
+                      {systemTypes.map(s => (
+                        <span key={s} className="uppercase text-xs py-0.5 px-2 rounded" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>{s}</span>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {gc && (
@@ -387,7 +406,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
 
               <div className="space-y-2 mb-8">
                 {[
-                  `18-phase bid QA checklist customized for ${systemType?.toUpperCase() || "roofing"}`,
+                  `18-phase bid QA checklist customized for ${systemTypes.length > 0 ? systemTypes.map(s => s.toUpperCase()).join(" + ") : "roofing"}`,
                   "40 scope gap items pre-loaded",
                   "Bid readiness scoring active",
                   "Takeoff reconciliation ready",

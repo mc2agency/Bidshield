@@ -530,6 +530,8 @@ function DashboardContent() {
       grossRoofArea: np.sqft ? parseInt(np.sqft) : undefined,
       totalBidAmount: np.totalBidAmount ? parseInt(np.totalBidAmount) : undefined,
       assemblies: np.assemblies ? np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean) : [],
+      roofAssemblies: np.roofAssemblies || undefined,
+      systemDescription: np.systemDescription || undefined,
     });
     if (isFirst) track("first_project_created");
     setShowNewProject(false);

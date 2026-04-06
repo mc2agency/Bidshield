@@ -579,8 +579,12 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const handleInitialize = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
     setIsInitializing(true);
-    const systemType = project?.systemType || "tpo";
-    const templates = getTemplatesForSystem(systemType);
+    // Use all system types from roofAssemblies if available, fall back to single systemType
+    const assemblySystemTypes = (project as any)?.roofAssemblies?.map((a: any) => a.systemType) as string[] | undefined;
+    const effectiveSystemType = assemblySystemTypes && assemblySystemTypes.length > 0
+      ? [...new Set(assemblySystemTypes)]
+      : (project?.systemType || "tpo");
+    const templates = getTemplatesForSystem(effectiveSystemType);
     const userPriceMap: Record<string, number> = {};
     for (const p of (userPrices ?? [])) {
       userPriceMap[(p as any).materialName] = (p as any).unitPrice;
@@ -836,7 +840,12 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       {/* System badge */}
       <div className="flex items-center gap-2">
         <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>Materials for</span>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)" }}>{project?.primaryAssembly || project?.systemType?.toUpperCase() || "TPO"}</span>
+        {((project as any)?.roofAssemblies && (project as any).roofAssemblies.length > 0)
+          ? (project as any).roofAssemblies.map((a: any) => (
+              <span key={a.label} className="text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)" }}>{a.label} {a.systemType?.toUpperCase()}</span>
+            ))
+          : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)" }}>{project?.primaryAssembly || project?.systemType?.toUpperCase() || "TPO"}</span>
+        }
         <span className="text-xs ml-auto" style={{ color: "var(--bs-text-dim)" }}>{totalSF.toLocaleString()} SF</span>
       </div>
 
@@ -1325,7 +1334,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       {/* Add Material Modal */}
       {showAddModal && (
         <AddMaterialModal
-          systemType={project?.systemType}
+          systemType={((project as any)?.roofAssemblies?.length > 0)
+            ? [...new Set((project as any).roofAssemblies.map((a: any) => a.systemType))]
+            : project?.systemType}
           existingKeys={materials.map((m: any) => m.templateKey).filter(Boolean)}
           onAdd={handleAddMaterial}
           onAddFromDatasheet={handleAddFromDatasheet}
@@ -1488,7 +1499,7 @@ function AddMaterialModal({
   onClose,
   datasheets,
 }: {
-  systemType?: string;
+  systemType?: string | string[];
   existingKeys: string[];
   onAdd: (t: MaterialTemplate) => void;
   onAddFromDatasheet: (ds: any) => void;

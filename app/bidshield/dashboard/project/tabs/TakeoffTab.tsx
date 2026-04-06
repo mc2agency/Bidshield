@@ -151,6 +151,14 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const [demoGrossRoof, setDemoGrossRoof] = useState(68000);
   const grossRoofArea: number | null = isDemo ? demoGrossRoof : (project?.grossRoofArea ?? null);
 
+  // Build assembly types list: project assemblies first, then generic fallback list
+  const roofAssemblies = (project as any)?.roofAssemblies as { label: string; systemType: string; name?: string }[] | undefined;
+  const projectAssemblyTypes = roofAssemblies?.map(a => `${a.label} — ${a.systemType.toUpperCase()}${a.name ? ` (${a.name})` : ""}`) ?? [];
+  const assemblyTypeOptions = projectAssemblyTypes.length > 0
+    ? [...projectAssemblyTypes, "---", ...ASSEMBLY_TYPES]
+    : ASSEMBLY_TYPES;
+  const defaultAssemblyType = projectAssemblyTypes[0] || ASSEMBLY_TYPES[0];
+
   const sections = useQuery(api.bidshield.getTakeoffSections, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const updateProject = useMutation(api.bidshield.updateProject);
   const createSection = useMutation(api.bidshield.createTakeoffSection);
@@ -207,7 +215,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const [editingControl, setEditingControl] = useState(false);
   const [controlInput, setControlInput] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newSection, setNewSection] = useState({ name: "", assemblyType: ASSEMBLY_TYPES[0], squareFeet: "", notes: "" });
+  const [newSection, setNewSection] = useState({ name: "", assemblyType: defaultAssemblyType, squareFeet: "", notes: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ name: "", assemblyType: "", squareFeet: "", notes: "" });
 
@@ -413,7 +421,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
                       editingId === section._id ? (
                         <tr key={section._id} style={{ borderBottom: "1px solid var(--bs-border)" }}>
                           <td className="py-2 pr-2"><input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="rounded px-2 py-1 text-xs w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} /></td>
-                          <td className="py-2 pr-2 hidden sm:table-cell"><select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })} className="rounded px-1 py-1 text-xs w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></td>
+                          <td className="py-2 pr-2 hidden sm:table-cell"><select value={editData.assemblyType} onChange={(e) => setEditData({ ...editData, assemblyType: e.target.value })} className="rounded px-1 py-1 text-xs w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>{assemblyTypeOptions.map((t) => t === "---" ? <option key="---" disabled>──────────</option> : <option key={t} value={t}>{t}</option>)}</select></td>
                           <td className="py-2 pr-2"><input type="number" value={editData.squareFeet} onChange={(e) => setEditData({ ...editData, squareFeet: e.target.value })} className="rounded px-2 py-1 text-xs w-20 text-right focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} /></td>
                           <td colSpan={2} className="py-2 text-right">
                             <button onClick={handleSaveEdit} className="text-[11px] mr-2" style={{ color: "var(--bs-teal)" }}>Save</button>
@@ -462,7 +470,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
               <div className="rounded-lg p-4 mb-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div><label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Section Name *</label><input value={newSection.name} onChange={(e) => setNewSection({ ...newSection, name: e.target.value })} placeholder="e.g., Main Roof Area A" className="rounded px-3 py-2 text-sm w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} /></div>
-                  <div><label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Assembly Type *</label><select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })} className="rounded px-3 py-2 text-sm w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>{ASSEMBLY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
+                  <div><label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Assembly Type *</label><select value={newSection.assemblyType} onChange={(e) => setNewSection({ ...newSection, assemblyType: e.target.value })} className="rounded px-3 py-2 text-sm w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>{assemblyTypeOptions.map((t) => t === "---" ? <option key="---" disabled>──────────</option> : <option key={t} value={t}>{t}</option>)}</select></div>
                   <div><label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Square Feet *</label><input type="number" value={newSection.squareFeet} onChange={(e) => setNewSection({ ...newSection, squareFeet: e.target.value })} placeholder="e.g., 22000" className="rounded px-3 py-2 text-sm w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} /></div>
                   <div><label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Notes</label><input value={newSection.notes} onChange={(e) => setNewSection({ ...newSection, notes: e.target.value })} placeholder="Optional notes" className="rounded px-3 py-2 text-sm w-full focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} /></div>
                 </div>
