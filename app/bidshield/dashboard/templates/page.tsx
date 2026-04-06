@@ -82,19 +82,19 @@ function TemplateCard({ template, isPro, isDemo }: {
   const downloadUrl = `/api/download?file=${encodeURIComponent(template.file)}&productId=${template.productId}`;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col gap-4 hover:shadow-md transition-all">
+    <div className="rounded-xl p-5 flex flex-col gap-4 transition-all" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-xl shrink-0">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0" style={{ background: "var(--bs-bg-elevated)" }}>
           {template.icon}
         </div>
         <div>
-          <h3 className="font-semibold text-slate-900 text-sm">{template.name}</h3>
-          <p className="text-xs text-slate-500 mt-0.5">{template.description}</p>
+          <h3 className="font-semibold text-sm" style={{ color: "var(--bs-text-primary)" }}>{template.name}</h3>
+          <p className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{template.description}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-slate-400">
-        <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <div className="flex items-center gap-2 text-xs" style={{ color: "var(--bs-text-dim)" }}>
+        <svg className="w-4 h-4" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         Excel (.xlsx) &bull; Pre-built formulas
@@ -103,14 +103,16 @@ function TemplateCard({ template, isPro, isDemo }: {
       {isPro || isDemo ? (
         <a
           href={isDemo ? "/sign-up" : downloadUrl}
-          className="block w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg text-center transition-colors"
+          className="block w-full py-2 text-xs font-semibold rounded-lg text-center transition-colors"
+          style={{ background: "var(--bs-teal)", color: "#13151a" }}
         >
           {isDemo ? "Sign up to download" : "↓ Download Excel"}
         </a>
       ) : (
         <Link
           href="/bidshield/pricing"
-          className="block w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg text-center transition-colors"
+          className="block w-full py-2 text-xs font-semibold rounded-lg text-center transition-colors"
+          style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
         >
           🔒 Pro only — Upgrade
         </Link>
@@ -133,18 +135,18 @@ function TemplatesContent() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-semibold text-slate-900">📊 Bid Starter Templates</h2>
-        <p className="text-sm text-slate-400 mt-1">
+        <h2 className="text-xl font-semibold" style={{ color: "var(--bs-text-primary)" }}>📊 Bid Starter Templates</h2>
+        <p className="text-sm mt-1" style={{ color: "var(--bs-text-dim)" }}>
           Pre-built Excel workbooks for every roofing system — use as a starting point alongside BidShield
         </p>
       </div>
 
       {!isPro && !isDemo && (
-        <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
-          <p className="text-sm text-amber-800 font-medium">
+        <div className="flex items-center justify-between gap-4 p-4 rounded-xl" style={{ background: "var(--bs-amber-dim)", border: "1px solid var(--bs-amber)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--bs-amber)" }}>
             ⚡ Template downloads are included with Pro. Upgrade to access all 8 files.
           </p>
-          <Link href="/bidshield/pricing" className="shrink-0 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors">
+          <Link href="/bidshield/pricing" className="shrink-0 text-xs font-semibold underline underline-offset-2 transition-colors" style={{ color: "var(--bs-amber)" }}>
             Upgrade to Pro
           </Link>
         </div>
@@ -158,7 +160,7 @@ function TemplatesContent() {
 
       {isPro && (
         <div className="text-center pt-2">
-          <p className="text-xs text-slate-400">Need the full bundle? <Link href="/dashboard/downloads" className="text-emerald-600 hover:underline font-medium">View all your downloads →</Link></p>
+          <p className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Need the full bundle? <Link href="/dashboard/downloads" className="hover:underline font-medium" style={{ color: "var(--bs-teal)" }}>View all your downloads →</Link></p>
         </div>
       )}
     </div>
@@ -169,7 +171,7 @@ export default function TemplatesPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-20">
-        <div className="text-slate-400 text-sm">Loading templates...</div>
+        <div className="text-sm" style={{ color: "var(--bs-text-dim)" }}>Loading templates...</div>
       </div>
     }>
       <TemplatesContent />

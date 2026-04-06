@@ -1,7 +1,7 @@
 "use client";
 import { DEMO_RFIS as IMPORTED_RFIS } from "@/lib/bidshield/demo-data";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -10,10 +10,10 @@ import type { TabProps } from "../tab-types";
 type RFIStatus = "draft" | "sent" | "answered" | "closed";
 
 const statusConfig: Record<RFIStatus, { label: string; color: string; bg: string }> = {
-  draft: { label: "Draft", color: "text-slate-500", bg: "bg-slate-100" },
-  sent: { label: "Sent", color: "text-amber-600", bg: "bg-amber-50" },
-  answered: { label: "Answered", color: "text-blue-600", bg: "bg-blue-50" },
-  closed: { label: "Closed", color: "text-emerald-600", bg: "bg-emerald-50" },
+  draft: { label: "Draft", color: "var(--bs-text-muted)", bg: "var(--bs-bg-elevated)" },
+  sent: { label: "Sent", color: "var(--bs-amber)", bg: "var(--bs-amber-dim)" },
+  answered: { label: "Answered", color: "var(--bs-blue)", bg: "var(--bs-blue-dim)" },
+  closed: { label: "Closed", color: "var(--bs-teal)", bg: "var(--bs-teal-dim)" },
 };
 
 const demoRFIs = [
@@ -143,126 +143,181 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
   const items = rfis;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Focused summary */}
-      {pendingCount > 0 ? (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="text-sm font-bold text-blue-800">{pendingCount} RFI{pendingCount > 1 ? "s" : ""} awaiting response</div>
-          <p className="text-xs text-blue-600 mt-1">Open questions can affect your pricing — track responses before submitting</p>
-        </div>
-      ) : items.length > 0 ? (
-        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-          <svg className="w-4 h-4 shrink-0" style={{ color: "#059669" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#059669" }}>All RFIs resolved</span>
-        </div>
-      ) : null}
+    <div className="flex flex-col gap-5">
 
-      <div className="flex justify-between items-center">
+      {/* ── STATS BAR ─────────────────────────────────────────────────────────── */}
+      <div className="flex items-stretch rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        {([
+          { label: "Total", value: statusCounts.all, color: "var(--bs-text-primary)" },
+          { label: "Draft", value: statusCounts.draft, color: "var(--bs-text-muted)" },
+          { label: "Sent", value: statusCounts.sent, color: "var(--bs-amber)" },
+          { label: "Answered", value: statusCounts.answered, color: "var(--bs-blue)" },
+          { label: "Closed", value: statusCounts.closed, color: "var(--bs-teal)" },
+        ] as const).map(({ label, value, color }, i) => (
+          <div key={label} className={`flex-1 px-5 py-4 flex flex-col gap-1`} style={i > 0 ? { borderLeft: "1px solid var(--bs-border)" } : {}}>
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>{label}</p>
+            <p className="text-3xl font-black leading-none tabular-nums tracking-tight" style={{ color }}>{value}</p>
+          </div>
+        ))}
+        {pendingCount > 0 && (
+          <div className="flex items-center px-5" style={{ borderLeft: "1px solid var(--bs-border)" }}>
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>
+              {pendingCount} pending
+            </span>
+          </div>
+        )}
+        {items.length > 0 && pendingCount === 0 && (
+          <div className="flex items-center px-5" style={{ borderLeft: "1px solid var(--bs-border)" }}>
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
+              All resolved
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── TOOLBAR ───────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between gap-3">
         <div className="flex flex-wrap gap-1.5">
           {(["all", "draft", "sent", "answered", "closed"] as const).map((s) => (
-            <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-colors duration-150 cursor-pointer ${
-                filter === s ? "bg-slate-800 text-white" : "bg-white text-slate-500 hover:text-slate-800 border border-slate-200"
-              }`}>
-              {s === "all" ? "All" : statusConfig[s].label} ({statusCounts[s]})
+            <button
+              key={s}
+              onClick={() => setFilter(s)}
+              className="h-7 px-3 text-[11px] font-semibold rounded-full transition-colors duration-150 cursor-pointer uppercase tracking-wide"
+              style={filter === s
+                ? { background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", color: "var(--bs-teal)" }
+                : { background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }
+              }
+            >
+              {s === "all" ? "All" : statusConfig[s].label}
+              {statusCounts[s] > 0 && <span className="ml-1 opacity-60">· {statusCounts[s]}</span>}
             </button>
           ))}
         </div>
         <button onClick={() => setShowCreateModal(true)} disabled={isDemo}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 shrink-0 ml-2">
+          className="h-8 px-4 text-[12px] font-semibold rounded-lg disabled:opacity-50 shrink-0 cursor-pointer"
+          style={{ background: "var(--bs-teal)", color: "#13151a" }}>
           + New RFI
         </button>
       </div>
 
+      {/* ── RFI TABLE ─────────────────────────────────────────────────────────── */}
       {filteredRFIs.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+        <div className="text-center py-16 rounded-xl" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bs-bg-elevated)" }}>
+            <svg className="w-6 h-6" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
           </div>
-          <p className="text-slate-500 mb-2">No RFIs {filter !== "all" ? `with status "${filter}"` : "yet"}</p>
-          <p className="text-sm text-slate-500">Create an RFI to track questions for this project.</p>
-          <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">Open RFIs show up as warnings in your Validate check — log them here to keep your bid status accurate.</p>
+          <p className="text-sm font-semibold mb-1" style={{ color: "var(--bs-text-secondary)" }}>No RFIs {filter !== "all" ? `with status "${filter}"` : "yet"}</p>
+          <p className="text-xs max-w-xs mx-auto" style={{ color: "var(--bs-text-dim)" }}>Open RFIs show as warnings in Validate — log them to keep your bid status accurate.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {filteredRFIs.map((rfi: any) => {
-            const config = statusConfig[rfi.status as RFIStatus];
-            const isExpanded = selectedRFI === (rfi._id as string);
+        <div className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+                <th className="px-5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Question</th>
+                <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest w-28" style={{ color: "var(--bs-text-dim)" }}>Status</th>
+                <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest hidden sm:table-cell" style={{ color: "var(--bs-text-dim)" }}>Sent To</th>
+                <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest hidden md:table-cell w-28" style={{ color: "var(--bs-text-dim)" }}>Date</th>
+                <th className="px-5 py-2.5 w-10"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRFIs.map((rfi: any) => {
+                const config = statusConfig[rfi.status as RFIStatus];
+                const isExpanded = selectedRFI === (rfi._id as string);
+                const statusColors: Record<RFIStatus, React.CSSProperties> = {
+                  draft: { background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" },
+                  sent: { background: "var(--bs-amber-dim)", color: "var(--bs-amber)" },
+                  answered: { background: "var(--bs-blue-dim)", color: "var(--bs-blue)" },
+                  closed: { background: "var(--bs-teal-dim)", color: "var(--bs-teal)" },
+                };
 
-            return (
-              <div key={rfi._id as string} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <div
-                  onClick={() => setSelectedRFI(isExpanded ? null : (rfi._id as string))}
-                  className="flex items-start gap-4 p-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${config.color} ${config.bg}`}>
-                        {config.label}
-                      </span>
-                      {rfi.sentTo && <span className="text-[11px] text-slate-500">To: {rfi.sentTo}</span>}
-                    </div>
-                    <p className="text-sm text-slate-700 leading-relaxed">{rfi.question}</p>
-                    <div className="flex gap-4 mt-2 text-[11px] text-slate-500">
-                      <span>Created: {new Date(rfi.createdAt).toLocaleDateString()}</span>
-                      {rfi.sentAt && <span>Sent: {new Date(rfi.sentAt).toLocaleDateString()}</span>}
-                      {rfi.respondedAt && <span>Answered: {new Date(rfi.respondedAt).toLocaleDateString()}</span>}
-                    </div>
-                  </div>
-                  <span className="text-xs text-slate-500 mt-1">{isExpanded ? "▼" : "▶"}</span>
-                </div>
-
-                {isExpanded && (
-                  <div className="border-t border-slate-200 p-4 bg-slate-50">
-                    {rfi.response && (
-                      <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                        <div className="text-[11px] font-semibold text-blue-600 mb-1">Response:</div>
-                        <p className="text-sm text-slate-600">{rfi.response}</p>
-                      </div>
+                return (
+                  <>
+                    <tr
+                      key={rfi._id as string}
+                      onClick={() => setSelectedRFI(isExpanded ? null : (rfi._id as string))}
+                      className="cursor-pointer transition-colors"
+                      style={{ borderBottom: "1px solid var(--bs-border)", background: isExpanded ? "var(--bs-bg-elevated)" : undefined }}
+                      onMouseEnter={e => { if (!isExpanded) (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"; }}
+                      onMouseLeave={e => { if (!isExpanded) (e.currentTarget as HTMLElement).style.background = ""; }}
+                    >
+                      <td className="px-5 py-3.5">
+                        <p className="text-sm leading-snug line-clamp-2" style={{ color: "var(--bs-text-secondary)" }}>{rfi.question}</p>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest" style={statusColors[rfi.status as RFIStatus] ?? { background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>
+                          {config.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 hidden sm:table-cell">
+                        <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{rfi.sentTo ?? "—"}</span>
+                      </td>
+                      <td className="px-4 py-3.5 hidden md:table-cell">
+                        <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>{new Date(rfi.createdAt).toLocaleDateString()}</span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr key={`${rfi._id}-detail`} style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                        <td colSpan={5} className="px-5 py-4">
+                          {rfi.response && (
+                            <div className="mb-3 p-3 rounded-lg" style={{ background: "var(--bs-blue-dim)", border: "1px solid var(--bs-blue-border, var(--bs-border))" }}>
+                              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "var(--bs-blue)" }}>Response</div>
+                              <p className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>{rfi.response}</p>
+                            </div>
+                          )}
+                          {rfi.status === "sent" && !isDemo && (
+                            <div className="mb-3">
+                              <label className="block text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "var(--bs-text-dim)" }}>Record Response</label>
+                              <textarea
+                                value={responseTexts[rfi._id as string] || ""}
+                                onChange={(e) => setResponseTexts((prev) => ({ ...prev, [rfi._id as string]: e.target.value }))}
+                                placeholder="Paste or type the response received..."
+                                rows={2}
+                                className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none"
+                                style={{ background: "var(--bs-bg-input, var(--bs-bg-card))", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+                              />
+                            </div>
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {rfi.status === "draft" && (
+                              <button onClick={() => handleSend(rfi._id)} disabled={isDemo} className="h-7 px-3 text-[11px] font-bold rounded-lg disabled:opacity-50 cursor-pointer" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>Mark Sent</button>
+                            )}
+                            {rfi.status === "sent" && (
+                              <button onClick={() => handleMarkAnswered(rfi._id)} disabled={isDemo || !(responseTexts[rfi._id as string] || "").trim()} className="h-7 px-3 text-[11px] font-bold rounded-lg disabled:opacity-50 cursor-pointer" style={{ background: "var(--bs-teal)", color: "#13151a" }}>Mark Answered</button>
+                            )}
+                            {(rfi.status === "answered" || rfi.status === "sent") && (
+                              <button onClick={() => handleClose(rfi._id)} disabled={isDemo} className="h-7 px-3 text-[11px] font-bold rounded-lg disabled:opacity-50 cursor-pointer" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}>Close</button>
+                            )}
+                            {!isDemo && (
+                              <button onClick={() => handleDelete(rfi._id)} className="h-7 px-3 ml-auto text-[11px] font-bold rounded-lg cursor-pointer" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)" }}>Delete</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                    {rfi.status === "sent" && !isDemo && (
-                      <div className="mb-4">
-                        <label className="block text-xs text-slate-500 mb-1">Record Response</label>
-                        <textarea
-                          value={responseTexts[rfi._id as string] || ""}
-                          onChange={(e) => setResponseTexts((prev) => ({ ...prev, [rfi._id as string]: e.target.value }))}
-                          placeholder="Paste or type the response received..."
-                          rows={3}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        />
-                      </div>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      {rfi.status === "draft" && (
-                        <button onClick={() => handleSend(rfi._id)} disabled={isDemo} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slate-900 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Mark as Sent</button>
-                      )}
-                      {rfi.status === "sent" && (
-                        <button onClick={() => handleMarkAnswered(rfi._id)} disabled={isDemo || !(responseTexts[rfi._id as string] || "").trim()} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors duration-150 disabled:opacity-50 cursor-pointer">Mark Answered</button>
-                      )}
-                      {(rfi.status === "answered" || rfi.status === "sent") && (
-                        <button onClick={() => handleClose(rfi._id)} disabled={isDemo} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50">Close RFI</button>
-                      )}
-                      {!isDemo && (
-                        <button onClick={() => handleDelete(rfi._id)} className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-600 text-xs font-semibold rounded-lg transition-colors ml-auto">Delete</button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
       {showCreateModal && (
-        <div onClick={() => setShowCreateModal(false)} className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-lg border border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">New RFI</h2>
+        <div onClick={() => setShowCreateModal(false)} className="fixed inset-0 flex items-center justify-center z-50" style={{ background: "rgba(0,0,0,0.7)" }}>
+          <div onClick={(e) => e.stopPropagation()} className="rounded-2xl p-6 w-full max-w-lg" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--bs-text-primary)" }}>New RFI</h2>
             <div className="space-y-4 mb-6">
               {(isPro || isDemo) && (
-                <div className="rounded-lg p-3 border border-emerald-200" style={{ background: "#f0fdf4" }}>
-                  <label className="block text-xs font-semibold text-emerald-700 mb-1">Draft with AI</label>
-                  <p className="text-[11px] text-emerald-600 mb-2">Describe what&apos;s unclear and AI will write a professional RFI question.</p>
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: "var(--bs-teal)" }}>Draft with AI</label>
+                  <p className="text-[11px] mb-2" style={{ color: "var(--bs-teal)" }}>Describe what&apos;s unclear and AI will write a professional RFI question.</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -270,14 +325,14 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
                       onChange={(e) => setDraftAiContext(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") handleDraftWithAI(); }}
                       placeholder="e.g., Conflicting deck type between drawings and spec"
-                      className="flex-1 text-xs rounded-md px-2 py-1.5 border border-emerald-200 focus:outline-none focus:border-emerald-400"
-                      style={{ background: "white" }}
+                      className="flex-1 text-xs rounded-md px-2 py-1.5 focus:outline-none"
+                      style={{ background: "var(--bs-bg-input, var(--bs-bg-card))", border: "1px solid var(--bs-teal-border)", color: "var(--bs-text-primary)" }}
                     />
                     <button
                       onClick={handleDraftWithAI}
                       disabled={!draftAiContext.trim() || draftAiLoading}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors disabled:opacity-50"
-                      style={{ background: "#059669", color: "white" }}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-md disabled:opacity-50"
+                      style={{ background: "var(--bs-teal)", color: "#13151a" }}
                     >
                       {draftAiLoading ? "…" : "Draft"}
                     </button>
@@ -285,17 +340,17 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
                 </div>
               )}
               <div>
-                <label className="block text-sm text-slate-600 mb-1">Question *</label>
-                <textarea value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} placeholder="What needs clarification?" rows={4} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                <label className="block text-sm mb-1" style={{ color: "var(--bs-text-muted)" }}>Question *</label>
+                <textarea value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} placeholder="What needs clarification?" rows={4} className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none" style={{ background: "var(--bs-bg-input, var(--bs-bg-elevated))", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
               </div>
               <div>
-                <label className="block text-sm text-slate-600 mb-1">Send To (email)</label>
-                <input type="email" value={newSentTo} onChange={(e) => setNewSentTo(e.target.value)} placeholder="architect@example.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                <label className="block text-sm mb-1" style={{ color: "var(--bs-text-muted)" }}>Send To (email)</label>
+                <input type="email" value={newSentTo} onChange={(e) => setNewSentTo(e.target.value)} placeholder="architect@example.com" className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none" style={{ background: "var(--bs-bg-input, var(--bs-bg-elevated))", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
               </div>
             </div>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowCreateModal(false)} className="px-5 py-2.5 border border-slate-300 text-slate-500 rounded-lg text-sm">Cancel</button>
-              <button onClick={handleCreate} disabled={!newQuestion.trim()} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-slate-900 font-semibold rounded-lg text-sm transition-colors disabled:opacity-50">Create RFI</button>
+              <button onClick={() => setShowCreateModal(false)} className="px-5 py-2.5 rounded-lg text-sm" style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}>Cancel</button>
+              <button onClick={handleCreate} disabled={!newQuestion.trim()} className="px-5 py-2.5 font-semibold rounded-lg text-sm disabled:opacity-50" style={{ background: "var(--bs-teal)", color: "#13151a" }}>Create RFI</button>
             </div>
           </div>
         </div>

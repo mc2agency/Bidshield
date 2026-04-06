@@ -15,12 +15,14 @@ const PILL_OPTIONS: {
   value: ScopeStatus;
   label: string;
   short: string;
-  bg: string;
+  color: string;
+  dimBg: string;
+  border: string;
 }[] = [
-  { value: "included",  label: "Included",  short: "Inc",    bg: "#10b981" },
-  { value: "excluded",  label: "Excluded",  short: "Exc",    bg: "#ef4444" },
-  { value: "by_others", label: "By Others", short: "Others", bg: "#3b82f6" },
-  { value: "na",        label: "N/A",       short: "N/A",    bg: "#94a3b8" },
+  { value: "included",  label: "Included",  short: "Inc",    color: "var(--bs-teal)",  dimBg: "var(--bs-teal-dim)",  border: "var(--bs-teal-border)" },
+  { value: "excluded",  label: "Excluded",  short: "Exc",    color: "var(--bs-red)",   dimBg: "var(--bs-red-dim)",   border: "var(--bs-red-border)" },
+  { value: "by_others", label: "By Others", short: "Others", color: "var(--bs-blue)",  dimBg: "var(--bs-blue-dim)",  border: "var(--bs-blue-border)" },
+  { value: "na",        label: "N/A",       short: "N/A",    color: "var(--bs-text-muted)", dimBg: "rgba(255,255,255,0.06)", border: "var(--bs-border)" },
 ];
 
 function SegmentedPill({
@@ -33,7 +35,7 @@ function SegmentedPill({
   return (
     <div
       className="flex shrink-0"
-      style={{ border: "1px solid #e2e8f0", borderRadius: 6, overflow: "hidden" }}
+      style={{ border: "1px solid var(--bs-border)", borderRadius: 6, overflow: "hidden" }}
     >
       {PILL_OPTIONS.map((opt, i) => {
         const isSelected = value === opt.value;
@@ -41,15 +43,15 @@ function SegmentedPill({
           <button
             key={opt.value}
             onClick={(e) => { e.stopPropagation(); onChange(opt.value); }}
-            className="transition-all active:opacity-80"
+            className="transition-all active:opacity-80 cursor-pointer"
             style={{
-              height: 30,
+              height: 28,
               padding: "0 10px",
-              fontSize: 12,
-              fontWeight: isSelected ? 600 : 400,
-              background: isSelected ? opt.bg : "transparent",
-              color: isSelected ? "#ffffff" : "#94a3b8",
-              borderLeft: i > 0 ? "1px solid #e2e8f0" : "none",
+              fontSize: 11,
+              fontWeight: isSelected ? 500 : 400,
+              background: isSelected ? opt.dimBg : "transparent",
+              color: isSelected ? opt.color : "var(--bs-text-dim)",
+              borderLeft: i > 0 ? "1px solid var(--bs-border)" : "none",
               whiteSpace: "nowrap",
             }}
           >
@@ -258,16 +260,20 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   if (items.length === 0 && !isDemo) {
     return (
       <div className="text-center py-16">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          style={{ background: "var(--bs-bg-elevated)" }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">No scope items yet</h3>
-        <p className="text-sm text-slate-500 mb-6">Generate 40 common roofing scope items to review</p>
+        <h3 className="text-lg font-medium mb-2" style={{ color: "var(--bs-text-primary)" }}>No scope items yet</h3>
+        <p className="text-sm mb-6" style={{ color: "var(--bs-text-muted)" }}>Generate 40 common roofing scope items to review</p>
         <button
           onClick={handleInitialize}
-          className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors duration-150 cursor-pointer shadow-sm"
+          className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          style={{ background: "var(--bs-teal)", color: "#13151a" }}
         >
           Generate Scope Items
         </button>
@@ -278,27 +284,39 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   return (
     <div className="flex flex-col gap-4">
 
-      {/* ── INLINE STATS BAR — replaces floating cards ── */}
-      <div className="flex items-center gap-0 bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
+      {/* ── STATS BAR ── */}
+      <div
+        className="flex items-center overflow-hidden"
+        style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10 }}
+      >
         {[
-          { label: "Total", value: String(totalCount), color: "#0f172a" },
-          { label: "Decided", value: `${decidedPct}%`, color: decidedPct === 100 ? "#059669" : decidedPct > 50 ? "#d97706" : "#ef4444" },
-          { label: "Included", value: String(includedCount), color: "#059669" },
-          { label: "Excluded", value: String(excludedCount), color: "#ef4444" },
-          { label: "By Others", value: String(byOthersCount), color: "#3b82f6" },
-          ...(unaddressedCount > 0 ? [{ label: "Undecided", value: String(unaddressedCount), color: "#94a3b8" }] : []),
-          ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost >= 1000 ? `${(includedCost/1000).toFixed(0)}K` : includedCost.toLocaleString()}`, color: "#059669" }] : []),
+          { label: "Total", value: String(totalCount), color: "var(--bs-text-primary)" },
+          { label: "Decided", value: `${decidedPct}%`, color: decidedPct === 100 ? "var(--bs-teal)" : decidedPct > 50 ? "var(--bs-amber)" : "var(--bs-red)" },
+          { label: "Included", value: String(includedCount), color: "var(--bs-teal)" },
+          { label: "Excluded", value: String(excludedCount), color: "var(--bs-red)" },
+          { label: "By Others", value: String(byOthersCount), color: "var(--bs-blue)" },
+          ...(unaddressedCount > 0 ? [{ label: "Undecided", value: String(unaddressedCount), color: "var(--bs-text-muted)" }] : []),
+          ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost >= 1000 ? `${(includedCost/1000).toFixed(0)}K` : includedCost.toLocaleString()}`, color: "var(--bs-teal)" }] : []),
         ].map(({ label, value, color }, i, arr) => (
-          <div key={label} className="flex flex-col items-center justify-center px-6 py-3.5 flex-1" style={{ borderRight: i < arr.length - 1 ? "1px solid #f1f5f9" : "none" }}>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</span>
-            <span className="text-2xl font-black tabular-nums leading-none" style={{ color }}>{value}</span>
+          <div
+            key={label}
+            className="flex flex-col items-center justify-center px-6 py-3.5 flex-1"
+            style={{ borderRight: i < arr.length - 1 ? "1px solid var(--bs-border)" : "none" }}
+          >
+            <span
+              className="text-[10px] font-medium uppercase tracking-widest mb-1"
+              style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}
+            >
+              {label}
+            </span>
+            <span className="text-xl font-medium tabular-nums leading-none" style={{ color }}>{value}</span>
           </div>
         ))}
       </div>
 
-      {/* ── TOOLBAR: filters + actions ── */}
+      {/* ── TOOLBAR: filters ── */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div style={{ display: "flex", gap: 2, background: "#f1f5f9", padding: 3, borderRadius: 8 }}>
+        <div style={{ display: "flex", gap: 2, background: "var(--bs-bg-elevated)", padding: 3, borderRadius: 8 }}>
           {FILTERS.map(({ id, label, count }) => (
             <button
               key={id}
@@ -306,34 +324,45 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               className="cursor-pointer transition-all"
               style={{
                 height: 28, padding: "0 11px", borderRadius: 6, fontSize: 12,
-                fontWeight: filter === id ? 600 : 400,
-                background: filter === id ? "#ffffff" : "transparent",
-                color: filter === id ? "#0f172a" : "#64748b",
-                boxShadow: filter === id ? "0 1px 2px rgba(0,0,0,0.07)" : "none",
+                fontWeight: filter === id ? 500 : 400,
+                background: filter === id ? "var(--bs-bg-card)" : "transparent",
+                color: filter === id ? "var(--bs-text-primary)" : "var(--bs-text-muted)",
+                border: filter === id ? "1px solid var(--bs-border)" : "1px solid transparent",
                 whiteSpace: "nowrap",
               }}
             >
-              {label} {count > 0 && <span style={{ opacity: 0.6 }}>({count})</span>}
+              {label} {count > 0 && <span style={{ opacity: 0.55 }}>({count})</span>}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ── SCOPE TABLE — single surface, no card-per-category ── */}
+      {/* ── SCOPE TABLE ── */}
       {filteredItems.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-slate-100 shadow-md text-slate-400 text-sm">
+        <div
+          className="text-center py-12 text-sm"
+          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10, color: "var(--bs-text-dim)" }}
+        >
           No items match this filter
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-md overflow-hidden">
+        <div style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10, overflow: "hidden" }}>
           {Array.from(groups.entries()).map(([category, catItems], groupIdx) => (
-            <div key={category} style={{ borderTop: groupIdx > 0 ? "1px solid #F1F5F9" : "none" }}>
-              {/* Category header — sticky group row */}
-              <div className="px-5 py-2 flex items-center gap-2 sticky top-[44px] z-10" style={{ background: "#F8FAFC", borderBottom: "1px solid #F1F5F9" }}>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{category}</span>
-                <span className="text-[10px] text-slate-300 font-medium">{catItems.length}</span>
+            <div key={category} style={{ borderTop: groupIdx > 0 ? "1px solid var(--bs-border)" : "none" }}>
+              {/* Category header */}
+              <div
+                className="px-5 py-2 flex items-center gap-2 sticky top-[44px] z-10"
+                style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}
+              >
+                <span
+                  className="text-[10px] font-medium uppercase tracking-widest"
+                  style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}
+                >
+                  {category}
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: "var(--bs-text-dim)" }}>{catItems.length}</span>
                 {catItems.filter((i: any) => i.status === "unaddressed").length > 0 && (
-                  <span className="ml-auto text-[10px] font-semibold text-amber-500">
+                  <span className="ml-auto text-[11px] font-medium" style={{ color: "var(--bs-amber)" }}>
                     {catItems.filter((i: any) => i.status === "unaddressed").length} undecided
                   </span>
                 )}
@@ -343,45 +372,44 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               {catItems.map((item: any, idx: number) => {
                 const status      = item.status as ScopeStatus;
                 const isExpanded  = expandedId === item._id;
-                const dotColor    = status === "included"  ? "#10b981"
-                                  : status === "excluded"  ? "#ef4444"
-                                  : status === "by_others" ? "#3b82f6"
-                                  : status === "na"        ? "#94a3b8"
-                                  : "#cbd5e1";
+                const dotOpt      = PILL_OPTIONS.find(o => o.value === status);
+                const dotColor    = dotOpt ? dotOpt.color : "var(--bs-text-dim)";
 
                 return (
                   <div key={item._id}>
-                    {/* Main row — 44px */}
+                    {/* Main row */}
                     <div
-                      className="flex items-center gap-3 hover:bg-[#f8fafc] transition-colors cursor-pointer"
+                      className="flex items-center gap-3 transition-colors cursor-pointer"
                       style={{
                         minHeight: 44,
                         padding: "0 16px",
-                        borderTop: idx > 0 ? "1px solid #e2e8f0" : undefined,
+                        borderTop: idx > 0 ? "1px solid var(--bs-border)" : undefined,
                       }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "")}
                       onClick={() => setExpandedId(isExpanded ? null : item._id)}
                     >
                       {/* Status dot */}
-                      <span
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{ background: dotColor }}
-                      />
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
 
                       {/* Item name */}
-                      <span className="flex-1 min-w-0 text-[14px] select-none" style={{ color: "#0f172a" }}>
+                      <span className="flex-1 min-w-0 text-[13px] select-none" style={{ color: "var(--bs-text-secondary)" }}>
                         {item.name}
                       </span>
 
-                      {/* Note preview — desktop only */}
+                      {/* Note preview */}
                       {item.note && !isExpanded && (
-                        <span className="hidden md:block text-[11px] text-slate-400 shrink-0 max-w-[140px] truncate">
+                        <span
+                          className="hidden md:block text-[11px] shrink-0 max-w-[140px] truncate"
+                          style={{ color: "var(--bs-text-dim)" }}
+                        >
                           {item.note}
                         </span>
                       )}
 
                       {/* Cost badge */}
                       {item.cost > 0 && (
-                        <span className="text-[11px] font-medium shrink-0" style={{ color: "#10b981" }}>
+                        <span className="text-[11px] font-medium shrink-0" style={{ color: "var(--bs-teal)" }}>
                           ${item.cost.toLocaleString()}
                         </span>
                       )}
@@ -398,21 +426,25 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                         className="flex flex-wrap gap-3 items-center"
                         style={{
                           padding: "10px 16px 10px 32px",
-                          background: "#f8fafc",
-                          borderTop: "1px solid #e2e8f0",
+                          background: "var(--bs-bg-elevated)",
+                          borderTop: "1px solid var(--bs-border)",
                         }}
                         onClick={e => e.stopPropagation()}
                       >
                         {status === "included" && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[12px] text-slate-400">Cost $</span>
+                            <span className="text-[12px]" style={{ color: "var(--bs-text-dim)" }}>Cost $</span>
                             <input
                               type="number"
                               defaultValue={item.cost || ""}
                               placeholder="0"
                               onBlur={e => handleCostChange(item, e.target.value)}
-                              className="w-24 text-[13px] font-medium rounded-md px-2 py-1 border border-slate-200 focus:border-emerald-400 focus:outline-none"
-                              style={{ color: "#10b981" }}
+                              className="w-24 text-[13px] font-medium rounded-md px-2 py-1 focus:outline-none"
+                              style={{
+                                background: "var(--bs-bg-input)",
+                                border: "1px solid var(--bs-border)",
+                                color: "var(--bs-teal)",
+                              }}
                             />
                           </div>
                         )}
@@ -421,8 +453,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                           defaultValue={item.note || ""}
                           placeholder="Add note..."
                           onBlur={e => handleNoteChange(item, e.target.value)}
-                          className="flex-1 min-w-[160px] text-[12px] text-slate-500 rounded-md px-2 py-1 border border-slate-200 focus:border-slate-400 focus:outline-none"
-                          style={{ background: "white" }}
+                          className="flex-1 min-w-[160px] text-[12px] rounded-md px-2 py-1 focus:outline-none"
+                          style={{
+                            background: "var(--bs-bg-input)",
+                            border: "1px solid var(--bs-border)",
+                            color: "var(--bs-text-muted)",
+                          }}
                         />
                       </div>
                     )}
@@ -435,45 +471,60 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
       )}
 
       {/* Clarifications & Assumptions */}
-      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
-        <div className="px-4 py-3 flex items-center justify-between" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+      <div style={{ border: "1px solid var(--bs-border)", borderRadius: 10, overflow: "hidden" }}>
+        <div
+          className="px-4 py-3 flex items-center justify-between"
+          style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}
+        >
           <div>
-            <span className="text-[13px] font-semibold text-slate-700">Clarifications &amp; Assumptions</span>
-            <span className="ml-2 text-[11px] text-slate-400">{resolvedClarifications.length} entries</span>
+            <span className="text-[13px] font-medium" style={{ color: "var(--bs-text-primary)" }}>Clarifications &amp; Assumptions</span>
+            <span className="ml-2 text-[11px]" style={{ color: "var(--bs-text-dim)" }}>{resolvedClarifications.length} entries</span>
           </div>
           {!isPro && !isDemo && (
-            <a href="/bidshield/pricing" className="text-[11px] font-medium text-emerald-600 hover:text-emerald-500">
+            <a href="/bidshield/pricing" className="text-[11px] font-medium" style={{ color: "var(--bs-teal)", textDecoration: "none" }}>
               Pro feature · Upgrade →
             </a>
           )}
         </div>
 
         {!isPro && !isDemo ? (
-          <div className="p-6 text-center">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+          <div className="p-6 text-center" style={{ background: "var(--bs-bg-card)" }}>
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+              style={{ background: "var(--bs-bg-elevated)" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
             </div>
-            <p className="text-sm font-medium text-slate-700 mb-1">Clarifications &amp; Assumptions</p>
-            <p className="text-xs text-slate-500 mb-3">Document your scope assumptions to prevent change orders. Available on Pro.</p>
-            <a href="/bidshield/pricing" className="inline-block px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors">
+            <p className="text-sm font-medium mb-1" style={{ color: "var(--bs-text-primary)" }}>Clarifications &amp; Assumptions</p>
+            <p className="text-xs mb-3" style={{ color: "var(--bs-text-muted)" }}>Document your scope assumptions to prevent change orders. Available on Pro.</p>
+            <a
+              href="/bidshield/pricing"
+              className="inline-block px-4 py-2 text-xs font-medium rounded-lg transition-colors"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
+            >
               Upgrade to Pro
             </a>
           </div>
         ) : (
-          <div className="p-4 flex flex-col gap-2">
+          <div className="p-4 flex flex-col gap-2" style={{ background: "var(--bs-bg-card)" }}>
             {resolvedClarifications.length === 0 && (
-              <p className="text-xs text-slate-400 py-2">No clarifications yet. Assumptions that aren&apos;t documented become change orders.</p>
+              <p className="text-xs py-2" style={{ color: "var(--bs-text-dim)" }}>No clarifications yet. Assumptions that aren&apos;t documented become change orders.</p>
             )}
             {resolvedClarifications.map((c: any) => (
               <div key={c._id} className="flex items-start gap-2 group">
-                <span className="mt-0.5 text-slate-300 text-[11px] shrink-0">•</span>
-                <span className="flex-1 text-[13px] text-slate-700 leading-snug">{c.text}</span>
-                <span className="text-[10px] text-slate-300 shrink-0 mt-0.5">
+                <span className="mt-0.5 text-[11px] shrink-0" style={{ color: "var(--bs-text-dim)" }}>•</span>
+                <span className="flex-1 text-[13px] leading-snug" style={{ color: "var(--bs-text-secondary)" }}>{c.text}</span>
+                <span className="text-[10px] shrink-0 mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
                   {new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
                 <button
                   onClick={() => handleDeleteClarification(c._id)}
-                  className="text-slate-300 hover:text-red-400 transition-colors text-[12px] shrink-0 opacity-0 group-hover:opacity-100"
+                  className="transition-colors text-[12px] shrink-0 opacity-0 group-hover:opacity-100"
+                  style={{ color: "var(--bs-text-dim)" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-red)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}
                   title="Delete"
                 >
                   ✕
@@ -488,13 +539,22 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                 onChange={e => setNewClarText(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") handleAddClarification(); }}
                 placeholder="e.g., Assume single-layer tear-off"
-                className="flex-1 text-[13px] rounded-lg px-3 py-2 border border-slate-200 focus:border-slate-400 focus:outline-none"
-                style={{ background: "white" }}
+                className="flex-1 text-[13px] rounded-lg px-3 py-2 focus:outline-none"
+                style={{
+                  background: "var(--bs-bg-input)",
+                  border: "1px solid var(--bs-border)",
+                  color: "var(--bs-text-secondary)",
+                }}
               />
               <button
                 onClick={handleAddClarification}
                 disabled={!newClarText.trim()}
-                className="px-3 py-2 text-[12px] font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+                className="px-3 py-2 text-[12px] font-medium rounded-lg transition-colors disabled:opacity-40"
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--bs-border)",
+                  color: "var(--bs-text-muted)",
+                }}
               >
                 + Add
               </button>
@@ -508,7 +568,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
         <div className="flex flex-col gap-2">
           <button
             onClick={handleCopyExclusions}
-            className="w-full py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition-all"
+            className="w-full py-2.5 rounded-lg text-sm font-medium transition-all active:scale-[0.98]"
+            style={{
+              background: "var(--bs-bg-card)",
+              border: "1px solid var(--bs-border)",
+              color: "var(--bs-text-muted)",
+            }}
           >
             {copiedExclusions ? "Copied to clipboard" : "Copy exclusions for proposal"}
           </button>
@@ -517,16 +582,21 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
             <button
               onClick={handleGenerateExclusions}
               disabled={aiExclusionsLoading}
-              className="w-full py-3 rounded-xl text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #059669 0%, #0d9488 100%)", color: "white" }}
+              className="w-full py-2.5 rounded-lg text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-60"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               {aiExclusionsLoading ? "Generating..." : "Generate Exclusions with AI"}
             </button>
           ) : (
             <a
               href="/bidshield/pricing"
-              className="w-full py-3 rounded-xl text-sm font-medium text-center block transition-all"
-              style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#94a3b8" }}
+              className="w-full py-2.5 rounded-lg text-sm font-medium text-center block transition-all"
+              style={{
+                background: "var(--bs-bg-elevated)",
+                border: "1px solid var(--bs-border)",
+                color: "var(--bs-text-dim)",
+                textDecoration: "none",
+              }}
             >
               Generate Exclusions with AI · Pro
             </a>
@@ -536,26 +606,45 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
       {/* AI Exclusions error */}
       {aiExclusionsError && (
-        <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
-          <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+        <div
+          className="flex items-start gap-3 px-4 py-3 rounded-lg text-sm"
+          style={{
+            background: "var(--bs-red-dim)",
+            border: "1px solid var(--bs-red-border)",
+            color: "var(--bs-red)",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="shrink-0 mt-0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
           <span className="flex-1">{aiExclusionsError}</span>
-          <button onClick={() => setAiExclusionsError(null)} className="text-red-500 hover:text-red-700 font-medium text-xs shrink-0">Dismiss</button>
+          <button
+            onClick={() => setAiExclusionsError(null)}
+            className="font-medium text-xs shrink-0"
+            style={{ color: "var(--bs-red)" }}
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
       {/* AI Exclusions result */}
       {aiExclusionsText && (
-        <div className="rounded-xl p-4 border border-emerald-200" style={{ background: "#f0fdf4" }}>
+        <div
+          className="rounded-lg p-4"
+          style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}
+        >
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-emerald-700">AI-Generated Exclusions</span>
+            <span className="text-xs font-medium" style={{ color: "var(--bs-teal)" }}>AI-Generated Exclusions</span>
             <button
               onClick={() => { navigator.clipboard.writeText(aiExclusionsText); }}
-              className="text-[11px] text-emerald-600 hover:text-emerald-500 font-medium"
+              className="text-[11px] font-medium"
+              style={{ color: "var(--bs-teal)" }}
             >
               Copy
             </button>
           </div>
-          <pre className="text-[13px] text-slate-700 whitespace-pre-wrap leading-relaxed font-sans">{aiExclusionsText}</pre>
+          <pre className="text-[13px] whitespace-pre-wrap leading-relaxed font-sans" style={{ color: "var(--bs-text-secondary)" }}>{aiExclusionsText}</pre>
         </div>
       )}
     </div>

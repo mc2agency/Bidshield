@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
-import { Plus, Trash2, ChevronDown, ChevronUp, Briefcase } from "lucide-react";
 
 const GC_CATEGORIES = [
   { id: "bidding",    label: "Bidding & Preconstruction" },
@@ -156,12 +155,21 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
   if (!isPro && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+          style={{ background: "var(--bs-bg-elevated)" }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+          </svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">General Conditions</h3>
-        <p className="text-sm text-slate-500 mb-6">Track supervision, mobilization, insurance, bonding, and markups. Available on Pro.</p>
-        <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
+        <h3 className="text-lg font-medium mb-2" style={{ color: "var(--bs-text-primary)" }}>General Conditions</h3>
+        <p className="text-sm mb-6" style={{ color: "var(--bs-text-muted)" }}>Track supervision, mobilization, insurance, bonding, and markups. Available on Pro.</p>
+        <a
+          href="/bidshield/pricing"
+          className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          style={{ background: "var(--bs-teal)", color: "#13151a" }}
+        >
           Upgrade to Pro
         </a>
       </div>
@@ -174,10 +182,12 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Briefcase size={20} className="text-emerald-600" strokeWidth={1.75} />
-            <h2 className="text-xl font-bold text-slate-900 m-0">General Conditions</h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bs-teal)" strokeWidth={1.75}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" />
+            </svg>
+            <h2 className="text-xl font-medium m-0" style={{ color: "var(--bs-text-primary)" }}>General Conditions</h2>
           </div>
-          <p className="text-sm text-slate-500 m-0">
+          <p className="text-sm m-0" style={{ color: "var(--bs-text-muted)" }}>
             Track all indirect costs — site logistics, safety, fees, and markups.
           </p>
         </div>
@@ -185,21 +195,25 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Line Items</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(lineItemsTotal)}</div>
-          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>direct GC costs</div>
-        </div>
-        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Markups</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(markupTotal)}</div>
-          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>on {fmt(markupBase)} base</div>
-        </div>
-        <div style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>GC Total</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "#059669", letterSpacing: "-0.03em", lineHeight: 1 }}>{fmt(gcTotal)}</div>
-          <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>all-in GC</div>
-        </div>
+        {[
+          { label: "Line Items", value: fmt(lineItemsTotal), sub: "direct GC costs", accent: false },
+          { label: "Markups",    value: fmt(markupTotal),    sub: `on ${fmt(markupBase)} base`, accent: false },
+          { label: "GC Total",   value: fmt(gcTotal),        sub: "all-in GC", accent: true },
+        ].map(({ label, value, sub, accent }) => (
+          <div
+            key={label}
+            style={{
+              background: "var(--bs-bg-card)",
+              borderRadius: 10,
+              padding: "14px 16px",
+              border: accent ? "1px solid var(--bs-teal-border)" : "1px solid var(--bs-border)",
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 500, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 6 }}>{label}</div>
+            <div style={{ fontSize: 24, fontWeight: 500, color: accent ? "var(--bs-teal)" : "var(--bs-text-primary)", letterSpacing: "-0.5px", lineHeight: 1 }}>{value}</div>
+            <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 4 }}>{sub}</div>
+          </div>
+        ))}
       </div>
 
       {/* Category sections */}
@@ -209,17 +223,24 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
         const isCollapsed = collapsed[cat.id];
 
         return (
-          <div key={cat.id} className="bg-white rounded-xl border border-slate-200 shadow-sm mb-3 overflow-hidden">
+          <div
+            key={cat.id}
+            className="mb-3 overflow-hidden"
+            style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10 }}
+          >
             {/* Category header */}
             <div
               className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
-              style={{ background: "#f8fafc", borderBottom: isCollapsed ? "none" : "1px solid #f1f5f9" }}
+              style={{ background: "var(--bs-bg-elevated)", borderBottom: isCollapsed ? "none" : "1px solid var(--bs-border)" }}
               onClick={() => setCollapsed((c) => ({ ...c, [cat.id]: !c[cat.id] }))}
             >
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-800">{cat.label}</span>
+                <span className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{cat.label}</span>
                 {catTotal > 0 && (
-                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5">
+                  <span
+                    className="text-xs font-medium rounded px-2 py-0.5"
+                    style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
+                  >
                     {fmt(catTotal)}
                   </span>
                 )}
@@ -228,25 +249,38 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
                 {!isCollapsed && cat.id !== "markup" && (
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowAddRow(cat.id === showAddRow ? null : cat.id); }}
-                    className="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 bg-transparent border-0 cursor-pointer p-0"
+                    className="flex items-center gap-1 text-xs font-medium bg-transparent border-0 cursor-pointer p-0"
+                    style={{ color: "var(--bs-teal)" }}
                   >
-                    <Plus size={13} />
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                     Add
                   </button>
                 )}
-                {isCollapsed
-                  ? <ChevronDown size={15} className="text-slate-400" />
-                  : <ChevronUp   size={15} className="text-slate-400" />}
+                <svg
+                  width="14" height="14" viewBox="0 0 14 14" fill="none"
+                  style={{ color: "var(--bs-text-dim)", transform: isCollapsed ? "none" : "rotate(180deg)", transition: "transform 0.15s" }}
+                >
+                  <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
             </div>
 
             {!isCollapsed && (
-              <div className="border-t border-slate-100">
+              <div>
                 {/* Column headers */}
                 {catItems.length > 0 && (
                   <div
-                    className="grid gap-2 px-4 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wide border-b border-slate-100 bg-white"
-                    style={{ gridTemplateColumns: cat.id === "markup" ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px" }}
+                    className="grid gap-2 px-4 py-1.5"
+                    style={{
+                      gridTemplateColumns: cat.id === "markup" ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px",
+                      fontSize: 10,
+                      fontWeight: 500,
+                      color: "var(--bs-text-dim)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      borderBottom: "1px solid var(--bs-border)",
+                      background: "var(--bs-bg-card)",
+                    }}
                   >
                     <span>Description</span>
                     {cat.id !== "markup" && <span className="text-right">Qty</span>}
@@ -257,40 +291,27 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
                   </div>
                 )}
 
-                {catItems.map((item: any, idx: number) => (
+                {catItems.map((item: any) => (
                   <div key={item._id}>
                     {editingId === item._id ? (
                       <div
-                        className="grid gap-2 px-4 py-2 items-center bg-blue-50 border-b border-slate-100"
-                        style={{ gridTemplateColumns: item.isMarkup ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px" }}
+                        className="grid gap-2 px-4 py-2 items-center"
+                        style={{
+                          gridTemplateColumns: item.isMarkup ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px",
+                          background: "var(--bs-bg-elevated)",
+                          borderBottom: "1px solid var(--bs-border)",
+                        }}
                       >
-                        <input
-                          value={editingValues.description}
-                          onChange={(e) => setEditingValues((v) => ({ ...v, description: e.target.value }))}
-                          className={editInputCls}
-                        />
+                        <input value={editingValues.description} onChange={(e) => setEditingValues((v) => ({ ...v, description: e.target.value }))} className={editInputCls} />
                         {!item.isMarkup && (
                           <>
-                            <input
-                              value={editingValues.quantity}
-                              onChange={(e) => setEditingValues((v) => ({ ...v, quantity: e.target.value }))}
-                              placeholder="Qty"
-                              className={`${editInputCls} text-right`}
-                            />
-                            <input
-                              value={editingValues.unit}
-                              onChange={(e) => setEditingValues((v) => ({ ...v, unit: e.target.value }))}
-                              placeholder="Unit"
-                              className={editInputCls}
-                            />
+                            <input value={editingValues.quantity} onChange={(e) => setEditingValues((v) => ({ ...v, quantity: e.target.value }))} placeholder="Qty" className={`${editInputCls} text-right`} />
+                            <input value={editingValues.unit} onChange={(e) => setEditingValues((v) => ({ ...v, unit: e.target.value }))} placeholder="Unit" className={editInputCls} />
                           </>
                         )}
                         <input
                           value={item.isMarkup ? editingValues.markupPct : editingValues.unitCost}
-                          onChange={(e) => setEditingValues((v) => item.isMarkup
-                            ? { ...v, markupPct: e.target.value }
-                            : { ...v, unitCost: e.target.value }
-                          )}
+                          onChange={(e) => setEditingValues((v) => item.isMarkup ? { ...v, markupPct: e.target.value } : { ...v, unitCost: e.target.value })}
                           placeholder={item.isMarkup ? "%" : "$"}
                           className={`${editInputCls} text-right`}
                         />
@@ -301,35 +322,42 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
                       </div>
                     ) : (
                       <div
-                        className={`grid gap-2 px-4 py-2 items-center border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 1 ? "bg-slate-50/50" : "bg-white"}`}
-                        style={{ gridTemplateColumns: item.isMarkup ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px" }}
+                        className="grid gap-2 px-4 py-2 items-center cursor-pointer transition-colors"
+                        style={{ gridTemplateColumns: item.isMarkup ? "1fr 80px 90px 32px" : "1fr 60px 60px 90px 80px 32px", borderBottom: "1px solid var(--bs-border)" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "")}
                         onClick={() => startEdit(item)}
                       >
-                        <span className="text-sm text-slate-800">{item.description}</span>
+                        <span className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>{item.description}</span>
                         {!item.isMarkup && (
                           <>
-                            <span className="text-sm text-right text-slate-500">{item.quantity ?? <span className="text-slate-300">—</span>}</span>
-                            <span className="text-sm text-slate-500">{item.unit ?? <span className="text-slate-300">—</span>}</span>
+                            <span className="text-sm text-right" style={{ color: "var(--bs-text-muted)" }}>{item.quantity ?? <span style={{ color: "var(--bs-text-dim)" }}>—</span>}</span>
+                            <span className="text-sm" style={{ color: "var(--bs-text-muted)" }}>{item.unit ?? <span style={{ color: "var(--bs-text-dim)" }}>—</span>}</span>
                           </>
                         )}
-                        <span className="text-sm text-right text-slate-500">
+                        <span className="text-sm text-right" style={{ color: "var(--bs-text-muted)" }}>
                           {item.isMarkup
-                            ? <span className="font-medium">{item.markupPct ?? 0}%</span>
-                            : (item.unitCost ? fmt(item.unitCost) : <span className="text-slate-300">—</span>)}
+                            ? <span className="font-medium" style={{ color: "var(--bs-text-secondary)" }}>{item.markupPct ?? 0}%</span>
+                            : (item.unitCost ? fmt(item.unitCost) : <span style={{ color: "var(--bs-text-dim)" }}>—</span>)}
                         </span>
-                        <span className="text-sm font-semibold text-right text-slate-800">
+                        <span className="text-sm font-medium text-right" style={{ color: "var(--bs-text-primary)" }}>
                           {item.isMarkup
                             ? fmt(markupBase * ((item.markupPct ?? 0) / 100))
-                            : (item.total ? fmt(item.total) : <span className="text-slate-300 font-normal">—</span>)}
+                            : (item.total ? fmt(item.total) : <span style={{ color: "var(--bs-text-dim)", fontWeight: 400 }}>—</span>)}
                         </span>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isDemo) deleteGCMut({ id: item._id as Id<"bidshield_gc_items"> });
                           }}
-                          className="bg-transparent border-0 cursor-pointer p-0 text-slate-300 hover:text-red-400 transition-colors"
+                          className="bg-transparent border-0 cursor-pointer p-0 transition-colors"
+                          style={{ color: "var(--bs-text-dim)" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-red)")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}
                         >
-                          <Trash2 size={13} />
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                          </svg>
                         </button>
                       </div>
                     )}
@@ -337,42 +365,21 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
                 ))}
 
                 {catItems.length === 0 && showAddRow !== cat.id && (
-                  <div className="px-4 py-3 text-sm text-slate-400 text-center bg-white">
-                    No items — click <span className="text-emerald-600 font-medium">Add</span> to get started
+                  <div className="px-4 py-3 text-sm text-center" style={{ color: "var(--bs-text-dim)" }}>
+                    No items — click <span style={{ color: "var(--bs-teal)", fontWeight: 500 }}>Add</span> to get started
                   </div>
                 )}
 
                 {/* Add new row */}
                 {showAddRow === cat.id && (
                   <div
-                    className="grid gap-2 px-4 py-2 items-center bg-emerald-50 border-t border-emerald-100"
-                    style={{ gridTemplateColumns: "1fr 60px 60px 90px 80px auto" }}
+                    className="grid gap-2 px-4 py-2 items-center"
+                    style={{ gridTemplateColumns: "1fr 60px 60px 90px 80px auto", background: "var(--bs-teal-dim)", borderTop: "1px solid var(--bs-teal-border)" }}
                   >
-                    <input
-                      autoFocus
-                      placeholder="Description"
-                      value={newRow.description}
-                      onChange={(e) => setNewRow((r) => ({ ...r, description: e.target.value }))}
-                      className={editInputCls}
-                    />
-                    <input
-                      placeholder="Qty"
-                      value={newRow.quantity}
-                      onChange={(e) => setNewRow((r) => ({ ...r, quantity: e.target.value }))}
-                      className={`${editInputCls} text-right`}
-                    />
-                    <input
-                      placeholder="Unit"
-                      value={newRow.unit}
-                      onChange={(e) => setNewRow((r) => ({ ...r, unit: e.target.value }))}
-                      className={editInputCls}
-                    />
-                    <input
-                      placeholder="Unit $"
-                      value={newRow.unitCost}
-                      onChange={(e) => setNewRow((r) => ({ ...r, unitCost: e.target.value }))}
-                      className={`${editInputCls} text-right`}
-                    />
+                    <input autoFocus placeholder="Description" value={newRow.description} onChange={(e) => setNewRow((r) => ({ ...r, description: e.target.value }))} className={editInputCls} />
+                    <input placeholder="Qty" value={newRow.quantity} onChange={(e) => setNewRow((r) => ({ ...r, quantity: e.target.value }))} className={`${editInputCls} text-right`} />
+                    <input placeholder="Unit" value={newRow.unit} onChange={(e) => setNewRow((r) => ({ ...r, unit: e.target.value }))} className={editInputCls} />
+                    <input placeholder="Unit $" value={newRow.unitCost} onChange={(e) => setNewRow((r) => ({ ...r, unitCost: e.target.value }))} className={`${editInputCls} text-right`} />
                     <div className="flex gap-1.5">
                       <button onClick={() => addRow(cat.id)} className={saveBtnCls}>Add</button>
                       <button onClick={() => setShowAddRow(null)} className={cancelBtnCls}>✕</button>
@@ -385,13 +392,13 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
         );
       })}
 
-      <p className="mt-4 text-xs text-slate-400 text-center">
+      <p className="mt-4 text-xs text-center" style={{ color: "var(--bs-text-dim)" }}>
         Click any row to edit · Markups apply to Materials + Labor + GC line items
       </p>
     </div>
   );
 }
 
-const editInputCls = "bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 text-sm w-full focus:outline-none focus:border-emerald-500";
-const saveBtnCls   = "bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded cursor-pointer border-0 hover:bg-emerald-700 whitespace-nowrap";
-const cancelBtnCls = "bg-white border border-slate-300 text-slate-500 text-xs px-2 py-1 rounded cursor-pointer hover:bg-slate-50";
+const editInputCls = "rounded px-2 py-1 text-sm w-full focus:outline-none" + " bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]";
+const saveBtnCls   = "text-xs font-medium px-2.5 py-1 rounded cursor-pointer border-0 whitespace-nowrap" + " bg-[var(--bs-teal)] text-[#13151a]";
+const cancelBtnCls = "text-xs px-2 py-1 rounded cursor-pointer" + " bg-transparent border border-[var(--bs-border)] text-[var(--bs-text-muted)]";

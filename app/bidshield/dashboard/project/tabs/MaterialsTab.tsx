@@ -171,7 +171,7 @@ function PricingFlag({
   const match = findBestQuoteMatch(material.name, quoteLineItems);
   if (!match) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ color: "var(--bs-text-dim)", background: "rgba(255,255,255,0.04)" }}>
         — No match
       </span>
     );
@@ -180,15 +180,16 @@ function PricingFlag({
   const priceDiffPct = match.item.p > 0 ? Math.abs(priceDiff / match.item.p * 100) : 0;
   if (priceDiffPct < 3) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded" title={`Quote: $${match.item.p.toFixed(2)}`}>
-        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ color: "var(--bs-teal)", background: "var(--bs-teal-dim)" }} title={`Quote: $${match.item.p.toFixed(2)}`}>
+        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
         Quoted
       </span>
     );
   }
   return (
     <span
-      className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded cursor-help"
+      className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded cursor-help"
+      style={{ color: "var(--bs-amber)", background: "var(--bs-amber-dim)" }}
       title={`Quote price: $${match.item.p.toFixed(2)} — ${priceDiff > 0 ? "+" : ""}${priceDiff.toFixed(2)} difference`}
     >
       Quote: ${match.item.p.toFixed(2)}
@@ -202,13 +203,13 @@ function WasteFlag({ material }: { material: any }) {
   const wastePct = (material.wasteFactor - 1) * 100;
   if (wastePct > 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600" title="Waste factor applied">
-        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: "var(--bs-teal)" }} title="Waste factor applied">
+        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600" title="Waste factor required for this category">
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: "var(--bs-amber)" }} title="Waste factor required for this category">
       0%
     </span>
   );
@@ -227,7 +228,7 @@ function CoverageFlag({ material, onLookup, lookupResults }: {
   // If AI estimated
   if (coverageSource === "ai_estimated" && coverageRate) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded" title="AI-estimated coverage rate — verify against spec sheet">
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ color: "var(--bs-teal)", background: "var(--bs-teal-dim)" }} title="AI-estimated coverage rate — verify against spec sheet">
         {coverageRate} (AI — verify)
       </span>
     );
@@ -236,7 +237,7 @@ function CoverageFlag({ material, onLookup, lookupResults }: {
   // If coverage present and verified/from report
   if (coverageRate) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500" title="Coverage rate on file">
+      <span className="inline-flex items-center gap-1 text-[10px]" style={{ color: "var(--bs-text-dim)" }} title="Coverage rate on file">
         {coverageRate}
       </span>
     );
@@ -244,17 +245,17 @@ function CoverageFlag({ material, onLookup, lookupResults }: {
 
   // Not present — show lookup option or result
   if (lookup?.loading) {
-    return <span className="text-[10px] text-slate-400">Looking up...</span>;
+    return <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>Looking up...</span>;
   }
   if (lookup && lookup.coverageRate) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded" title="AI-estimated coverage rate — verify against spec sheet">
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ color: "var(--bs-teal)", background: "var(--bs-teal-dim)" }} title="AI-estimated coverage rate — verify against spec sheet">
         {lookup.coverageRate} (AI — verify)
       </span>
     );
   }
   if (lookup && !lookup.coverageRate) {
-    return <span className="text-[10px] text-amber-600">Coverage unknown</span>;
+    return <span className="text-[10px]" style={{ color: "var(--bs-amber)" }}>Coverage unknown</span>;
   }
 
   // No coverage, no lookup yet — only show for coverage-type materials
@@ -262,7 +263,8 @@ function CoverageFlag({ material, onLookup, lookupResults }: {
     return (
       <button
         onClick={() => onLookup(material._id, material.name)}
-        className="text-[10px] text-amber-600 hover:text-amber-800 underline underline-offset-2"
+        className="text-[10px] underline underline-offset-2"
+        style={{ color: "var(--bs-amber)" }}
         title="Look up standard coverage rate with AI"
       >
         No coverage — look up
@@ -729,29 +731,31 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   if (!isDemo && materials.length === 0 && projectMaterials !== undefined) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "var(--bs-bg-elevated)" }}>
+          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bs-text-dim)"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-900">No materials yet</h3>
-        <p className="text-sm text-slate-500 text-center max-w-md">
+        <h3 className="text-lg font-semibold" style={{ color: "var(--bs-text-primary)" }}>No materials yet</h3>
+        <p className="text-sm text-center max-w-md" style={{ color: "var(--bs-text-muted)" }}>
           Upload your estimating report PDF to auto-populate, or generate a material list from your project&apos;s system type ({project?.systemType?.toUpperCase() || "TPO"}).
         </p>
         <div className="flex gap-3">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-5 py-2.5 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-500 transition-colors text-sm"
+            className="px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm"
+            style={{ background: "var(--bs-teal)", color: "#13151a" }}
           >
             Upload Report PDF
           </button>
           <button
             onClick={handleInitialize}
             disabled={isInitializing}
-            className="px-5 py-2.5 bg-emerald-600 text-slate-900 rounded-lg font-semibold hover:bg-emerald-500 transition-colors disabled:opacity-50 text-sm"
+            className="px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
+            style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)", border: "1px solid var(--bs-border)" }}
           >
             {isInitializing ? "Generating..." : "Generate from Template"}
           </button>
         </div>
-        <p className="text-xs text-slate-500">You can add or remove items after either option</p>
+        <p className="text-xs" style={{ color: "var(--bs-text-dim)" }}>You can add or remove items after either option</p>
         <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePdfUpload(f); }} />
       </div>
     );
@@ -760,27 +764,27 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   return (
     <div className="flex flex-col gap-5">
       {/* Section subtitle */}
-      <p className="text-sm text-slate-500 -mb-1">
+      <p className="text-sm -mb-1" style={{ color: "var(--bs-text-muted)" }}>
         Reconcile your estimating report against vendor quotes — verify pricing, coverage, and waste factors before submission.
       </p>
 
       {/* Extracted from badge */}
       {extractedFrom && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg text-xs text-teal-700 font-medium">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", color: "var(--bs-teal)" }}>
           <span>Extracted from <span className="font-semibold">{extractedFrom}</span> — review and adjust quantities as needed</span>
-          <button onClick={() => setExtractedFrom(null)} className="ml-auto text-teal-400 hover:text-teal-700">×</button>
+          <button onClick={() => setExtractedFrom(null)} className="ml-auto" style={{ color: "var(--bs-teal)" }}>×</button>
         </div>
       )}
 
       {/* Summary alert banner — only shown when issues exist */}
       {totalIssues > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+        <div className="rounded-xl overflow-hidden" style={{ background: "var(--bs-amber-dim)", border: "1px solid var(--bs-amber-border)" }}>
           <button
             onClick={() => setAlertExpanded(e => !e)}
             className="w-full flex items-center justify-between px-4 py-3 text-left"
           >
-            <span className="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
-              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+            <span className="text-sm font-medium flex items-center gap-1.5" style={{ color: "var(--bs-amber)" }}>
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-amber)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
               {verificationIssues.pricingGaps.length > 0 && `${verificationIssues.pricingGaps.length} pricing gap${verificationIssues.pricingGaps.length !== 1 ? "s" : ""}`}
               {verificationIssues.pricingGaps.length > 0 && verificationIssues.coverageIssues.length > 0 && " · "}
               {verificationIssues.coverageIssues.length > 0 && `${verificationIssues.coverageIssues.length} coverage issue${verificationIssues.coverageIssues.length !== 1 ? "s" : ""}`}
@@ -788,38 +792,38 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               {verificationIssues.wasteIssues.length > 0 && `${verificationIssues.wasteIssues.length} missing waste`}
               {" — review before submitting"}
             </span>
-            <svg className={`w-4 h-4 text-amber-600 transition-transform ${alertExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className={`w-4 h-4 transition-transform ${alertExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-amber)">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </button>
           {alertExpanded && (
-            <div className="px-4 pb-4 grid sm:grid-cols-3 gap-4 border-t border-amber-100 pt-3">
+            <div className="px-4 pb-4 grid sm:grid-cols-3 gap-4 pt-3" style={{ borderTop: "1px solid var(--bs-amber-border)" }}>
               {verificationIssues.pricingGaps.length > 0 && (
                 <div>
-                  <div className="text-xs font-semibold text-amber-700 mb-1.5">No quote match ({verificationIssues.pricingGaps.length})</div>
+                  <div className="text-xs font-semibold mb-1.5" style={{ color: "var(--bs-amber)" }}>No quote match ({verificationIssues.pricingGaps.length})</div>
                   <ul className="space-y-0.5">
                     {verificationIssues.pricingGaps.map(n => (
-                      <li key={n} className="text-xs text-amber-700 truncate">• {n}</li>
+                      <li key={n} className="text-xs truncate" style={{ color: "var(--bs-amber)" }}>• {n}</li>
                     ))}
                   </ul>
                 </div>
               )}
               {verificationIssues.coverageIssues.length > 0 && (
                 <div>
-                  <div className="text-xs font-semibold text-amber-700 mb-1.5">Missing coverage ({verificationIssues.coverageIssues.length})</div>
+                  <div className="text-xs font-semibold mb-1.5" style={{ color: "var(--bs-amber)" }}>Missing coverage ({verificationIssues.coverageIssues.length})</div>
                   <ul className="space-y-0.5">
                     {verificationIssues.coverageIssues.map(n => (
-                      <li key={n} className="text-xs text-amber-700 truncate">• {n}</li>
+                      <li key={n} className="text-xs truncate" style={{ color: "var(--bs-amber)" }}>• {n}</li>
                     ))}
                   </ul>
                 </div>
               )}
               {verificationIssues.wasteIssues.length > 0 && (
                 <div>
-                  <div className="text-xs font-semibold text-amber-700 mb-1.5">0% waste (required) ({verificationIssues.wasteIssues.length})</div>
+                  <div className="text-xs font-semibold mb-1.5" style={{ color: "var(--bs-amber)" }}>0% waste (required) ({verificationIssues.wasteIssues.length})</div>
                   <ul className="space-y-0.5">
                     {verificationIssues.wasteIssues.map(n => (
-                      <li key={n} className="text-xs text-amber-700 truncate">• {n}</li>
+                      <li key={n} className="text-xs truncate" style={{ color: "var(--bs-amber)" }}>• {n}</li>
                     ))}
                   </ul>
                 </div>
@@ -831,55 +835,55 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       {/* System badge */}
       <div className="flex items-center gap-2">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Materials for</span>
-        <span className="text-xs font-semibold bg-slate-900 text-white px-2.5 py-1 rounded-lg">{project?.primaryAssembly || project?.systemType?.toUpperCase() || "TPO"}</span>
-        <span className="text-xs text-slate-400 ml-auto">{totalSF.toLocaleString()} SF</span>
+        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>Materials for</span>
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)" }}>{project?.primaryAssembly || project?.systemType?.toUpperCase() || "TPO"}</span>
+        <span className="text-xs ml-auto" style={{ color: "var(--bs-text-dim)" }}>{totalSF.toLocaleString()} SF</span>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "Total Cost", value: `$${totalCost.toLocaleString()}`, accent: "#059669" },
-          { label: "Line Items", value: String(materials.length), accent: "#3b82f6" },
-          { label: "Mat / SF", value: dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—", accent: "#334155" },
+          { label: "Total Cost", value: `$${totalCost.toLocaleString()}`, valueColor: "var(--bs-teal)" },
+          { label: "Line Items", value: String(materials.length), valueColor: "var(--bs-blue)" },
+          { label: "Mat / SF", value: dollarPerSf > 0 ? `$${dollarPerSf.toFixed(2)}` : "—", valueColor: "var(--bs-text-primary)" },
           {
             label: unpricedCount > 0 ? "Unpriced Items" : "All Priced",
             value: unpricedCount > 0 ? String(unpricedCount) : "0",
-            accent: unpricedCount > 0 ? "#f59e0b" : "#059669",
+            valueColor: unpricedCount > 0 ? "var(--bs-amber)" : "var(--bs-teal)",
           },
-        ].map(({ label, value, accent }) => (
-          <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+        ].map(({ label, value, valueColor }) => (
+          <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: 10, padding: "14px 16px", border: "1px solid var(--bs-border)" }}>
+            <div style={{ fontSize: 11, fontWeight: 500, color: "var(--bs-text-dim)", textTransform: "uppercase" as const, letterSpacing: "0.5px", marginBottom: 6 }}>{label}</div>
+            <div style={{ fontSize: 22, fontWeight: 500, color: valueColor, letterSpacing: "-0.3px", lineHeight: 1 }}>{value}</div>
           </div>
         ))}
       </div>
 
       {/* Category breakdown bar */}
       {totalCost > 0 && (
-        <div className="bg-white rounded-xl p-4" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div className="rounded-xl p-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
           <div className="flex justify-between items-center mb-3">
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>Cost Breakdown by Category</h3>
-            <span style={{ fontSize: 11, color: "#94a3b8" }}>Based on {totalSF.toLocaleString()} SF</span>
+            <h3 style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-text-secondary)" }}>Cost Breakdown by Category</h3>
+            <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Based on {totalSF.toLocaleString()} SF</span>
           </div>
-          <div className="flex h-4 rounded-full overflow-hidden bg-slate-100 mb-3">
+          <div className="flex h-3 rounded-full overflow-hidden mb-3" style={{ background: "rgba(255,255,255,0.06)" }}>
             {(Object.entries(categoryTotals) as [string, number][])
               .filter(([_, v]) => v > 0)
               .sort((a, b) => b[1] - a[1])
               .map(([cat, val]) => {
                 const pct = (val / totalCost) * 100;
-                const colors: Record<string, string> = {
-                  membrane: "bg-blue-500",
-                  insulation: "bg-amber-500",
-                  fasteners: "bg-slate-500",
-                  adhesive: "bg-purple-500",
-                  sheet_metal: "bg-zinc-500",
-                  lumber: "bg-orange-400",
-                  accessories: "bg-red-400",
-                  miscellaneous: "bg-slate-300",
+                const barColors: Record<string, string> = {
+                  membrane: "var(--bs-blue)",
+                  insulation: "var(--bs-amber)",
+                  fasteners: "var(--bs-text-dim)",
+                  adhesive: "#a78bfa",
+                  sheet_metal: "#71717a",
+                  lumber: "#fb923c",
+                  accessories: "var(--bs-red)",
+                  miscellaneous: "var(--bs-text-dim)",
                 };
                 return (
-                  <div key={cat} className={`${colors[cat] || "bg-slate-200"} transition-all`} style={{ width: `${pct}%` }} title={`${MATERIAL_CATEGORIES[cat as MaterialCategory]?.label}: $${val.toLocaleString()} (${pct.toFixed(0)}%)`} />
+                  <div key={cat} style={{ width: `${pct}%`, background: barColors[cat] || "var(--bs-text-dim)", transition: "width 0.3s" }} title={`${MATERIAL_CATEGORIES[cat as MaterialCategory]?.label}: $${val.toLocaleString()} (${pct.toFixed(0)}%)`} />
                 );
               })}
           </div>
@@ -888,18 +892,18 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               .filter(([_, v]) => v > 0)
               .sort((a, b) => b[1] - a[1])
               .map(([cat, val]) => {
-                const colors: Record<string, string> = {
-                  membrane: "text-blue-600",
-                  insulation: "text-amber-600",
-                  fasteners: "text-slate-500",
-                  adhesive: "text-violet-600",
-                  sheet_metal: "text-zinc-600",
-                  lumber: "text-orange-600",
-                  accessories: "text-red-600",
-                  miscellaneous: "text-slate-400",
+                const legendColors: Record<string, string> = {
+                  membrane: "var(--bs-blue)",
+                  insulation: "var(--bs-amber)",
+                  fasteners: "var(--bs-text-dim)",
+                  adhesive: "#a78bfa",
+                  sheet_metal: "#71717a",
+                  lumber: "#fb923c",
+                  accessories: "var(--bs-red)",
+                  miscellaneous: "var(--bs-text-dim)",
                 };
                 return (
-                  <span key={cat} className={`text-xs ${colors[cat] || "text-slate-500"}`}>
+                  <span key={cat} className="text-xs" style={{ color: legendColors[cat] || "var(--bs-text-muted)" }}>
                     {MATERIAL_CATEGORIES[cat as MaterialCategory]?.icon} {MATERIAL_CATEGORIES[cat as MaterialCategory]?.label}: ${val.toLocaleString()}
                   </span>
                 );
@@ -910,34 +914,38 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-slate-200">
-          <button
-            onClick={() => setFilterCategory("all")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterCategory === "all" ? "bg-emerald-600 text-slate-900" : "text-slate-500 hover:text-slate-900"}`}
-          >
-            All
-          </button>
-          {(Object.entries(MATERIAL_CATEGORIES) as [MaterialCategory, { label: string; icon: string }][]).map(([key, cat]) => (
-            <button
-              key={key}
-              onClick={() => setFilterCategory(key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterCategory === key ? "bg-emerald-600 text-slate-900" : "text-slate-500 hover:text-slate-900"}`}
-            >
-              {cat.icon} <span className="hidden md:inline">{cat.label}</span>
-            </button>
-          ))}
+        <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          {(["all", ...Object.keys(MATERIAL_CATEGORIES)] as (MaterialCategory | "all")[]).map((key) => {
+            const isAll = key === "all";
+            const cat = isAll ? null : MATERIAL_CATEGORIES[key as MaterialCategory];
+            const isActive = filterCategory === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setFilterCategory(key)}
+                className="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                style={{
+                  background: isActive ? "var(--bs-teal-dim)" : "transparent",
+                  color: isActive ? "var(--bs-teal)" : "var(--bs-text-muted)",
+                  border: isActive ? "1px solid var(--bs-teal-border)" : "1px solid transparent",
+                }}
+              >
+                {isAll ? "All" : <>{cat?.icon} <span className="hidden md:inline">{cat?.label}</span></>}
+              </button>
+            );
+          })}
         </div>
         <div className="flex gap-2 ml-auto">
           {!isDemo && quotes.length > 0 && (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">vs. Quote:</span>
+              <span className="text-xs font-medium whitespace-nowrap" style={{ color: "var(--bs-text-muted)" }}>vs. Quote:</span>
               <select
                 value={selectedQuoteId ?? "__no_compare__"}
                 onChange={e => {
                   const v = e.target.value;
                   setSelectedQuoteId(v === "__no_compare__" ? null : v);
                 }}
-                className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="text-xs rounded-lg px-2 py-1.5 focus:outline-none bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-secondary)]"
               >
                 <option value="__best_match__">Best match (all quotes)</option>
                 {quotes.map((q: any) => (
@@ -955,7 +963,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                 onClick={handleFixCategories}
                 disabled={isFixingCategories || !isValidConvexId}
                 title="Auto-correct miscategorized materials (edge metal → Sheet Metal, lumber out of Accessories, etc.)"
-                className="px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
               >
                 {isFixingCategories ? "Fixing..." : "Fix Categories"}
               </button>
@@ -963,7 +972,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                 onClick={handleRecalculate}
                 disabled={totalSF === 0}
                 title={totalSF === 0 ? "Enter SF in Takeoff tab first" : "Recalculate quantities from takeoff"}
-                className="px-3 py-1.5 bg-blue-600/20 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-600/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)", border: "1px solid var(--bs-blue-border)" }}
               >
                 Recalculate
               </button>
@@ -975,7 +985,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="px-3 py-1.5 bg-teal-600/20 text-teal-700 rounded-lg text-xs font-medium hover:bg-teal-600/30 transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
               >
                 {isUploading ? "Extracting..." : "Upload Report PDF"}
               </button>
@@ -988,18 +999,18 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               />
             </>
           ) : (
-            <a href="/bidshield/pricing" className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors" style={{ background: "#f1f5f9", color: "#94a3b8", border: "1px solid #e2e8f0" }}>
+            <a href="/bidshield/pricing" className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)" }}>
               <svg className="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
               Upload PDF · Pro
             </a>
           )}
           {/* Add Material */}
           {(isPro || isDemo) ? (
-            <button onClick={() => setShowAddModal(true)} style={{ background: "#10b981" }} className="px-3 py-1.5 text-white rounded-lg text-xs font-medium hover:opacity-90 transition-colors">
+            <button onClick={() => setShowAddModal(true)} className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
               + Add Material
             </button>
           ) : (
-            <a href="/bidshield/pricing" className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors" style={{ background: "#f1f5f9", color: "#94a3b8", border: "1px solid #e2e8f0" }}>
+            <a href="/bidshield/pricing" className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)" }}>
               <svg className="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
               Add Material · Pro
             </a>
@@ -1009,18 +1020,18 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       {/* PDF upload error banner */}
       {uploadError && (
-        <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
-          <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
           <span className="flex-1">{uploadError}</span>
-          <button onClick={() => setUploadError(null)} className="text-red-500 hover:text-red-700 font-medium text-xs shrink-0">Dismiss</button>
+          <button onClick={() => setUploadError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
         </div>
       )}
 
       {/* No SF hint */}
       {!isDemo && totalSF === 0 && materials.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-          <svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
-          <span>Enter SF in the <button onClick={() => onNavigateTab?.("takeoff")} className="font-semibold underline">Takeoff tab</button> to auto-calculate quantities</span>
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-blue-dim)", border: "1px solid var(--bs-blue-border)", color: "var(--bs-blue)" }}>
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-blue)"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
+          <span>Enter SF in the <button onClick={() => onNavigateTab?.("takeoff")} className="font-semibold underline" style={{ color: "var(--bs-blue)" }}>Takeoff tab</button> to auto-calculate quantities</span>
         </div>
       )}
 
@@ -1029,19 +1040,19 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         const colCount = isComparing ? 9 : 7;
         const selectedQuote = quotes.find((q: any) => q._id === selectedQuoteId);
         return (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-slate-500 border-b-2 border-slate-200 bg-slate-50">
-                    <th className="text-left px-5 py-2.5 font-semibold">Material</th>
-                    <th className="text-center px-3 py-2.5 font-semibold w-14">Unit</th>
-                    <th className="text-right px-3 py-2.5 font-semibold w-16">Qty</th>
-                    <th className="text-center px-3 py-2.5 font-semibold w-20">Waste</th>
-                    <th className="text-right px-3 py-2.5 font-semibold w-28">{isComparing ? "Your Price" : "Unit Price"}</th>
-                    {isComparing && <th className="text-right px-3 py-2.5 font-semibold w-28">Quote Price</th>}
-                    {isComparing && <th className="text-right px-3 py-2.5 font-semibold w-24">Diff</th>}
-                    <th className="text-right px-5 py-2.5 font-semibold w-28">Total</th>
+                  <tr className="text-xs" style={{ color: "var(--bs-text-dim)", borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                    <th className="text-left px-5 py-2.5 font-medium">Material</th>
+                    <th className="text-center px-3 py-2.5 font-medium w-14">Unit</th>
+                    <th className="text-right px-3 py-2.5 font-medium w-16">Qty</th>
+                    <th className="text-center px-3 py-2.5 font-medium w-20">Waste</th>
+                    <th className="text-right px-3 py-2.5 font-medium w-28">{isComparing ? "Your Price" : "Unit Price"}</th>
+                    {isComparing && <th className="text-right px-3 py-2.5 font-medium w-28">Quote Price</th>}
+                    {isComparing && <th className="text-right px-3 py-2.5 font-medium w-24">Diff</th>}
+                    <th className="text-right px-5 py-2.5 font-medium w-28">Total</th>
                     <th className="text-center px-3 py-2.5 w-20"></th>
                   </tr>
                 </thead>
@@ -1055,24 +1066,24 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                       {/* Category warning */}
                       {noCategoryQuote && (
                         <tr>
-                          <td colSpan={colCount} className="px-5 py-2 bg-amber-50 border-b border-amber-200">
-                            <span className="text-amber-600 text-xs font-semibold inline-flex items-center gap-1">
-                              <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                          <td colSpan={colCount} className="px-5 py-2" style={{ background: "var(--bs-amber-dim)", borderBottom: "1px solid var(--bs-amber-border)" }}>
+                            <span className="text-xs font-medium inline-flex items-center gap-1" style={{ color: "var(--bs-amber)" }}>
+                              <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-amber)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                               No vendor quote for {catInfo?.label} — pricing may be estimated, not quoted
                             </span>
                           </td>
                         </tr>
                       )}
                       {/* Category group header */}
-                      <tr className="bg-slate-50 border-t border-slate-200">
+                      <tr style={{ background: "var(--bs-bg-elevated)", borderTop: "1px solid var(--bs-border)" }}>
                         <td colSpan={colCount} className="px-5 py-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <span className="text-base">{catInfo?.icon}</span>
-                              <h3 className="text-sm font-semibold text-slate-900">{catInfo?.label}</h3>
-                              <span className="text-xs text-slate-500">({(items as any[]).length} items)</span>
+                              <h3 className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{catInfo?.label}</h3>
+                              <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>({(items as any[]).length} items)</span>
                             </div>
-                            <span className="text-sm font-semibold text-emerald-600">${catTotal.toLocaleString()}</span>
+                            <span className="text-sm font-medium" style={{ color: "var(--bs-teal)" }}>${catTotal.toLocaleString()}</span>
                           </div>
                         </td>
                       </tr>
@@ -1084,34 +1095,39 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                           : isBestMatch ? findBestMatchAcrossAllQuotes(m.name, quotes)
                           : findBestQuoteMatch(m.name, selectedQuoteLineItems);
                         return (
-                          <tr key={m._id} className="border-b border-slate-100 hover:bg-slate-50/60">
+                          <tr
+                            key={m._id}
+                            style={{ borderBottom: "1px solid var(--bs-border)" }}
+                            onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                            onMouseLeave={e => (e.currentTarget.style.background = "")}
+                          >
                             {/* Material name + coverage */}
                             <td className="px-5 py-2.5">
-                              <div className="text-slate-700">{m.name}</div>
+                              <div style={{ color: "var(--bs-text-secondary)" }}>{m.name}</div>
                               <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                                {m.calcType === "linear_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (linear)</span>}
-                                {m.calcType === "count_from_takeoff" && <span className="text-[10px] text-slate-500">From takeoff (count)</span>}
-                                {m.calcType === "coverage" && !m.coverageRate && <span className="text-[10px] text-slate-500">{m.coverage} SF/unit</span>}
+                                {m.calcType === "linear_from_takeoff" && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>From takeoff (linear)</span>}
+                                {m.calcType === "count_from_takeoff" && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>From takeoff (count)</span>}
+                                {m.calcType === "coverage" && !m.coverageRate && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>{m.coverage} SF/unit</span>}
                                 <CoverageFlag material={m} onLookup={handleCoverageLookup} lookupResults={coverageLookups} />
                               </div>
                             </td>
                             {/* Unit */}
-                            <td className="text-center px-3 py-2.5 text-slate-500 text-xs">{m.unit}</td>
+                            <td className="text-center px-3 py-2.5 text-xs" style={{ color: "var(--bs-text-dim)" }}>{m.unit}</td>
                             {/* Qty */}
                             <td className="text-right px-3 py-2.5">
                               {isEditing ? (
-                                <input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="w-16 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" />
+                                <input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="w-16 text-right text-xs rounded px-2 py-1 bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]" />
                               ) : (
-                                <span className={`text-xs ${m.quantity ? "text-slate-900" : "text-slate-400"}`}>{m.quantity ?? "—"}</span>
+                                <span className="text-xs" style={{ color: m.quantity ? "var(--bs-text-primary)" : "var(--bs-text-dim)" }}>{m.quantity ?? "—"}</span>
                               )}
                             </td>
                             {/* Waste + flag */}
                             <td className="text-center px-3 py-2.5">
                               {isEditing ? (
-                                <input type="number" value={editWaste} onChange={(e) => setEditWaste(e.target.value)} className="w-12 bg-white border border-slate-300 text-slate-900 text-center text-xs rounded px-1 py-1" />
+                                <input type="number" value={editWaste} onChange={(e) => setEditWaste(e.target.value)} className="w-12 text-center text-xs rounded px-1 py-1 bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]" />
                               ) : (
                                 <div className="flex items-center justify-center gap-1">
-                                  <span className="text-slate-500 text-xs">{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
+                                  <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{((m.wasteFactor - 1) * 100).toFixed(0)}%</span>
                                   <WasteFlag material={m} />
                                 </div>
                               )}
@@ -1119,9 +1135,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             {/* Your Price */}
                             <td className="text-right px-3 py-2.5">
                               {isEditing ? (
-                                <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="w-20 bg-white border border-slate-300 text-slate-900 text-right text-xs rounded px-2 py-1" step="0.01" />
+                                <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="w-20 text-right text-xs rounded px-2 py-1 bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]" step="0.01" />
                               ) : (
-                                <span className={`text-xs ${m.unitPrice ? "text-slate-700" : "text-amber-600"}`}>
+                                <span className="text-xs" style={{ color: m.unitPrice ? "var(--bs-text-secondary)" : "var(--bs-amber)" }}>
                                   {m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}
                                 </span>
                               )}
@@ -1135,15 +1151,15 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                     const sourceName = isBestMatch ? (quoteMatch as any).quoteName : null;
                                     return (
                                       <div>
-                                        <span className={diffPct < 3 ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
+                                        <span className="font-medium" style={{ color: diffPct < 3 ? "var(--bs-teal)" : "var(--bs-amber)" }}>
                                           ${quoteMatch.item.p.toFixed(2)}
                                         </span>
-                                        {sourceName && <div className="text-slate-400 text-[10px] leading-tight">{sourceName}</div>}
+                                        {sourceName && <div className="text-[10px] leading-tight" style={{ color: "var(--bs-text-dim)" }}>{sourceName}</div>}
                                       </div>
                                     );
                                   })()
                                 ) : (
-                                  <span className="text-slate-300">—</span>
+                                  <span style={{ color: "var(--bs-text-dim)" }}>—</span>
                                 )}
                               </td>
                             )}
@@ -1154,21 +1170,21 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                   (() => {
                                     const diff = (m.unitPrice ?? 0) - quoteMatch.item.p;
                                     const diffPct = quoteMatch.item.p > 0 ? Math.abs(diff / quoteMatch.item.p * 100) : 0;
-                                    if (diffPct < 3) return <span className="text-slate-400">—</span>;
+                                    if (diffPct < 3) return <span style={{ color: "var(--bs-text-dim)" }}>—</span>;
                                     return (
-                                      <span className={diff > 0 ? "text-amber-600 font-semibold" : "text-emerald-600 font-semibold"}>
+                                      <span className="font-medium" style={{ color: diff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
                                         {diff > 0 ? "+" : ""}${diff.toFixed(2)}
                                       </span>
                                     );
                                   })()
                                 ) : (
-                                  <span className="text-slate-300">—</span>
+                                  <span style={{ color: "var(--bs-text-dim)" }}>—</span>
                                 )}
                               </td>
                             )}
                             {/* Total */}
-                            <td className="text-right px-5 py-2.5 text-xs font-semibold">
-                              <span className={m.totalCost ? "text-emerald-600" : "text-slate-400"}>
+                            <td className="text-right px-5 py-2.5 text-xs font-medium">
+                              <span style={{ color: m.totalCost ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
                                 {m.totalCost ? `$${m.totalCost.toLocaleString()}` : "—"}
                               </span>
                             </td>
@@ -1176,27 +1192,42 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             <td className="text-center px-3 py-2.5">
                               {isEditing ? (
                                 <div className="flex gap-1">
-                                  <button onClick={() => saveEdit(m)} className="text-emerald-600 hover:text-emerald-700 text-xs">Save</button>
-                                  <button onClick={() => setEditingId(null)} className="text-slate-500 text-xs">Cancel</button>
+                                  <button onClick={() => saveEdit(m)} className="text-xs" style={{ color: "var(--bs-teal)" }}>Save</button>
+                                  <button onClick={() => setEditingId(null)} className="text-xs" style={{ color: "var(--bs-text-muted)" }}>Cancel</button>
                                 </div>
                               ) : (
                                 <div className="flex gap-1 items-center">
                                   <button
                                     onClick={() => setCheckRowId(isChecking ? null : m._id)}
-                                    className={`text-xs transition-colors ${isChecking ? "text-blue-500" : "text-slate-400 hover:text-blue-500"}`}
+                                    className="text-xs transition-colors"
+                                    style={{ color: isChecking ? "var(--bs-blue)" : "var(--bs-text-dim)" }}
+                                    onMouseEnter={e => { if (!isChecking) e.currentTarget.style.color = "var(--bs-blue)"; }}
+                                    onMouseLeave={e => { if (!isChecking) e.currentTarget.style.color = "var(--bs-text-dim)"; }}
                                     title="Check against quote"
                                   >
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" /></svg>
                                   </button>
                                   {(isPro || isDemo) ? (
                                     <>
-                                      <button onClick={() => startEdit(m)} className="text-slate-500 hover:text-slate-900 text-xs">Edit</button>
+                                      <button
+                                        onClick={() => startEdit(m)}
+                                        className="text-xs"
+                                        style={{ color: "var(--bs-text-muted)" }}
+                                        onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-text-primary)")}
+                                        onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-muted)")}
+                                      >Edit</button>
                                       {!isDemo && (
-                                        <button onClick={() => deleteMaterial({ materialId: m._id })} className="text-red-600/50 hover:text-red-600 text-xs">×</button>
+                                        <button
+                                          onClick={() => deleteMaterial({ materialId: m._id })}
+                                          className="text-xs"
+                                          style={{ color: "var(--bs-text-dim)" }}
+                                          onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-red)")}
+                                          onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}
+                                        >×</button>
                                       )}
                                     </>
                                   ) : (
-                                    <svg className="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-text-dim)"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
                                   )}
                                 </div>
                               )}
@@ -1222,31 +1253,31 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                         const priceDiffPct = match && match.item.p ? Math.abs(priceDiff / match.item.p * 100) : 0;
                         return (
                           <tr>
-                            <td colSpan={colCount} className="px-5 py-3 bg-blue-50 border-b border-blue-100">
+                            <td colSpan={colCount} className="px-5 py-3" style={{ background: "var(--bs-blue-dim)", borderBottom: "1px solid var(--bs-blue-border)" }}>
                               {match ? (
                                 <div className="flex flex-wrap gap-5 items-start text-xs">
                                   <div>
-                                    <div className="text-slate-500 mb-0.5">Matched in quote</div>
-                                    <div className="font-medium text-slate-800">{match.item.m}</div>
-                                    {matchVendor && <div className="text-slate-400">{matchVendor}</div>}
+                                    <div className="mb-0.5" style={{ color: "var(--bs-text-dim)" }}>Matched in quote</div>
+                                    <div className="font-medium" style={{ color: "var(--bs-text-primary)" }}>{match.item.m}</div>
+                                    {matchVendor && <div style={{ color: "var(--bs-text-muted)" }}>{matchVendor}</div>}
                                   </div>
                                   <div>
-                                    <div className="text-slate-500 mb-0.5">Quote price</div>
-                                    <div className="font-semibold text-emerald-600">${match.item.p.toFixed(2)} / {match.item.u}</div>
+                                    <div className="mb-0.5" style={{ color: "var(--bs-text-dim)" }}>Quote price</div>
+                                    <div className="font-medium" style={{ color: "var(--bs-teal)" }}>${match.item.p.toFixed(2)} / {match.item.u}</div>
                                     {priceDiffPct >= 3 && (
-                                      <div className={`mt-0.5 font-medium ${priceDiff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                                      <div className="mt-0.5 font-medium" style={{ color: priceDiff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
                                         Estimate is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
                                       </div>
                                     )}
-                                    {priceDiffPct < 3 && (m.unitPrice ?? 0) > 0 && <div className="mt-0.5 text-slate-400">Prices match</div>}
+                                    {priceDiffPct < 3 && (m.unitPrice ?? 0) > 0 && <div className="mt-0.5" style={{ color: "var(--bs-text-dim)" }}>Prices match</div>}
                                   </div>
                                   <div>
-                                    <div className="text-slate-500 mb-0.5">Confidence</div>
-                                    <div className="font-medium text-slate-800">{match.confidence.toFixed(0)}%</div>
+                                    <div className="mb-0.5" style={{ color: "var(--bs-text-dim)" }}>Confidence</div>
+                                    <div className="font-medium" style={{ color: "var(--bs-text-primary)" }}>{match.confidence.toFixed(0)}%</div>
                                   </div>
                                   <div>
-                                    <div className="text-slate-500 mb-0.5">Quote date</div>
-                                    <div className={`font-medium ${stale ? "text-amber-600" : "text-slate-800"}`}>
+                                    <div className="mb-0.5" style={{ color: "var(--bs-text-dim)" }}>Quote date</div>
+                                    <div className="font-medium" style={{ color: stale ? "var(--bs-amber)" : "var(--bs-text-primary)" }}>
                                       {matchQuote?.quoteDate
                                         ? new Date(matchQuote.quoteDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                                         : "No date on file"}
@@ -1255,7 +1286,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                   </div>
                                 </div>
                               ) : (
-                                <div className="text-xs text-slate-500">
+                                <div className="text-xs" style={{ color: "var(--bs-text-muted)" }}>
                                   {isBestMatch
                                     ? "No match found across any uploaded quotes (below 70% confidence or conflicting product identifiers)."
                                     : "No match found in the selected quote (below 70% confidence or conflicting product identifiers)."}
@@ -1276,7 +1307,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       })()}
 
       {filteredMaterials.length === 0 && materials.length > 0 && (
-        <div className="text-center py-10 text-slate-500">No materials in this category</div>
+        <div className="text-center py-10" style={{ color: "var(--bs-text-muted)" }}>No materials in this category</div>
       )}
 
       {/* Extraction Preview Modal */}
@@ -1336,31 +1367,31 @@ function ExtractionPreviewModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200">
+        <div className="px-6 py-4" style={{ borderBottom: "1px solid var(--bs-border)" }}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-medium" style={{ color: "var(--bs-text-primary)" }}>
                 {items.length} items extracted from report
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5 font-medium">{filename}</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{filename}</p>
             </div>
-            <span className="shrink-0 text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">
+            <span className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full" style={{ color: "var(--bs-teal)", background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
               AI extracted
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-2">
-            Review the extracted line items below. Clicking <strong>Replace all materials</strong> will clear your existing list and save these items.
+          <p className="text-xs mt-2" style={{ color: "var(--bs-text-muted)" }}>
+            Review the extracted line items below. Clicking <strong style={{ color: "var(--bs-text-secondary)" }}>Replace all materials</strong> will clear your existing list and save these items.
           </p>
         </div>
 
         {/* Item list */}
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-xs">
-            <thead className="sticky top-0 bg-slate-50 border-b border-slate-200">
-              <tr className="text-slate-500">
+            <thead className="sticky top-0" style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+              <tr style={{ color: "var(--bs-text-dim)" }}>
                 <th className="text-left px-4 py-2 font-medium">Material</th>
                 <th className="text-left px-3 py-2 font-medium w-28">Category</th>
                 <th className="text-center px-2 py-2 font-medium w-12">Unit</th>
@@ -1374,26 +1405,31 @@ function ExtractionPreviewModal({
               {items.map((item, i) => {
                 const cat = CATEGORY_MAP[item.category] ?? "accessories";
                 return (
-                  <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                  <tr
+                    key={i}
+                    style={{ borderBottom: "1px solid var(--bs-border)" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "")}
+                  >
                     <td className="px-4 py-2">
-                      <div className="text-slate-800 font-medium leading-snug">{item.materialName}</div>
+                      <div className="font-medium leading-snug" style={{ color: "var(--bs-text-secondary)" }}>{item.materialName}</div>
                       {item.coverageRate && (
-                        <div className="text-[10px] text-teal-600 mt-0.5">Coverage: {item.coverageRate}</div>
+                        <div className="text-[10px] mt-0.5" style={{ color: "var(--bs-teal)" }}>Coverage: {item.coverageRate}</div>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-slate-500">{CAT_LABELS[cat] ?? item.category}</td>
-                    <td className="px-2 py-2 text-center text-slate-500">{item.unit}</td>
-                    <td className="px-2 py-2 text-right text-slate-700">{item.quantity ?? "—"}</td>
-                    <td className="px-2 py-2 text-center text-slate-500">
+                    <td className="px-3 py-2" style={{ color: "var(--bs-text-muted)" }}>{CAT_LABELS[cat] ?? item.category}</td>
+                    <td className="px-2 py-2 text-center" style={{ color: "var(--bs-text-muted)" }}>{item.unit}</td>
+                    <td className="px-2 py-2 text-right" style={{ color: "var(--bs-text-secondary)" }}>{item.quantity ?? "—"}</td>
+                    <td className="px-2 py-2 text-center">
                       {item.wastePct > 0
-                        ? <span className="text-emerald-600 font-medium">{item.wastePct}%</span>
-                        : <span className="text-amber-500">0%</span>
+                        ? <span className="font-medium" style={{ color: "var(--bs-teal)" }}>{item.wastePct}%</span>
+                        : <span style={{ color: "var(--bs-amber)" }}>0%</span>
                       }
                     </td>
-                    <td className="px-3 py-2 text-right text-slate-700">
+                    <td className="px-3 py-2 text-right" style={{ color: "var(--bs-text-secondary)" }}>
                       {item.unitPrice ? `$${Number(item.unitPrice).toFixed(2)}` : "—"}
                     </td>
-                    <td className="px-4 py-2 text-right font-semibold text-emerald-600">
+                    <td className="px-4 py-2 text-right font-medium" style={{ color: "var(--bs-teal)" }}>
                       {item.extendedTotal ? `$${Number(item.extendedTotal).toLocaleString()}` : "—"}
                     </td>
                   </tr>
@@ -1404,28 +1440,30 @@ function ExtractionPreviewModal({
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-4 border-t border-slate-200 flex flex-col gap-3 bg-slate-50 rounded-b-2xl">
+        <div className="px-6 py-4 flex flex-col gap-3 rounded-b-2xl" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
           {replaceError && (
-            <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <p className="text-xs font-medium rounded-lg px-3 py-2" style={{ color: "var(--bs-red)", background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
               {replaceError}
             </p>
           )}
           <div className="flex items-center justify-between gap-4">
-          <p className="text-xs text-slate-500">
-            This will <strong>replace</strong> your current materials list.
+          <p className="text-xs" style={{ color: "var(--bs-text-muted)" }}>
+            This will <strong style={{ color: "var(--bs-text-secondary)" }}>replace</strong> your current materials list.
           </p>
           <div className="flex gap-2">
             <button
               onClick={onCancel}
               disabled={isSaving}
-              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              style={{ color: "var(--bs-text-muted)", background: "transparent", border: "1px solid var(--bs-border)" }}
             >
               Cancel
             </button>
             <button
               onClick={onReplace}
               disabled={isSaving}
-              className="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               {isSaving ? (
                 <>
@@ -1478,27 +1516,35 @@ function AddMaterialModal({
     : datasheets;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 max-w-lg w-full max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900">Add Material</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-900 text-xl">&times;</button>
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="rounded-2xl max-w-lg w-full max-h-[80vh] flex flex-col" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+          <h3 className="text-base font-medium" style={{ color: "var(--bs-text-primary)" }}>Add Material</h3>
+          <button
+            onClick={onClose}
+            className="text-xl"
+            style={{ color: "var(--bs-text-muted)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-text-primary)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-muted)")}
+          >&times;</button>
         </div>
 
         {/* Tab bar */}
         <div className="flex gap-1 px-5 pt-3 pb-1">
-          <button
-            onClick={() => setActiveTab("templates")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === "templates" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-900"}`}
-          >
-            System Templates
-          </button>
-          <button
-            onClick={() => setActiveTab("library")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === "library" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-900"}`}
-          >
-            Price Library ({datasheets.length})
-          </button>
+          {(["templates", "library"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: activeTab === tab ? "var(--bs-teal-dim)" : "transparent",
+                color: activeTab === tab ? "var(--bs-teal)" : "var(--bs-text-muted)",
+                border: activeTab === tab ? "1px solid var(--bs-teal-border)" : "1px solid transparent",
+              }}
+            >
+              {tab === "templates" ? "System Templates" : `Price Library (${datasheets.length})`}
+            </button>
+          ))}
         </div>
 
         <div className="px-5 py-2">
@@ -1507,18 +1553,18 @@ function AddMaterialModal({
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]"
           />
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-5">
           {activeTab === "templates" ? (
             Object.entries(groupedTemplates).length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-8">All templates for this system type are already added</p>
+              <p className="text-sm text-center py-8" style={{ color: "var(--bs-text-muted)" }}>All templates for this system type are already added</p>
             ) : (
               Object.entries(groupedTemplates).map(([cat, temps]) => (
                 <div key={cat} className="mb-4">
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                  <div className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}>
                     {MATERIAL_CATEGORIES[cat as MaterialCategory]?.label || cat}
                   </div>
                   <div className="space-y-1">
@@ -1526,10 +1572,13 @@ function AddMaterialModal({
                       <button
                         key={t.key}
                         onClick={() => onAdd(t)}
-                        className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors"
+                        className="w-full text-left px-3 py-2.5 rounded-lg transition-colors"
+                        style={{ border: "1px solid var(--bs-border)" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "")}
                       >
-                        <div className="text-sm font-medium text-slate-900">{t.name}</div>
-                        <div className="text-xs text-slate-500">{t.unit} · {t.calcType}</div>
+                        <div className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{t.name}</div>
+                        <div className="text-xs" style={{ color: "var(--bs-text-dim)" }}>{t.unit} · {t.calcType}</div>
                       </button>
                     ))}
                   </div>
@@ -1538,20 +1587,23 @@ function AddMaterialModal({
             )
           ) : (
             filteredLibrary.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-8">No products in library yet. Add them from your vendor quotes.</p>
+              <p className="text-sm text-center py-8" style={{ color: "var(--bs-text-muted)" }}>No products in library yet. Add them from your vendor quotes.</p>
             ) : (
               <div className="space-y-1">
                 {filteredLibrary.map((d: any) => (
                   <button
                     key={d._id}
                     onClick={() => onAddFromDatasheet(d)}
-                    className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors"
+                    className="w-full text-left px-3 py-2.5 rounded-lg transition-colors"
+                    style={{ border: "1px solid var(--bs-border)" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "")}
                   >
                     <div className="flex justify-between">
-                      <div className="text-sm font-medium text-slate-900">{d.productName}</div>
-                      <div className="text-sm font-semibold text-emerald-600">${d.unitPrice.toFixed(2)}/{d.unit}</div>
+                      <div className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{d.productName}</div>
+                      <div className="text-sm font-medium" style={{ color: "var(--bs-teal)" }}>${d.unitPrice.toFixed(2)}/{d.unit}</div>
                     </div>
-                    <div className="text-xs text-slate-500">{d.category}{d.vendorName ? ` · ${d.vendorName}` : ""}{d.coverage ? ` · ${d.coverage} SF/unit` : ""}</div>
+                    <div className="text-xs" style={{ color: "var(--bs-text-dim)" }}>{d.category}{d.vendorName ? ` · ${d.vendorName}` : ""}{d.coverage ? ` · ${d.coverage} SF/unit` : ""}</div>
                   </button>
                 ))}
               </div>

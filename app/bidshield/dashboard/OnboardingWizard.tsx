@@ -81,13 +81,13 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="rounded-2xl max-w-lg w-full overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         {/* Progress bar */}
-        <div className="h-1 bg-slate-100">
+        <div className="h-1" style={{ background: "var(--bs-bg-elevated)" }}>
           <div
-            className="h-full bg-emerald-500 transition-all duration-300"
-            style={{ width: step === 4 ? "100%" : `${((step + 1) / 4) * 100}%` }}
+            className="h-full transition-all duration-300"
+            style={{ width: step === 4 ? "100%" : `${((step + 1) / 4) * 100}%`, background: "var(--bs-teal)" }}
           />
         </div>
 
@@ -95,25 +95,26 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
           {/* Step 0: Welcome */}
           {step === 0 && (
             <div className="text-center">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bs-teal-dim)" }}>
+                <svg className="w-7 h-7" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
               </div>
-              <h2 className="app-display" style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 8 }}>
+              <h2 className="app-display" style={{ fontSize: 28, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 8 }}>
                 Welcome to BidShield
               </h2>
-              <p className="text-slate-600 mb-8">
+              <p className="mb-8" style={{ color: "var(--bs-text-secondary)" }}>
                 Your bid QA and workflow tool. Let&apos;s set up your first project in 60 seconds.
               </p>
               <button
                 onClick={() => setStep(1)}
-                className="w-full py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-colors cursor-pointer"
-                style={{ boxShadow: "0 1px 3px rgba(5,150,105,0.4)" }}
+                className="w-full py-3 rounded-xl font-semibold transition-colors cursor-pointer"
+                style={{ background: "var(--bs-teal)", color: "#13151a" }}
               >
                 Create My First Project
               </button>
               <button
                 onClick={onSkip}
-                className="mt-3 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                className="mt-3 text-sm transition-colors"
+                style={{ color: "var(--bs-text-dim)" }}
               >
                 Skip for now — I&apos;ll explore first
               </button>
@@ -123,10 +124,10 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
           {/* Step 1: Trade & System */}
           {step === 1 && (
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-1">
+              <h3 className="text-lg font-semibold mb-1" style={{ color: "var(--bs-text-primary)" }}>
                 What&apos;s your trade?
               </h3>
-              <p className="text-sm text-slate-500 mb-5">
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>
                 This customizes your checklist and scope items.
               </p>
 
@@ -136,17 +137,16 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     key={t.id}
                     onClick={() => t.available && setTrade(t.id)}
                     disabled={!t.available}
-                    className={`p-3 rounded-xl border text-left text-sm transition-all ${
-                      trade === t.id
-                        ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-100"
-                        : t.available
-                        ? "border-slate-200 hover:border-slate-300"
-                        : "border-slate-100 opacity-40 cursor-not-allowed"
-                    }`}
+                    className="p-3 rounded-xl text-left text-sm transition-all"
+                    style={trade === t.id
+                      ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)" }
+                      : t.available
+                      ? { border: "1px solid var(--bs-border)" }
+                      : { border: "1px solid var(--bs-border)", opacity: 0.4, cursor: "not-allowed" }}
                   >
-                    <span className="block mt-1 font-medium text-slate-700">{t.label}</span>
+                    <span className="block mt-1 font-medium" style={{ color: "var(--bs-text-secondary)" }}>{t.label}</span>
                     {!t.available && (
-                      <span className="text-[10px] text-slate-400">Coming soon</span>
+                      <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>Coming soon</span>
                     )}
                   </button>
                 ))}
@@ -154,7 +154,7 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
 
               {trade === "roofing" && (
                 <>
-                  <label className="text-sm font-medium text-slate-700 block mb-2">
+                  <label className="text-sm font-medium block mb-2" style={{ color: "var(--bs-text-secondary)" }}>
                     Primary roofing system
                   </label>
                   <div className="grid grid-cols-2 gap-2 mb-4">
@@ -162,18 +162,17 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                       <button
                         key={s.id}
                         onClick={() => setSystemType(s.id)}
-                        className={`py-2 px-3 rounded-lg border text-sm transition-all ${
-                          systemType === s.id
-                            ? "border-emerald-500 bg-emerald-50 font-medium"
-                            : "border-slate-200 hover:border-slate-300"
-                        }`}
+                        className="py-2 px-3 rounded-lg text-sm transition-all"
+                        style={systemType === s.id
+                          ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", fontWeight: 500, color: "var(--bs-teal)" }
+                          : { border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
                       >
                         {s.label}
                       </button>
                     ))}
                   </div>
 
-                  <label className="text-sm font-medium text-slate-700 block mb-2">
+                  <label className="text-sm font-medium block mb-2" style={{ color: "var(--bs-text-secondary)" }}>
                     Deck type
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -181,11 +180,10 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                       <button
                         key={d.id}
                         onClick={() => setDeckType(d.id)}
-                        className={`py-1.5 px-3 rounded-lg border text-sm transition-all ${
-                          deckType === d.id
-                            ? "border-emerald-500 bg-emerald-50 font-medium"
-                            : "border-slate-200 hover:border-slate-300"
-                        }`}
+                        className="py-1.5 px-3 rounded-lg text-sm transition-all"
+                        style={deckType === d.id
+                          ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", fontWeight: 500, color: "var(--bs-teal)" }
+                          : { border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
                       >
                         {d.label}
                       </button>
@@ -197,13 +195,15 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               <div className="flex justify-between mt-8">
                 <button
                   onClick={() => setStep(0)}
-                  className="text-sm text-slate-400 hover:text-slate-600"
+                  className="text-sm"
+                  style={{ color: "var(--bs-text-dim)" }}
                 >
                   Back
                 </button>
                 <button
                   onClick={() => setStep(2)}
-                  className="py-2.5 px-6 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors"
+                  className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors"
+                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
                 >
                   Next
                 </button>
@@ -214,16 +214,16 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
           {/* Step 2: Project Details */}
           {step === 2 && (
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-1">
+              <h3 className="text-lg font-semibold mb-1" style={{ color: "var(--bs-text-primary)" }}>
                 Project details
               </h3>
-              <p className="text-sm text-slate-500 mb-5">
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>
                 Tell us about the bid you&apos;re working on.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">
+                  <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>
                     Project name *
                   </label>
                   <input
@@ -231,11 +231,12 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
                     placeholder="e.g. Meridian Business Park"
-                    className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
+                    className="w-full py-2.5 px-3 rounded-lg text-sm outline-none"
+                    style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">
+                  <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>
                     Location *
                   </label>
                   <input
@@ -243,23 +244,25 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="e.g. Charlotte, NC"
-                    className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
+                    className="w-full py-2.5 px-3 rounded-lg text-sm outline-none"
+                    style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-1">
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>
                       Bid date *
                     </label>
                     <input
                       type="date"
                       value={bidDate}
                       onChange={(e) => setBidDate(e.target.value)}
-                      className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
+                      className="w-full py-2.5 px-3 rounded-lg text-sm outline-none"
+                      style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-1">
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>
                       Roof area (SF)
                     </label>
                     <input
@@ -267,12 +270,13 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                       value={sqft}
                       onChange={(e) => setSqft(e.target.value)}
                       placeholder="e.g. 68000"
-                      className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
+                      className="w-full py-2.5 px-3 rounded-lg text-sm outline-none"
+                      style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">
+                  <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>
                     General Contractor
                   </label>
                   <input
@@ -280,7 +284,8 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     value={gc}
                     onChange={(e) => setGc(e.target.value)}
                     placeholder="e.g. Skanska USA"
-                    className="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none"
+                    className="w-full py-2.5 px-3 rounded-lg text-sm outline-none"
+                    style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                   />
                 </div>
               </div>
@@ -288,7 +293,8 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               <div className="flex justify-between mt-8">
                 <button
                   onClick={() => setStep(1)}
-                  className="text-sm text-slate-400 hover:text-slate-600"
+                  className="text-sm"
+                  style={{ color: "var(--bs-text-dim)" }}
                 >
                   Back
                 </button>
@@ -297,7 +303,8 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                     if (projectName && location && bidDate) setStep(3);
                   }}
                   disabled={!projectName || !location || !bidDate}
-                  className="py-2.5 px-6 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
                 >
                   Next
                 </button>
@@ -308,30 +315,32 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
           {/* Step 4: Success + Upgrade nudge */}
           {step === 4 && (
             <div className="text-center">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bs-teal-dim)" }}>
+                <svg className="w-7 h-7" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--bs-text-primary)" }}>
                 Your bid review is ready
               </h3>
-              <p className="text-sm text-slate-500 mb-6">
+              <p className="text-sm mb-6" style={{ color: "var(--bs-text-muted)" }}>
                 <strong>{projectName}</strong> is set up with your 18-phase checklist, takeoff tracker, scope gap checker, and bid readiness scoring.
               </p>
 
               <button
                 onClick={() => createdProjectId && onComplete(createdProjectId)}
-                className="w-full py-3 px-8 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors mb-4"
+                className="w-full py-3 px-8 rounded-xl text-sm font-semibold transition-colors mb-4"
+                style={{ background: "var(--bs-teal)", color: "#13151a" }}
               >
                 Start Reviewing My Bid →
               </button>
 
-              <div className="mt-2 pt-5 border-t border-slate-200">
-                <p className="text-xs text-slate-500 mb-3">
+              <div className="mt-2 pt-5" style={{ borderTop: "1px solid var(--bs-border)" }}>
+                <p className="text-xs mb-3" style={{ color: "var(--bs-text-muted)" }}>
                   Bidding more than one job? Upgrade for unlimited projects, PDF export, and win/loss analytics.
                 </p>
                 <a
                   href="/bidshield/pricing"
-                  className="block w-full text-center py-2.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-sm font-semibold rounded-xl transition-colors"
+                  className="block w-full text-center py-2.5 text-sm font-semibold rounded-xl transition-colors"
+                  style={{ border: "1px solid var(--bs-teal)", color: "var(--bs-teal)" }}
                 >
                   Start 14-Day Pro Trial — No Card Required
                 </a>
@@ -342,36 +351,36 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
           {/* Step 3: Confirm & Create */}
           {step === 3 && (
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-1">
+              <h3 className="text-lg font-semibold mb-1" style={{ color: "var(--bs-text-primary)" }}>
                 Ready to go
               </h3>
-              <p className="text-sm text-slate-500 mb-6">
+              <p className="text-sm mb-6" style={{ color: "var(--bs-text-muted)" }}>
                 Here&apos;s what BidShield will set up for you:
               </p>
 
-              <div className="bg-slate-50 rounded-xl p-5 mb-6 space-y-3">
+              <div className="rounded-xl p-5 mb-6 space-y-3" style={{ background: "var(--bs-bg-elevated)" }}>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Project</span>
-                  <span className="font-medium text-slate-900">{projectName}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Project</span>
+                  <span className="font-medium" style={{ color: "var(--bs-text-primary)" }}>{projectName}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Location</span>
-                  <span className="text-slate-700">{location}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Location</span>
+                  <span style={{ color: "var(--bs-text-secondary)" }}>{location}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Bid Date</span>
-                  <span className="text-slate-700">{bidDate}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Bid Date</span>
+                  <span style={{ color: "var(--bs-text-secondary)" }}>{bidDate}</span>
                 </div>
                 {systemType && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">System</span>
-                    <span className="text-slate-700 uppercase">{systemType}</span>
+                    <span style={{ color: "var(--bs-text-muted)" }}>System</span>
+                    <span className="uppercase" style={{ color: "var(--bs-text-secondary)" }}>{systemType}</span>
                   </div>
                 )}
                 {gc && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">GC</span>
-                    <span className="text-slate-700">{gc}</span>
+                    <span style={{ color: "var(--bs-text-muted)" }}>GC</span>
+                    <span style={{ color: "var(--bs-text-secondary)" }}>{gc}</span>
                   </div>
                 )}
               </div>
@@ -383,8 +392,8 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
                   "Bid readiness scoring active",
                   "Takeoff reconciliation ready",
                 ].map((item) => (
-                  <div key={item} className="flex items-center gap-2 text-sm text-slate-600">
-                    <svg className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                  <div key={item} className="flex items-center gap-2 text-sm" style={{ color: "var(--bs-text-secondary)" }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                     {item}
                   </div>
                 ))}
@@ -393,14 +402,16 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Props) 
               <div className="flex justify-between">
                 <button
                   onClick={() => setStep(2)}
-                  className="text-sm text-slate-400 hover:text-slate-600"
+                  className="text-sm"
+                  style={{ color: "var(--bs-text-dim)" }}
                 >
                   Back
                 </button>
                 <button
                   onClick={handleCreate}
                   disabled={creating}
-                  className="py-3 px-8 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  className="py-3 px-8 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
                 >
                   {creating ? "Creating project..." : "Create Project & Start"}
                 </button>

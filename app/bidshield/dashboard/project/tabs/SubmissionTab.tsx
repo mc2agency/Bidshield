@@ -98,9 +98,11 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
     });
   };
 
+  const inputCls = "w-full rounded px-3 py-2 text-sm focus:outline-none bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]";
+
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-sm text-slate-500 -mb-1">
+      <p className="text-sm -mb-1" style={{ color: "var(--bs-text-muted)" }}>
         Record how and when this bid was submitted. This closes the loop on the 5-phase workflow.
       </p>
 
@@ -108,34 +110,37 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
       {list.length > 0 && (
         <div className="flex flex-col gap-3">
           {list.map((s: any) => (
-            <div key={s._id} className="bg-white rounded-xl p-4 border border-slate-200">
+            <div key={s._id} className="rounded-xl p-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
                       {METHOD_LABELS[s.method] ?? s.method}
                     </span>
-                    <span className="text-xs text-slate-500">{fmtDateTime(s.submittedAt)}</span>
+                    <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{fmtDateTime(s.submittedAt)}</span>
                   </div>
                   {s.portalOrRecipient && (
-                    <div className="text-sm text-slate-700 mb-0.5">
-                      <span className="text-slate-400 text-xs">To: </span>{s.portalOrRecipient}
+                    <div className="text-sm mb-0.5" style={{ color: "var(--bs-text-secondary)" }}>
+                      <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>To: </span>{s.portalOrRecipient}
                     </div>
                   )}
                   {s.confirmationNumber && (
-                    <div className="text-sm text-slate-700 mb-0.5">
-                      <span className="text-slate-400 text-xs">Confirmation: </span>
+                    <div className="text-sm mb-0.5" style={{ color: "var(--bs-text-secondary)" }}>
+                      <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Confirmation: </span>
                       <span className="font-mono">{s.confirmationNumber}</span>
                     </div>
                   )}
                   {s.notes && (
-                    <div className="text-xs text-slate-500 mt-1 italic">{s.notes}</div>
+                    <div className="text-xs mt-1 italic" style={{ color: "var(--bs-text-dim)" }}>{s.notes}</div>
                   )}
                 </div>
                 {!isDemo && (
                   <button
                     onClick={() => handleDelete(s._id)}
-                    className="text-xs text-slate-400 hover:text-red-500 flex-shrink-0 transition-colors"
+                    className="text-xs flex-shrink-0 transition-colors"
+                    style={{ color: "var(--bs-text-dim)" }}
+                    onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-red)")}
+                    onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}
                     title="Delete submission record"
                   >
                     ✕
@@ -148,27 +153,27 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
       )}
 
       {list.length === 0 && !showForm && (
-        <div className="bg-slate-50 rounded-xl p-6 text-center border border-slate-200">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-2">
-            <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+        <div className="rounded-xl p-6 text-center" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: "var(--bs-bg-card)" }}>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bs-text-dim)"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
           </div>
-          <div className="text-sm text-slate-500">No submission recorded yet.</div>
-          <div className="text-xs text-slate-400 mt-1">Log how this bid was delivered once it&rsquo;s submitted.</div>
+          <div className="text-sm" style={{ color: "var(--bs-text-muted)" }}>No submission recorded yet.</div>
+          <div className="text-xs mt-1" style={{ color: "var(--bs-text-dim)" }}>Log how this bid was delivered once it&rsquo;s submitted.</div>
         </div>
       )}
 
       {/* Add form */}
       {showForm ? (
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Log Submission</h3>
-          {error && <div className="text-xs text-red-600 bg-red-50 rounded p-2 mb-3">{error}</div>}
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--bs-text-primary)" }}>Log Submission</h3>
+          {error && <div className="text-xs rounded p-2 mb-3" style={{ color: "var(--bs-red)", background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>{error}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Submission Method *</label>
+              <label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Submission Method *</label>
               <select
                 value={form.method}
                 onChange={(e) => setForm({ ...form, method: e.target.value as SubmissionMethod })}
-                className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+                className={inputCls}
               >
                 {SUBMISSION_METHODS.map((m) => (
                   <option key={m.value} value={m.value}>{m.label}</option>
@@ -176,42 +181,42 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
               </select>
             </div>
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Date &amp; Time Submitted *</label>
+              <label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Date &amp; Time Submitted *</label>
               <input
                 type="datetime-local"
                 value={form.submittedAt}
                 onChange={(e) => setForm({ ...form, submittedAt: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Portal URL / Recipient</label>
+              <label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Portal URL / Recipient</label>
               <input
                 type="text"
                 value={form.portalOrRecipient}
                 onChange={(e) => setForm({ ...form, portalOrRecipient: e.target.value })}
                 placeholder="e.g. bids@gc.com or portal URL"
-                className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Confirmation Number</label>
+              <label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Confirmation Number</label>
               <input
                 type="text"
                 value={form.confirmationNumber}
                 onChange={(e) => setForm({ ...form, confirmationNumber: e.target.value })}
                 placeholder="Portal or email confirmation #"
-                className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm focus:outline-none focus:border-emerald-500"
+                className={inputCls}
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-[11px] text-slate-500 mb-1 block">Notes</label>
+              <label className="text-[11px] mb-1 block" style={{ color: "var(--bs-text-dim)" }}>Notes</label>
               <textarea
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 placeholder="Any follow-up required, clarifications submitted, etc."
                 rows={2}
-                className="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-slate-900 text-sm resize-none focus:outline-none focus:border-emerald-500"
+                className={`${inputCls} resize-none`}
               />
             </div>
           </div>
@@ -219,14 +224,17 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
             <button
               onClick={handleSave}
               disabled={saving}
-              style={{ background: "#10b981" }}
-              className="text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               {saving ? "Saving…" : "Save Submission"}
             </button>
             <button
               onClick={() => { setShowForm(false); setError(""); }}
-              className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 transition-colors"
+              className="text-sm px-4 py-2 transition-colors"
+              style={{ color: "var(--bs-text-muted)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-text-secondary)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-muted)")}
             >
               Cancel
             </button>
@@ -237,15 +245,18 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
           {(isPro || isDemo) ? (
             <button
               onClick={() => { if (!isDemo) setShowForm(true); }}
-              style={{ background: "#10b981" }}
-              className="text-white text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              className="text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               + Log Submission
             </button>
           ) : (
             <a
               href="/bidshield/pricing"
-              className="text-xs font-medium text-slate-400 hover:text-emerald-600 transition-colors"
+              className="text-xs font-medium transition-colors"
+              style={{ color: "var(--bs-text-dim)" }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "var(--bs-teal)")}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)")}
             >
               <svg className="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
               Log Submission · Pro

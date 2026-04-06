@@ -10,20 +10,20 @@ import { useSearchParams } from "next/navigation";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { key: "membrane",   label: "Membrane",           color: "bg-blue-100 text-blue-700" },
-  { key: "insulation", label: "Insulation",          color: "bg-purple-100 text-purple-700" },
-  { key: "fasteners",  label: "Fasteners & Plates",  color: "bg-amber-100 text-amber-700" },
-  { key: "adhesive",   label: "Adhesive & Sealant",  color: "bg-orange-100 text-orange-700" },
-  { key: "sheet_metal",label: "Sheet Metal",         color: "bg-slate-100 text-slate-700" },
-  { key: "lumber",     label: "Lumber & Blocking",   color: "bg-lime-100 text-lime-700" },
-  { key: "accessories",label: "Accessories",         color: "bg-teal-100 text-teal-700" },
-  { key: "miscellaneous", label: "Miscellaneous",    color: "bg-zinc-100 text-zinc-600" },
+  { key: "membrane",   label: "Membrane",           color: "bg-blue-900/50 text-blue-300" },
+  { key: "insulation", label: "Insulation",          color: "bg-purple-900/50 text-purple-300" },
+  { key: "fasteners",  label: "Fasteners & Plates",  color: "bg-amber-900/50 text-amber-300" },
+  { key: "adhesive",   label: "Adhesive & Sealant",  color: "bg-orange-900/50 text-orange-300" },
+  { key: "sheet_metal",label: "Sheet Metal",         color: "bg-slate-700 text-slate-200" },
+  { key: "lumber",     label: "Lumber & Blocking",   color: "bg-lime-900/40 text-lime-300" },
+  { key: "accessories",label: "Accessories",         color: "bg-teal-900/40 text-teal-300" },
+  { key: "miscellaneous", label: "Miscellaneous",    color: "bg-zinc-700 text-zinc-300" },
 ] as const;
 
 type CategoryKey = typeof CATEGORIES[number]["key"];
 
 function categoryMeta(key: string) {
-  return CATEGORIES.find((c) => c.key === key) ?? { label: key, color: "bg-slate-100 text-slate-600" };
+  return CATEGORIES.find((c) => c.key === key) ?? { label: key, color: "bg-slate-700 text-slate-300" };
 }
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
@@ -152,45 +152,60 @@ function VendorForm({
       {/* Company & Rep */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
-          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Company Name *</label>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--bs-text-muted)" }}>Company Name *</label>
           <input
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+            onFocus={e => { e.currentTarget.style.borderColor = "var(--bs-teal)"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "var(--bs-border)"; }}
             value={form.companyName}
             onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
             placeholder="e.g. Siplast Inc."
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Rep Name</label>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--bs-text-muted)" }}>Rep Name</label>
           <input
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+            onFocus={e => { e.currentTarget.style.borderColor = "var(--bs-teal)"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "var(--bs-border)"; }}
             value={form.repName}
             onChange={(e) => setForm((f) => ({ ...f, repName: e.target.value }))}
             placeholder="Mike Torres"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Territory / Region</label>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--bs-text-muted)" }}>Territory / Region</label>
           <input
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+            onFocus={e => { e.currentTarget.style.borderColor = "var(--bs-teal)"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "var(--bs-border)"; }}
             value={form.territory}
             onChange={(e) => setForm((f) => ({ ...f, territory: e.target.value }))}
             placeholder="Southwest"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Rep Phone</label>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--bs-text-muted)" }}>Rep Phone</label>
           <input
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+            onFocus={e => { e.currentTarget.style.borderColor = "var(--bs-teal)"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "var(--bs-border)"; }}
             value={form.repPhone}
             onChange={(e) => setForm((f) => ({ ...f, repPhone: e.target.value }))}
             placeholder="(214) 555-0100"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Rep Email</label>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--bs-text-muted)" }}>Rep Email</label>
           <input
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+            onFocus={e => { e.currentTarget.style.borderColor = "var(--bs-teal)"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "var(--bs-border)"; }}
             value={form.repEmail}
             onChange={(e) => setForm((f) => ({ ...f, repEmail: e.target.value }))}
             placeholder="rep@vendor.com"
@@ -200,7 +215,7 @@ function VendorForm({
 
       {/* Categories */}
       <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-2">Categories Supplied</label>
+        <label className="block text-xs font-semibold mb-2" style={{ color: "var(--bs-text-muted)" }}>Categories Supplied</label>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map(({ key, label, color }) => {
             const selected = form.categories.includes(key);
@@ -212,8 +227,9 @@ function VendorForm({
                 className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
                   selected
                     ? `${color} border-current`
-                    : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                    : ""
                 }`}
+                style={!selected ? { background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" } : undefined}
               >
                 {label}
               </button>
@@ -224,9 +240,12 @@ function VendorForm({
 
       {/* Notes */}
       <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Notes</label>
+        <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--bs-text-muted)" }}>Notes</label>
         <textarea
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+          className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"
+          style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+          onFocus={e => { e.currentTarget.style.borderColor = "var(--bs-teal)"; }}
+          onBlur={e => { e.currentTarget.style.borderColor = "var(--bs-border)"; }}
           rows={3}
           value={form.notes}
           onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
@@ -239,13 +258,12 @@ function VendorForm({
         <button
           type="button"
           onClick={() => setForm((f) => ({ ...f, active: !f.active }))}
-          className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${
-            form.active ? "bg-emerald-500" : "bg-slate-300"
-          }`}
+          className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors`}
+          style={{ background: form.active ? "var(--bs-teal)" : "var(--bs-text-dim)" }}
         >
-          <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${form.active ? "translate-x-4" : "translate-x-0"}`} />
+          <span className={`inline-block h-4 w-4 rounded-full transition-transform ${form.active ? "translate-x-4" : "translate-x-0"}`} style={{ background: "var(--bs-text-primary)" }} />
         </button>
-        <span className="text-sm text-slate-700">{form.active ? "Active" : "Inactive"}</span>
+        <span className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>{form.active ? "Active" : "Inactive"}</span>
       </div>
 
       {/* Actions */}
@@ -254,14 +272,16 @@ function VendorForm({
           type="button"
           disabled={saving || !form.companyName.trim()}
           onClick={() => onSave(form)}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+          className="px-4 py-2 disabled:opacity-50 text-sm font-semibold rounded-lg transition-colors"
+          style={{ background: "var(--bs-teal)", color: "#13151a" }}
         >
           {saving ? "Saving…" : "Save Vendor"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-slate-600 hover:text-slate-800 text-sm font-medium transition-colors"
+          className="px-4 py-2 text-sm font-medium transition-colors"
+          style={{ color: "var(--bs-text-muted)" }}
         >
           Cancel
         </button>
@@ -312,34 +332,45 @@ function VendorDrawer({
   }
 
   const statusColor: Record<string, string> = {
-    valid: "text-emerald-700 bg-emerald-50",
-    expiring: "text-amber-700 bg-amber-50",
-    expired: "text-red-600 bg-red-50",
-    received: "text-blue-700 bg-blue-50",
-    requested: "text-slate-600 bg-slate-100",
+    valid: "",
+    expiring: "",
+    expired: "",
+    received: "",
+    requested: "",
+  };
+  const statusStyleMap: Record<string, { color: string; background: string }> = {
+    valid: { color: "var(--bs-teal)", background: "var(--bs-teal-dim)" },
+    expiring: { color: "var(--bs-amber)", background: "var(--bs-amber-dim)" },
+    expired: { color: "var(--bs-red)", background: "var(--bs-red-dim)" },
+    received: { color: "var(--bs-blue)", background: "var(--bs-blue-dim)" },
+    requested: { color: "var(--bs-text-muted)", background: "var(--bs-bg-elevated)" },
   };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.7)" }} />
       <div
-        className="relative w-full max-w-lg bg-white h-full overflow-y-auto shadow-2xl flex flex-col"
+        className="relative w-full max-w-lg h-full overflow-y-auto flex flex-col"
+        style={{ background: "var(--bs-bg-card)", borderLeft: "1px solid var(--bs-border)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between gap-3">
+        <div className="px-6 py-5 flex items-start justify-between gap-3" style={{ borderBottom: "1px solid var(--bs-border)" }}>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-lg font-bold text-slate-900 truncate">{vendor.companyName}</h2>
-              <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${vendor.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+              <h2 className="text-lg font-bold truncate" style={{ color: "var(--bs-text-primary)" }}>{vendor.companyName}</h2>
+              <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={vendor.active
+                  ? { color: "var(--bs-teal)", background: "var(--bs-teal-dim)" }
+                  : { color: "var(--bs-text-dim)", background: "var(--bs-bg-elevated)" }}>
                 {vendor.active ? "Active" : "Inactive"}
               </span>
             </div>
             {vendor.territory && (
-              <p className="text-xs text-slate-500">{vendor.territory}</p>
+              <p className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{vendor.territory}</p>
             )}
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors mt-0.5">
+          <button onClick={onClose} className="transition-colors mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
@@ -349,29 +380,29 @@ function VendorDrawer({
         <div className="flex-1 px-6 py-5 flex flex-col gap-6">
           {/* Contact */}
           <div className="flex flex-col gap-2.5">
-            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Contact</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Contact</h3>
             {vendor.repName && (
-              <div className="flex items-center gap-2.5 text-sm text-slate-700">
-                <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <div className="flex items-center gap-2.5 text-sm" style={{ color: "var(--bs-text-secondary)" }}>
+                <svg className="w-4 h-4 shrink-0" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
                 {vendor.repName}
               </div>
             )}
             {vendor.repPhone && (
-              <div className="flex items-center gap-2.5 text-sm text-slate-700">
-                <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <div className="flex items-center gap-2.5 text-sm" style={{ color: "var(--bs-text-secondary)" }}>
+                <svg className="w-4 h-4 shrink-0" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z" />
                 </svg>
                 {vendor.repPhone}
               </div>
             )}
             {vendor.repEmail && (
-              <div className="flex items-center gap-2.5 text-sm text-slate-700">
-                <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <div className="flex items-center gap-2.5 text-sm" style={{ color: "var(--bs-text-secondary)" }}>
+                <svg className="w-4 h-4 shrink-0" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                 </svg>
-                <a href={`mailto:${vendor.repEmail}`} className="text-emerald-600 hover:underline">
+                <a href={`mailto:${vendor.repEmail}`} className="hover:underline" style={{ color: "var(--bs-teal)" }}>
                   {vendor.repEmail}
                 </a>
               </div>
@@ -380,7 +411,7 @@ function VendorDrawer({
 
           {/* Categories */}
           <div>
-            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Categories Supplied</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "var(--bs-text-dim)" }}>Categories Supplied</h3>
             <div className="flex flex-wrap gap-1.5">
               {vendor.categories.map((cat) => {
                 const meta = categoryMeta(cat);
@@ -390,45 +421,46 @@ function VendorDrawer({
                   </span>
                 );
               })}
-              {vendor.categories.length === 0 && <span className="text-xs text-slate-400">None assigned</span>}
+              {vendor.categories.length === 0 && <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>None assigned</span>}
             </div>
           </div>
 
           {/* Notes */}
           {vendor.notes && (
             <div>
-              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Notes</h3>
-              <p className="text-sm text-slate-700 leading-relaxed">{vendor.notes}</p>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "var(--bs-text-dim)" }}>Notes</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--bs-text-secondary)" }}>{vendor.notes}</p>
             </div>
           )}
 
           {/* Quote history */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quote History</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Quote History</h3>
               {quotes.length > 0 && (
-                <span className="text-xs text-slate-500">{quotes.length} quote{quotes.length !== 1 ? "s" : ""} · ${totalQuoteValue.toLocaleString()} total</span>
+                <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{quotes.length} quote{quotes.length !== 1 ? "s" : ""} · ${totalQuoteValue.toLocaleString()} total</span>
               )}
             </div>
             {quotes.length === 0 ? (
-              <div className="py-6 text-center text-sm text-slate-400 bg-slate-50 rounded-lg">
+              <div className="py-6 text-center text-sm rounded-lg" style={{ color: "var(--bs-text-dim)", background: "var(--bs-bg-elevated)" }}>
                 No quotes uploaded from this vendor yet
               </div>
             ) : (
               <div className="flex flex-col gap-2">
                 {quotes.map((q, i) => (
-                  <div key={i} className="bg-slate-50 rounded-lg px-4 py-3 flex flex-col gap-1">
+                  <div key={i} className="rounded-lg px-4 py-3 flex flex-col gap-1" style={{ background: "var(--bs-bg-elevated)" }}>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-slate-800">{q.projectName}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusColor[q.status] ?? "bg-slate-100 text-slate-600"}`}>
+                      <span className="text-sm font-semibold" style={{ color: "var(--bs-text-primary)" }}>{q.projectName}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize"
+                        style={statusStyleMap[q.status] ?? { color: "var(--bs-text-muted)", background: "var(--bs-bg-card)" }}>
                         {q.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-3 text-xs" style={{ color: "var(--bs-text-muted)" }}>
                       <span>{q.quoteDate}</span>
-                      <span className="font-semibold text-slate-700">${q.quoteAmount.toLocaleString()}</span>
+                      <span className="font-semibold" style={{ color: "var(--bs-text-secondary)" }}>${q.quoteAmount.toLocaleString()}</span>
                     </div>
-                    <div className="text-xs text-slate-500 truncate">{q.products.join(" · ")}</div>
+                    <div className="text-xs truncate" style={{ color: "var(--bs-text-muted)" }}>{q.products.join(" · ")}</div>
                   </div>
                 ))}
               </div>
@@ -438,11 +470,11 @@ function VendorDrawer({
           {/* Price trend warnings */}
           {warnings.length > 0 && (
             <div>
-              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Price Trends</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "var(--bs-text-dim)" }}>Price Trends</h3>
               <div className="flex flex-col gap-2">
                 {warnings.map((w, i) => (
-                  <div key={i} className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-800">
-                    <svg className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                  <div key={i} className="flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs" style={{ background: "var(--bs-amber-dim)", border: "1px solid var(--bs-amber)", color: "var(--bs-amber)" }}>
+                    <svg className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: "var(--bs-amber)" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                     <span>
                       <span className="font-semibold">{w.product}</span>:{" "}
                       ${w.from.toFixed(2)} → ${w.to.toFixed(2)}{" "}
@@ -456,23 +488,26 @@ function VendorDrawer({
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center gap-3">
+        <div className="px-6 py-4 flex items-center gap-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
           <button
             onClick={onEdit}
-            className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
+            className="flex-1 py-2 text-sm font-semibold rounded-lg transition-colors"
+            style={{ background: "var(--bs-teal)", color: "#13151a" }}
           >
             Edit Vendor
           </button>
           <button
             onClick={onToggleActive}
-            className="px-4 py-2 border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-800 text-sm font-medium rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+            style={{ border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
           >
             {vendor.active ? "Deactivate" : "Activate"}
           </button>
           {!isDemo && (
             <button
               onClick={onDelete}
-              className="px-3 py-2 text-red-500 hover:text-red-700 transition-colors"
+              className="px-3 py-2 transition-colors"
+              style={{ color: "var(--bs-red)" }}
               title="Delete vendor"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
@@ -596,15 +631,15 @@ export default function VendorsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="app-display" style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>Vendors</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="app-display" style={{ fontSize: 30, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>Vendors</h1>
+          <p className="text-sm" style={{ color: "var(--bs-text-muted)" }}>
             Your material supplier address book — linked to quotes and pricing across all bids
           </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer"
-          style={{ boxShadow: "0 1px 3px rgba(5,150,105,0.4)" }}
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
+          style={{ background: "var(--bs-teal)", color: "#13151a" }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -617,13 +652,13 @@ export default function VendorsPage() {
       {vendors.length > 0 && (
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: "Active Vendors", value: String(activeCount), accent: "#059669" },
-            { label: "Inactive", value: String(inactiveCount), accent: "#94a3b8" },
-            { label: "Categories Covered", value: String(categoryCount), accent: "#334155" },
+            { label: "Active Vendors", value: String(activeCount), accent: "var(--bs-teal)" },
+            { label: "Inactive", value: String(inactiveCount), accent: "var(--bs-text-dim)" },
+            { label: "Categories Covered", value: String(categoryCount), accent: "var(--bs-blue)" },
           ].map(({ label, value, accent }) => (
-            <div key={label} style={{ background: "white", borderRadius: 12, padding: "12px 14px", borderLeft: `4px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{value}</div>
+            <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: 12, padding: "12px 14px", borderLeft: `4px solid ${accent}` }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{value}</div>
             </div>
           ))}
         </div>
@@ -633,7 +668,10 @@ export default function VendorsPage() {
       <div className="flex items-center gap-1 mb-5 overflow-x-auto pb-1">
         <button
           onClick={() => setFilterCat("all")}
-          className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterCat === "all" ? "bg-slate-900 text-white" : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"}`}
+          className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
+          style={filterCat === "all"
+            ? { background: "var(--bs-teal)", color: "#13151a" }
+            : { background: "var(--bs-bg-card)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
         >
           All ({vendors.filter(v => v.active).length})
         </button>
@@ -644,11 +682,10 @@ export default function VendorsPage() {
             <button
               key={key}
               onClick={() => setFilterCat(key)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                filterCat === key
-                  ? "bg-slate-900 text-white"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"
-              }`}
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
+              style={filterCat === key
+                ? { background: "var(--bs-teal)", color: "#13151a" }
+                : { background: "var(--bs-bg-card)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
             >
               {label} ({count})
             </button>
@@ -657,11 +694,10 @@ export default function VendorsPage() {
         {vendors.some((v) => !v.active) && (
           <button
             onClick={() => setFilterCat("inactive")}
-            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-              filterCat === "inactive"
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"
-            }`}
+            className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
+            style={filterCat === "inactive"
+              ? { background: "var(--bs-teal)", color: "#13151a" }
+              : { background: "var(--bs-bg-card)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
           >
             Inactive ({vendors.filter((v) => !v.active).length})
           </button>
@@ -671,20 +707,21 @@ export default function VendorsPage() {
       {/* Empty state */}
       {vendors.length === 0 && (
         <div className="mt-16 flex flex-col items-center gap-4 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
-            <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "var(--bs-bg-elevated)" }}>
+            <svg className="w-8 h-8" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
             </svg>
           </div>
           <div>
-            <p className="text-slate-700 font-semibold">No vendors yet</p>
-            <p className="text-sm text-slate-500 mt-1 max-w-sm">
+            <p className="font-semibold" style={{ color: "var(--bs-text-primary)" }}>No vendors yet</p>
+            <p className="text-sm mt-1 max-w-sm" style={{ color: "var(--bs-text-muted)" }}>
               Add your material suppliers to speed up quote uploads and improve price matching
             </p>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors"
+            className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors"
+            style={{ background: "var(--bs-teal)", color: "#13151a" }}
           >
             + Add Your First Vendor
           </button>
@@ -697,26 +734,26 @@ export default function VendorsPage() {
           {filteredVendors.map((vendor) => {
             const demoQuotes = isDemo ? (DEMO_QUOTES_FOR_VENDOR[String(vendor._id)] ?? []) : [];
             const lastQuote = demoQuotes.sort((a, b) => b.quoteDate.localeCompare(a.quoteDate))[0];
-            const accentColor = vendor.active ? "#059669" : "#94a3b8";
+            const accentColor = vendor.active ? "var(--bs-teal)" : "var(--bs-text-dim)";
             return (
               <button
                 key={String(vendor._id)}
                 onClick={() => setSelectedId(String(vendor._id))}
                 className={`text-left w-full flex flex-col gap-3 cursor-pointer ${!vendor.active ? "opacity-60" : ""}`}
-                style={{ background: "white", borderRadius: 12, padding: "14px 16px", borderLeft: `4px solid ${accentColor}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: "box-shadow 200ms ease, transform 150ms ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = ""; }}
+                style={{ background: "var(--bs-bg-card)", borderRadius: 12, padding: "14px 16px", borderLeft: `4px solid ${accentColor}`, transition: "box-shadow 200ms ease, transform 150ms ease" }}
+                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.3)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.transform = ""; }}
               >
                 {/* Top row */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }} className="truncate">{vendor.companyName}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--bs-text-primary)", lineHeight: 1.2 }} className="truncate">{vendor.companyName}</div>
                     {vendor.repName && (
-                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }} className="truncate">{vendor.repName}</div>
+                      <div style={{ fontSize: 12, color: "var(--bs-text-muted)", marginTop: 2 }} className="truncate">{vendor.repName}</div>
                     )}
                   </div>
                   {!vendor.active && (
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999, background: "#f1f5f9", color: "#94a3b8", flexShrink: 0 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999, background: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)", flexShrink: 0 }}>
                       Inactive
                     </span>
                   )}
@@ -733,24 +770,24 @@ export default function VendorsPage() {
                     );
                   })}
                   {vendor.categories.length > 3 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>
                       +{vendor.categories.length - 3}
                     </span>
                   )}
                   {vendor.categories.length === 0 && (
-                    <span className="text-[10px] text-slate-400">No categories</span>
+                    <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>No categories</span>
                   )}
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between mt-auto pt-2" style={{ borderTop: "1px solid var(--bs-border)" }}>
                   {lastQuote ? (
-                    <span style={{ fontSize: 11, color: "#64748b" }}>Last quote: {lastQuote.quoteDate}</span>
+                    <span style={{ fontSize: 11, color: "var(--bs-text-muted)" }}>Last quote: {lastQuote.quoteDate}</span>
                   ) : (
-                    <span style={{ fontSize: 11, color: "#94a3b8" }}>No quotes yet</span>
+                    <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>No quotes yet</span>
                   )}
                   {demoQuotes.length > 0 && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#059669" }}>{demoQuotes.length} quote{demoQuotes.length !== 1 ? "s" : ""}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)" }}>{demoQuotes.length} quote{demoQuotes.length !== 1 ? "s" : ""}</span>
                   )}
                 </div>
               </button>
@@ -761,7 +798,7 @@ export default function VendorsPage() {
 
       {/* No results for filter */}
       {filteredVendors.length === 0 && vendors.length > 0 && (
-        <div className="py-12 text-center text-sm text-slate-400">
+        <div className="py-12 text-center text-sm" style={{ color: "var(--bs-text-dim)" }}>
           No vendors match this filter
         </div>
       )}
@@ -769,11 +806,11 @@ export default function VendorsPage() {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.7)" }} />
+          <div className="relative w-full max-w-lg rounded-2xl p-6" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-slate-900">Add Vendor</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+              <h2 className="text-lg font-bold" style={{ color: "var(--bs-text-primary)" }}>Add Vendor</h2>
+              <button onClick={() => setShowAddModal(false)} style={{ color: "var(--bs-text-dim)" }}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
@@ -792,11 +829,11 @@ export default function VendorsPage() {
       {/* Edit Modal */}
       {editingId && editingVendor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditingId(null)}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.7)" }} />
+          <div className="relative w-full max-w-lg rounded-2xl p-6" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-slate-900">Edit Vendor</h2>
-              <button onClick={() => setEditingId(null)} className="text-slate-400 hover:text-slate-600">
+              <h2 className="text-lg font-bold" style={{ color: "var(--bs-text-primary)" }}>Edit Vendor</h2>
+              <button onClick={() => setEditingId(null)} style={{ color: "var(--bs-text-dim)" }}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
@@ -837,20 +874,22 @@ export default function VendorsPage() {
       {/* Delete confirm */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={() => setConfirmDeleteId(null)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-slate-900 mb-2">Delete vendor?</h3>
-            <p className="text-sm text-slate-500 mb-5">This will remove the vendor record. Linked quotes will not be deleted.</p>
+          <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.7)" }} />
+          <div className="relative rounded-2xl p-6 w-full max-w-sm" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }} onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold mb-2" style={{ color: "var(--bs-text-primary)" }}>Delete vendor?</h3>
+            <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>This will remove the vendor record. Linked quotes will not be deleted.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
-                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="flex-1 py-2 text-white text-sm font-semibold rounded-lg transition-colors"
+                style={{ background: "var(--bs-red)" }}
               >
                 Delete
               </button>
               <button
                 onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:border-slate-300 transition-colors"
+                className="flex-1 py-2 text-sm font-medium rounded-lg transition-colors"
+                style={{ border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
               >
                 Cancel
               </button>

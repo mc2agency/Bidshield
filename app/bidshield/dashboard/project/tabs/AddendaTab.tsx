@@ -16,18 +16,18 @@ function isReviewed(add: any): boolean {
 
 function getAddendumStatus(add: any): { label: string; color: string; icon: "check" | "warning" } {
   if (!isReviewed(add)) {
-    return { label: "Pending Review", color: "text-red-600", icon: "warning" };
+    return { label: "Pending Review", color: "var(--bs-red)", icon: "warning" };
   }
   if (add.affectsScope === true && add.repriced) {
-    return { label: "Reviewed & Re-priced", color: "text-emerald-600", icon: "check" };
+    return { label: "Reviewed & Re-priced", color: "var(--bs-teal)", icon: "check" };
   }
   if (add.affectsScope === false) {
-    return { label: "Reviewed — No impact", color: "text-emerald-600", icon: "check" };
+    return { label: "Reviewed — No impact", color: "var(--bs-teal)", icon: "check" };
   }
   if (add.affectsScope === true && !add.repriced) {
-    return { label: "Reviewed — Needs Re-price", color: "text-amber-600", icon: "warning" };
+    return { label: "Reviewed — Needs Re-price", color: "var(--bs-amber)", icon: "warning" };
   }
-  return { label: "Reviewed", color: "text-emerald-600", icon: "check" };
+  return { label: "Reviewed", color: "var(--bs-teal)", icon: "check" };
 }
 
 function cardBorderColor(add: any): string {
@@ -51,6 +51,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
   const acknowledgeNoAddendaMut = useMutation(api.bidshield.acknowledgeNoAddenda);
 
   const [showAdd, setShowAdd] = useState(false);
+  const [selectedRFI, setSelectedRFI] = useState<string | null>(null);
   const [newAddendum, setNewAddendum] = useState({
     title: "",
     receivedDate: new Date().toISOString().split("T")[0],
@@ -178,91 +179,44 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
 
-      {/* ── Summary Bar ── */}
-      {totalAddenda > 0 ? (
-        pendingReviewCount > 0 ? (
-          <div className="bg-red-50 border border-red-300 rounded-xl p-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div>
-                <div className="text-sm font-bold text-red-800">
-                  {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — {reviewedCount} reviewed, {pendingReviewCount} pending
-                </div>
-                <p className="text-xs text-red-600 mt-0.5">
-                  Unreviewed addenda are a bid-day blocker. Mark each one as reviewed before submitting.
-                </p>
-              </div>
-              <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full border border-red-300">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                BLOCKING
-              </span>
-            </div>
-            {netPriceImpact !== 0 && (
-              <div className="mt-2 text-xs text-red-700">
-                Net price impact: <span className="font-bold">{netPriceImpact > 0 ? "+" : ""}${netPriceImpact.toLocaleString()}</span>
-              </div>
-            )}
+      {/* ── STATS BAR ─────────────────────────────────────────────────────────── */}
+      <div className="flex items-stretch rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        {([
+          { label: "Total", value: totalAddenda, valueColor: "var(--bs-text-primary)" },
+          { label: "Reviewed", value: reviewedCount, valueColor: "var(--bs-teal)" },
+          { label: "Pending", value: pendingReviewCount, valueColor: pendingReviewCount > 0 ? "var(--bs-red)" : "var(--bs-text-dim)" },
+          { label: "Needs Re-price", value: pendingRePrice, valueColor: pendingRePrice > 0 ? "var(--bs-amber)" : "var(--bs-text-dim)" },
+          { label: "Net Impact", value: netPriceImpact !== 0 ? `${netPriceImpact > 0 ? "+" : ""}$${Math.abs(netPriceImpact).toLocaleString()}` : "—", valueColor: netPriceImpact > 0 ? "var(--bs-red)" : netPriceImpact < 0 ? "var(--bs-teal)" : "var(--bs-text-dim)" },
+        ] as const).map(({ label, value, valueColor }, i) => (
+          <div key={label} className="flex-1 px-5 py-4 flex flex-col gap-1" style={i > 0 ? { borderLeft: "1px solid var(--bs-border)" } : undefined}>
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-muted)" }}>{label}</p>
+            <p className="text-3xl font-black leading-none tabular-nums tracking-tight" style={{ color: valueColor }}>{value}</p>
           </div>
-        ) : pendingRePrice > 0 ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <div className="text-sm font-bold text-amber-800">
-              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — {reviewedCount} reviewed · {pendingRePrice} need{pendingRePrice === 1 ? "s" : ""} re-pricing
-            </div>
-            <p className="text-xs text-amber-600 mt-1">All addenda reviewed, but scope changes need updated pricing.</p>
-            {netPriceImpact !== 0 && (
-              <div className="mt-1 text-xs text-amber-700">
-                Net impact: <span className="font-bold">{netPriceImpact > 0 ? "+" : ""}${netPriceImpact.toLocaleString()}</span>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-            <div className="text-sm font-bold text-emerald-700">
-              {totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"} — all {reviewedCount} reviewed
-            </div>
-            <div className="text-xs text-emerald-600 mt-0.5">
-              {scopeAffecting} affect scope · {repricedCount} re-priced
-              {netPriceImpact !== 0 && ` · net ${netPriceImpact > 0 ? "+" : ""}$${netPriceImpact.toLocaleString()}`}
-            </div>
-          </div>
-        )
-      ) : (
-        /* 0 addenda — prompt for confirmation */
-        noAddendaAcknowledged ? (
-          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-            <svg className="w-4 h-4 shrink-0" style={{ color: "#059669" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#059669" }}>No addenda confirmed</div>
-              <div style={{ fontSize: 11, color: "#16a34a", marginTop: 2 }}>You&apos;ve confirmed no addenda were received for this project.</div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <div className="text-sm font-bold text-amber-800 mb-1">Confirm: no addenda received for this project?</div>
-            <p className="text-xs text-amber-600 mb-3">
-              If the GC issued no addenda, acknowledge it here so the Validator knows this was intentional — not an oversight.
-            </p>
-            {!isDemo && (
-              <button
-                onClick={handleAcknowledgeNoAddenda}
-                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors"
-              >
-                Confirm — No Addenda Received
-              </button>
-            )}
-            {isDemo && (
-              <span className="text-xs text-amber-500 italic">Demo mode — confirmation disabled</span>
-            )}
-          </div>
-        )
-      )}
+        ))}
+        <div className="flex items-center px-5" style={{ borderLeft: "1px solid var(--bs-border)" }}>
+          {pendingReviewCount > 0 ? (
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap" style={{ background: "var(--bs-red)", color: "#13151a" }}>Blocking</span>
+          ) : pendingRePrice > 0 ? (
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap" style={{ background: "var(--bs-amber)", color: "#13151a" }}>Re-price needed</span>
+          ) : totalAddenda > 0 ? (
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap" style={{ background: "var(--bs-teal)", color: "#13151a" }}>All clear</span>
+          ) : noAddendaAcknowledged ? (
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap" style={{ background: "var(--bs-teal)", color: "#13151a" }}>None confirmed</span>
+          ) : (
+            <button onClick={handleAcknowledgeNoAddenda} disabled={isDemo} className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest whitespace-nowrap transition-opacity cursor-pointer disabled:opacity-50" style={{ background: "var(--bs-amber)", color: "#13151a" }}>
+              Confirm none
+            </button>
+          )}
+        </div>
+      </div>
 
-      {/* Add button */}
-      <div className="flex justify-between items-center">
-        <span className="text-xs text-slate-400">{totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"}</span>
+      {/* ── TOOLBAR ───────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
+        <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{totalAddenda} addend{totalAddenda !== 1 ? "a" : "um"}</p>
         {!isDemo && (
-          <button onClick={() => setShowAdd(true)} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors">
+          <button onClick={() => setShowAdd(true)} className="h-8 px-4 text-[12px] font-semibold rounded-lg cursor-pointer transition-opacity hover:opacity-90" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
             + Add Addendum
           </button>
         )}
@@ -270,21 +224,21 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
 
       {/* Add Form */}
       {showAdd && (
-        <div className="bg-white rounded-xl p-5 border border-emerald-500/50">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Add Addendum #{nextNumber}</h3>
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-teal-border)" }}>
+          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--bs-text-primary)" }}>Add Addendum #{nextNumber}</h3>
           <div className="flex flex-col gap-4">
             <div>
-              <label className="block text-xs text-slate-500 mb-1">Title / Description *</label>
-              <input type="text" value={newAddendum.title} onChange={(e) => setNewAddendum({ ...newAddendum, title: e.target.value })} placeholder="Revised RTU schedule — 2 units upsized" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm" />
+              <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Title / Description *</label>
+              <input type="text" value={newAddendum.title} onChange={(e) => setNewAddendum({ ...newAddendum, title: e.target.value })} placeholder="Revised RTU schedule — 2 units upsized" className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Date Received</label>
-                <input type="date" value={newAddendum.receivedDate} onChange={(e) => setNewAddendum({ ...newAddendum, receivedDate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm" />
+                <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Date Received</label>
+                <input type="date" value={newAddendum.receivedDate} onChange={(e) => setNewAddendum({ ...newAddendum, receivedDate: e.target.value })} className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Priority</label>
-                <select value={newAddendum.priority} onChange={(e) => setNewAddendum({ ...newAddendum, priority: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm">
+                <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Priority</label>
+                <select value={newAddendum.priority} onChange={(e) => setNewAddendum({ ...newAddendum, priority: e.target.value })} className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>
                   <option value="normal">Normal</option>
                   <option value="high">High</option>
                   <option value="critical">Critical</option>
@@ -293,8 +247,8 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
               </div>
             </div>
             <div>
-              <label className="block text-xs text-slate-500 mb-1">Notes (optional)</label>
-              <textarea value={newAddendum.notes} onChange={(e) => setNewAddendum({ ...newAddendum, notes: e.target.value })} placeholder="What does this addendum cover?" rows={2} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm resize-none" />
+              <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Notes (optional)</label>
+              <textarea value={newAddendum.notes} onChange={(e) => setNewAddendum({ ...newAddendum, notes: e.target.value })} placeholder="What does this addendum cover?" rows={2} className="w-full px-3 py-2 text-sm rounded-lg resize-none focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
             </div>
 
             {(isPro || isDemo) && newAddendum.title && (
@@ -302,18 +256,18 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
                 <button
                   onClick={handleImpactCheck}
                   disabled={impactCheckLoading}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg, #059669 0%, #0d9488 100%)", color: "white" }}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
+                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
                 >
                   {impactCheckLoading ? "Checking..." : "Check Addendum Impact"}
                 </button>
                 {impactCheckResults && impactCheckResults.length > 0 && (
-                  <div className="mt-2 rounded-lg p-3 border border-emerald-200" style={{ background: "#f0fdf4" }}>
-                    <p className="text-[11px] font-semibold text-emerald-700 mb-2">Affected bid sections:</p>
+                  <div className="mt-2 rounded-lg p-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
+                    <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>Affected bid sections:</p>
                     <ul className="flex flex-col gap-1">
                       {impactCheckResults.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                          <span className="text-emerald-500 shrink-0 mt-0.5">•</span>
+                        <li key={i} className="flex items-start gap-2 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
+                          <span className="shrink-0 mt-0.5" style={{ color: "var(--bs-teal)" }}>•</span>
                           <span><strong>{item.section}:</strong> {item.action}</span>
                         </li>
                       ))}
@@ -321,47 +275,112 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
                   </div>
                 )}
                 {impactCheckResults && impactCheckResults.length === 0 && (
-                  <p className="mt-2 text-xs text-slate-500">No significant bid sections identified. Review manually.</p>
+                  <p className="mt-2 text-xs" style={{ color: "var(--bs-text-muted)" }}>No significant bid sections identified. Review manually.</p>
                 )}
               </div>
             )}
             {!isPro && !isDemo && newAddendum.title && (
-              <a href="/bidshield/pricing" className="inline-block text-xs text-slate-400 hover:text-emerald-600 transition-colors">
+              <a href="/bidshield/pricing" className="inline-block text-xs transition-colors" style={{ color: "var(--bs-text-dim)" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-teal)"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}>
                 <svg className="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
               Check Addendum Impact — Pro feature
               </a>
             )}
 
             <div className="flex gap-3">
-              <button onClick={handleAdd} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-sm font-semibold rounded-lg transition-colors">Save</button>
-              <button onClick={() => setShowAdd(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Cancel</button>
+              <button onClick={handleAdd} className="px-4 py-2 text-sm font-semibold rounded-lg transition-opacity hover:opacity-90" style={{ background: "var(--bs-teal)", color: "#13151a" }}>Save</button>
+              <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm rounded-lg transition-colors" style={{ color: "var(--bs-text-muted)" }}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Addenda List */}
+      {/* ── ADDENDA LIST ──────────────────────────────────────────────────────── */}
       {resolvedAddenda.length > 0 ? (
-        <div className="flex flex-col gap-4">
-          {[...resolvedAddenda].sort((a: any, b: any) => a.number - b.number).map((add: any) => (
-            <AddendumCard
-              key={add._id}
-              add={add}
-              isDemo={isDemo}
-              onUpdate={handleUpdate}
-              onMarkReviewed={handleMarkReviewed}
-              onDelete={handleDelete}
-            />
-          ))}
+        <div className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+                <th className="px-5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest w-10" style={{ color: "var(--bs-text-muted)" }}>#</th>
+                <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-muted)" }}>Title</th>
+                <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest hidden sm:table-cell w-28" style={{ color: "var(--bs-text-muted)" }}>Received</th>
+                <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest w-36" style={{ color: "var(--bs-text-muted)" }}>Status</th>
+                <th className="px-5 py-2.5 w-10"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...resolvedAddenda].sort((a: any, b: any) => a.number - b.number).map((add: any) => {
+                const status = getAddendumStatus(add);
+                const reviewed = isReviewed(add);
+                const priority = add.priority || "normal";
+                const isExpanded = selectedRFI === add._id;
+                const rowBorderColor = !reviewed ? "var(--bs-red)" : add.affectsScope && !add.repriced ? "var(--bs-amber)" : "var(--bs-teal)";
+                const rowBg = isExpanded ? "var(--bs-bg-elevated)" : undefined;
+                return (
+                  <>
+                    <tr
+                      key={add._id}
+                      onClick={() => setSelectedRFI(isExpanded ? null : add._id)}
+                      className="cursor-pointer transition-colors"
+                      style={{ borderBottom: "1px solid var(--bs-border)", borderLeft: `3px solid ${rowBorderColor}`, background: rowBg }}
+                      onMouseEnter={e => { if (!isExpanded) (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"; }}
+                      onMouseLeave={e => { if (!isExpanded) (e.currentTarget as HTMLElement).style.background = ""; }}
+                    >
+                      <td className="px-5 py-3.5">
+                        <span className="text-[11px] font-bold" style={{ color: "var(--bs-text-muted)" }}>#{add.number}</span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{add.title}</span>
+                          {priority === "critical" && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest" style={{ background: "var(--bs-red)", color: "#13151a" }}>Critical</span>}
+                          {priority === "high" && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest" style={{ background: "var(--bs-amber)", color: "#13151a" }}>High</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 hidden sm:table-cell">
+                        <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{add.receivedDate ?? "—"}</span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span
+                          className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest"
+                          style={{
+                            background: !reviewed ? "var(--bs-red)" : add.affectsScope && !add.repriced ? "var(--bs-amber)" : "var(--bs-teal)",
+                            color: "#13151a",
+                          }}
+                        >
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} style={{ color: "var(--bs-text-muted)" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr key={`${add._id}-detail`} style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                        <td colSpan={5} className="px-5 py-4">
+                          <AddendumCard
+                            add={add}
+                            isDemo={isDemo}
+                            onUpdate={handleUpdate}
+                            onMarkReviewed={handleMarkReviewed}
+                            onDelete={handleDelete}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       ) : (
-        <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-            <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v8.25m19.5 0H2.25m19.5 0v3a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 18v-3" /></svg>
+        <div className="text-center py-16 rounded-xl" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bs-bg-elevated)" }}>
+            <svg className="w-6 h-6" style={{ color: "var(--bs-text-muted)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v8.25m19.5 0H2.25m19.5 0v3a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 18v-3" /></svg>
           </div>
-          <p className="text-sm text-slate-500 mb-2">No addenda logged for this project</p>
-          <p className="text-xs text-slate-500">Click &quot;+ Add Addendum&quot; when you receive one from the GC</p>
-          <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">Missed addenda are one of the most common bid-day errors — BidShield tracks each one so nothing falls through.</p>
+          <p className="text-sm font-semibold mb-1" style={{ color: "var(--bs-text-secondary)" }}>No addenda logged</p>
+          <p className="text-xs max-w-xs mx-auto" style={{ color: "var(--bs-text-muted)" }}>Missed addenda are one of the most common bid-day errors. Log each one when received from the GC.</p>
         </div>
       )}
     </div>
@@ -402,52 +421,53 @@ function AddendumCard({
   };
 
   return (
-    <div className={`bg-white rounded-xl p-5 border border-slate-200 ${cardBorderColor(add)}`}>
+    <div className={`rounded-xl p-5 ${cardBorderColor(add)}`} style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
       {/* Header Row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap mb-1.5">
-            <span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">#{add.number}</span>
+            <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)" }}>#{add.number}</span>
             {/* Review Status Badge */}
             {reviewed ? (
-              <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
                 Reviewed
               </span>
             ) : (
-              <span className="text-[10px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-200">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)" }}>
                 Pending Review
               </span>
             )}
             {priority === "critical" && (
-              <span className="text-[11px] font-bold bg-red-50 text-red-600 px-2 py-0.5 rounded-full uppercase tracking-wide border border-red-200">Critical</span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)" }}>Critical</span>
             )}
             {priority === "high" && (
-              <span className="text-[11px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-wide border border-amber-200">High</span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }}>High</span>
             )}
-            <span className="text-xs text-slate-500">Received: {add.receivedDate}</span>
+            <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>Received: {add.receivedDate}</span>
           </div>
-          <div className="text-sm text-slate-900 font-medium">{add.title}</div>
+          <div className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{add.title}</div>
           {reviewed && add.reviewedAt && (
-            <div className="text-[10px] text-slate-400 mt-0.5">
+            <div className="text-[10px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
               Reviewed {new Date(add.reviewedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </div>
           )}
         </div>
-        <button onClick={() => onDelete(add._id)} className="text-slate-600 hover:text-red-600 text-xs transition-colors shrink-0">Delete</button>
+        <button onClick={() => onDelete(add._id)} className="text-xs transition-colors shrink-0" style={{ color: "var(--bs-text-muted)" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}>Delete</button>
       </div>
 
       {/* Mark as Reviewed CTA — shown prominently when pending */}
       {!reviewed && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between gap-3">
+        <div className="mt-4 p-3 rounded-lg flex items-center justify-between gap-3" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
           <div>
-            <div className="text-xs font-semibold text-red-700">This addendum needs your review</div>
-            <div className="text-[11px] text-red-500 mt-0.5">
+            <div className="text-xs font-semibold" style={{ color: "var(--bs-red)" }}>This addendum needs your review</div>
+            <div className="text-[11px] mt-0.5" style={{ color: "var(--bs-red)" }}>
               Determine if it affects your scope, then mark it as reviewed to unblock your bid.
             </div>
           </div>
           <button
             onClick={() => onMarkReviewed(add._id)}
-            className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+            className="shrink-0 px-3 py-1.5 text-xs font-bold rounded-lg transition-opacity hover:opacity-90 whitespace-nowrap"
+            style={{ background: "var(--bs-teal)", color: "#13151a" }}
           >
             Mark as Reviewed
           </button>
@@ -455,20 +475,19 @@ function AddendumCard({
       )}
 
       {/* Affects Scope Toggle */}
-      <div className="mt-4 pt-3 border-t border-slate-200">
+      <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500">Affects Roofing Scope?</span>
+          <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>Affects Roofing Scope?</span>
           <div className="flex gap-2">
             <button
               onClick={() => {
                 const newVal = add.affectsScope === true ? undefined : true;
                 onUpdate(add._id, { affectsScope: newVal });
               }}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                add.affectsScope === true
-                  ? "bg-emerald-50 text-emerald-600 border border-emerald-500/50"
-                  : "bg-slate-100 text-slate-500 border border-slate-300 hover:text-slate-700"
-              }`}
+              className="px-3 py-1 text-xs font-medium rounded transition-colors"
+              style={add.affectsScope === true
+                ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }
+                : { background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
             >
               Yes
             </button>
@@ -477,11 +496,10 @@ function AddendumCard({
                 const newVal = add.affectsScope === false ? undefined : false;
                 onUpdate(add._id, { affectsScope: newVal });
               }}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                add.affectsScope === false
-                  ? "bg-slate-500/20 text-slate-600 border border-slate-500/50"
-                  : "bg-slate-100 text-slate-500 border border-slate-300 hover:text-slate-700"
-              }`}
+              className="px-3 py-1 text-xs font-medium rounded transition-colors"
+              style={add.affectsScope === false
+                ? { background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)", border: "1px solid var(--bs-border)" }
+                : { background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
             >
               No
             </button>
@@ -491,12 +509,12 @@ function AddendumCard({
 
       {/* Scope Impact Section (expanded when affectsScope = true) */}
       {add.affectsScope === true && (
-        <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-          <div className="text-xs font-semibold text-slate-600 mb-3">Scope Impact</div>
+        <div className="mt-3 p-4 rounded-lg" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+          <div className="text-xs font-semibold mb-3" style={{ color: "var(--bs-text-secondary)" }}>Scope Impact</div>
 
           {/* What changed */}
           <div className="mb-3">
-            <label className="block text-[11px] text-slate-500 mb-1">What changed:</label>
+            <label className="block text-[11px] mb-1" style={{ color: "var(--bs-text-muted)" }}>What changed:</label>
             <textarea
               value={localScopeImpact}
               onChange={(e) => {
@@ -508,24 +526,24 @@ function AddendumCard({
               }}
               placeholder="Describe the scope change..."
               rows={2}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm resize-none"
+              className="w-full px-3 py-2 text-sm rounded-lg resize-none focus:outline-none"
+              style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
               readOnly={isDemo}
             />
           </div>
 
           {/* Impact Areas */}
           <div className="mb-3">
-            <label className="block text-[11px] text-slate-500 mb-1.5">Impact Areas:</label>
+            <label className="block text-[11px] mb-1.5" style={{ color: "var(--bs-text-muted)" }}>Impact Areas:</label>
             <div className="flex flex-wrap gap-2">
               {IMPACT_OPTIONS.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => !isDemo && toggleImpactCategory(cat)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded transition-colors capitalize ${
-                    impactCats.includes(cat)
-                      ? "bg-amber-50 text-amber-600 border border-amber-500/50"
-                      : "bg-white text-slate-500 border border-slate-200 hover:text-slate-600"
-                  }`}
+                  className="px-2.5 py-1 text-xs font-medium rounded transition-colors capitalize"
+                  style={impactCats.includes(cat)
+                    ? { background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }
+                    : { background: "var(--bs-bg-card)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
                 >
                   {cat}
                 </button>
@@ -536,7 +554,7 @@ function AddendumCard({
           {/* Re-priced */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-500">Re-priced?</span>
+              <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>Re-priced?</span>
               <button
                 onClick={() => {
                   const newVal = !add.repriced;
@@ -546,20 +564,19 @@ function AddendumCard({
                     incorporated: newVal,
                   });
                 }}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  add.repriced
-                    ? "bg-emerald-50 text-emerald-600 border border-emerald-500/50"
-                    : "bg-red-50 text-red-600 border border-red-500/30"
-                }`}
+                className="px-3 py-1 text-xs font-medium rounded transition-colors"
+                style={add.repriced
+                  ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }
+                  : { background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)" }}
               >
                 {add.repriced ? "Yes" : "No"}
               </button>
             </div>
             {add.repriced && add.repricedDate && (
-              <span className="text-[11px] text-slate-500">Date: {add.repricedDate}</span>
+              <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>Date: {add.repricedDate}</span>
             )}
             {!add.repriced && (
-              <span className="text-[11px] font-semibold text-red-600 inline-flex items-center gap-1">
+              <span className="text-[11px] font-semibold inline-flex items-center gap-1" style={{ color: "var(--bs-red)" }}>
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                 NEEDS RE-PRICING
               </span>
@@ -568,9 +585,9 @@ function AddendumCard({
 
           {/* Price Impact */}
           <div>
-            <label className="block text-[11px] text-slate-500 mb-1">{add.repriced ? "Price Impact:" : "Estimated Impact:"}</label>
+            <label className="block text-[11px] mb-1" style={{ color: "var(--bs-text-muted)" }}>{add.repriced ? "Price Impact:" : "Estimated Impact:"}</label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">$</span>
+              <span className="text-sm" style={{ color: "var(--bs-text-muted)" }}>$</span>
               <input
                 type="number"
                 value={localPriceImpact}
@@ -583,11 +600,12 @@ function AddendumCard({
                   }, 800);
                 }}
                 placeholder="0"
-                className="w-32 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-900 text-sm"
+                className="w-32 px-3 py-1.5 text-sm rounded-lg focus:outline-none"
+                style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                 readOnly={isDemo}
               />
               {localPriceImpact && !isNaN(parseFloat(localPriceImpact)) && (
-                <span className={`text-xs font-bold ${parseFloat(localPriceImpact) > 0 ? "text-red-600" : parseFloat(localPriceImpact) < 0 ? "text-emerald-600" : "text-slate-500"}`}>
+                <span className="text-xs font-bold" style={{ color: parseFloat(localPriceImpact) > 0 ? "var(--bs-red)" : parseFloat(localPriceImpact) < 0 ? "var(--bs-teal)" : "var(--bs-text-muted)" }}>
                   {parseFloat(localPriceImpact) > 0 ? "+" : ""}${parseFloat(localPriceImpact).toLocaleString()}
                 </span>
               )}
@@ -598,7 +616,7 @@ function AddendumCard({
 
       {/* Notes */}
       <div className="mt-3">
-        <label className="block text-[11px] text-slate-500 mb-1">Notes:</label>
+        <label className="block text-[11px] mb-1" style={{ color: "var(--bs-text-muted)" }}>Notes:</label>
         <textarea
           value={localNotes}
           onChange={(e) => {
@@ -610,25 +628,29 @@ function AddendumCard({
           }}
           placeholder="Any additional notes..."
           rows={1}
-          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-900 text-sm resize-none"
+          className="w-full px-3 py-1.5 text-sm rounded-lg resize-none focus:outline-none"
+          style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
           readOnly={isDemo}
         />
       </div>
 
       {/* Status Footer */}
-      <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
+      <div className="mt-3 pt-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--bs-border)" }}>
         <div className="flex items-center gap-2">
           {status.icon === "check" ? (
-            <svg className="w-3.5 h-3.5 shrink-0" style={{ color: "currentColor" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            <svg className="w-3.5 h-3.5 shrink-0" style={{ color: status.color }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
           ) : (
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374L10.051 3.378c.866-1.5 3.032-1.5 3.898 0L21.303 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+            <svg className="w-3.5 h-3.5 shrink-0" style={{ color: status.color }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374L10.051 3.378c.866-1.5 3.032-1.5 3.898 0L21.303 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
           )}
-          <span className={`text-xs font-medium ${status.color}`}>{status.label}</span>
+          <span className="text-xs font-medium" style={{ color: status.color }}>{status.label}</span>
         </div>
         {reviewed && (
           <button
             onClick={() => !isDemo && onUpdate(add._id, { reviewStatus: "pending_review", reviewedBy: undefined, reviewedAt: undefined })}
-            className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-[11px] transition-colors"
+            style={{ color: "var(--bs-text-dim)" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
           >
             Undo review
           </button>

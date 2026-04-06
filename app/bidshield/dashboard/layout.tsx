@@ -79,7 +79,7 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
               <path d="M7 5V9M5 7H9" stroke="#13151a" strokeWidth="1.4"/>
             </svg>
           </div>
-          <span style={{ fontWeight: 500, fontSize: 15, color: "#fff", letterSpacing: "-0.3px" }}>BidShield</span>
+          <span style={{ fontWeight: 500, fontSize: 15, color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>BidShield</span>
         </a>
       </div>
 
@@ -252,8 +252,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   if (!isLoaded && !isDemo) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
-        <div className="text-slate-500 text-lg">Loading BidShield...</div>
+      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bs-bg-primary)" }}>
+        <div style={{ color: "var(--bs-text-muted)", fontSize: "1.125rem" }}>Loading BidShield...</div>
       </div>
     );
   }
@@ -275,25 +275,29 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 flex flex-col min-w-0">
         {isDemo && (
-          <div className="bg-emerald-600 text-white text-center py-2.5 text-sm font-medium shrink-0">
+          <div className="text-center py-2.5 text-sm font-medium shrink-0" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
             Demo mode — <Link href="/sign-up" className="underline font-semibold">Start free</Link> to save your own bids
           </div>
         )}
         {showTrialBanner && !isDemo && !isPro && (
-          <div className="bg-emerald-900/60 border-b border-emerald-700/50 px-4 py-2.5 flex items-center justify-between gap-4 shrink-0">
-            <p className="text-sm text-emerald-100">
+          <div className="px-4 py-2.5 flex items-center justify-between gap-4 shrink-0" style={{ background: "var(--bs-teal-dim)", borderBottom: "1px solid var(--bs-teal-border)" }}>
+            <p className="text-sm" style={{ color: "var(--bs-teal)" }}>
               <strong>14-day Pro trial available.</strong> Unlimited projects, PDF export, win/loss analytics — no card required.
             </p>
             <div className="flex items-center gap-3 shrink-0">
               <Link
                 href="/bidshield/pricing"
-                className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                className="text-xs px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap"
+                style={{ background: "var(--bs-teal)", color: "#13151a" }}
               >
                 Start Free Trial
               </Link>
               <button
                 onClick={dismissTrialBanner}
-                className="text-emerald-400 hover:text-white transition-colors text-xl leading-none"
+                className="text-xl leading-none transition-colors"
+                style={{ color: "var(--bs-teal)" }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-primary)"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-teal)"}
                 aria-label="Dismiss"
               >
                 &times;
@@ -313,8 +317,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={
-      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50">
-        <div className="text-slate-500 text-lg">Loading BidShield...</div>
+      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bs-bg-primary)" }}>
+        <div style={{ color: "var(--bs-text-muted)", fontSize: "1.125rem" }}>Loading BidShield...</div>
       </div>
     }>
       <DashboardContent>{children}</DashboardContent>

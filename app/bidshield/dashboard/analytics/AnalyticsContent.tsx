@@ -74,17 +74,18 @@ function AnalyticsInner() {
       return (
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="text-center max-w-md px-4">
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bs-bg-elevated)" }}>
+              <svg className="w-7 h-7" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Analytics is a Pro feature</h2>
-            <p className="text-slate-500 text-sm mb-2">
+            <h2 className="text-xl font-bold mb-2" style={{ color: "var(--bs-text-primary)" }}>Analytics is a Pro feature</h2>
+            <p className="text-sm mb-2" style={{ color: "var(--bs-text-muted)" }}>
               Track win rate, $/SF by system type, GC hit rate, and pipeline value over time.
             </p>
-            <p className="text-slate-400 text-xs mb-6">14-day free trial — no card required.</p>
+            <p className="text-xs mb-6" style={{ color: "var(--bs-text-dim)" }}>14-day free trial — no card required.</p>
             <a
               href="/bidshield/pricing"
-              className="inline-block px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+              className="inline-block px-6 py-3 font-semibold rounded-lg transition-colors"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               Start Free Trial
             </a>
@@ -182,7 +183,7 @@ function AnalyticsInner() {
   if (!stats) {
     return (
       <div className="text-center py-20">
-        <p className="text-slate-500">Loading analytics...</p>
+        <p style={{ color: "var(--bs-text-muted)" }}>Loading analytics...</p>
       </div>
     );
   }
@@ -262,26 +263,28 @@ function AnalyticsInner() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="app-display" style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>Analytics & Reports</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="app-display" style={{ fontSize: 30, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 4 }}>Analytics & Reports</h1>
+        <p className="text-sm" style={{ color: "var(--bs-text-muted)" }}>
           Track your bidding performance, compare $/SF, and identify trends
         </p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 p-4 bg-white rounded-xl border border-slate-200">
+      <div className="flex flex-wrap gap-3 p-4 rounded-xl" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         <div>
-          <label className="text-[10px] text-slate-500 block mb-1">Assembly</label>
+          <label className="text-[10px] block mb-1" style={{ color: "var(--bs-text-muted)" }}>Assembly</label>
           <select value={assemblyFilter} onChange={(e) => setAssemblyFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500">
+            className="rounded px-3 py-1.5 text-xs focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>
             <option value="all">All Assemblies</option>
             {assemblies.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-[10px] text-slate-500 block mb-1">Outcome</label>
+          <label className="text-[10px] block mb-1" style={{ color: "var(--bs-text-muted)" }}>Outcome</label>
           <select value={outcomeFilter} onChange={(e) => setOutcomeFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500">
+            className="rounded px-3 py-1.5 text-xs focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>
             <option value="all">All Outcomes</option>
             <option value="won">Won</option>
             <option value="lost">Lost</option>
@@ -291,9 +294,10 @@ function AnalyticsInner() {
           </select>
         </div>
         <div>
-          <label className="text-[10px] text-slate-500 block mb-1">Date Range</label>
+          <label className="text-[10px] block mb-1" style={{ color: "var(--bs-text-muted)" }}>Date Range</label>
           <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}
-            className="bg-slate-50 border border-slate-300 rounded px-3 py-1.5 text-slate-900 text-xs focus:outline-none focus:border-amber-500">
+            className="rounded px-3 py-1.5 text-xs focus:outline-none"
+            style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>
             <option value="all">All Time</option>
             <option value="6mo">Last 6 Months</option>
             <option value="12mo">Last 12 Months</option>
@@ -301,7 +305,7 @@ function AnalyticsInner() {
           </select>
         </div>
         <div className="flex items-end">
-          <span className="text-[11px] text-slate-500">
+          <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
             {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""} &middot; {pricedProjects.length} with pricing
           </span>
         </div>
@@ -310,26 +314,26 @@ function AnalyticsInner() {
       {/* Top Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label: "Win Rate", value: `${stats.winRate}%`, accent: "#059669" },
-          { label: "Decided Bids", value: String(totalBids), accent: "#334155" },
-          { label: "Revenue Won", value: `$${(stats.wonValue / 1000).toFixed(0)}K`, accent: "#059669" },
-          { label: "Active Pipeline", value: `$${(stats.pipelineValue / 1000).toFixed(0)}K`, accent: "#f59e0b" },
-          { label: "Avg $/SF", value: stats.avgDollarPerSf ? `$${stats.avgDollarPerSf.toFixed(2)}` : "—", accent: "#8b5cf6" },
+          { label: "Win Rate", value: `${stats.winRate}%`, accent: "var(--bs-teal)" },
+          { label: "Decided Bids", value: String(totalBids), accent: "var(--bs-text-dim)" },
+          { label: "Revenue Won", value: `$${(stats.wonValue / 1000).toFixed(0)}K`, accent: "var(--bs-teal)" },
+          { label: "Active Pipeline", value: `$${(stats.pipelineValue / 1000).toFixed(0)}K`, accent: "var(--bs-amber)" },
+          { label: "Avg $/SF", value: stats.avgDollarPerSf ? `$${stats.avgDollarPerSf.toFixed(2)}` : "—", accent: "#a78bfa" },
         ].map(({ label, value, accent }) => (
-          <div key={label} style={{ background: "white", borderRadius: 12, padding: "16px 18px", borderLeft: `4px solid ${accent}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>{value}</div>
+          <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: 12, padding: "16px 18px", borderLeft: `4px solid ${accent}` }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.03em", lineHeight: 1 }}>{value}</div>
           </div>
         ))}
       </div>
 
       {/* $/SF by Project Chart */}
       {dollarPerSfData.length > 0 && (
-        <div className="bg-white rounded-xl p-5" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>$/SF by Project</h3>
-          <p className="text-xs text-slate-500 mb-4">
-            Color: <span className="text-emerald-600">Won</span> &middot; <span className="text-red-600">Lost</span> &middot; <span className="text-amber-600">Pending</span>
-            {avgDpsf > 0 && <> &middot; Avg: <span className="text-purple-400">${avgDpsf.toFixed(2)}/SF</span></>}
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>$/SF by Project</h3>
+          <p className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>
+            Color: <span style={{ color: "var(--bs-teal)" }}>Won</span> &middot; <span style={{ color: "var(--bs-red)" }}>Lost</span> &middot; <span style={{ color: "var(--bs-amber)" }}>Pending</span>
+            {avgDpsf > 0 && <> &middot; Avg: <span style={{ color: "#a78bfa" }}>${avgDpsf.toFixed(2)}/SF</span></>}
           </p>
           <div style={{ height: Math.max(200, dollarPerSfData.length * 40) }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -359,10 +363,10 @@ function AnalyticsInner() {
 
       {/* Cost Breakdown */}
       {costBreakdownData.length > 0 && (
-        <div className="bg-white rounded-xl p-5" style={{ border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Cost Breakdown</h3>
-          <p className="text-xs text-slate-500 mb-4">
-            <span className="text-blue-400">Material</span> &middot; <span className="text-emerald-600">Labor</span> &middot; <span className="text-slate-500">Other</span>
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Cost Breakdown</h3>
+          <p className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>
+            <span style={{ color: "var(--bs-blue)" }}>Material</span> &middot; <span style={{ color: "var(--bs-teal)" }}>Labor</span> &middot; <span style={{ color: "var(--bs-text-muted)" }}>Other</span>
           </p>
           <div style={{ height: Math.max(200, costBreakdownData.length * 40) }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -387,35 +391,35 @@ function AnalyticsInner() {
 
       {/* Estimating Accuracy */}
       {projectsWithActuals.length > 0 && (
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Estimating Accuracy</h3>
-          <p className="text-xs text-slate-500 mb-4">
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Estimating Accuracy</h3>
+          <p className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>
             Comparing bid estimates to actual costs for completed projects
           </p>
 
           {/* Accuracy stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-400">{projectsWithActuals.length}</div>
-              <div className="text-[10px] text-slate-500 mt-1">Projects w/ Actuals</div>
+            <div className="rounded-lg p-4 text-center" style={{ background: "var(--bs-bg-elevated)" }}>
+              <div className="text-2xl font-bold" style={{ color: "var(--bs-blue)" }}>{projectsWithActuals.length}</div>
+              <div className="text-[10px] mt-1" style={{ color: "var(--bs-text-muted)" }}>Projects w/ Actuals</div>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <div className={`text-2xl font-bold ${Math.abs(avgTotalVariance) <= 5 ? "text-emerald-600" : Math.abs(avgTotalVariance) <= 10 ? "text-amber-600" : "text-red-600"}`}>
+            <div className="rounded-lg p-4 text-center" style={{ background: "var(--bs-bg-elevated)" }}>
+              <div className="text-2xl font-bold" style={{ color: Math.abs(avgTotalVariance) <= 5 ? "var(--bs-teal)" : Math.abs(avgTotalVariance) <= 10 ? "var(--bs-amber)" : "var(--bs-red)" }}>
                 {avgTotalVariance > 0 ? "+" : ""}{avgTotalVariance.toFixed(1)}%
               </div>
-              <div className="text-[10px] text-slate-500 mt-1">Avg Total Variance</div>
+              <div className="text-[10px] mt-1" style={{ color: "var(--bs-text-muted)" }}>Avg Total Variance</div>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <div className={`text-2xl font-bold ${Math.abs(avgMatVariance) <= 5 ? "text-emerald-600" : Math.abs(avgMatVariance) <= 10 ? "text-amber-600" : "text-red-600"}`}>
+            <div className="rounded-lg p-4 text-center" style={{ background: "var(--bs-bg-elevated)" }}>
+              <div className="text-2xl font-bold" style={{ color: Math.abs(avgMatVariance) <= 5 ? "var(--bs-teal)" : Math.abs(avgMatVariance) <= 10 ? "var(--bs-amber)" : "var(--bs-red)" }}>
                 {avgMatVariance > 0 ? "+" : ""}{avgMatVariance.toFixed(1)}%
               </div>
-              <div className="text-[10px] text-slate-500 mt-1">Avg Material Var.</div>
+              <div className="text-[10px] mt-1" style={{ color: "var(--bs-text-muted)" }}>Avg Material Var.</div>
             </div>
-            <div className="bg-slate-50 rounded-lg p-4 text-center">
-              <div className={`text-2xl font-bold ${Math.abs(avgLabVariance) <= 5 ? "text-emerald-600" : Math.abs(avgLabVariance) <= 10 ? "text-amber-600" : "text-red-600"}`}>
+            <div className="rounded-lg p-4 text-center" style={{ background: "var(--bs-bg-elevated)" }}>
+              <div className="text-2xl font-bold" style={{ color: Math.abs(avgLabVariance) <= 5 ? "var(--bs-teal)" : Math.abs(avgLabVariance) <= 10 ? "var(--bs-amber)" : "var(--bs-red)" }}>
                 {avgLabVariance > 0 ? "+" : ""}{avgLabVariance.toFixed(1)}%
               </div>
-              <div className="text-[10px] text-slate-500 mt-1">Avg Labor Var.</div>
+              <div className="text-[10px] mt-1" style={{ color: "var(--bs-text-muted)" }}>Avg Labor Var.</div>
             </div>
           </div>
 
@@ -425,40 +429,44 @@ function AnalyticsInner() {
               <thead>
                 <tr>
                   {["Project", "Estimated", "Actual", "Variance $", "Variance %", "Status"].map((h) => (
-                    <th key={h} className="text-left p-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200">{h}</th>
+                    <th key={h} className="text-left p-2.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)", borderBottom: "1px solid var(--bs-border)" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {accuracyData.map((d, i) => {
                   const absPct = Math.abs(d.variancePct);
-                  const color = absPct <= 5 ? "text-emerald-600" : absPct <= 10 ? "text-amber-600" : "text-red-600";
+                  const varColor = absPct <= 5 ? "var(--bs-teal)" : absPct <= 10 ? "var(--bs-amber)" : "var(--bs-red)";
                   const statusLabel = absPct <= 5 ? "On Target" : absPct <= 10 ? "Review" : "Over Budget";
-                  const statusBg = absPct <= 5 ? "bg-emerald-50 text-emerald-600" : absPct <= 10 ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600";
+                  const statusStyle = absPct <= 5
+                    ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }
+                    : absPct <= 10
+                    ? { background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }
+                    : { background: "var(--bs-red-dim)", color: "var(--bs-red)" };
                   return (
-                    <tr key={i} className="border-b border-slate-200 hover:bg-slate-100/30">
-                      <td className="p-2.5 text-sm text-slate-700 max-w-[160px] truncate">{d.name}</td>
-                      <td className="p-2.5 text-sm text-slate-600 tabular-nums">${(d.estimated / 1000).toFixed(0)}k</td>
-                      <td className="p-2.5 text-sm text-slate-600 tabular-nums">${(d.actual / 1000).toFixed(0)}k</td>
-                      <td className={`p-2.5 text-sm tabular-nums font-semibold ${color}`}>
+                    <tr key={i} style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                      <td className="p-2.5 text-sm max-w-[160px] truncate" style={{ color: "var(--bs-text-secondary)" }}>{d.name}</td>
+                      <td className="p-2.5 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>${(d.estimated / 1000).toFixed(0)}k</td>
+                      <td className="p-2.5 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>${(d.actual / 1000).toFixed(0)}k</td>
+                      <td className="p-2.5 text-sm tabular-nums font-semibold" style={{ color: varColor }}>
                         {d.varianceDollar > 0 ? "+" : ""}{d.varianceDollar > 999 || d.varianceDollar < -999 ? `$${(d.varianceDollar / 1000).toFixed(1)}k` : `$${d.varianceDollar.toLocaleString()}`}
                       </td>
                       <td className="p-2.5">
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm font-bold tabular-nums ${color}`}>{d.variancePct > 0 ? "+" : ""}{d.variancePct.toFixed(1)}%</span>
+                          <span className="text-sm font-bold tabular-nums" style={{ color: varColor }}>{d.variancePct > 0 ? "+" : ""}{d.variancePct.toFixed(1)}%</span>
                           {/* Mini variance bar */}
-                          <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden relative">
-                            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500" />
+                          <div className="w-16 h-2 rounded-full overflow-hidden relative" style={{ background: "var(--bs-bg-elevated)" }}>
+                            <div className="absolute left-1/2 top-0 bottom-0 w-px" style={{ background: "var(--bs-text-dim)" }} />
                             {d.variancePct > 0 ? (
-                              <div className="absolute top-0 bottom-0 bg-red-500 rounded-full" style={{ left: "50%", width: `${Math.min(50, absPct * 4)}%` }} />
+                              <div className="absolute top-0 bottom-0 rounded-full" style={{ left: "50%", width: `${Math.min(50, absPct * 4)}%`, background: "var(--bs-red)" }} />
                             ) : (
-                              <div className="absolute top-0 bottom-0 bg-emerald-500 rounded-full" style={{ right: "50%", width: `${Math.min(50, absPct * 4)}%` }} />
+                              <div className="absolute top-0 bottom-0 rounded-full" style={{ right: "50%", width: `${Math.min(50, absPct * 4)}%`, background: "var(--bs-teal)" }} />
                             )}
                           </div>
                         </div>
                       </td>
                       <td className="p-2.5">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${statusBg}`}>{statusLabel}</span>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded" style={statusStyle}>{statusLabel}</span>
                       </td>
                     </tr>
                   );
@@ -468,7 +476,7 @@ function AnalyticsInner() {
           </div>
 
           {/* Trend message */}
-          <div className="mt-4 p-3 bg-slate-50 rounded-lg text-xs text-slate-500">
+          <div className="mt-4 p-3 rounded-lg text-xs" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>
             {avgTotalVariance <= 0
               ? `Your estimates are averaging ${Math.abs(avgTotalVariance).toFixed(1)}% under actual costs — strong estimating accuracy.`
               : avgTotalVariance <= 5
@@ -481,9 +489,9 @@ function AnalyticsInner() {
 
       {/* GC Intelligence */}
       {gcIntelData.length > 0 && (
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>GC Intelligence</h3>
-          <p className="text-xs text-slate-500 mb-4">
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>GC Intelligence</h3>
+          <p className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>
             Performance breakdown by general contractor
           </p>
           <div className="overflow-x-auto">
@@ -491,27 +499,27 @@ function AnalyticsInner() {
               <thead>
                 <tr>
                   {["General Contractor", "Bids", "Wins", "Win %", "Avg $/SF", "Won $/SF", "Revenue"].map((h) => (
-                    <th key={h} className="text-left p-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200">{h}</th>
+                    <th key={h} className="text-left p-2.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)", borderBottom: "1px solid var(--bs-border)" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {gcIntelData.map((g) => (
-                  <tr key={g.gc} className="border-b border-slate-200 hover:bg-slate-100/30">
-                    <td className="p-2.5 text-sm text-slate-700 max-w-[160px] truncate">{g.gc}</td>
-                    <td className="p-2.5 text-sm text-slate-600 tabular-nums">{g.bids}</td>
-                    <td className="p-2.5 text-sm text-emerald-600 tabular-nums font-semibold">{g.wins}</td>
+                  <tr key={g.gc} style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                    <td className="p-2.5 text-sm max-w-[160px] truncate" style={{ color: "var(--bs-text-secondary)" }}>{g.gc}</td>
+                    <td className="p-2.5 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{g.bids}</td>
+                    <td className="p-2.5 text-sm tabular-nums font-semibold" style={{ color: "var(--bs-teal)" }}>{g.wins}</td>
                     <td className="p-2.5">
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-bold tabular-nums ${g.winRate >= 60 ? "text-emerald-600" : g.winRate >= 40 ? "text-amber-600" : "text-red-600"}`}>{g.winRate}%</span>
-                        <div className="w-12 h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${g.winRate >= 60 ? "bg-emerald-500" : g.winRate >= 40 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${g.winRate}%` }} />
+                        <span className="text-sm font-bold tabular-nums" style={{ color: g.winRate >= 60 ? "var(--bs-teal)" : g.winRate >= 40 ? "var(--bs-amber)" : "var(--bs-red)" }}>{g.winRate}%</span>
+                        <div className="w-12 h-2 rounded-full overflow-hidden" style={{ background: "var(--bs-bg-elevated)" }}>
+                          <div className="h-full rounded-full" style={{ width: `${g.winRate}%`, background: g.winRate >= 60 ? "var(--bs-teal)" : g.winRate >= 40 ? "var(--bs-amber)" : "var(--bs-red)" }} />
                         </div>
                       </div>
                     </td>
-                    <td className="p-2.5 text-sm text-slate-600 tabular-nums">{g.avgDpsf > 0 ? `$${g.avgDpsf.toFixed(2)}` : "—"}</td>
-                    <td className="p-2.5 text-sm text-emerald-600 tabular-nums">{g.wonDpsf > 0 ? `$${g.wonDpsf.toFixed(2)}` : "—"}</td>
-                    <td className="p-2.5 text-sm text-slate-600 tabular-nums font-semibold">{g.revenue > 0 ? `$${(g.revenue / 1000).toFixed(0)}k` : "—"}</td>
+                    <td className="p-2.5 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{g.avgDpsf > 0 ? `$${g.avgDpsf.toFixed(2)}` : "—"}</td>
+                    <td className="p-2.5 text-sm tabular-nums" style={{ color: "var(--bs-teal)" }}>{g.wonDpsf > 0 ? `$${g.wonDpsf.toFixed(2)}` : "—"}</td>
+                    <td className="p-2.5 text-sm tabular-nums font-semibold" style={{ color: "var(--bs-text-muted)" }}>{g.revenue > 0 ? `$${(g.revenue / 1000).toFixed(0)}k` : "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -521,8 +529,8 @@ function AnalyticsInner() {
           {gcInsights.length > 0 && (
             <div className="mt-4 space-y-1.5">
               {gcInsights.map((insight, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs text-slate-500">
-                  <span className="text-amber-500 mt-px">*</span>
+                <div key={i} className="flex items-start gap-2 text-xs" style={{ color: "var(--bs-text-muted)" }}>
+                  <span style={{ color: "var(--bs-amber)" }} className="mt-px">*</span>
                   <span>{insight}</span>
                 </div>
               ))}
@@ -552,19 +560,19 @@ function AnalyticsInner() {
           .sort((a, b) => b.total - a.total);
         if (rows.length === 0) return null;
         return (
-          <div className="bg-white rounded-xl p-5 border border-slate-200">
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Win Rate by System Type</h3>
-            <p className="text-xs text-slate-500 mb-4">Performance broken down by membrane system</p>
+          <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Win Rate by System Type</h3>
+            <p className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>Performance broken down by membrane system</p>
             <div className="space-y-3">
               {rows.map(r => (
                 <div key={r.sys}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-slate-700 font-medium">{r.sys}</span>
-                    <span className="text-xs text-slate-500">{r.won}W / {r.lost}L ({r.winRate}%)</span>
+                    <span className="text-sm font-medium" style={{ color: "var(--bs-text-secondary)" }}>{r.sys}</span>
+                    <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{r.won}W / {r.lost}L ({r.winRate}%)</span>
                   </div>
-                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden flex">
-                    {r.won > 0 && <div className="h-full bg-emerald-500" style={{ width: `${(r.won / r.total) * 100}%` }} />}
-                    {r.lost > 0 && <div className="h-full bg-red-500" style={{ width: `${(r.lost / r.total) * 100}%` }} />}
+                  <div className="h-4 rounded-full overflow-hidden flex" style={{ background: "var(--bs-bg-elevated)" }}>
+                    {r.won > 0 && <div className="h-full" style={{ width: `${(r.won / r.total) * 100}%`, background: "var(--bs-teal)" }} />}
+                    {r.lost > 0 && <div className="h-full" style={{ width: `${(r.lost / r.total) * 100}%`, background: "var(--bs-red)" }} />}
                   </div>
                 </div>
               ))}
@@ -595,19 +603,19 @@ function AnalyticsInner() {
           .filter(r => r.total > 0);
         if (rows.length === 0) return null;
         return (
-          <div className="bg-white rounded-xl p-5 border border-slate-200">
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Win Rate by Project Size</h3>
-            <p className="text-xs text-slate-500 mb-4">Where you compete most effectively</p>
+          <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Win Rate by Project Size</h3>
+            <p className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>Where you compete most effectively</p>
             <div className="space-y-3">
               {rows.map(r => (
                 <div key={r.key}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-slate-700 font-medium">{r.label}</span>
-                    <span className="text-xs text-slate-500">{r.won}W / {r.lost}L ({r.winRate}%)</span>
+                    <span className="text-sm font-medium" style={{ color: "var(--bs-text-secondary)" }}>{r.label}</span>
+                    <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{r.won}W / {r.lost}L ({r.winRate}%)</span>
                   </div>
-                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden flex">
-                    {r.won > 0 && <div className="h-full bg-emerald-500" style={{ width: `${(r.won / r.total) * 100}%` }} />}
-                    {r.lost > 0 && <div className="h-full bg-red-500" style={{ width: `${(r.lost / r.total) * 100}%` }} />}
+                  <div className="h-4 rounded-full overflow-hidden flex" style={{ background: "var(--bs-bg-elevated)" }}>
+                    {r.won > 0 && <div className="h-full" style={{ width: `${(r.won / r.total) * 100}%`, background: "var(--bs-teal)" }} />}
+                    {r.lost > 0 && <div className="h-full" style={{ width: `${(r.lost / r.total) * 100}%`, background: "var(--bs-red)" }} />}
                   </div>
                 </div>
               ))}
@@ -626,31 +634,31 @@ function AnalyticsInner() {
           : (comparisonData?.competitorData ?? []);
         if (competitors.length === 0) return null;
         return (
-          <div className="bg-white rounded-xl p-5 border border-slate-200">
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Competitor Intelligence</h3>
-            <p className="text-xs text-slate-500 mb-4">Based on loss data — who is beating you and at what price</p>
+          <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Competitor Intelligence</h3>
+            <p className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>Based on loss data — who is beating you and at what price</p>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr>
                     {["Competitor", "Times Won vs You", "Avg Bid ($)", "Avg $/SF"].map(h => (
-                      <th key={h} className="text-left p-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200">{h}</th>
+                      <th key={h} className="text-left p-2.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)", borderBottom: "1px solid var(--bs-border)" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {competitors.map((c: any) => (
-                    <tr key={c.name} className="border-b border-slate-200 hover:bg-slate-100/30">
-                      <td className="p-2.5 text-sm font-semibold text-slate-700">{c.name}</td>
-                      <td className="p-2.5 text-sm text-slate-600 tabular-nums">{c.count}</td>
-                      <td className="p-2.5 text-sm text-slate-600 tabular-nums">{c.avgPrice > 0 ? `$${(c.avgPrice / 1000).toFixed(0)}k` : "—"}</td>
-                      <td className="p-2.5 text-sm text-emerald-600 tabular-nums font-semibold">{c.avgDpsf > 0 ? `$${c.avgDpsf.toFixed(2)}` : "—"}</td>
+                    <tr key={c.name} style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                      <td className="p-2.5 text-sm font-semibold" style={{ color: "var(--bs-text-secondary)" }}>{c.name}</td>
+                      <td className="p-2.5 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{c.count}</td>
+                      <td className="p-2.5 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{c.avgPrice > 0 ? `$${(c.avgPrice / 1000).toFixed(0)}k` : "—"}</td>
+                      <td className="p-2.5 text-sm tabular-nums font-semibold" style={{ color: "var(--bs-teal)" }}>{c.avgDpsf > 0 ? `$${c.avgDpsf.toFixed(2)}` : "—"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="text-[11px] text-slate-400 mt-3">Only shown when competitor name is recorded on lost bids.</p>
+            <p className="text-[11px] mt-3" style={{ color: "var(--bs-text-dim)" }}>Only shown when competitor name is recorded on lost bids.</p>
           </div>
         );
       })()}
@@ -658,27 +666,27 @@ function AnalyticsInner() {
       {/* Win Rate by GC + Loss Reasons side by side */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Win Rate by GC */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 16 }}>Win Rate by GC</h3>
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 16 }}>Win Rate by GC</h3>
           {gcData.length > 0 ? (
             <div className="space-y-3">
               {gcData.map((g) => (
                 <div key={g.gc}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-slate-700 truncate max-w-[180px]">{g.gc}</span>
-                    <span className="text-xs text-slate-500">{g.won}W / {g.lost}L ({g.winRate}%)</span>
+                    <span className="text-sm truncate max-w-[180px]" style={{ color: "var(--bs-text-secondary)" }}>{g.gc}</span>
+                    <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{g.won}W / {g.lost}L ({g.winRate}%)</span>
                   </div>
-                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden flex">
+                  <div className="h-4 rounded-full overflow-hidden flex" style={{ background: "var(--bs-bg-elevated)" }}>
                     {g.won > 0 && (
                       <div
-                        className="h-full bg-emerald-500 transition-all"
-                        style={{ width: `${(g.won / g.total) * 100}%` }}
+                        className="h-full transition-all"
+                        style={{ width: `${(g.won / g.total) * 100}%`, background: "var(--bs-teal)" }}
                       />
                     )}
                     {g.lost > 0 && (
                       <div
-                        className="h-full bg-red-500 transition-all"
-                        style={{ width: `${(g.lost / g.total) * 100}%` }}
+                        className="h-full transition-all"
+                        style={{ width: `${(g.lost / g.total) * 100}%`, background: "var(--bs-red)" }}
                       />
                     )}
                   </div>
@@ -686,39 +694,39 @@ function AnalyticsInner() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-500 text-center py-4">Need 2+ bids per GC to show data</p>
+            <p className="text-sm text-center py-4" style={{ color: "var(--bs-text-muted)" }}>Need 2+ bids per GC to show data</p>
           )}
         </div>
 
         {/* Loss Reasons */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200">
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 16 }}>Loss Reasons</h3>
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 16 }}>Loss Reasons</h3>
           {lossReasonData.length > 0 ? (
             <div className="space-y-3">
               {lossReasonData.map((d) => (
                 <div key={d.reason}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-slate-700">{d.reason}</span>
-                    <span className="text-xs text-slate-500">{d.count} ({totalLosses > 0 ? Math.round((d.count / totalLosses) * 100) : 0}%)</span>
+                    <span className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>{d.reason}</span>
+                    <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{d.count} ({totalLosses > 0 ? Math.round((d.count / totalLosses) * 100) : 0}%)</span>
                   </div>
-                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-4 rounded-full overflow-hidden" style={{ background: "var(--bs-bg-elevated)" }}>
                     <div
-                      className="h-full bg-red-500 rounded-full transition-all"
-                      style={{ width: `${totalLosses > 0 ? (d.count / totalLosses) * 100 : 0}%` }}
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${totalLosses > 0 ? (d.count / totalLosses) * 100 : 0}%`, background: "var(--bs-red)" }}
                     />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-500 text-center py-4">No loss reasons recorded yet</p>
+            <p className="text-sm text-center py-4" style={{ color: "var(--bs-text-muted)" }}>No loss reasons recorded yet</p>
           )}
         </div>
       </div>
 
       {/* Project History Table */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200">
-        <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 16 }}>Project History</h3>
+      <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 16 }}>Project History</h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -726,7 +734,8 @@ function AnalyticsInner() {
                 {["Project", "GC", "Assembly", "SF", "$/SF", "Amount", "Result", "Date"].map((h) => (
                   <th
                     key={h}
-                    className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 bg-slate-50"
+                    className="text-left p-3 text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: "var(--bs-text-dim)", borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}
                   >
                     {h}
                   </th>
@@ -740,23 +749,29 @@ function AnalyticsInner() {
                   const sf = (p as any).grossRoofArea || p.sqft || 0;
                   const dpsf = p.totalBidAmount && sf > 0 ? (p.totalBidAmount / sf).toFixed(2) : "—";
                   const statusLabel = p.status === "won" ? "WON" : p.status === "lost" ? "LOST" : p.status === "no_award" ? "NO AWARD" : p.status === "submitted" ? "SUBMITTED" : p.status === "in_progress" ? "ACTIVE" : p.status === "no_bid" ? "NO BID" : "SETUP";
-                  const statusClasses = p.status === "won" ? "bg-emerald-50 text-emerald-600" : p.status === "lost" ? "bg-red-50 text-red-600" : p.status === "no_award" ? "bg-slate-100 text-slate-500" : p.status === "in_progress" || p.status === "submitted" ? "bg-amber-50 text-amber-600" : "bg-slate-100 text-slate-500";
+                  const statusStyle = p.status === "won"
+                    ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }
+                    : p.status === "lost"
+                    ? { background: "var(--bs-red-dim)", color: "var(--bs-red)" }
+                    : p.status === "in_progress" || p.status === "submitted"
+                    ? { background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }
+                    : { background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" };
                   return (
-                    <tr key={p._id || i} className="border-b border-slate-200 hover:bg-slate-100/30">
-                      <td className="p-3 text-sm text-slate-700 max-w-[160px] truncate">{p.name}</td>
-                      <td className="p-3 text-sm text-slate-500 max-w-[120px] truncate">{p.gc || "—"}</td>
-                      <td className="p-3 text-[11px] text-slate-500 max-w-[140px] truncate">{p.primaryAssembly || "—"}</td>
-                      <td className="p-3 text-sm text-slate-600 tabular-nums">{sf > 0 ? sf.toLocaleString() : "—"}</td>
-                      <td className="p-3 text-sm text-slate-600 tabular-nums">{dpsf !== "—" ? `$${dpsf}` : "—"}</td>
-                      <td className="p-3 text-sm font-bold text-slate-600 tabular-nums">
+                    <tr key={p._id || i} style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                      <td className="p-3 text-sm max-w-[160px] truncate" style={{ color: "var(--bs-text-secondary)" }}>{p.name}</td>
+                      <td className="p-3 text-sm max-w-[120px] truncate" style={{ color: "var(--bs-text-muted)" }}>{p.gc || "—"}</td>
+                      <td className="p-3 text-[11px] max-w-[140px] truncate" style={{ color: "var(--bs-text-muted)" }}>{p.primaryAssembly || "—"}</td>
+                      <td className="p-3 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{sf > 0 ? sf.toLocaleString() : "—"}</td>
+                      <td className="p-3 text-sm tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{dpsf !== "—" ? `$${dpsf}` : "—"}</td>
+                      <td className="p-3 text-sm font-bold tabular-nums" style={{ color: "var(--bs-text-muted)" }}>
                         {p.totalBidAmount ? `$${(p.totalBidAmount / 1000).toFixed(0)}k` : "—"}
                       </td>
                       <td className="p-3">
-                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${statusClasses}`}>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={statusStyle}>
                           {statusLabel}
                         </span>
                       </td>
-                      <td className="p-3 text-sm text-slate-500">{p.bidDate || "—"}</td>
+                      <td className="p-3 text-sm" style={{ color: "var(--bs-text-muted)" }}>{p.bidDate || "—"}</td>
                     </tr>
                   );
                 })}
@@ -764,7 +779,7 @@ function AnalyticsInner() {
           </table>
         </div>
         {filteredProjects.length === 0 && (
-          <p className="text-center text-sm text-slate-500 py-8">
+          <p className="text-center text-sm py-8" style={{ color: "var(--bs-text-muted)" }}>
             No projects match your filters. Adjust filters above or add projects from the dashboard.
           </p>
         )}
@@ -805,7 +820,7 @@ function compileLossReasons(projects: any[]) {
 
 export default function AnalyticsContent() {
   return (
-    <Suspense fallback={<div className="text-slate-500">Loading analytics...</div>}>
+    <Suspense fallback={<div style={{ color: "var(--bs-text-muted)" }}>Loading analytics...</div>}>
       <AnalyticsInner />
     </Suspense>
   );

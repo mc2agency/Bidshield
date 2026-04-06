@@ -314,8 +314,8 @@ function ProjectDetail() {
     return new Date(`${projectData.bidDate}T23:59:59`).getTime();
   }, [projectData]);
 
-  if (!projectIdParam) return <div className="text-center py-20"><p className="text-slate-500">No project selected.</p></div>;
-  if (!isDemo && !projectData) return <div className="text-center py-20"><div className="text-slate-400 text-sm">Loading...</div></div>;
+  if (!projectIdParam) return <div className="text-center py-20"><p style={{ color: "var(--bs-text-muted)" }}>No project selected.</p></div>;
+  if (!isDemo && !projectData) return <div className="text-center py-20"><div style={{ color: "var(--bs-text-dim)", fontSize: "0.875rem" }}>Loading...</div></div>;
 
   const msUntilBid = bidDeadlineMs !== null ? bidDeadlineMs - nowMs : null;
   const hoursUntilBid = msUntilBid !== null ? msUntilBid / 3600000 : null;
@@ -472,7 +472,7 @@ function ProjectDetail() {
 
         {/* Status summary */}
         <div className="px-3 pb-3 pt-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "#4b5563" }}>Status</div>
+          <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Status</div>
           <div className="flex flex-wrap gap-1.5">
             {blockerCount > 0 && (
               <span style={{ fontSize: 11, fontWeight: 500, background: "var(--bs-red-dim)", color: "var(--bs-red)", padding: "3px 9px", borderRadius: 6, border: "1px solid var(--bs-red-border)" }}>
@@ -502,33 +502,33 @@ function ProjectDetail() {
         {/* ── PROJECT COMMAND BAR ── always visible, carries full context across all tabs */}
         <div
           className="shrink-0 px-5"
-          style={{ background: "#0f1117", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}
         >
           {/* Row 1 — breadcrumb */}
           <div className="flex items-center gap-1.5 pt-2.5 pb-1">
             <Link
               href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
               className="flex items-center gap-0.5 transition-colors cursor-pointer"
-              style={{ fontSize: 11, color: "#4b5563", textDecoration: "none" }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#4b5563"}
+              style={{ fontSize: 11, color: "var(--bs-text-muted)", textDecoration: "none" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
               Projects
             </Link>
-            <span style={{ fontSize: 11, color: "#2d3748" }}>/</span>
+            <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>/</span>
             <span
-              style={{ fontSize: 11, color: activeTab ? "#4b5563" : "#94a3b8", cursor: activeTab ? "pointer" : undefined, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+              style={{ fontSize: 11, color: activeTab ? "var(--bs-text-muted)" : "var(--bs-text-dim)", cursor: activeTab ? "pointer" : undefined, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
               onClick={activeTab ? () => setActiveTab(null) : undefined}
             >
               {projectData?.name ?? "Project"}
             </span>
             {activeTab && (
               <>
-                <span style={{ fontSize: 11, color: "#2d3748" }}>/</span>
-                <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>{activeTabLabel}</span>
+                <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>/</span>
+                <span style={{ fontSize: 11, color: "var(--bs-text-dim)", fontWeight: 500 }}>{activeTabLabel}</span>
               </>
             )}
           </div>
@@ -536,7 +536,7 @@ function ProjectDetail() {
           {/* Row 2 — project identity + key numbers + CTA */}
           <div className="flex items-center gap-0 pb-3 min-w-0">
             {/* Project name */}
-            <div className="app-display mr-3 shrink-0" style={{ fontSize: 20, fontWeight: 800, color: "#f1f5f9", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <div className="app-display mr-3 shrink-0" style={{ fontSize: 20, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
               {projectData?.name ?? "Project"}
             </div>
 
@@ -545,8 +545,8 @@ function ProjectDetail() {
               <span className="mr-3 shrink-0" style={{
                 fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
                 padding: "2px 7px", borderRadius: 3,
-                background: (projectData as any).status === "won" ? "rgba(16,185,129,0.2)" : (projectData as any).status === "lost" ? "rgba(239,68,68,0.2)" : (projectData as any).status === "submitted" ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.1)",
-                color: (projectData as any).status === "won" ? "#34d399" : (projectData as any).status === "lost" ? "#f87171" : (projectData as any).status === "submitted" ? "#60a5fa" : "#94a3b8",
+                background: (projectData as any).status === "won" ? "var(--bs-teal-dim)" : (projectData as any).status === "lost" ? "var(--bs-red-dim)" : (projectData as any).status === "submitted" ? "var(--bs-blue-dim)" : "rgba(255,255,255,0.08)",
+                color: (projectData as any).status === "won" ? "var(--bs-teal)" : (projectData as any).status === "lost" ? "var(--bs-red)" : (projectData as any).status === "submitted" ? "var(--bs-blue)" : "var(--bs-text-dim)",
               }}>
                 {(projectData as any).status === "in_progress" ? "Active" : (projectData as any).status?.replace("_", " ")}
               </span>
@@ -558,25 +558,25 @@ function ProjectDetail() {
             {/* Key numbers inline */}
             <div className="flex items-center gap-4 min-w-0 flex-1">
               {grossArea ? (
-                <span style={{ fontSize: 13, color: "#64748b", whiteSpace: "nowrap" }}>
-                  <span style={{ color: "#94a3b8", fontWeight: 600 }}>{grossArea >= 1000 ? `${(grossArea/1000).toFixed(0)}K` : grossArea.toLocaleString()}</span>
-                  <span style={{ color: "#374151", marginLeft: 3 }}>SF</span>
+                <span style={{ fontSize: 13, color: "var(--bs-text-muted)", whiteSpace: "nowrap" }}>
+                  <span style={{ color: "var(--bs-text-secondary)", fontWeight: 600 }}>{grossArea >= 1000 ? `${(grossArea/1000).toFixed(0)}K` : grossArea.toLocaleString()}</span>
+                  <span style={{ color: "var(--bs-text-dim)", marginLeft: 3 }}>SF</span>
                 </span>
               ) : null}
               {bidAmt ? (
-                <span style={{ fontSize: 13, color: "#64748b", whiteSpace: "nowrap" }}>
-                  <span style={{ color: "#94a3b8", fontWeight: 600 }}>${bidAmt >= 1_000_000 ? `${(bidAmt/1_000_000).toFixed(2)}M` : bidAmt >= 1000 ? `${(bidAmt/1000).toFixed(0)}K` : bidAmt.toLocaleString()}</span>
-                  <span style={{ color: "#374151", marginLeft: 3 }}>bid</span>
+                <span style={{ fontSize: 13, color: "var(--bs-text-muted)", whiteSpace: "nowrap" }}>
+                  <span style={{ color: "var(--bs-text-secondary)", fontWeight: 600 }}>${bidAmt >= 1_000_000 ? `${(bidAmt/1_000_000).toFixed(2)}M` : bidAmt >= 1000 ? `${(bidAmt/1000).toFixed(0)}K` : bidAmt.toLocaleString()}</span>
+                  <span style={{ color: "var(--bs-text-dim)", marginLeft: 3 }}>bid</span>
                 </span>
               ) : null}
               {dpsf ? (
-                <span style={{ fontSize: 13, color: "#64748b", whiteSpace: "nowrap" }}>
-                  <span style={{ color: "#94a3b8", fontWeight: 600 }}>${dpsf.toFixed(2)}</span>
-                  <span style={{ color: "#374151", marginLeft: 3 }}>/SF</span>
+                <span style={{ fontSize: 13, color: "var(--bs-text-muted)", whiteSpace: "nowrap" }}>
+                  <span style={{ color: "var(--bs-text-secondary)", fontWeight: 600 }}>${dpsf.toFixed(2)}</span>
+                  <span style={{ color: "var(--bs-text-dim)", marginLeft: 3 }}>/SF</span>
                 </span>
               ) : null}
               {projectData?.location && (
-                <span style={{ fontSize: 12, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
+                <span style={{ fontSize: 12, color: "var(--bs-text-dim)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
                   {[projectData.location, (projectData as any)?.gc].filter(Boolean).join(" · ")}
                 </span>
               )}
@@ -589,9 +589,9 @@ function ProjectDetail() {
                 <div style={{
                   fontSize: 12, fontWeight: 700,
                   padding: "4px 10px", borderRadius: 6,
-                  background: msUntilBid <= 0 ? "rgba(239,68,68,0.18)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.15)" : "rgba(16,185,129,0.1)",
-                  color: msUntilBid <= 0 ? "#f87171" : hoursUntilBid! <= 24 ? "#fbbf24" : "#34d399",
-                  border: `1px solid ${msUntilBid <= 0 ? "rgba(239,68,68,0.35)" : hoursUntilBid! <= 24 ? "rgba(245,158,11,0.25)" : "rgba(16,185,129,0.2)"}`,
+                  background: msUntilBid <= 0 ? "var(--bs-red-dim)" : hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "var(--bs-teal-dim)",
+                  color: msUntilBid <= 0 ? "var(--bs-red)" : hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-teal)",
+                  border: `1px solid ${msUntilBid <= 0 ? "var(--bs-red-border)" : hoursUntilBid! <= 24 ? "var(--bs-amber-border)" : "var(--bs-teal-border)"}`,
                   fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
                 }}>
                   {msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d to bid` : formatCountdown(msUntilBid!)}
@@ -616,25 +616,25 @@ function ProjectDetail() {
                 <button
                   onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
                   className="cursor-pointer transition-opacity hover:opacity-90"
-                  style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, background: "#059669", color: "#fff", border: "none", whiteSpace: "nowrap" }}
+                  style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, background: "var(--bs-teal)", color: "#13151a", border: "none", whiteSpace: "nowrap" }}
                 >
                   Record Outcome →
                 </button>
               ) : (projectData as any)?.status === "won" ? (
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#34d399", display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-teal)", display: "flex", alignItems: "center", gap: 5 }}>
                   <svg width={13} height={13} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                   Won
                 </span>
               ) : (projectData as any)?.status === "lost" ? (
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#f87171" }}>Lost</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-red)" }}>Lost</span>
               ) : (
                 <button
                   onClick={() => openTab("validator")}
                   className="cursor-pointer transition-all hover:opacity-90"
                   style={{
                     fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, border: "none", whiteSpace: "nowrap",
-                    background: blockerCount > 0 ? "#1c2537" : "#059669",
-                    color: blockerCount > 0 ? "#f87171" : "#fff",
+                    background: blockerCount > 0 ? "rgba(239,68,68,0.12)" : "var(--bs-teal)",
+                    color: blockerCount > 0 ? "var(--bs-red)" : "#13151a",
                   }}
                 >
                   {blockerCount > 0 ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""} · Fix` : "Validate →"}
@@ -647,8 +647,8 @@ function ProjectDetail() {
         {/* Deadline warning banner */}
         {activeWarning && (
           <div style={{
-            background: activeWarning === "1h" ? "#fef2f2" : "#fffbeb",
-            borderBottom: `1px solid ${activeWarning === "1h" ? "#fecaca" : "#fde68a"}`,
+            background: activeWarning === "1h" ? "var(--bs-red-dim)" : "var(--bs-amber-dim)",
+            borderBottom: `1px solid ${activeWarning === "1h" ? "var(--bs-red-border)" : "var(--bs-amber-border)"}`,
             padding: "8px 20px",
             display: "flex",
             alignItems: "center",
@@ -657,7 +657,7 @@ function ProjectDetail() {
             flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ color: activeWarning === "1h" ? "#dc2626" : "#d97706", display: "flex", alignItems: "center" }}>
+              <span style={{ color: activeWarning === "1h" ? "var(--bs-red)" : "var(--bs-amber)", display: "flex", alignItems: "center" }}>
                 {activeWarning === "1h" ? (
                   <svg width={16} height={16} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                 ) : (
@@ -667,7 +667,7 @@ function ProjectDetail() {
               <div>
                 <span style={{
                   fontSize: 13, fontWeight: 700,
-                  color: activeWarning === "1h" ? "#dc2626" : "#d97706",
+                  color: activeWarning === "1h" ? "var(--bs-red)" : "var(--bs-amber)",
                 }}>
                   {activeWarning === "1h"
                     ? "Less than 1 hour until bid deadline!"
@@ -676,12 +676,12 @@ function ProjectDetail() {
                     : "Bid deadline in less than 24 hours"}
                 </span>
                 {msUntilBid !== null && msUntilBid > 0 && (
-                  <span style={{ fontSize: 12, color: activeWarning === "1h" ? "#ef4444" : "#f59e0b", marginLeft: 8, fontVariantNumeric: "tabular-nums" }}>
+                  <span style={{ fontSize: 12, color: activeWarning === "1h" ? "var(--bs-red)" : "var(--bs-amber)", marginLeft: 8, fontVariantNumeric: "tabular-nums" }}>
                     ({formatCountdown(msUntilBid)} remaining)
                   </span>
                 )}
                 {blockerCount > 0 && (
-                  <span style={{ fontSize: 12, color: "#9ca3af", marginLeft: 8 }}>
+                  <span style={{ fontSize: 12, color: "var(--bs-text-dim)", marginLeft: 8 }}>
                     · {blockerCount} blocker{blockerCount > 1 ? "s" : ""} unresolved
                   </span>
                 )}
@@ -689,7 +689,10 @@ function ProjectDetail() {
             </div>
             <button
               onClick={() => setDismissedWarnings(s => new Set([...s, activeWarning]))}
-              className="text-slate-400 hover:text-slate-600 transition-colors duration-150 cursor-pointer shrink-0 p-1 rounded"
+              className="transition-colors duration-150 cursor-pointer shrink-0 p-1 rounded"
+              style={{ color: "var(--bs-text-dim)" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
               style={{ background: "none", border: "none" }}
               title="Dismiss"
             >
@@ -708,19 +711,19 @@ function ProjectDetail() {
                 {/* Tab section header — minimal, just a label */}
                 <div
                   className="px-6 flex items-center gap-3 sticky top-0 z-10"
-                  style={{ background: "var(--bs-bg-page)", height: 44, borderBottom: "1px solid #E2E8F0" }}
+                  style={{ background: "var(--bs-bg-page)", height: 44, borderBottom: "1px solid var(--bs-border)" }}
                 >
                   <button
                     onClick={() => setActiveTab(null)}
                     className="flex items-center gap-1 lg:hidden cursor-pointer"
-                    style={{ fontSize: 12, color: "#9ca3af" }}
+                    style={{ fontSize: 12, color: "var(--bs-text-dim)" }}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                     </svg>
                     Back
                   </button>
-                  <h2 className="app-display" style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase" }}>{activeTabLabel}</h2>
+                  <h2 className="app-display" style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-dim)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
                   {activeTab === "overview"  && <TabErrorBoundary tabLabel="Overview"><OverviewTab {...tabProps} /></TabErrorBoundary>}
@@ -749,16 +752,16 @@ function ProjectDetail() {
                   {BROWSE_ITEMS.map(({ id, label, shortLabel }) => {
                     const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
                     const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
-                    const dot = hasBlocker ? "#ef4444" : hasWarning ? "#f59e0b" : "#10b981";
+                    const dot = hasBlocker ? "var(--bs-red)" : hasWarning ? "var(--bs-amber)" : "var(--bs-teal)";
                     return (
                       <button
                         key={id}
                         onClick={() => openTab(id)}
                         className="flex items-center gap-1.5 transition-all active:scale-95"
-                        style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: "8px 12px", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
+                        style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 8, padding: "8px 12px" }}
                       >
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
-                        <span style={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>{shortLabel ?? label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-text-secondary)" }}>{shortLabel ?? label}</span>
                       </button>
                     );
                   })}
@@ -767,26 +770,25 @@ function ProjectDetail() {
                 {/* Bid deadline countdown card */}
                 {msUntilBid !== null && (
                   <div style={{
-                    background: msUntilBid <= 0 ? "#fef2f2" : hoursUntilBid! <= 4 ? "#fef2f2" : hoursUntilBid! <= 24 ? "#fffbeb" : "white",
+                    background: msUntilBid <= 0 ? "var(--bs-red-dim)" : hoursUntilBid! <= 4 ? "var(--bs-red-dim)" : hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "var(--bs-bg-card)",
                     borderRadius: 10,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
                     padding: "16px 20px",
                     marginBottom: 16,
-                    border: `1px solid ${msUntilBid <= 0 ? "#fecaca" : hoursUntilBid! <= 4 ? "#fecaca" : hoursUntilBid! <= 24 ? "#fde68a" : "#e5e7eb"}`,
+                    border: `1px solid ${msUntilBid <= 0 ? "var(--bs-red-border)" : hoursUntilBid! <= 4 ? "var(--bs-red-border)" : hoursUntilBid! <= 24 ? "var(--bs-amber-border)" : "var(--bs-border)"}`,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div>
-                        <div style={{ fontSize: 11, fontWeight: 500, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                        <div style={{ fontSize: 11, fontWeight: 500, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
                           Bid Deadline
                         </div>
                         <div style={{
                           fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1,
-                          color: msUntilBid <= 0 ? "#dc2626" : hoursUntilBid! <= 4 ? "#dc2626" : hoursUntilBid! <= 24 ? "#d97706" : "#111827",
+                          color: msUntilBid <= 0 ? "var(--bs-red)" : hoursUntilBid! <= 4 ? "var(--bs-red)" : hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-text-primary)",
                           letterSpacing: "-0.02em",
                         }}>
                           {msUntilBid <= 0 ? "Past due" : formatCountdown(msUntilBid)}
                         </div>
-                        <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+                        <div style={{ fontSize: 12, color: "var(--bs-text-dim)", marginTop: 4 }}>
                           {projectData?.bidDate
                             ? (() => {
                                 const bidTimeStr = (projectData as any)?.bidTime as string | undefined;
@@ -800,8 +802,8 @@ function ProjectDetail() {
                       <div style={{ textAlign: "right" }}>
                         {blockerCount > 0 && (
                           <div style={{
-                            fontSize: 12, fontWeight: 700, color: "#dc2626",
-                            background: "#fef2f2", border: "1px solid #fecaca",
+                            fontSize: 12, fontWeight: 700, color: "var(--bs-red)",
+                            background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)",
                             borderRadius: 6, padding: "4px 10px", marginBottom: 6,
                           }}>
                             {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
@@ -809,9 +811,9 @@ function ProjectDetail() {
                         )}
                         <div style={{
                           fontSize: 12, fontWeight: 600,
-                          color: readinessScore >= 80 ? "#059669" : readinessScore >= 50 ? "#d97706" : "#dc2626",
-                          background: readinessScore >= 80 ? "#f0fdf4" : readinessScore >= 50 ? "#fffbeb" : "#fef2f2",
-                          border: `1px solid ${readinessScore >= 80 ? "#bbf7d0" : readinessScore >= 50 ? "#fde68a" : "#fecaca"}`,
+                          color: readinessScore >= 80 ? "var(--bs-teal)" : readinessScore >= 50 ? "var(--bs-amber)" : "var(--bs-red)",
+                          background: readinessScore >= 80 ? "var(--bs-teal-dim)" : readinessScore >= 50 ? "var(--bs-amber-dim)" : "var(--bs-red-dim)",
+                          border: `1px solid ${readinessScore >= 80 ? "var(--bs-teal-border)" : readinessScore >= 50 ? "var(--bs-amber-border)" : "var(--bs-red-border)"}`,
                           borderRadius: 6, padding: "4px 10px",
                         }}>
                           {readinessScore}% ready
@@ -823,15 +825,15 @@ function ProjectDetail() {
 
                 {/* Action items */}
                 {actionItems.length === 0 ? (
-                  <div style={{ background: "white", borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", padding: "2rem", textAlign: "center", border: "1px solid #d1fae5" }}>
-                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-                      <svg width={24} height={24} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#059669"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                  <div style={{ background: "var(--bs-bg-card)", borderRadius: 12, padding: "2rem", textAlign: "center", border: "1px solid var(--bs-teal-border)" }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--bs-teal-dim)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+                      <svg width={24} height={24} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#059669", marginBottom: 4 }}>Bid ready to submit</div>
-                    <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 18 }}>All sections are complete and passing.</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--bs-teal)", marginBottom: 4 }}>Bid ready to submit</div>
+                    <div style={{ fontSize: 13, color: "var(--bs-text-dim)", marginBottom: 18 }}>All sections are complete and passing.</div>
                     <button
                       onClick={() => openTab("validator")}
-                      style={{ padding: "10px 24px", background: "#059669", color: "white", fontSize: 14, fontWeight: 600, borderRadius: 8, cursor: "pointer", border: "none" }}
+                      style={{ padding: "10px 24px", background: "var(--bs-teal)", color: "#13151a", fontSize: 14, fontWeight: 600, borderRadius: 8, cursor: "pointer", border: "none" }}
                       className="hover:opacity-90 transition-opacity"
                     >
                       Review & Export →
@@ -840,41 +842,41 @@ function ProjectDetail() {
                 ) : (
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between mb-1">
-                      <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      <h2 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>
                         {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""} · ` : ""}
                         {actionItems.length} need attention
                       </h2>
                       {passCount > 0 && (
-                        <span style={{ fontSize: 12, color: "#6b7280" }}>{passCount} passing</span>
+                        <span style={{ fontSize: 12, color: "var(--bs-text-muted)" }}>{passCount} passing</span>
                       )}
                     </div>
                     {actionItems.map((item, i) => (
                       <button
                         key={`${item.tab}-${i}`}
                         onClick={() => openTab(item.tab)}
-                        className="w-full text-left transition-all duration-150 active:scale-[0.98] hover:shadow-md rounded-xl cursor-pointer"
+                        className="w-full text-left transition-all duration-150 active:scale-[0.98] rounded-xl cursor-pointer"
                         style={{
-                          background: item.level === "blocker" ? "#fff5f5" : item.level === "warning" ? "#fffbeb" : "#eff6ff",
+                          background: item.level === "blocker" ? "var(--bs-red-dim)" : item.level === "warning" ? "var(--bs-amber-dim)" : "var(--bs-blue-dim)",
                           borderRadius: 10,
                           padding: 16,
-                          borderLeft: `4px solid ${item.level === "blocker" ? "#ef4444" : item.level === "warning" ? "#f59e0b" : "#3b82f6"}`,
-                          border: `1px solid ${item.level === "blocker" ? "#fecaca" : item.level === "warning" ? "#fde68a" : "#bfdbfe"}`,
+                          borderLeft: `4px solid ${item.level === "blocker" ? "var(--bs-red)" : item.level === "warning" ? "var(--bs-amber)" : "var(--bs-blue)"}`,
+                          border: `1px solid ${item.level === "blocker" ? "var(--bs-red-border)" : item.level === "warning" ? "var(--bs-amber-border)" : "var(--bs-blue-dim)"}`,
                           borderLeftWidth: 4,
                         }}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{item.title}</div>
-                            {item.detail && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{item.detail}</div>}
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-primary)" }}>{item.title}</div>
+                            {item.detail && <div style={{ fontSize: 12, color: "var(--bs-text-muted)", marginTop: 2 }}>{item.detail}</div>}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide" style={{
-                              background: item.level === "blocker" ? "#fee2e2" : item.level === "warning" ? "#fef3c7" : "#dbeafe",
-                              color: item.level === "blocker" ? "#dc2626" : item.level === "warning" ? "#d97706" : "#2563eb",
+                              background: item.level === "blocker" ? "var(--bs-red-dim)" : item.level === "warning" ? "var(--bs-amber-dim)" : "var(--bs-blue-dim)",
+                              color: item.level === "blocker" ? "var(--bs-red)" : item.level === "warning" ? "var(--bs-amber)" : "var(--bs-blue)",
                             }}>
                               {item.level === "blocker" ? "Fix" : item.level === "warning" ? "Review" : "Info"}
                             </span>
-                            <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <svg className="w-4 h-4" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                             </svg>
                           </div>
@@ -886,7 +888,7 @@ function ProjectDetail() {
 
                 {/* Section Progress */}
                 <div style={{ marginTop: 32 }}>
-                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "var(--bs-text-dim)" }}>
                     Section Progress
                   </h3>
                   <div className="flex flex-col gap-2.5">
@@ -897,18 +899,18 @@ function ProjectDetail() {
                       return (
                         <button key={id} onClick={() => openTab(id)} className="flex items-center gap-3 group">
                           <span
-                            className="group-hover:text-slate-900 transition-colors truncate"
-                            style={{ fontSize: 12, color: "#6b7280", width: 140, textAlign: "left", flexShrink: 0 }}
+                            className="truncate"
+                            style={{ fontSize: 12, color: "var(--bs-text-muted)", width: 140, textAlign: "left", flexShrink: 0 }}
                           >
                             {label}
                           </span>
-                          <div style={{ flex: 1, height: 5, background: "#f1f5f9", borderRadius: 9999, overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${score}%`, background: score >= 75 ? "#10b981" : score >= 25 ? "#f59e0b" : "#ef4444", borderRadius: 9999, transition: "width 0.5s" }} />
+                          <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 9999, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${score}%`, background: score >= 75 ? "var(--bs-teal)" : score >= 25 ? "var(--bs-amber)" : "var(--bs-red)", borderRadius: 9999, transition: "width 0.5s" }} />
                           </div>
                           {/* Dot indicator */}
                           <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
                           {/* % in gray, no color */}
-                          <span style={{ fontSize: 12, color: "#6b7280", width: 32, textAlign: "right", flexShrink: 0 }}>
+                          <span style={{ fontSize: 12, color: "var(--bs-text-muted)", width: 32, textAlign: "right", flexShrink: 0 }}>
                             {score}%
                           </span>
                         </button>
@@ -922,15 +924,15 @@ function ProjectDetail() {
             {/* Mobile bottom bar — readiness + validate */}
             <div
               className="lg:hidden sticky bottom-0 z-20 flex items-center justify-between gap-3 px-4 py-3"
-              style={{ background: "#ffffff", borderTop: "1px solid #e5e7eb", boxShadow: "0 -2px 8px rgba(0,0,0,0.06)" }}
+              style={{ background: "var(--bs-bg-secondary)", borderTop: "1px solid var(--bs-border)" }}
             >
               <div className="flex items-center gap-2">
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0fdf4", border: `2px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--bs-teal-dim)", border: `2px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: readinessColor }}>{readinessScore}%</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>Bid Readiness</div>
-                  <div style={{ fontSize: 11, color: "#9ca3af" }}>{blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : actionItems.length > 0 ? `${actionItems.length} to review` : "Looking good"}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>Bid Readiness</div>
+                  <div style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>{blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : actionItems.length > 0 ? `${actionItems.length} to review` : "Looking good"}</div>
                 </div>
               </div>
               <button
@@ -940,8 +942,8 @@ function ProjectDetail() {
                   borderRadius: 8,
                   fontSize: 13,
                   fontWeight: 600,
-                  background: blockerCount > 0 ? "#f3f4f6" : "#10b981",
-                  color: blockerCount > 0 ? "#9ca3af" : "#ffffff",
+                  background: blockerCount > 0 ? "rgba(255,255,255,0.06)" : "var(--bs-teal)",
+                  color: blockerCount > 0 ? "var(--bs-text-dim)" : "#13151a",
                   border: "none",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
@@ -967,15 +969,15 @@ function ProjectDetail() {
         return atLimit ? (
           <a
             href="/bidshield/pricing"
-            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 transition-all hover:scale-105"
             style={{
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
+              background: "var(--bs-bg-card)",
+              border: "1px solid var(--bs-border)",
               borderRadius: 10,
               padding: "8px 14px",
               fontSize: 12,
               fontWeight: 500,
-              color: "#94a3b8",
+              color: "var(--bs-text-dim)",
               textDecoration: "none",
             }}
           >
@@ -985,15 +987,15 @@ function ProjectDetail() {
         ) : (
           <button
             onClick={() => setDecisionModalOpen(true)}
-            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
             style={{
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
+              background: "var(--bs-bg-card)",
+              border: "1px solid var(--bs-border)",
               borderRadius: 10,
               padding: "8px 14px",
               fontSize: 12,
               fontWeight: 500,
-              color: "#475569",
+              color: "var(--bs-text-secondary)",
               cursor: "pointer",
             }}
           >
@@ -1010,21 +1012,21 @@ function ProjectDetail() {
     {decisionModalOpen && (
       <div
         className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-        style={{ background: "rgba(0,0,0,0.4)" }}
+        style={{ background: "rgba(0,0,0,0.7)" }}
         onClick={() => setDecisionModalOpen(false)}
       >
         <div
-          className="bg-white w-full sm:max-w-md mx-0 sm:mx-4 sm:rounded-xl shadow-2xl"
-          style={{ borderRadius: "12px 12px 0 0", padding: 24 }}
+          className="w-full sm:max-w-md mx-0 sm:mx-4 sm:rounded-xl"
+          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: "12px 12px 0 0", padding: 24 }}
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>Log a Decision</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--bs-text-primary)" }}>Log a Decision</h3>
             <button
               onClick={() => setDecisionModalOpen(false)}
-              style={{ color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 4 }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#374151"}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#9ca3af"}
+              style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 4 }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
             >
               <svg width={16} height={16} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -1035,15 +1037,15 @@ function ProjectDetail() {
           <div className="flex flex-col gap-3">
             {/* Section (auto-filled, read-only) */}
             <div>
-              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Section</label>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "#374151", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 10px" }}>
+              <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>Section</label>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-secondary)", background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", borderRadius: 6, padding: "8px 10px" }}>
                 {BROWSE_ITEMS.find(b => b.id === activeTab)?.label ?? activeTab}
               </div>
             </div>
 
             {/* What was decided */}
             <div>
-              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>What was decided <span style={{ color: "#ef4444" }}>*</span></label>
+              <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>What was decided <span style={{ color: "var(--bs-red)" }}>*</span></label>
               <textarea
                 autoFocus
                 rows={3}
@@ -1051,30 +1053,31 @@ function ProjectDetail() {
                 value={decisionText}
                 onChange={e => setDecisionText(e.target.value)}
                 style={{
-                  width: "100%", fontSize: 13, border: "1px solid #e2e8f0", borderRadius: 6,
-                  padding: "8px 10px", color: "#111827", outline: "none", resize: "none",
-                  boxSizing: "border-box", lineHeight: 1.5,
+                  width: "100%", fontSize: 13, border: "1px solid var(--bs-border)", borderRadius: 6,
+                  padding: "8px 10px", color: "var(--bs-text-primary)", outline: "none", resize: "none",
+                  boxSizing: "border-box", lineHeight: 1.5, background: "var(--bs-bg-elevated)",
                 }}
-                onFocus={e => (e.target.style.borderColor = "#94a3b8")}
-                onBlur={e => (e.target.style.borderColor = "#e2e8f0")}
+                onFocus={e => (e.target.style.borderColor = "var(--bs-teal)")}
+                onBlur={e => (e.target.style.borderColor = "var(--bs-border)")}
                 onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) e.currentTarget.form?.requestSubmit(); }}
               />
             </div>
 
             {/* Who */}
             <div>
-              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Who <span style={{ color: "#9ca3af", fontWeight: 400 }}>(optional)</span></label>
+              <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>Who <span style={{ color: "var(--bs-text-dim)", fontWeight: 400 }}>(optional)</span></label>
               <input
                 type="text"
                 placeholder="e.g. Per John / PM, Per pre-bid meeting"
                 value={decisionWho}
                 onChange={e => setDecisionWho(e.target.value)}
                 style={{
-                  width: "100%", fontSize: 13, border: "1px solid #e2e8f0", borderRadius: 6,
-                  padding: "8px 10px", color: "#111827", outline: "none", boxSizing: "border-box",
+                  width: "100%", fontSize: 13, border: "1px solid var(--bs-border)", borderRadius: 6,
+                  padding: "8px 10px", color: "var(--bs-text-primary)", outline: "none", boxSizing: "border-box",
+                  background: "var(--bs-bg-elevated)",
                 }}
-                onFocus={e => (e.target.style.borderColor = "#94a3b8")}
-                onBlur={e => (e.target.style.borderColor = "#e2e8f0")}
+                onFocus={e => (e.target.style.borderColor = "var(--bs-teal)")}
+                onBlur={e => (e.target.style.borderColor = "var(--bs-border)")}
               />
             </div>
           </div>
@@ -1102,8 +1105,8 @@ function ProjectDetail() {
               }}
               style={{
                 flex: 1, padding: "10px 0", borderRadius: 8, fontSize: 14, fontWeight: 500,
-                background: decisionText.trim() ? "#1e293b" : "#f3f4f6",
-                color: decisionText.trim() ? "#ffffff" : "#9ca3af",
+                background: decisionText.trim() ? "var(--bs-teal)" : "rgba(255,255,255,0.06)",
+                color: decisionText.trim() ? "#13151a" : "var(--bs-text-dim)",
                 border: "none", cursor: decisionText.trim() ? "pointer" : "not-allowed",
               }}
             >
@@ -1111,7 +1114,7 @@ function ProjectDetail() {
             </button>
             <button
               onClick={() => setDecisionModalOpen(false)}
-              style={{ flex: 1, background: "#f3f4f6", color: "#6b7280", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "none", cursor: "pointer" }}
+              style={{ flex: 1, background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "1px solid var(--bs-border)", cursor: "pointer" }}
             >
               Cancel
             </button>
@@ -1124,24 +1127,24 @@ function ProjectDetail() {
     {outcomeModalOpen && (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{ background: "rgba(0,0,0,0.5)" }}
+        style={{ background: "rgba(0,0,0,0.7)" }}
         onClick={() => setOutcomeModalOpen(false)}
       >
         <div
-          className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4"
-          style={{ padding: 24 }}
+          className="rounded-xl w-full max-w-md mx-4"
+          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", padding: 24 }}
           onClick={e => e.stopPropagation()}
         >
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginBottom: 6 }}>Did you win this bid?</h3>
-          <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 20 }}>{(projectData as any)?.name}</p>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--bs-text-primary)", marginBottom: 6 }}>Did you win this bid?</h3>
+          <p style={{ fontSize: 12, color: "var(--bs-text-muted)", marginBottom: 20 }}>{(projectData as any)?.name}</p>
 
           {/* Outcome buttons */}
           <div className="grid grid-cols-2 gap-3" style={{ marginBottom: 20 }}>
             {([
-              { label: "Won", value: "won" as const, bg: "#ecfdf5", border: "#10b981", color: "#065f46" },
-              { label: "Lost", value: "lost" as const, bg: "#fef2f2", border: "#ef4444", color: "#991b1b" },
-              { label: "No Award", value: "no_award" as const, bg: "#f8fafc", border: "#94a3b8", color: "#475569" },
-              { label: "Still Pending", value: "pending" as const, bg: "#fffbeb", border: "#f59e0b", color: "#92400e" },
+              { label: "Won", value: "won" as const, bg: "var(--bs-teal-dim)", border: "var(--bs-teal)", color: "var(--bs-teal)" },
+              { label: "Lost", value: "lost" as const, bg: "var(--bs-red-dim)", border: "var(--bs-red)", color: "var(--bs-red)" },
+              { label: "No Award", value: "no_award" as const, bg: "rgba(255,255,255,0.04)", border: "var(--bs-text-dim)", color: "var(--bs-text-secondary)" },
+              { label: "Still Pending", value: "pending" as const, bg: "var(--bs-amber-dim)", border: "var(--bs-amber)", color: "var(--bs-amber)" },
             ] as const).map(opt => (
               <button
                 key={opt.value}
@@ -1152,9 +1155,9 @@ function ProjectDetail() {
                   borderRadius: 8,
                   fontSize: 14,
                   fontWeight: outcomeForm.result === opt.value ? 700 : 500,
-                  border: outcomeForm.result === opt.value ? `2px solid ${opt.border}` : "1px solid #e5e7eb",
-                  background: outcomeForm.result === opt.value ? opt.bg : "white",
-                  color: outcomeForm.result === opt.value ? opt.color : "#6b7280",
+                  border: outcomeForm.result === opt.value ? `2px solid ${opt.border}` : "1px solid var(--bs-border)",
+                  background: outcomeForm.result === opt.value ? opt.bg : "var(--bs-bg-elevated)",
+                  color: outcomeForm.result === opt.value ? opt.color : "var(--bs-text-muted)",
                   cursor: "pointer",
                   transition: "all 0.15s",
                 }}
@@ -1166,38 +1169,38 @@ function ProjectDetail() {
 
           {/* Lost — competitor fields */}
           {outcomeForm.result === "lost" && (
-            <div className="flex flex-col gap-3" style={{ marginBottom: 20, padding: 14, background: "#fef2f2", borderRadius: 8 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: "#991b1b", marginBottom: 2 }}>Loss details (optional but valuable)</p>
+            <div className="flex flex-col gap-3" style={{ marginBottom: 20, padding: 14, background: "var(--bs-red-dim)", borderRadius: 8, border: "1px solid var(--bs-red-border)" }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-red)", marginBottom: 2 }}>Loss details (optional but valuable)</p>
               <div>
-                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Who won? (competitor name)</label>
+                <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>Who won? (competitor name)</label>
                 <input
                   type="text"
                   placeholder="e.g. Apex Roofing"
                   value={outcomeForm.competitorName}
                   onChange={e => setOutcomeForm(f => ({ ...f, competitorName: e.target.value }))}
-                  style={{ width: "100%", border: "1px solid #fca5a5", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box", background: "white" }}
-                  onFocus={e => (e.target.style.borderColor = "#ef4444")}
-                  onBlur={e => (e.target.style.borderColor = "#fca5a5")}
+                  style={{ width: "100%", border: "1px solid var(--bs-red-border)", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "var(--bs-text-primary)", outline: "none", boxSizing: "border-box", background: "var(--bs-bg-elevated)" }}
+                  onFocus={e => (e.target.style.borderColor = "var(--bs-red)")}
+                  onBlur={e => (e.target.style.borderColor = "var(--bs-red-border)")}
                 />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Their bid price ($)</label>
+                <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>Their bid price ($)</label>
                 <input
                   type="number"
                   placeholder="e.g. 480000"
                   value={outcomeForm.competitorPrice}
                   onChange={e => setOutcomeForm(f => ({ ...f, competitorPrice: e.target.value }))}
-                  style={{ width: "100%", border: "1px solid #fca5a5", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box", background: "white" }}
-                  onFocus={e => (e.target.style.borderColor = "#ef4444")}
-                  onBlur={e => (e.target.style.borderColor = "#fca5a5")}
+                  style={{ width: "100%", border: "1px solid var(--bs-red-border)", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "var(--bs-text-primary)", outline: "none", boxSizing: "border-box", background: "var(--bs-bg-elevated)" }}
+                  onFocus={e => (e.target.style.borderColor = "var(--bs-red)")}
+                  onBlur={e => (e.target.style.borderColor = "var(--bs-red-border)")}
                 />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Loss reason</label>
+                <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>Loss reason</label>
                 <select
                   value={outcomeForm.lossReason}
                   onChange={e => setOutcomeForm(f => ({ ...f, lossReason: e.target.value }))}
-                  style={{ width: "100%", border: "1px solid #fca5a5", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", background: "white", boxSizing: "border-box" }}
+                  style={{ width: "100%", border: "1px solid var(--bs-red-border)", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "var(--bs-text-primary)", outline: "none", background: "var(--bs-bg-elevated)", boxSizing: "border-box" }}
                 >
                   <option value="">Select reason...</option>
                   <option value="Price too high">Price too high</option>
@@ -1222,8 +1225,8 @@ function ProjectDetail() {
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 500,
-                background: outcomeForm.result ? "#111827" : "#f3f4f6",
-                color: outcomeForm.result ? "white" : "#9ca3af",
+                background: outcomeForm.result ? "var(--bs-teal)" : "rgba(255,255,255,0.06)",
+                color: outcomeForm.result ? "#13151a" : "var(--bs-text-dim)",
                 border: "none",
                 cursor: outcomeForm.result ? "pointer" : "not-allowed",
               }}
@@ -1232,7 +1235,7 @@ function ProjectDetail() {
             </button>
             <button
               onClick={() => setOutcomeModalOpen(false)}
-              style={{ flex: 1, background: "#f3f4f6", color: "#6b7280", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "none", cursor: "pointer" }}
+              style={{ flex: 1, background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "1px solid var(--bs-border)", cursor: "pointer" }}
             >
               Cancel
             </button>
@@ -1245,15 +1248,15 @@ function ProjectDetail() {
     {editProjectOpen && (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{ background: "rgba(0,0,0,0.5)" }}
+        style={{ background: "rgba(0,0,0,0.7)" }}
         onClick={() => setEditProjectOpen(false)}
       >
         <div
-          className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4"
-          style={{ padding: 24 }}
+          className="rounded-xl w-full max-w-md mx-4"
+          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", padding: 24 }}
           onClick={e => e.stopPropagation()}
         >
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginBottom: 20 }}>Edit Project</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--bs-text-primary)", marginBottom: 20 }}>Edit Project</h3>
           <div className="flex flex-col gap-3">
             {([
               { label: "Project Name", key: "name", type: "text" },
@@ -1263,44 +1266,44 @@ function ProjectDetail() {
               { label: "Bid Amount ($)", key: "totalBidAmount", type: "number" },
             ] as { label: string; key: keyof typeof editProjectForm; type: string }[]).map(({ label, key, type }) => (
               <div key={key}>
-                <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>{label}</label>
+                <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>{label}</label>
                 <input
                   type={type}
                   value={editProjectForm[key] as string}
                   onChange={e => setEditProjectForm(f => ({ ...f, [key]: e.target.value }))}
-                  style={{ width: "100%", border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box" }}
-                  onFocus={e => (e.target.style.borderColor = "#10b981")}
-                  onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                  style={{ width: "100%", border: "1px solid var(--bs-border)", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "var(--bs-text-primary)", outline: "none", boxSizing: "border-box", background: "var(--bs-bg-elevated)" }}
+                  onFocus={e => (e.target.style.borderColor = "var(--bs-teal)")}
+                  onBlur={e => (e.target.style.borderColor = "var(--bs-border)")}
                 />
               </div>
             ))}
             {/* Bid deadline — date + time on one row */}
             <div>
-              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Bid Deadline</label>
+              <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>Bid Deadline</label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   type="date"
                   value={editProjectForm.bidDate}
                   onChange={e => setEditProjectForm(f => ({ ...f, bidDate: e.target.value }))}
-                  style={{ flex: 2, border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box" }}
-                  onFocus={e => (e.target.style.borderColor = "#10b981")}
-                  onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                  style={{ flex: 2, border: "1px solid var(--bs-border)", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "var(--bs-text-primary)", outline: "none", boxSizing: "border-box", background: "var(--bs-bg-elevated)" }}
+                  onFocus={e => (e.target.style.borderColor = "var(--bs-teal)")}
+                  onBlur={e => (e.target.style.borderColor = "var(--bs-border)")}
                 />
                 <input
                   type="time"
                   value={editProjectForm.bidTime}
                   onChange={e => setEditProjectForm(f => ({ ...f, bidTime: e.target.value }))}
                   placeholder="Time (optional)"
-                  style={{ flex: 1, border: "1px solid #e5e7eb", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "#111827", outline: "none", boxSizing: "border-box" }}
-                  onFocus={e => (e.target.style.borderColor = "#10b981")}
-                  onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                  style={{ flex: 1, border: "1px solid var(--bs-border)", borderRadius: 6, padding: "8px 10px", fontSize: 14, color: "var(--bs-text-primary)", outline: "none", boxSizing: "border-box", background: "var(--bs-bg-elevated)" }}
+                  onFocus={e => (e.target.style.borderColor = "var(--bs-teal)")}
+                  onBlur={e => (e.target.style.borderColor = "var(--bs-border)")}
                 />
               </div>
-              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>Time is optional — enables hour/minute countdown on bid day</div>
+              <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 4 }}>Time is optional — enables hour/minute countdown on bid day</div>
             </div>
             {/* FM Global toggle */}
             <div>
-              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, display: "block" }}>FM Global Insured?</label>
+              <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 6, display: "block" }}>FM Global Insured?</label>
               <div className="flex gap-2">
                 {([{ label: "Unknown", value: null }, { label: "No", value: false }, { label: "Yes", value: true }] as { label: string; value: boolean | null }[]).map(opt => (
                   <button
@@ -1314,14 +1317,14 @@ function ProjectDetail() {
                       fontSize: 13,
                       fontWeight: editProjectForm.fmGlobal === opt.value ? 600 : 400,
                       border: editProjectForm.fmGlobal === opt.value
-                        ? (opt.value === true ? "2px solid #10b981" : opt.value === false ? "2px solid #6b7280" : "2px solid #d1d5db")
-                        : "1px solid #e5e7eb",
+                        ? (opt.value === true ? "2px solid var(--bs-teal)" : opt.value === false ? "2px solid var(--bs-text-dim)" : "2px solid var(--bs-border)")
+                        : "1px solid var(--bs-border)",
                       background: editProjectForm.fmGlobal === opt.value
-                        ? (opt.value === true ? "#ecfdf5" : opt.value === false ? "#f3f4f6" : "#f9fafb")
-                        : "white",
+                        ? (opt.value === true ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.06)")
+                        : "var(--bs-bg-elevated)",
                       color: editProjectForm.fmGlobal === opt.value
-                        ? (opt.value === true ? "#059669" : "#374151")
-                        : "#9ca3af",
+                        ? (opt.value === true ? "var(--bs-teal)" : "var(--bs-text-secondary)")
+                        : "var(--bs-text-dim)",
                       cursor: "pointer",
                     }}
                   >
@@ -1330,12 +1333,12 @@ function ProjectDetail() {
                 ))}
               </div>
               {editProjectForm.fmGlobal === true && (
-                <p style={{ fontSize: 11, color: "#059669", marginTop: 5 }}>3 FM Global checklist items will appear in Specification Review</p>
+                <p style={{ fontSize: 11, color: "var(--bs-teal)", marginTop: 5 }}>3 FM Global checklist items will appear in Specification Review</p>
               )}
             </div>
             {/* Pre-1990 toggle */}
             <div>
-              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, display: "block" }}>Building constructed before 1990?</label>
+              <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 6, display: "block" }}>Building constructed before 1990?</label>
               <div className="flex gap-2">
                 {([{ label: "Unknown", value: null }, { label: "No", value: false }, { label: "Yes", value: true }] as { label: string; value: boolean | null }[]).map(opt => (
                   <button
@@ -1349,14 +1352,14 @@ function ProjectDetail() {
                       fontSize: 13,
                       fontWeight: editProjectForm.pre1990 === opt.value ? 600 : 400,
                       border: editProjectForm.pre1990 === opt.value
-                        ? (opt.value === true ? "2px solid #f59e0b" : opt.value === false ? "2px solid #6b7280" : "2px solid #d1d5db")
-                        : "1px solid #e5e7eb",
+                        ? (opt.value === true ? "2px solid var(--bs-amber)" : opt.value === false ? "2px solid var(--bs-text-dim)" : "2px solid var(--bs-border)")
+                        : "1px solid var(--bs-border)",
                       background: editProjectForm.pre1990 === opt.value
-                        ? (opt.value === true ? "#fffbeb" : opt.value === false ? "#f3f4f6" : "#f9fafb")
-                        : "white",
+                        ? (opt.value === true ? "var(--bs-amber-dim)" : "rgba(255,255,255,0.06)")
+                        : "var(--bs-bg-elevated)",
                       color: editProjectForm.pre1990 === opt.value
-                        ? (opt.value === true ? "#b45309" : "#374151")
-                        : "#9ca3af",
+                        ? (opt.value === true ? "var(--bs-amber)" : "var(--bs-text-secondary)")
+                        : "var(--bs-text-dim)",
                       cursor: "pointer",
                     }}
                   >
@@ -1365,7 +1368,7 @@ function ProjectDetail() {
                 ))}
               </div>
               {editProjectForm.pre1990 === true && (
-                <p style={{ fontSize: 11, color: "#b45309", marginTop: 5 }} className="flex items-center gap-1">
+                <p style={{ fontSize: 11, color: "var(--bs-amber)", marginTop: 5 }} className="flex items-center gap-1">
                   <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                   DSS warning item will appear in Architectural Review checklist
                 </p>
@@ -1373,8 +1376,8 @@ function ProjectDetail() {
             </div>
             {/* Energy code toggle */}
             <div>
-              <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 4, display: "block" }}>Replaces &gt;50% of roof area or &gt;2,000 SF?</label>
-              <p style={{ fontSize: 11, color: "#9ca3af", marginBottom: 6 }}>Triggers energy code compliance requirement (ASHRAE 90.1)</p>
+              <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 4, display: "block" }}>Replaces &gt;50% of roof area or &gt;2,000 SF?</label>
+              <p style={{ fontSize: 11, color: "var(--bs-text-dim)", marginBottom: 6 }}>Triggers energy code compliance requirement (ASHRAE 90.1)</p>
               <div className="flex gap-2">
                 {([{ label: "Unknown", value: null }, { label: "No", value: false }, { label: "Yes", value: true }] as { label: string; value: boolean | null }[]).map(opt => (
                   <button
@@ -1388,14 +1391,14 @@ function ProjectDetail() {
                       fontSize: 13,
                       fontWeight: editProjectForm.energyCode === opt.value ? 600 : 400,
                       border: editProjectForm.energyCode === opt.value
-                        ? (opt.value === true ? "2px solid #6366f1" : opt.value === false ? "2px solid #6b7280" : "2px solid #d1d5db")
-                        : "1px solid #e5e7eb",
+                        ? (opt.value === true ? "2px solid var(--bs-blue)" : opt.value === false ? "2px solid var(--bs-text-dim)" : "2px solid var(--bs-border)")
+                        : "1px solid var(--bs-border)",
                       background: editProjectForm.energyCode === opt.value
-                        ? (opt.value === true ? "#eef2ff" : opt.value === false ? "#f3f4f6" : "#f9fafb")
-                        : "white",
+                        ? (opt.value === true ? "var(--bs-blue-dim)" : "rgba(255,255,255,0.06)")
+                        : "var(--bs-bg-elevated)",
                       color: editProjectForm.energyCode === opt.value
-                        ? (opt.value === true ? "#4338ca" : "#374151")
-                        : "#9ca3af",
+                        ? (opt.value === true ? "var(--bs-blue)" : "var(--bs-text-secondary)")
+                        : "var(--bs-text-dim)",
                       cursor: "pointer",
                     }}
                   >
@@ -1405,7 +1408,7 @@ function ProjectDetail() {
               </div>
               {editProjectForm.energyCode === true && (
                 <div style={{ marginTop: 8 }}>
-                  <label style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, display: "block" }}>ASHRAE Climate Zone</label>
+                  <label style={{ fontSize: 11, color: "var(--bs-text-muted)", marginBottom: 6, display: "block" }}>ASHRAE Climate Zone</label>
                   <div className="flex gap-1.5 flex-wrap">
                     {["1", "2", "3", "4", "5", "6", "7", "8"].map(z => (
                       <button
@@ -1418,9 +1421,9 @@ function ProjectDetail() {
                           borderRadius: 6,
                           fontSize: 13,
                           fontWeight: editProjectForm.climateZone === z ? 700 : 400,
-                          border: editProjectForm.climateZone === z ? "2px solid #6366f1" : "1px solid #e5e7eb",
-                          background: editProjectForm.climateZone === z ? "#eef2ff" : "white",
-                          color: editProjectForm.climateZone === z ? "#4338ca" : "#6b7280",
+                          border: editProjectForm.climateZone === z ? "2px solid var(--bs-blue)" : "1px solid var(--bs-border)",
+                          background: editProjectForm.climateZone === z ? "var(--bs-blue-dim)" : "var(--bs-bg-elevated)",
+                          color: editProjectForm.climateZone === z ? "var(--bs-blue)" : "var(--bs-text-muted)",
                           cursor: "pointer",
                         }}
                       >
@@ -1428,7 +1431,7 @@ function ProjectDetail() {
                       </button>
                     ))}
                   </div>
-                  <p style={{ fontSize: 11, color: "#6366f1", marginTop: 5 }}>Energy code item will appear in Specification Review</p>
+                  <p style={{ fontSize: 11, color: "var(--bs-blue)", marginTop: 5 }}>Energy code item will appear in Specification Review</p>
                 </div>
               )}
             </div>
@@ -1436,13 +1439,13 @@ function ProjectDetail() {
           <div className="flex gap-3" style={{ marginTop: 20 }}>
             <button
               onClick={saveEditProject}
-              style={{ flex: 1, background: "#10b981", color: "white", padding: "10px 0", borderRadius: 8, fontSize: 14, fontWeight: 500, border: "none", cursor: "pointer" }}
+              style={{ flex: 1, background: "var(--bs-teal)", color: "#13151a", padding: "10px 0", borderRadius: 8, fontSize: 14, fontWeight: 500, border: "none", cursor: "pointer" }}
             >
               Save
             </button>
             <button
               onClick={() => setEditProjectOpen(false)}
-              style={{ flex: 1, background: "#f3f4f6", color: "#6b7280", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "none", cursor: "pointer" }}
+              style={{ flex: 1, background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)", padding: "10px 0", borderRadius: 8, fontSize: 14, border: "1px solid var(--bs-border)", cursor: "pointer" }}
             >
               Cancel
             </button>
@@ -1456,7 +1459,7 @@ function ProjectDetail() {
 
 export default function ProjectDetailPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20"><div className="text-slate-400 text-sm">Loading...</div></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center py-20"><div style={{ color: "var(--bs-text-dim)", fontSize: "0.875rem" }}>Loading...</div></div>}>
       <ProjectDetail />
     </Suspense>
   );

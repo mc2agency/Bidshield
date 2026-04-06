@@ -119,22 +119,23 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
   ];
 
   const configs = getConfigSummary(projectType, system);
-  const inputCls = "w-full py-2.5 px-3 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-colors";
+  const inputCls = "w-full py-2.5 px-3 rounded-lg text-sm outline-none transition-colors";
+  const inputStyle = { background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" };
 
   return (
-    <div onClick={onClose} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden">
+    <div onClick={onClose} className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div onClick={(e) => e.stopPropagation()} className="rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         {/* Progress */}
         <div className="flex items-center gap-1 px-6 pt-5 pb-3">
           {STEPS.map((s, i) => (
             <div key={i} className="flex items-center flex-1 min-w-0">
-              <div className={`h-1 flex-1 rounded-full transition-all ${i <= step ? "bg-emerald-500" : "bg-slate-200"}`} />
+              <div className="h-1 flex-1 rounded-full transition-all" style={{ background: i <= step ? "var(--bs-teal)" : "var(--bs-bg-elevated)" }} />
             </div>
           ))}
         </div>
         <div className="px-6 pb-2 flex justify-between">
           {STEPS.map((s, i) => (
-            <span key={i} className={`text-[10px] font-medium ${i === step ? "text-emerald-600" : i < step ? "text-slate-400" : "text-slate-300"}`}>{s.label}</span>
+            <span key={i} className="text-[10px] font-medium" style={{ color: i === step ? "var(--bs-teal)" : i < step ? "var(--bs-text-muted)" : "var(--bs-text-dim)" }}>{s.label}</span>
           ))}
         </div>
 
@@ -143,27 +144,26 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
           {/* ── Step 0: Project Type ── */}
           {step === 0 && (
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>What kind of project?</h3>
-              <p className="text-sm text-slate-500 mb-5">This determines your checklist items and scope categories.</p>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>What kind of project?</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>This determines your checklist items and scope categories.</p>
               <div className="flex flex-col gap-2">
                 {PROJECT_TYPES.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setProjectType(t.id)}
-                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
-                      projectType === t.id
-                        ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-100"
-                        : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                    }`}
+                    className="flex items-center gap-3 p-3.5 rounded-xl text-left transition-all"
+                    style={projectType === t.id
+                      ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)" }
+                      : { border: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}
                   >
-                    <span className="text-slate-500 flex-shrink-0">{PROJECT_TYPE_ICONS[t.id]}</span>
+                    <span className="flex-shrink-0" style={{ color: "var(--bs-text-muted)" }}>{PROJECT_TYPE_ICONS[t.id]}</span>
                     <div>
-                      <div className="text-sm font-semibold text-slate-900">{t.label}</div>
-                      <div className="text-xs text-slate-500">{t.desc}</div>
+                      <div className="text-sm font-semibold" style={{ color: "var(--bs-text-primary)" }}>{t.label}</div>
+                      <div className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{t.desc}</div>
                     </div>
                     {projectType === t.id && (
-                      <div className="ml-auto flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                      <div className="ml-auto flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "var(--bs-teal)" }}>
+                        <svg className="w-3 h-3" style={{ color: "#13151a" }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                       </div>
                     )}
                   </button>
@@ -175,21 +175,20 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
           {/* ── Step 1: System & Deck ── */}
           {step === 1 && (
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.01em", marginBottom: 4 }}>Roofing system</h3>
-              <p className="text-sm text-slate-500 mb-5">Configures material checks and spec verification.</p>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Roofing system</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Configures material checks and spec verification.</p>
 
               <div className="mb-5">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Popular</div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Popular</div>
                 <div className="grid grid-cols-3 gap-2">
                   {SYSTEMS.filter(s => s.popular).map((s) => (
                     <button
                       key={s.id}
                       onClick={() => setSystem(s.id)}
-                      className={`py-2.5 px-3 rounded-lg border text-sm font-medium transition-all ${
-                        system === s.id
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                          : "border-slate-200 text-slate-700 hover:border-slate-300"
-                      }`}
+                      className="py-2.5 px-3 rounded-lg text-sm font-medium transition-all"
+                      style={system === s.id
+                        ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }
+                        : { border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
                     >
                       {s.label}
                     </button>
@@ -198,17 +197,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
               </div>
 
               <div className="mb-6">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">All Systems</div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>All Systems</div>
                 <div className="grid grid-cols-2 gap-2">
                   {SYSTEMS.filter(s => !s.popular).map((s) => (
                     <button
                       key={s.id}
                       onClick={() => setSystem(s.id)}
-                      className={`py-2 px-3 rounded-lg border text-sm transition-all ${
-                        system === s.id
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-medium"
-                          : "border-slate-200 text-slate-600 hover:border-slate-300"
-                      }`}
+                      className="py-2 px-3 rounded-lg text-sm transition-all"
+                      style={system === s.id
+                        ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500 }
+                        : { border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
                     >
                       {s.label}
                     </button>
@@ -217,17 +215,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
               </div>
 
               <div>
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Deck Type <span className="text-slate-300 normal-case">(optional)</span></div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Deck Type <span className="normal-case" style={{ color: "var(--bs-text-dim)" }}>(optional)</span></div>
                 <div className="flex flex-wrap gap-2">
                   {DECKS.map((d) => (
                     <button
                       key={d.id}
                       onClick={() => setDeck(deck === d.id ? "" : d.id)}
-                      className={`py-1.5 px-3 rounded-lg border text-xs transition-all ${
-                        deck === d.id
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-medium"
-                          : "border-slate-200 text-slate-500 hover:border-slate-300"
-                      }`}
+                      className="py-1.5 px-3 rounded-lg text-xs transition-all"
+                      style={deck === d.id
+                        ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500 }
+                        : { border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
                     >
                       {d.label}
                     </button>
@@ -240,36 +237,36 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
           {/* ── Step 2: Project Info ── */}
           {step === 2 && (
             <div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Project details</h3>
-              <p className="text-sm text-slate-500 mb-5">The basics. You can add more later.</p>
+              <h3 className="text-lg font-bold mb-1" style={{ color: "var(--bs-text-primary)" }}>Project details</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>The basics. You can add more later.</p>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">Project name *</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Meridian Business Park" className={inputCls} autoFocus />
+                  <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Project name *</label>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Meridian Business Park" className={inputCls} style={inputStyle} autoFocus />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-1">Location *</label>
-                    <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Charlotte, NC" className={inputCls} />
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Location *</label>
+                    <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Charlotte, NC" className={inputCls} style={inputStyle} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-1">Bid date *</label>
-                    <input type="date" value={bidDate} onChange={(e) => setBidDate(e.target.value)} className={inputCls} />
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Bid date *</label>
+                    <input type="date" value={bidDate} onChange={(e) => setBidDate(e.target.value)} className={inputCls} style={inputStyle} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-1">General contractor</label>
-                    <input type="text" value={gc} onChange={(e) => setGc(e.target.value)} placeholder="Skanska USA" className={inputCls} />
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>General contractor</label>
+                    <input type="text" value={gc} onChange={(e) => setGc(e.target.value)} placeholder="Skanska USA" className={inputCls} style={inputStyle} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-1">Roof area (SF)</label>
-                    <input type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} placeholder="68000" className={inputCls} />
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Roof area (SF)</label>
+                    <input type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} placeholder="68000" className={inputCls} style={inputStyle} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">Estimated bid value ($)</label>
-                  <input type="number" value={totalBidAmount} onChange={(e) => setTotalBidAmount(e.target.value)} placeholder="1250000" className={inputCls} />
+                  <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Estimated bid value ($)</label>
+                  <input type="number" value={totalBidAmount} onChange={(e) => setTotalBidAmount(e.target.value)} placeholder="1250000" className={inputCls} style={inputStyle} />
                 </div>
               </div>
             </div>
@@ -278,52 +275,52 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
           {/* ── Step 3: Review — show what gets configured ── */}
           {step === 3 && (
             <div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Your bid is ready to build</h3>
-              <p className="text-sm text-slate-500 mb-5">Here's what BidShield will set up based on your selections:</p>
+              <h3 className="text-lg font-bold mb-1" style={{ color: "var(--bs-text-primary)" }}>Your bid is ready to build</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Here's what BidShield will set up based on your selections:</p>
 
               {/* Summary card */}
-              <div className="bg-slate-50 rounded-xl p-4 mb-5 space-y-2">
+              <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: "var(--bs-bg-elevated)" }}>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Project</span>
-                  <span className="font-semibold text-slate-900">{name}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Project</span>
+                  <span className="font-semibold" style={{ color: "var(--bs-text-primary)" }}>{name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Type</span>
-                  <span className="text-slate-700">{PROJECT_TYPES.find(t => t.id === projectType)?.label}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Type</span>
+                  <span style={{ color: "var(--bs-text-secondary)" }}>{PROJECT_TYPES.find(t => t.id === projectType)?.label}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">System</span>
-                  <span className="text-slate-700 uppercase">{system}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>System</span>
+                  <span className="uppercase" style={{ color: "var(--bs-text-secondary)" }}>{system}</span>
                 </div>
                 {deck && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Deck</span>
-                    <span className="text-slate-700">{DECKS.find(d => d.id === deck)?.label}</span>
+                    <span style={{ color: "var(--bs-text-muted)" }}>Deck</span>
+                    <span style={{ color: "var(--bs-text-secondary)" }}>{DECKS.find(d => d.id === deck)?.label}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Location</span>
-                  <span className="text-slate-700">{location}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Location</span>
+                  <span style={{ color: "var(--bs-text-secondary)" }}>{location}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Bid date</span>
-                  <span className="text-slate-700">{bidDate}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Bid date</span>
+                  <span style={{ color: "var(--bs-text-secondary)" }}>{bidDate}</span>
                 </div>
                 {gc && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">GC</span>
-                    <span className="text-slate-700">{gc}</span>
+                    <span style={{ color: "var(--bs-text-muted)" }}>GC</span>
+                    <span style={{ color: "var(--bs-text-secondary)" }}>{gc}</span>
                   </div>
                 )}
               </div>
 
               {/* What BidShield configures */}
-              <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">BidShield will configure</div>
+              <div className="rounded-xl p-4" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal)" }}>
+                <div className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--bs-teal)" }}>BidShield will configure</div>
                 <div className="space-y-2">
                   {configs.map((c, i) => (
-                    <div key={i} className="flex items-start gap-2 text-sm text-emerald-800">
-                      <svg className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                    <div key={i} className="flex items-start gap-2 text-sm" style={{ color: "var(--bs-teal)" }}>
+                      <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                       <span>{c}</span>
                     </div>
                   ))}
@@ -334,11 +331,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
         </div>
 
         {/* Footer — always visible */}
-        <div className="border-t border-slate-100 px-6 py-4 flex justify-between items-center bg-white">
+        <div className="px-6 py-4 flex justify-between items-center" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}>
           {step === 0 ? (
-            <button onClick={onClose} className="text-sm text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+            <button onClick={onClose} className="text-sm transition-colors" style={{ color: "var(--bs-text-dim)" }}>Cancel</button>
           ) : (
-            <button onClick={() => setStep(step - 1)} className="text-sm text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-1">
+            <button onClick={() => setStep(step - 1)} className="text-sm transition-colors flex items-center gap-1" style={{ color: "var(--bs-text-muted)" }}>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
               Back
             </button>
@@ -348,7 +345,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
             <button
               onClick={() => canAdvance[step] && setStep(step + 1)}
               disabled={!canAdvance[step]}
-              className="py-2.5 px-6 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
+              className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               Next →
             </button>
@@ -359,7 +357,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                 projectType, systemType: system, deckType: deck,
                 gc, sqft, totalBidAmount, assemblies: system ? system.toUpperCase() : "",
               })}
-              className="py-2.5 px-6 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
+              className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               Create Project & Start →
             </button>

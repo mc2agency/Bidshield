@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -50,18 +50,18 @@ const CATEGORY_LABEL: Record<string, string> = {
   membrane: "Membrane", insulation: "Insulation", flashing: "Flashing",
   tearoff: "Tear-Off", accessories: "Accessories", other: "Other",
 };
-const CATEGORY_COLOR: Record<string, string> = {
-  membrane: "bg-blue-100 text-blue-700",
-  insulation: "bg-purple-100 text-purple-700",
-  flashing: "bg-amber-100 text-amber-700",
-  tearoff: "bg-red-100 text-red-700",
-  accessories: "bg-slate-100 text-slate-600",
-  other: "bg-zinc-100 text-zinc-600",
+const CATEGORY_STYLE: Record<string, React.CSSProperties> = {
+  membrane:   { background: "var(--bs-blue-dim)",              color: "var(--bs-blue)" },
+  insulation: { background: "rgba(139,92,246,0.12)",           color: "#a78bfa" },
+  flashing:   { background: "var(--bs-amber-dim)",             color: "var(--bs-amber)" },
+  tearoff:    { background: "var(--bs-red-dim)",               color: "var(--bs-red)" },
+  accessories:{ background: "rgba(255,255,255,0.06)",          color: "var(--bs-text-muted)" },
+  other:      { background: "rgba(255,255,255,0.06)",          color: "var(--bs-text-dim)" },
 };
-const RATE_FLAG_STYLE: Record<string, string> = {
-  low: "bg-amber-50 text-amber-700 border border-amber-200",
-  high: "bg-red-50 text-red-600 border border-red-200",
-  ok: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+const RATE_FLAG_STYLE: Record<string, React.CSSProperties> = {
+  low:  { background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" },
+  high: { background: "var(--bs-red-dim)",   color: "var(--bs-red)",   border: "1px solid var(--bs-red-border)" },
+  ok:   { background: "var(--bs-teal-dim)",  color: "var(--bs-teal)",  border: "1px solid var(--bs-teal-border)" },
 };
 const DETAIL_TYPE_LABEL: Record<string, string> = {
   SF_based: "SF", LF_based: "LF", count: "EA", lump_sum: "LS",
@@ -299,12 +299,12 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
   if (!isPro && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bs-bg-elevated)" }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">Labor Verification</h3>
-        <p className="text-sm text-slate-500 mb-6">AI-assisted labor cost verification and production rate database. Available on Pro.</p>
-        <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
+        <h3 className="text-lg font-medium mb-2" style={{ color: "var(--bs-text-primary)" }}>Labor Verification</h3>
+        <p className="text-sm mb-6" style={{ color: "var(--bs-text-muted)" }}>AI-assisted labor cost verification and production rate database. Available on Pro.</p>
+        <a href="/bidshield/pricing" className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
           Upgrade to Pro
         </a>
       </div>
@@ -316,64 +316,49 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
 
       {/* ── Header ── */}
       <div>
-        <h2 className="text-xl font-semibold text-slate-900">Labor Verification</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <h2 className="text-xl font-medium" style={{ color: "var(--bs-text-primary)" }}>Labor Verification</h2>
+        <p className="text-sm mt-1" style={{ color: "var(--bs-text-muted)" }}>
           Describe your roofing scope and get an AI-generated task-level labor breakdown. Review, edit, and verify each line before it flows to Pricing.
         </p>
       </div>
 
-      {/* ── State A: Input panel (always visible, collapses when analysis exists) ── */}
+      {/* ── State A: Input panel ── */}
       {!hasAnalysis ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col gap-4">
-          <h3 className="text-sm font-semibold text-slate-900">Scope Description</h3>
+        <div className="rounded-xl p-5 flex flex-col gap-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <h3 className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>Scope Description</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-slate-500 mb-1">Labor Type</label>
-              <select
-                value={laborType}
-                onChange={e => setLaborType(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm"
-              >
+              <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Labor Type</label>
+              <select value={laborType} onChange={e => setLaborType(e.target.value)} className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>
                 {LABOR_TYPES.map(l => (
                   <option key={l.value} value={l.value}>{l.label} ({l.mult}× burden)</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-slate-500 mb-1">Base Wage ($/hr before burden)</label>
-              <input
-                type="number"
-                value={baseWage}
-                onChange={e => setBaseWage(parseFloat(e.target.value) || 35)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm"
-                placeholder="35"
-              />
-              <p className="text-[10px] text-slate-400 mt-0.5">
+              <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Base Wage ($/hr before burden)</label>
+              <input type="number" value={baseWage} onChange={e => setBaseWage(parseFloat(e.target.value) || 35)} className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} placeholder="35" />
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
                 Loaded day rate: {fmtDollar((LABOR_TYPES.find(l => l.value === laborType)?.mult ?? 1.35) * baseWage * 8)}/person/day
               </p>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Scope Description *</label>
+            <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Scope Description *</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder={`Describe the full roofing scope:
-• System type and area (e.g. 45,000 SF TPO mechanically attached)
-• Insulation type and thickness
-• Tear-off details (existing system, gravel, overlay vs. full tear)
-• Flashing scope (counterflashing, edge metal, curbs)
-• Penetrations (count of pipes, drains, HVAC curbs)
-• Any special conditions (phasing, schedule restrictions, access)`}
+              placeholder={`Describe the full roofing scope:\n• System type and area (e.g. 45,000 SF TPO mechanically attached)\n• Insulation type and thickness\n• Tear-off details (existing system, gravel, overlay vs. full tear)\n• Flashing scope (counterflashing, edge metal, curbs)\n• Penetrations (count of pipes, drains, HVAC curbs)\n• Any special conditions (phasing, schedule restrictions, access)`}
               rows={7}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-slate-900 text-sm resize-none font-mono"
+              className="w-full rounded-lg px-3 py-2.5 text-sm resize-none font-mono focus:outline-none"
+              style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
             />
           </div>
 
           {analyzeError && (
-            <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <p className="text-xs font-medium rounded-lg px-3 py-2" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
               {analyzeError}
             </p>
           )}
@@ -382,8 +367,8 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !description.trim() || isDemo}
-              style={{ background: "#10b981" }}
-              className="px-5 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              className="px-5 py-2.5 text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
               {isAnalyzing ? (
                 <>
@@ -396,23 +381,20 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
               ) : "Run Labor Analysis"}
             </button>
             {isDemo && (
-              <p className="text-xs text-slate-400 italic">Demo mode — showing sample analysis below</p>
+              <p className="text-xs italic" style={{ color: "var(--bs-text-dim)" }}>Demo mode — showing sample analysis below</p>
             )}
           </div>
         </div>
       ) : (
         /* ── State B: Re-run bar ── */
-        <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 flex items-start gap-4">
+        <div className="rounded-xl p-4 flex items-start gap-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Analyzed scope</p>
-            <p className="text-sm text-slate-700 line-clamp-2">{resolvedAnalysis.inputSummary}</p>
+            <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}>Analyzed scope</p>
+            <p className="text-sm line-clamp-2" style={{ color: "var(--bs-text-secondary)" }}>{resolvedAnalysis.inputSummary}</p>
           </div>
           <div className="flex gap-2 shrink-0">
             {!isDemo && (
-              <button
-                onClick={handleClearAnalysis}
-                className="px-3 py-1.5 text-xs text-slate-500 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-              >
+              <button onClick={handleClearAnalysis} className="px-3 py-1.5 text-xs rounded-lg transition-colors" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}>
                 Re-run
               </button>
             )}
@@ -423,32 +405,30 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
       {/* ── State B: Results ── */}
       {hasAnalysis && (
         <>
-          {/* Stat cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* ── Stats bar ── */}
+          <div className="flex items-stretch overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10 }}>
             {[
-              { label: "Total Labor Cost", value: fmtDollar(liveTotal), accent: "#059669" },
-              { label: "Est. Duration", value: resolvedAnalysis.totalDays ? `${resolvedAnalysis.totalDays}` : "—", unit: resolvedAnalysis.totalDays ? "days" : undefined, accent: "#334155" },
-              { label: "Labor / SF", value: resolvedAnalysis.laborPerSf ? `$${resolvedAnalysis.laborPerSf.toFixed(2)}` : "—", accent: "#3b82f6" },
-              { label: "Loaded Rate / Day", value: `$${Math.round(resolvedAnalysis.loadedRate).toLocaleString()}`, accent: "#8b5cf6" },
-            ].map(({ label, value, unit, accent }) => (
-              <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: "var(--bs-card-radius)", padding: "14px 16px", boxShadow: "var(--bs-shadow-card)", border: "1px solid var(--bs-border-card)" }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{label}</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>
-                  {value}{unit && <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8", marginLeft: 4 }}>{unit}</span>}
-                </div>
+              { label: "Total Labor Cost", value: fmtDollar(liveTotal), color: "var(--bs-teal)" },
+              { label: "Est. Duration", value: resolvedAnalysis.totalDays ? `${resolvedAnalysis.totalDays}d` : "—", color: "var(--bs-text-primary)" },
+              { label: "Labor / SF", value: resolvedAnalysis.laborPerSf ? `$${resolvedAnalysis.laborPerSf.toFixed(2)}` : "—", color: "var(--bs-blue)" },
+              { label: "Loaded Rate / Day", value: `$${Math.round(resolvedAnalysis.loadedRate).toLocaleString()}`, color: "var(--bs-text-secondary)" },
+            ].map(({ label, value, color }, i) => (
+              <div key={label} className="flex-1 px-5 py-4 flex flex-col gap-1" style={{ borderLeft: i > 0 ? "1px solid var(--bs-border)" : "none" }}>
+                <p className="text-[10px] font-medium uppercase tracking-widest" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}>{label}</p>
+                <p className="text-2xl font-medium leading-none tabular-nums" style={{ color }}>{value}</p>
               </div>
             ))}
           </div>
 
           {/* Schedule flag banner */}
           {resolvedAnalysis.scheduleConflict && (
-            <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <svg className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="flex items-start gap-3 rounded-xl px-4 py-3" style={{ background: "var(--bs-amber-dim)", border: "1px solid var(--bs-amber-border)" }}>
+              <svg className="w-5 h-5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="var(--bs-amber)" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
               </svg>
               <div>
-                <p className="text-sm font-semibold text-amber-800">Schedule Conflict</p>
-                <p className="text-xs text-amber-700 mt-0.5">{resolvedAnalysis.scheduleNote}</p>
+                <p className="text-sm font-medium" style={{ color: "var(--bs-amber)" }}>Schedule Conflict</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--bs-amber)" }}>{resolvedAnalysis.scheduleNote}</p>
               </div>
             </div>
           )}
@@ -456,46 +436,43 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           {/* Verification progress */}
           {resolvedTasks.length > 0 && (
             <div className="flex items-center gap-3 text-sm">
-              <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div
-                  className="h-2 rounded-full bg-emerald-500 transition-all"
-                  style={{ width: `${((resolvedTasks.length - unverifiedCount) / resolvedTasks.length) * 100}%` }}
-                />
+              <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${((resolvedTasks.length - unverifiedCount) / resolvedTasks.length) * 100}%`, background: "var(--bs-teal)" }} />
               </div>
-              <span className="text-xs text-slate-500 whitespace-nowrap">
+              <span className="text-xs whitespace-nowrap" style={{ color: "var(--bs-text-muted)" }}>
                 {resolvedTasks.length - unverifiedCount}/{resolvedTasks.length} verified
               </span>
               {unverifiedCount === 0 && (
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "2px 8px", borderRadius: 9999 }}>All verified</span>
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>All verified</span>
               )}
             </div>
           )}
 
           {/* Task breakdown table by category */}
-          <div className="flex flex-col gap-4">
-            {orderedCategories.map(cat => {
+          <div className="overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10 }}>
+            {orderedCategories.map((cat, catIdx) => {
               const tasks = tasksByCategory[cat];
               const catTotal = tasks.reduce((s: number, t: any) => s + (t.totalCost || 0), 0);
               return (
-                <div key={cat} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                <div key={cat}>
+                  <div className="flex items-center justify-between px-5 py-3" style={{ background: "var(--bs-bg-elevated)", borderTop: catIdx > 0 ? "1px solid var(--bs-border)" : "none" }}>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${CATEGORY_COLOR[cat] ?? "bg-slate-100 text-slate-600"}`}>
+                      <span className="text-[10px] font-medium px-2.5 py-0.5 rounded-full" style={CATEGORY_STYLE[cat] ?? { background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)" }}>
                         {CATEGORY_LABEL[cat] ?? cat}
                       </span>
-                      <span className="text-xs text-slate-400">{tasks.length} task{tasks.length !== 1 ? "s" : ""}</span>
+                      <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>{tasks.length} task{tasks.length !== 1 ? "s" : ""}</span>
                     </div>
-                    <span className="text-sm font-semibold text-slate-900">{fmtDollar(catTotal)}</span>
+                    <span className="text-sm font-medium tabular-nums" style={{ color: "var(--bs-text-primary)" }}>{fmtDollar(catTotal)}</span>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-100 text-left bg-slate-50/50">
-                          <th className="px-4 py-2 text-[11px] text-slate-400 font-medium">Task</th>
-                          <th className="px-3 py-2 text-[11px] text-slate-400 font-medium text-right">Qty</th>
-                          <th className="px-3 py-2 text-[11px] text-slate-400 font-medium text-right">Rate</th>
-                          <th className="px-3 py-2 text-[11px] text-slate-400 font-medium text-right">Total</th>
-                          <th className="px-4 py-2 text-[11px] text-slate-400 font-medium text-center">Status</th>
+                        <tr className="text-left" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                          <th className="px-5 py-2 text-[10px] font-medium uppercase" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.5px" }}>Task</th>
+                          <th className="px-3 py-2 text-[10px] font-medium uppercase text-right" style={{ color: "var(--bs-text-dim)" }}>Qty</th>
+                          <th className="px-3 py-2 text-[10px] font-medium uppercase text-right" style={{ color: "var(--bs-text-dim)" }}>Rate</th>
+                          <th className="px-3 py-2 text-[10px] font-medium uppercase text-right" style={{ color: "var(--bs-text-dim)" }}>Total</th>
+                          <th className="px-5 py-2 text-[10px] font-medium uppercase text-center" style={{ color: "var(--bs-text-dim)" }}>Verify</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -503,86 +480,61 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
                           const isEditing = editingTaskId === task._id;
                           const isVerified = isDemo ? !!demoVerified[task._id] : !!task.verified;
                           return (
-                            <tr key={task._id} className={`border-b border-slate-100 last:border-0 transition-colors ${isVerified ? "bg-emerald-50/30" : "hover:bg-slate-50"}`}>
+                            <tr key={task._id} className="transition-colors last:border-0" style={{ borderBottom: "1px solid var(--bs-border)", background: isVerified ? "rgba(45,212,168,0.04)" : "" }}
+                              onMouseEnter={e => { if (!isVerified) e.currentTarget.style.background = "var(--bs-bg-elevated)"; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = isVerified ? "rgba(45,212,168,0.04)" : ""; }}>
                               <td className="px-4 py-3">
-                                <div className="flex items-start gap-2">
-                                  <div className="min-w-0">
-                                    <div className="text-slate-900 font-medium leading-tight">{task.task}</div>
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                      {task.detailType && (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
-                                          {DETAIL_TYPE_LABEL[task.detailType] ?? task.detailType}
-                                        </span>
-                                      )}
-                                      {task.rateFlag && task.rateFlag !== "ok" && (
-                                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${RATE_FLAG_STYLE[task.rateFlag] ?? ""}`}>
-                                          rate {task.rateFlag}
-                                        </span>
-                                      )}
-                                      {task.days && (
-                                        <span className="text-[10px] text-slate-400">{task.days}d · crew {task.crewSize}</span>
-                                      )}
-                                    </div>
-                                    {task.notes && <div className="text-[11px] text-slate-400 mt-0.5">{task.notes}</div>}
+                                <div className="min-w-0">
+                                  <div className="font-medium leading-tight" style={{ color: "var(--bs-text-primary)" }}>{task.task}</div>
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    {task.detailType && (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)" }}>
+                                        {DETAIL_TYPE_LABEL[task.detailType] ?? task.detailType}
+                                      </span>
+                                    )}
+                                    {task.rateFlag && task.rateFlag !== "ok" && (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded" style={RATE_FLAG_STYLE[task.rateFlag] ?? {}}>
+                                        rate {task.rateFlag}
+                                      </span>
+                                    )}
+                                    {task.days && (
+                                      <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>{task.days}d · crew {task.crewSize}</span>
+                                    )}
                                   </div>
+                                  {task.notes && <div className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>{task.notes}</div>}
                                 </div>
                               </td>
-                              <td className="px-3 py-3 text-right tabular-nums text-slate-600">
+                              <td className="px-3 py-3 text-right tabular-nums" style={{ color: "var(--bs-text-muted)" }}>
                                 {isEditing ? (
-                                  <input
-                                    type="number"
-                                    value={editQty}
-                                    onChange={e => setEditQty(e.target.value)}
-                                    className="w-20 text-right bg-white border border-slate-300 rounded px-2 py-1 text-sm"
-                                  />
+                                  <input type="number" value={editQty} onChange={e => setEditQty(e.target.value)} className="w-20 text-right rounded px-2 py-1 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
                                 ) : (
                                   <span>{task.quantity.toLocaleString()} {task.unit}</span>
                                 )}
                               </td>
-                              <td className="px-3 py-3 text-right tabular-nums text-slate-600">
+                              <td className="px-3 py-3 text-right tabular-nums" style={{ color: "var(--bs-text-muted)" }}>
                                 {isEditing ? (
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    value={editRate}
-                                    onChange={e => setEditRate(e.target.value)}
-                                    className="w-20 text-right bg-white border border-slate-300 rounded px-2 py-1 text-sm"
-                                  />
+                                  <input type="number" step="0.01" value={editRate} onChange={e => setEditRate(e.target.value)} className="w-20 text-right rounded px-2 py-1 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
                                 ) : (
                                   <span>${task.ratePerUnit.toFixed(2)}/{task.unit}</span>
                                 )}
                               </td>
-                              <td className="px-3 py-3 text-right font-semibold tabular-nums text-slate-900">
-                                {fmtDollar(isEditing
-                                  ? (parseFloat(editQty) || 0) * (parseFloat(editRate) || 0)
-                                  : task.totalCost
-                                )}
+                              <td className="px-3 py-3 text-right font-medium tabular-nums" style={{ color: "var(--bs-text-primary)" }}>
+                                {fmtDollar(isEditing ? (parseFloat(editQty) || 0) * (parseFloat(editRate) || 0) : task.totalCost)}
                               </td>
                               <td className="px-4 py-3 text-center">
                                 <div className="flex items-center justify-center gap-2">
                                   {isEditing ? (
                                     <>
-                                      <button onClick={() => handleSaveTaskEdit(task)} className="text-xs text-emerald-600 font-semibold hover:text-emerald-800">Save</button>
-                                      <button onClick={() => setEditingTaskId(null)} className="text-xs text-slate-400 hover:text-slate-600">✕</button>
+                                      <button onClick={() => handleSaveTaskEdit(task)} className="text-xs font-medium" style={{ color: "var(--bs-teal)" }}>Save</button>
+                                      <button onClick={() => setEditingTaskId(null)} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>✕</button>
                                     </>
                                   ) : (
                                     <>
                                       {!isDemo && (
-                                        <button
-                                          onClick={() => { setEditingTaskId(task._id); setEditQty(String(task.quantity)); setEditRate(String(task.ratePerUnit)); }}
-                                          className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
-                                        >
-                                          Edit
-                                        </button>
+                                        <button onClick={() => { setEditingTaskId(task._id); setEditQty(String(task.quantity)); setEditRate(String(task.ratePerUnit)); }} className="text-[11px] transition-colors" style={{ color: "var(--bs-text-dim)" }}>Edit</button>
                                       )}
-                                      <button
-                                        onClick={() => handleToggleVerified(task)}
-                                        className={`text-[11px] font-medium px-2 py-0.5 rounded transition-colors ${
-                                          isVerified
-                                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                                        }`}
-                                      >
+                                      <button onClick={() => handleToggleVerified(task)} className="text-[11px] font-medium px-2 py-0.5 rounded transition-colors"
+                                        style={isVerified ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" } : { background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}>
                                         {isVerified ? "Verified" : "Verify"}
                                       </button>
                                     </>
@@ -601,44 +553,43 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           </div>
 
           {/* Total row */}
-          <div className="flex items-center justify-between bg-slate-900 text-white rounded-xl px-5 py-4">
+          <div className="flex items-center justify-between rounded-xl px-5 py-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-teal-border)" }}>
             <div>
-              <div className="text-base font-bold">Total Labor Cost</div>
-              <div className="text-xs text-slate-400 mt-0.5">
+              <div className="text-base font-medium" style={{ color: "var(--bs-text-primary)" }}>Total Labor Cost</div>
+              <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
                 {LABOR_TYPES.find(l => l.value === resolvedAnalysis.laborType)?.label ?? "Open Shop"} ·{" "}
                 ${Math.round(resolvedAnalysis.loadedRate).toLocaleString()}/person/day loaded
               </div>
             </div>
-            <div className="text-2xl font-bold text-emerald-400">{fmtDollar(liveTotal)}</div>
+            <div className="text-2xl font-medium" style={{ color: "var(--bs-teal)" }}>{fmtDollar(liveTotal)}</div>
           </div>
 
           {/* AI Assumptions & Warnings */}
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <button
-              onClick={() => setShowAssumptions(s => !s)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
-            >
-              <span className="text-sm font-semibold text-slate-900">
+          <div className="overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10 }}>
+            <button onClick={() => setShowAssumptions(s => !s)} className="w-full flex items-center justify-between px-5 py-4 transition-colors"
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "")}>
+              <span className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>
                 AI Assumptions & Warnings
                 {(resolvedAnalysis.warnings?.length ?? 0) > 0 && (
-                  <span className="ml-2 text-[11px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+                  <span className="ml-2 text-[11px] px-1.5 py-0.5 rounded-full" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>
                     {resolvedAnalysis.warnings.length} flagged
                   </span>
                 )}
               </span>
-              <svg className={`w-4 h-4 text-slate-400 transition-transform ${showAssumptions ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className={`w-4 h-4 transition-transform ${showAssumptions ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-text-dim)">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
               </svg>
             </button>
             {showAssumptions && (
-              <div className="px-5 pb-5 border-t border-slate-100 flex flex-col gap-4 pt-4">
+              <div className="px-5 pb-5 flex flex-col gap-4 pt-4" style={{ borderTop: "1px solid var(--bs-border)" }}>
                 {(resolvedAnalysis.assumptions?.length ?? 0) > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Assumptions</p>
+                    <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: "var(--bs-text-dim)" }}>Assumptions</p>
                     <ul className="flex flex-col gap-1.5">
                       {resolvedAnalysis.assumptions.map((a: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                          <span className="text-slate-400 mt-0.5">•</span>
+                        <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "var(--bs-text-secondary)" }}>
+                          <span className="mt-0.5" style={{ color: "var(--bs-text-dim)" }}>•</span>
                           <span>{a}</span>
                         </li>
                       ))}
@@ -647,11 +598,11 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
                 )}
                 {(resolvedAnalysis.warnings?.length ?? 0) > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Gen. Conds Items Flagged</p>
+                    <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: "var(--bs-amber)" }}>Gen. Conds Items Flagged</p>
                     <ul className="flex flex-col gap-1.5">
                       {resolvedAnalysis.warnings.map((w: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
-                          <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                        <li key={i} className="flex items-start gap-2 text-sm rounded-lg px-3 py-2" style={{ color: "var(--bs-amber)", background: "var(--bs-amber-dim)" }}>
+                          <svg className="w-3.5 h-3.5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
                           <span>{w}</span>
                         </li>
                       ))}
@@ -664,107 +615,112 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
         </>
       )}
 
-      {/* ── Production Rate Reference (collapsed by default) ── */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <button
-          onClick={() => setShowRateDb(s => !s)}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
-        >
+      {/* ── Production Rate Reference ── */}
+      <div className="overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10 }}>
+        <button onClick={() => setShowRateDb(s => !s)} className="w-full flex items-center justify-between px-5 py-4 transition-colors"
+          onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "")}>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-900">Production Rate Reference</span>
-            <span className="text-[11px] text-slate-400">Your crew rates — used by AI analysis</span>
+            <span className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>Production Rate Reference</span>
+            <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>Your crew rates — used by AI analysis</span>
           </div>
-          <svg className={`w-4 h-4 text-slate-400 transition-transform ${showRateDb ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className={`w-4 h-4 transition-transform ${showRateDb ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-text-dim)">
             <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
           </svg>
         </button>
 
         {showRateDb && (
-          <div className="border-t border-slate-100">
+          <div style={{ borderTop: "1px solid var(--bs-border)" }}>
             <div className="px-5 py-4 flex justify-end gap-2">
-              <button onClick={handleSeedDefaults} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Load Defaults</button>
-              <button onClick={() => { setNewRate({ ...newRate, category: activeRateCat }); setShowRateAdd(true); }} style={{ background: "#10b981" }} className="px-4 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">+ Add Rate</button>
+              <button onClick={handleSeedDefaults} className="px-4 py-2 text-sm rounded-lg transition-colors" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}>Load Defaults</button>
+              <button onClick={() => { setNewRate({ ...newRate, category: activeRateCat }); setShowRateAdd(true); }} className="px-4 py-2 text-sm font-medium rounded-lg transition-colors" style={{ background: "var(--bs-teal)", color: "#13151a" }}>+ Add Rate</button>
             </div>
 
             <div className="px-5 pb-3 flex flex-wrap gap-2">
               {RATE_DB_CATEGORIES.map(cat => {
                 const count = resolvedRates.filter((r: any) => r.category === cat.id).length;
+                const isActive = activeRateCat === cat.id;
                 return (
-                  <button key={cat.id} onClick={() => setActiveRateCat(cat.id)} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-all ${activeRateCat === cat.id ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200"}`}>
+                  <button key={cat.id} onClick={() => setActiveRateCat(cat.id)} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-all"
+                    style={isActive ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" } : { background: "rgba(255,255,255,0.04)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}>
                     <span>{cat.icon}</span><span>{cat.label}</span>
-                    {count > 0 && <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeRateCat === cat.id ? "bg-emerald-500" : "bg-slate-200"}`}>{count}</span>}
+                    {count > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: isActive ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.06)", color: isActive ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>{count}</span>}
                   </button>
                 );
               })}
             </div>
 
             {showRateAdd && (
-              <div className="mx-5 mb-4 bg-slate-50 rounded-xl p-4 border border-emerald-500/30">
-                <h3 className="text-sm font-semibold text-slate-900 mb-3">Add Rate</h3>
+              <div className="mx-5 mb-4 rounded-xl p-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-teal-border)" }}>
+                <h3 className="text-sm font-medium mb-3" style={{ color: "var(--bs-text-primary)" }}>Add Rate</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">Task *</label>
-                    <input type="text" value={newRate.task} onChange={(e) => setNewRate({ ...newRate, task: e.target.value })} placeholder="TPO Install (MA)" className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm" />
+                    <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Task *</label>
+                    <input type="text" value={newRate.task} onChange={(e) => setNewRate({ ...newRate, task: e.target.value })} placeholder="TPO Install (MA)" className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">Rate *</label>
-                      <input type="text" value={newRate.rate} onChange={(e) => setNewRate({ ...newRate, rate: e.target.value })} placeholder="450 SF" className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm" />
+                      <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Rate *</label>
+                      <input type="text" value={newRate.rate} onChange={(e) => setNewRate({ ...newRate, rate: e.target.value })} placeholder="450 SF" className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">Unit</label>
-                      <select value={newRate.unit} onChange={(e) => setNewRate({ ...newRate, unit: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm">
+                      <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Unit</label>
+                      <select value={newRate.unit} onChange={(e) => setNewRate({ ...newRate, unit: e.target.value })} className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}>
                         <option value="/day">/day</option><option value="/hr">/hr</option><option value="/EA">/EA</option>
                       </select>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">Crew Size</label>
-                    <input type="number" value={newRate.crew} onChange={(e) => setNewRate({ ...newRate, crew: e.target.value })} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm" />
+                    <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Crew Size</label>
+                    <input type="number" value={newRate.crew} onChange={(e) => setNewRate({ ...newRate, crew: e.target.value })} className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">Notes</label>
-                    <input type="text" value={newRate.notes} onChange={(e) => setNewRate({ ...newRate, notes: e.target.value })} placeholder="Standard conditions" className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-sm" />
+                    <label className="block text-xs mb-1" style={{ color: "var(--bs-text-muted)" }}>Notes</label>
+                    <input type="text" value={newRate.notes} onChange={(e) => setNewRate({ ...newRate, notes: e.target.value })} placeholder="Standard conditions" className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
                   </div>
                 </div>
                 <div className="flex gap-3 mt-3">
-                  <button onClick={handleAddRate} style={{ background: "#10b981" }} className="px-4 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">Save</button>
-                  <button onClick={() => setShowRateAdd(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm rounded-lg transition-colors">Cancel</button>
+                  <button onClick={handleAddRate} className="px-4 py-2 text-sm font-medium rounded-lg transition-colors" style={{ background: "var(--bs-teal)", color: "#13151a" }}>Save</button>
+                  <button onClick={() => setShowRateAdd(false)} className="px-4 py-2 text-sm rounded-lg transition-colors" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}>Cancel</button>
                 </div>
               </div>
             )}
 
             {filteredRates.length > 0 ? (
-              <div className="overflow-x-auto mx-5 mb-5 rounded-xl border border-slate-200">
+              <div className="overflow-x-auto mx-5 mb-5 rounded-xl" style={{ border: "1px solid var(--bs-border)" }}>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 text-left bg-slate-50">
-                      <th className="px-4 py-3 text-slate-500 font-medium">Task</th>
-                      <th className="px-4 py-3 text-slate-500 font-medium text-right">Rate</th>
-                      <th className="px-4 py-3 text-slate-500 font-medium text-center hidden sm:table-cell">Crew</th>
-                      <th className="px-4 py-3 text-slate-500 font-medium hidden md:table-cell">Notes</th>
-                      <th className="px-4 py-3 text-slate-500 font-medium w-16"></th>
+                    <tr className="text-left" style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                      <th className="px-4 py-3 font-medium" style={{ color: "var(--bs-text-dim)", fontSize: 11 }}>Task</th>
+                      <th className="px-4 py-3 font-medium text-right" style={{ color: "var(--bs-text-dim)", fontSize: 11 }}>Rate</th>
+                      <th className="px-4 py-3 font-medium text-center hidden sm:table-cell" style={{ color: "var(--bs-text-dim)", fontSize: 11 }}>Crew</th>
+                      <th className="px-4 py-3 font-medium hidden md:table-cell" style={{ color: "var(--bs-text-dim)", fontSize: 11 }}>Notes</th>
+                      <th className="px-4 py-3 w-16"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRates.map((rate: any) => (
-                      <tr key={rate._id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
-                        <td className="px-4 py-3 text-slate-900">{rate.task}</td>
-                        <td className="px-4 py-3 text-right"><span className="text-emerald-600 font-semibold">{rate.rate}</span><span className="text-slate-500 ml-1">{rate.unit}</span></td>
-                        <td className="px-4 py-3 text-center text-slate-600 hidden sm:table-cell">{rate.crew}</td>
-                        <td className="px-4 py-3 text-slate-500 hidden md:table-cell">{rate.notes || "—"}</td>
-                        <td className="px-4 py-3"><button onClick={() => handleDeleteRate(rate._id)} className="text-slate-400 hover:text-red-600 text-xs transition-colors">Delete</button></td>
+                      <tr key={rate._id} className="last:border-0 transition-colors" style={{ borderBottom: "1px solid var(--bs-border)" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "")}>
+                        <td className="px-4 py-3" style={{ color: "var(--bs-text-primary)" }}>{rate.task}</td>
+                        <td className="px-4 py-3 text-right"><span className="font-medium" style={{ color: "var(--bs-teal)" }}>{rate.rate}</span><span className="ml-1" style={{ color: "var(--bs-text-muted)" }}>{rate.unit}</span></td>
+                        <td className="px-4 py-3 text-center hidden sm:table-cell" style={{ color: "var(--bs-text-muted)" }}>{rate.crew}</td>
+                        <td className="px-4 py-3 hidden md:table-cell" style={{ color: "var(--bs-text-muted)" }}>{rate.notes || "—"}</td>
+                        <td className="px-4 py-3"><button onClick={() => handleDeleteRate(rate._id)} className="text-xs transition-colors" style={{ color: "var(--bs-text-dim)" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-red)")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}>Delete</button></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <div className="text-center py-10 mx-5 mb-5 bg-slate-50 rounded-xl border border-slate-200">
-                <p className="text-sm text-slate-500 mb-3">No rates in {RATE_DB_CATEGORIES.find(c => c.id === activeRateCat)?.label ?? activeRateCat}</p>
+              <div className="text-center py-10 mx-5 mb-5 rounded-xl" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                <p className="text-sm mb-3" style={{ color: "var(--bs-text-muted)" }}>No rates in {RATE_DB_CATEGORIES.find(c => c.id === activeRateCat)?.label ?? activeRateCat}</p>
                 <div className="flex gap-3 justify-center">
-                  <button onClick={handleSeedDefaults} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 text-sm rounded-lg transition-colors">Load Defaults</button>
-                  <button onClick={() => { setNewRate({ ...newRate, category: activeRateCat }); setShowRateAdd(true); }} style={{ background: "#10b981" }} className="px-4 py-2 text-white text-sm rounded-lg hover:opacity-90 transition-colors">Add Rate</button>
+                  <button onClick={handleSeedDefaults} className="px-4 py-2 text-sm rounded-lg transition-colors" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}>Load Defaults</button>
+                  <button onClick={() => { setNewRate({ ...newRate, category: activeRateCat }); setShowRateAdd(true); }} className="px-4 py-2 text-sm rounded-lg transition-colors" style={{ background: "var(--bs-teal)", color: "#13151a" }}>Add Rate</button>
                 </div>
               </div>
             )}

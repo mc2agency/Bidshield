@@ -234,7 +234,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
     const totalItems = items.length;
 
     return (
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 12, overflow: "hidden" }}>
         {/* Card header */}
         <div className="px-5 py-4 flex items-start gap-3">
           <div className="flex-1 min-w-0">
@@ -243,18 +243,19 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
               defaultValue={doc.label}
               onChange={e => handleLabelChange(doc._id, e.target.value)}
               placeholder="e.g. Exhibit A, Exhibit B, Bid Form"
-              className="w-full text-[14px] font-semibold text-slate-900 bg-transparent border-0 border-b border-transparent hover:border-slate-200 focus:border-slate-400 focus:outline-none pb-0.5 transition-colors"
+              style={{ color: "var(--bs-text-primary)", background: "transparent", fontSize: 14, fontWeight: 600 }}
+              className="w-full border-0 border-b border-transparent focus:outline-none pb-0.5 transition-colors"
             />
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-[11px] text-slate-400">
+              <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>
                 {new Date(doc.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </span>
               {doc.processed ? (
-                <span className="text-[11px] text-slate-500">
+                <span style={{ fontSize: 11, color: "var(--bs-text-muted)" }}>
                   {doc.confirmedCount} auto-confirmed · {doc.itemCount - doc.confirmedCount} need review
                 </span>
               ) : (
-                <span className="text-[11px] text-amber-500">Processing…</span>
+                <span style={{ fontSize: 11, color: "var(--bs-amber)" }}>Processing…</span>
               )}
             </div>
           </div>
@@ -263,13 +264,17 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
               <>
                 <button
                   onClick={() => { setReanalyzeTargetId(doc._id); reanalFileRef.current?.click(); }}
-                  className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
+                  style={{ fontSize: 11, color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-text-muted)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}
                 >
                   Re-upload
                 </button>
                 <button
                   onClick={() => handleDelete(doc._id)}
-                  className="text-[11px] text-slate-400 hover:text-red-600 transition-colors"
+                  style={{ fontSize: 11, color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-red)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}
                 >
                   Remove
                 </button>
@@ -281,7 +286,9 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                 if (next.has(doc._id)) next.delete(doc._id); else next.add(doc._id);
                 return next;
               })}
-              className="text-[11px] text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors"
+              style={{ fontSize: 11, color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-text-secondary)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-muted)")}
             >
               {isExpanded ? "Collapse" : "Expand"}
               <svg className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -292,15 +299,17 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
         </div>
 
         {isExpanded && (
-          <div className="border-t border-slate-100">
+          <div style={{ borderTop: "1px solid var(--bs-border)" }}>
             {/* Status bar */}
             {items.length > 0 && (
-              <div className="px-5 py-3 flex items-center justify-between bg-slate-50/50 border-b border-slate-100">
-                <span className="text-[12px] text-slate-500 font-medium">{totalConfirmed} of {totalItems} items confirmed</span>
+              <div className="px-5 py-3 flex items-center justify-between" style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-text-muted)" }}>{totalConfirmed} of {totalItems} items confirmed</span>
                 {!isDemo && (
                   <button
                     onClick={() => { setReanalyzeTargetId(doc._id); reanalFileRef.current?.click(); }}
-                    className="text-[11px] text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1 transition-colors"
+                    style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
                   >
                     Re-analyze
                   </button>
@@ -317,33 +326,36 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                     if (next.has(doc._id)) next.delete(doc._id); else next.add(doc._id);
                     return next;
                   })}
-                  className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                  className="w-full flex items-center justify-between px-5 py-3"
+                  style={{ background: "none", border: "none", cursor: "pointer", borderBottom: "1px solid var(--bs-border)" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "none")}
                 >
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#059669", background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "2px 8px", borderRadius: 9999 }}>Auto-Confirmed ({confirmedItems.length})</span>
-                  <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isConfirmedCollapsed ? "" : "rotate-180"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "var(--bs-teal)", background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", padding: "2px 8px", borderRadius: 9999 }}>Auto-Confirmed ({confirmedItems.length})</span>
+                  <svg className={`w-3.5 h-3.5 transition-transform ${isConfirmedCollapsed ? "" : "rotate-180"}`} style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                   </svg>
                 </button>
                 {!isConfirmedCollapsed && (
-                  <div className="flex flex-col divide-y divide-slate-100">
+                  <div className="flex flex-col" style={{ borderBottom: "none" }}>
                     {confirmedItems.map((item: any) => (
-                      <div key={item._id} className="flex items-start gap-3 px-5 py-3 bg-emerald-50/40 border-l-2 border-emerald-500">
+                      <div key={item._id} className="flex items-start gap-3 px-5 py-3" style={{ background: "var(--bs-teal-dim)", borderLeft: "2px solid var(--bs-teal)", borderBottom: "1px solid var(--bs-border)" }}>
                         <input
                           type="checkbox"
                           defaultChecked
                           onChange={() => handleToggleItem(item, doc._id)}
-                          style={{ marginTop: 2, width: 14, height: 14, accentColor: "#10b981", flexShrink: 0 }}
+                          style={{ marginTop: 2, width: 14, height: 14, accentColor: "var(--bs-teal)", flexShrink: 0 }}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] text-slate-800">{item.questionText}</p>
+                          <p style={{ fontSize: 13, color: "var(--bs-text-primary)" }}>{item.questionText}</p>
                           {item.confirmedValue && (
-                            <p className="text-[12px] text-emerald-700 mt-0.5 font-medium">
+                            <p style={{ fontSize: 12, color: "var(--bs-teal)", marginTop: 2, fontWeight: 500 }}>
                               {item.confirmedValue}
-                              {item.matchedField && <span className="text-[10px] text-emerald-500 ml-1">(matched from {item.matchedField})</span>}
+                              {item.matchedField && <span style={{ fontSize: 10, color: "var(--bs-teal)", marginLeft: 4, opacity: 0.7 }}>(matched from {item.matchedField})</span>}
                             </p>
                           )}
                         </div>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-100 text-teal-700 font-semibold shrink-0">AI</span>
+                        <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)", fontWeight: 700, flexShrink: 0 }}>AI</span>
                       </div>
                     ))}
                   </div>
@@ -354,35 +366,35 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
             {/* Section B: Needs Review */}
             {needsReviewItems.length > 0 && (
               <div>
-                <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/30">
-                  <span className="text-[12px] font-semibold text-slate-600">Needs Review ({needsReviewItems.length})</span>
+                <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-secondary)" }}>Needs Review ({needsReviewItems.length})</span>
                 </div>
-                <div className="flex flex-col divide-y divide-slate-100">
+                <div className="flex flex-col">
                   {needsReviewItems.map((item: any) => {
                     const inScope = item.foundInScope || item.foundInChecklist;
                     const showNotes = expandedNotes.has(item._id);
                     return (
-                      <div key={item._id} className="px-5 py-3 flex flex-col gap-2">
+                      <div key={item._id} className="px-5 py-3 flex flex-col gap-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
                         <div className="flex items-start gap-3">
                           <input
                             type="checkbox"
                             checked={!!item.manuallyChecked}
                             onChange={() => handleToggleItem(item, doc._id)}
-                            style={{ marginTop: 2, width: 14, height: 14, accentColor: "#1e293b", flexShrink: 0 }}
+                            style={{ marginTop: 2, width: 14, height: 14, accentColor: "var(--bs-teal)", flexShrink: 0 }}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13px] text-slate-800">{item.questionText}</p>
+                            <p style={{ fontSize: 13, color: "var(--bs-text-primary)" }}>{item.questionText}</p>
                             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                               {item.itemType === "fill-in" ? (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Fill-in</span>
+                                <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>Fill-in</span>
                               ) : (
                                 <>
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Scope Item</span>
+                                  <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>Scope Item</span>
                                   {item.foundInScope !== undefined || item.foundInChecklist !== undefined ? (
                                     inScope ? (
-                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">In Scope</span>
+                                      <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>In Scope</span>
                                     ) : (
-                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Not in Scope</span>
+                                      <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>Not in Scope</span>
                                     )
                                   ) : null}
                                 </>
@@ -393,7 +405,9 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                                   if (next.has(item._id)) next.delete(item._id); else next.add(item._id);
                                   return next;
                                 })}
-                                className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors"
+                                style={{ fontSize: 10, color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}
+                                onMouseEnter={e => (e.currentTarget.style.color = "var(--bs-text-muted)")}
+                                onMouseLeave={e => (e.currentTarget.style.color = "var(--bs-text-dim)")}
                               >
                                 {showNotes ? "Hide notes" : "+ Note"}
                               </button>
@@ -404,7 +418,8 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
                                 onBlur={e => handleNoteChange(item, e.target.value)}
                                 placeholder="Add a note…"
                                 rows={2}
-                                className="mt-2 w-full text-[12px] rounded-lg px-3 py-2 border border-slate-200 focus:border-slate-400 focus:outline-none bg-white text-slate-700 resize-none"
+                                className="mt-2 w-full px-3 py-2 rounded-lg focus:outline-none resize-none"
+                                style={{ fontSize: 12, background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                               />
                             )}
                           </div>
@@ -418,7 +433,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
 
             {items.length === 0 && (
               <div className="px-5 py-8 text-center">
-                <p className="text-sm text-slate-400">No items extracted — try re-uploading the document.</p>
+                <p style={{ fontSize: 14, color: "var(--bs-text-dim)" }}>No items extracted — try re-uploading the document.</p>
               </div>
             )}
           </div>
@@ -466,21 +481,20 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
 
       {/* Empty state */}
       {resolvedDocs.length === 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 px-6 py-12 text-center flex flex-col items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-            <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" /></svg>
+        <div className="px-6 py-12 text-center flex flex-col items-center gap-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 12 }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "var(--bs-bg-elevated)" }}>
+            <svg className="w-7 h-7" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" /></svg>
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Upload GC Bid Documents</h3>
-            <p className="text-sm text-slate-500 mt-1 max-w-md">
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--bs-text-primary)" }}>Upload GC Bid Documents</h3>
+            <p style={{ fontSize: 14, color: "var(--bs-text-muted)", marginTop: 4, maxWidth: 400 }}>
               Exhibit A, Exhibit B, Bid Form — whatever your GC calls it. AI extracts every requirement, auto-confirms what it can from your bid data, and flags the rest for review.
             </p>
           </div>
           <button
             onClick={() => { if (!isDemo) fileInputRef.current?.click(); }}
             disabled={uploading || isDemo}
-            style={{ background: "#0f172a" }}
-            className="px-5 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-80 disabled:opacity-50 transition-colors flex items-center gap-2"
+            style={{ background: "var(--bs-teal)", color: "#13151a", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, opacity: (uploading || isDemo) ? 0.5 : 1 }}
           >
             {uploading ? (
               <>
@@ -492,7 +506,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
               </>
             ) : "Upload Document"}
           </button>
-          <p className="text-[11px] text-slate-400">Not all GCs require these forms — only upload if provided. Upload is optional.</p>
+          <p style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Not all GCs require these forms — only upload if provided. Upload is optional.</p>
         </div>
       )}
 
@@ -506,8 +520,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
             <button
               onClick={() => { if (!isDemo) fileInputRef.current?.click(); }}
               disabled={uploading || isDemo}
-              style={{ background: "#0f172a" }}
-              className="px-4 py-2 text-white text-sm font-semibold rounded-lg hover:opacity-80 disabled:opacity-50 transition-colors flex items-center gap-2"
+              style={{ background: "var(--bs-teal)", color: "#13151a", fontSize: 14, fontWeight: 600, padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, opacity: (uploading || isDemo) ? 0.5 : 1 }}
             >
               {uploading ? (
                 <>
@@ -524,7 +537,7 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
       )}
 
       {uploadError && (
-        <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <p style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-red)", background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", borderRadius: 8, padding: "8px 12px" }}>
           {uploadError}
         </p>
       )}
@@ -536,9 +549,9 @@ function GCBidFormsPanel({ projectId, userId, isDemo, isPro, project }: { projec
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
-      <div className="px-5 py-3" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>{title}</span>
+    <div style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 12, overflow: "hidden" }}>
+      <div className="px-5 py-3" style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-secondary)" }}>{title}</span>
       </div>
       <div className="px-5 py-4 flex flex-col gap-4">{children}</div>
     </div>
@@ -549,8 +562,8 @@ function AutoBadge({ source }: { source: string }) {
   return (
     <span title={`Auto-filled from ${source}`} style={{
       marginLeft: 6, fontSize: 10, fontWeight: 600,
-      color: "#2563eb", background: "#eff6ff",
-      border: "1px solid #bfdbfe", borderRadius: 4,
+      color: "var(--bs-blue)", background: "var(--bs-blue-dim)",
+      border: "1px solid var(--bs-border)", borderRadius: 4,
       padding: "1px 5px", verticalAlign: "middle",
     }}>
       auto · {source}
@@ -561,9 +574,9 @@ function AutoBadge({ source }: { source: string }) {
 function Field({ label, hint, children, autoSource }: { label: string; hint?: string; children: React.ReactNode; autoSource?: string }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#6b7280", marginBottom: 5 }}>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--bs-text-muted)", marginBottom: 5 }}>
         {label}
-        {hint && <span style={{ fontWeight: 400, marginLeft: 6, color: "#9ca3af" }}>({hint})</span>}
+        {hint && <span style={{ fontWeight: 400, marginLeft: 6, color: "var(--bs-text-dim)" }}>({hint})</span>}
         {autoSource && <AutoBadge source={autoSource} />}
       </label>
       {children}
@@ -571,7 +584,7 @@ function Field({ label, hint, children, autoSource }: { label: string; hint?: st
   );
 }
 
-const INPUT_CLS = "w-full text-[13px] rounded-lg px-3 py-2 border border-slate-200 focus:border-slate-400 focus:outline-none bg-white text-slate-800";
+const INPUT_CLS = "w-full px-3 py-2 text-sm rounded-lg focus:outline-none bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]";
 
 function RadioGroup<T extends string>({
   value, options, onChange,
@@ -581,7 +594,7 @@ function RadioGroup<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex gap-0" style={{ border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden", display: "inline-flex" }}>
+    <div style={{ border: "1px solid var(--bs-border)", borderRadius: 8, overflow: "hidden", display: "inline-flex" }}>
       {options.map((opt, i) => (
         <button
           key={opt.id}
@@ -590,11 +603,14 @@ function RadioGroup<T extends string>({
             padding: "6px 14px",
             fontSize: 12,
             fontWeight: value === opt.id ? 600 : 400,
-            background: value === opt.id ? "#1e293b" : "transparent",
-            color: value === opt.id ? "#ffffff" : "#6b7280",
-            borderLeft: i > 0 ? "1px solid #e2e8f0" : "none",
+            background: value === opt.id ? "var(--bs-teal-dim)" : "transparent",
+            color: value === opt.id ? "var(--bs-teal)" : "var(--bs-text-muted)",
+            border: "none",
+            borderLeft: i > 0 ? "1px solid var(--bs-border)" : "none",
             transition: "all 0.15s",
             whiteSpace: "nowrap",
+            cursor: "pointer",
+            outline: value === opt.id ? "1px solid var(--bs-teal-border)" : "none",
           }}
         >
           {opt.label}
@@ -612,18 +628,18 @@ function Toggle({ value, onChange, label }: { value: boolean | undefined; onChan
         onClick={() => onChange(!on)}
         style={{
           width: 40, height: 22, borderRadius: 11,
-          background: on ? "#10b981" : "#d1d5db",
+          background: on ? "var(--bs-teal)" : "var(--bs-bg-elevated)",
           position: "relative", transition: "background 0.2s", flexShrink: 0,
-          border: "none", cursor: "pointer",
+          border: "1px solid var(--bs-border)", cursor: "pointer",
         }}
       >
         <span style={{
-          position: "absolute", top: 3, left: on ? 21 : 3,
-          width: 16, height: 16, borderRadius: "50%", background: "#fff",
-          transition: "left 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+          position: "absolute", top: 2, left: on ? 20 : 2,
+          width: 16, height: 16, borderRadius: "50%", background: on ? "#13151a" : "var(--bs-text-dim)",
+          transition: "left 0.2s",
         }} />
       </button>
-      {label && <span style={{ fontSize: 13, color: "#374151" }}>{label}</span>}
+      {label && <span style={{ fontSize: 13, color: "var(--bs-text-secondary)" }}>{label}</span>}
     </div>
   );
 }
@@ -770,12 +786,12 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
   if (!isPro && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-          <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: "var(--bs-bg-elevated)" }}>
+          <svg className="w-7 h-7" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">Bid Qualifications</h3>
-        <p className="text-sm text-slate-500 mb-6">Track bonding, insurance, exclusions, and other GC submission requirements. Available on Pro.</p>
-        <a href="/bidshield/pricing" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-colors">
+        <h3 style={{ fontSize: 18, fontWeight: 600, color: "var(--bs-text-primary)", marginBottom: 8 }}>Bid Qualifications</h3>
+        <p style={{ fontSize: 14, color: "var(--bs-text-muted)", marginBottom: 24 }}>Track bonding, insurance, exclusions, and other GC submission requirements. Available on Pro.</p>
+        <a href="/bidshield/pricing" style={{ padding: "12px 24px", background: "var(--bs-teal)", color: "#13151a", fontWeight: 600, borderRadius: 12, fontSize: 14, textDecoration: "none" }}>
           Upgrade to Pro
         </a>
       </div>
@@ -787,14 +803,14 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
 
       {/* Header */}
       <div>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#0f172a" }}>Bid Qualifications Tracker</h1>
-        <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--bs-text-primary)" }}>Bid Qualifications Tracker</h1>
+        <p style={{ fontSize: 13, color: "var(--bs-text-muted)", marginTop: 4 }}>
           Track the info you&apos;ll need for the GC&apos;s Exhibit A and bid submission forms.
         </p>
       </div>
 
       {/* Sub-tab switcher */}
-      <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden", display: "inline-flex" }}>
+      <div style={{ border: "1px solid var(--bs-border)", borderRadius: 8, overflow: "hidden", display: "inline-flex" }}>
         {(["quals", "forms"] as const).map((tab, i) => (
           <button
             key={tab}
@@ -803,11 +819,13 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
               padding: "7px 18px",
               fontSize: 13,
               fontWeight: activeSubTab === tab ? 600 : 400,
-              background: activeSubTab === tab ? "#1e293b" : "transparent",
-              color: activeSubTab === tab ? "#ffffff" : "#6b7280",
-              borderLeft: i > 0 ? "1px solid #e2e8f0" : "none",
+              background: activeSubTab === tab ? "var(--bs-teal-dim)" : "transparent",
+              color: activeSubTab === tab ? "var(--bs-teal)" : "var(--bs-text-muted)",
+              border: "none",
+              borderLeft: i > 0 ? "1px solid var(--bs-border)" : "none",
               transition: "all 0.15s",
               whiteSpace: "nowrap",
+              cursor: "pointer",
             }}
           >
             {tab === "quals" ? "Bid Qualifications" : "GC Bid Forms"}
@@ -862,7 +880,8 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
             <input
               type="number"
               key={`addendaThrough-${effectiveAddendaThrough}`}
-              className={INPUT_CLS + (isAutoField.addendaThrough ? " border-blue-200 bg-blue-50/30" : "")}
+              className={INPUT_CLS}
+              style={isAutoField.addendaThrough ? { borderColor: "var(--bs-blue)", background: "var(--bs-blue-dim)" } : undefined}
               defaultValue={effectiveAddendaThrough ?? ""}
               min={0}
               placeholder="0"
@@ -930,7 +949,8 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
           <input
             type="text"
             key={`laborBurdenRate-${effectiveLaborBurdenRate}`}
-            className={INPUT_CLS + (isAutoField.laborBurdenRate ? " border-blue-200 bg-blue-50/30" : "")}
+            className={INPUT_CLS}
+            style={isAutoField.laborBurdenRate ? { borderColor: "var(--bs-blue)", background: "var(--bs-blue-dim)" } : undefined}
             defaultValue={effectiveLaborBurdenRate ?? ""}
             placeholder="42%"
             onBlur={e => saveField("laborBurdenRate", e.target.value)}
@@ -1047,9 +1067,9 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
                       type="checkbox"
                       checked={bondTypesSet.has(opt.id)}
                       onChange={() => toggleBondType(opt.id)}
-                      style={{ width: 14, height: 14, accentColor: "#1e293b" }}
+                      style={{ width: 14, height: 14, accentColor: "var(--bs-teal)" }}
                     />
-                    <span style={{ fontSize: 13, color: "#374151" }}>{opt.label}</span>
+                    <span style={{ fontSize: 13, color: "var(--bs-text-secondary)" }}>{opt.label}</span>
                   </label>
                 ))}
               </div>
@@ -1184,14 +1204,15 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
       <SectionCard title="Qualifications & Exceptions to Bid">
         <Field label="Notes">
           <textarea
-            className="w-full text-[13px] rounded-lg px-3 py-2.5 border border-slate-200 focus:border-slate-400 focus:outline-none bg-white text-slate-800 resize-none"
+            className="w-full px-3 py-2 rounded-lg focus:outline-none resize-none"
+            style={{ fontSize: 13, background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
             rows={5}
             defaultValue={data.qualificationsNotes ?? ""}
             placeholder="List any qualifications, exceptions, or conditions you're attaching to your bid. E.g.: 'Price excludes after-hours work', 'Assumes single-layer tear-off', 'Bid does not include hazmat abatement'"
             onBlur={e => saveField("qualificationsNotes", e.target.value)}
           />
         </Field>
-        <p style={{ fontSize: 11, color: "#9ca3af" }}>
+        <p style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>
           These notes will appear in your Pre-Submission checklist for final review.
         </p>
       </SectionCard>
