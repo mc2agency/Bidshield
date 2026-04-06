@@ -690,10 +690,9 @@ function ProjectDetail() {
             <button
               onClick={() => setDismissedWarnings(s => new Set([...s, activeWarning]))}
               className="transition-colors duration-150 cursor-pointer shrink-0 p-1 rounded"
-              style={{ color: "var(--bs-text-dim)" }}
+              style={{ color: "var(--bs-text-dim)", background: "none", border: "none" }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
-              style={{ background: "none", border: "none" }}
               title="Dismiss"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
