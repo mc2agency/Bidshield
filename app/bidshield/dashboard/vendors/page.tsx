@@ -833,7 +833,7 @@ export default function VendorsPage() {
           <div className="relative w-full max-w-lg rounded-2xl p-6" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold" style={{ color: "var(--bs-text-primary)" }}>Edit Vendor</h2>
-              <button onClick={() => setEditingId(null)} style={{ color: "var(--bs-text-dim)" }}
+              <button onClick={() => setEditingId(null)} style={{ color: "var(--bs-text-dim)" }}>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
