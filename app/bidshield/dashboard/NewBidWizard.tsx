@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { INSULATION_TYPES, SURFACE_TYPES, THICKNESS_PRESETS, computeInsulationRValue } from "@/lib/bidshield/insulation-data";
 
 // ── Project types that determine what BidShield pre-configures ──
 const PROJECT_TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -37,7 +38,7 @@ const DECKS = [
 ];
 
 // What BidShield auto-configures based on selections
-function getConfigSummary(projectType: string, system: string) {
+function getConfigSummary(projectType: string, systems: string[]) {
   const configs: string[] = [];
 
   // Common to all
@@ -64,19 +65,34 @@ function getConfigSummary(projectType: string, system: string) {
     configs.push("Simplified scope checker");
   }
 
-  // System-specific
-  if (system === "metal") {
-    configs.push("Panel layout & clip spacing checks");
-    configs.push("Expansion/contraction calculations");
-  } else if (system === "spf") {
-    configs.push("SPF density & thickness specs");
-    configs.push("Coating system verification");
-  } else if (system === "tpo" || system === "pvc") {
-    configs.push("Membrane seam & detail checks");
-    configs.push("Attachment pattern verification");
-  } else if (system === "sbs" || system === "app" || system === "bur") {
-    configs.push("Ply count & adhesion method checks");
-    configs.push("Base/cap sheet specification review");
+  // System-specific (deduplicate by checking each system)
+  const added = new Set<string>();
+  for (const system of systems) {
+    if (system === "metal") {
+      if (!added.has("metal")) {
+        configs.push("Panel layout & clip spacing checks");
+        configs.push("Expansion/contraction calculations");
+        added.add("metal");
+      }
+    } else if (system === "spf") {
+      if (!added.has("spf")) {
+        configs.push("SPF density & thickness specs");
+        configs.push("Coating system verification");
+        added.add("spf");
+      }
+    } else if (system === "tpo" || system === "pvc") {
+      if (!added.has("membrane")) {
+        configs.push("Membrane seam & detail checks");
+        configs.push("Attachment pattern verification");
+        added.add("membrane");
+      }
+    } else if (system === "sbs" || system === "app" || system === "bur") {
+      if (!added.has("bitumen")) {
+        configs.push("Ply count & adhesion method checks");
+        configs.push("Base/cap sheet specification review");
+        added.add("bitumen");
+      }
+    }
   }
 
   return configs;
@@ -84,10 +100,20 @@ function getConfigSummary(projectType: string, system: string) {
 
 const STEPS = [
   { label: "Project Type" },
-  { label: "System" },
+  { label: "Systems" },
+  { label: "Assemblies" },
   { label: "Project Info" },
   { label: "Review" },
 ];
+
+interface AssemblyInput {
+  label: string;
+  systemType: string;
+  insulationType: string;
+  insulationThickness: string;
+  rValue: number | null;
+  surfaceType: string;
+}
 
 interface Props {
   onClose: () => void;
@@ -95,6 +121,8 @@ interface Props {
     name: string; location: string; bidDate: string; trade: string;
     projectType: string; systemType: string; deckType: string;
     gc: string; sqft: string; totalBidAmount: string; assemblies: string;
+    roofAssemblies?: AssemblyInput[];
+    systemDescription?: string;
   }) => void;
   isDemo?: boolean;
 }
@@ -102,7 +130,10 @@ interface Props {
 export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
   const [step, setStep] = useState(0);
   const [projectType, setProjectType] = useState("");
-  const [system, setSystem] = useState("");
+  const [systems, setSystems] = useState<string[]>([]);
+  const [assemblies, setAssemblies] = useState<AssemblyInput[]>([]);
+  const [aiDescription, setAiDescription] = useState("");
+  const [descLoading, setDescLoading] = useState(false);
   const [deck, setDeck] = useState("");
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -111,16 +142,67 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
   const [sqft, setSqft] = useState("");
   const [totalBidAmount, setTotalBidAmount] = useState("");
 
+  const toggleSystem = (id: string) => {
+    setSystems(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
   const canAdvance = [
-    projectType !== "",                          // Step 0: must pick type
-    system !== "",                                // Step 1: must pick system
-    name !== "" && location !== "" && bidDate !== "", // Step 2: required fields
-    true,                                         // Step 3: confirm
+    projectType !== "",
+    systems.length > 0,
+    true, // assemblies step is optional
+    name !== "" && location !== "" && bidDate !== "",
+    true,
   ];
 
-  const configs = getConfigSummary(projectType, system);
+  const configs = getConfigSummary(projectType, systems);
   const inputCls = "w-full py-2.5 px-3 rounded-lg text-sm outline-none transition-colors";
   const inputStyle = { background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" };
+
+  // Auto-generate assemblies from selected systems when entering step 2
+  useEffect(() => {
+    if (step === 2 && assemblies.length === 0 && systems.length > 0) {
+      setAssemblies(systems.map((s, i) => ({
+        label: `RT-0${i + 1}`,
+        systemType: s,
+        insulationType: "",
+        insulationThickness: "",
+        rValue: null,
+        surfaceType: "",
+      })));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, systems]);
+  // Note: assemblies is intentionally not in the dep array to avoid re-seeding
+
+  // Fire AI description when entering step 4
+  useEffect(() => {
+    if (step !== 4) return;
+    const hasDetails = assemblies.some(a => a.insulationType || a.surfaceType);
+    if (!hasDetails || aiDescription) return;
+    setDescLoading(true);
+    fetch("/api/bidshield/generate-system-description", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        assemblies: assemblies.map(a => ({
+          label: a.label,
+          systemType: a.systemType,
+          insulationType: a.insulationType || undefined,
+          insulationThickness: a.insulationThickness ? a.insulationThickness + "in" : undefined,
+          rValue: a.rValue ?? undefined,
+          surfaceType: a.surfaceType || undefined,
+        })),
+        projectType,
+        deckType: deck || undefined,
+      }),
+    })
+      .then(r => r.json())
+      .then(data => { if (data.text) setAiDescription(data.text); })
+      .catch(() => {})
+      .finally(() => setDescLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+  // Note: other deps intentionally excluded to avoid re-firing
 
   return (
     <div onClick={onClose} className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
@@ -172,11 +254,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
             </div>
           )}
 
-          {/* ── Step 1: System & Deck ── */}
+          {/* ── Step 1: Systems & Deck (Multi-select) ── */}
           {step === 1 && (
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Roofing system</h3>
-              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Configures material checks and spec verification.</p>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Roofing systems</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Select all systems on this project. Configures checks and materials.</p>
 
               <div className="mb-5">
                 <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Popular</div>
@@ -184,13 +266,18 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                   {SYSTEMS.filter(s => s.popular).map((s) => (
                     <button
                       key={s.id}
-                      onClick={() => setSystem(s.id)}
-                      className="py-2.5 px-3 rounded-lg text-sm font-medium transition-all"
-                      style={system === s.id
+                      onClick={() => toggleSystem(s.id)}
+                      className="py-2.5 px-3 rounded-lg text-sm font-medium transition-all relative"
+                      style={systems.includes(s.id)
                         ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }
                         : { border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
                     >
                       {s.label}
+                      {systems.includes(s.id) && (
+                        <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ background: "var(--bs-teal)" }}>
+                          <svg className="w-2 h-2" style={{ color: "#13151a" }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -202,13 +289,18 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                   {SYSTEMS.filter(s => !s.popular).map((s) => (
                     <button
                       key={s.id}
-                      onClick={() => setSystem(s.id)}
-                      className="py-2 px-3 rounded-lg text-sm transition-all"
-                      style={system === s.id
+                      onClick={() => toggleSystem(s.id)}
+                      className="py-2 px-3 rounded-lg text-sm transition-all relative"
+                      style={systems.includes(s.id)
                         ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500 }
                         : { border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
                     >
                       {s.label}
+                      {systems.includes(s.id) && (
+                        <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ background: "var(--bs-teal)" }}>
+                          <svg className="w-2 h-2" style={{ color: "#13151a" }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -231,11 +323,134 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                   ))}
                 </div>
               </div>
+
+              {systems.length > 1 && (
+                <p className="text-xs mt-4 font-medium" style={{ color: "var(--bs-teal)" }}>
+                  {systems.length} systems selected — you can define assemblies in the next step
+                </p>
+              )}
             </div>
           )}
 
-          {/* ── Step 2: Project Info ── */}
+          {/* ── Step 2: Assembly Builder ── */}
           {step === 2 && (
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Define assemblies</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Add insulation and surface details for each roof area. Optional — you can skip this.</p>
+
+              <div className="space-y-3">
+                {assemblies.map((a, idx) => (
+                  <div key={idx} className="rounded-xl p-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={a.label}
+                          onChange={(e) => { const next = [...assemblies]; next[idx] = { ...a, label: e.target.value }; setAssemblies(next); }}
+                          className="w-16 text-sm font-bold bg-transparent outline-none"
+                          style={{ color: "var(--bs-text-primary)" }}
+                        />
+                        <span className="text-xs px-2 py-0.5 rounded uppercase font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
+                          {SYSTEMS.find(s => s.id === a.systemType)?.label || a.systemType}
+                        </span>
+                      </div>
+                      {assemblies.length > 1 && (
+                        <button onClick={() => setAssemblies(assemblies.filter((_, i) => i !== idx))} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Remove</button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] block mb-1" style={{ color: "var(--bs-text-dim)" }}>Insulation</label>
+                        <select
+                          value={a.insulationType}
+                          onChange={(e) => {
+                            const next = [...assemblies];
+                            const ins = e.target.value;
+                            const thickness = a.insulationThickness ? parseFloat(a.insulationThickness) : 0;
+                            next[idx] = { ...a, insulationType: ins, rValue: ins && thickness ? computeInsulationRValue(ins, thickness) : null };
+                            setAssemblies(next);
+                          }}
+                          className="w-full py-1.5 px-2 rounded-lg text-xs outline-none"
+                          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+                        >
+                          <option value="">None / TBD</option>
+                          {INSULATION_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] block mb-1" style={{ color: "var(--bs-text-dim)" }}>Surface</label>
+                        <select
+                          value={a.surfaceType}
+                          onChange={(e) => { const next = [...assemblies]; next[idx] = { ...a, surfaceType: e.target.value }; setAssemblies(next); }}
+                          className="w-full py-1.5 px-2 rounded-lg text-xs outline-none"
+                          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+                        >
+                          <option value="">Select...</option>
+                          {SURFACE_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    {a.insulationType && (
+                      <div className="mt-3">
+                        <label className="text-[11px] block mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Thickness</label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {THICKNESS_PRESETS.map(t => (
+                            <button
+                              key={t}
+                              onClick={() => {
+                                const next = [...assemblies];
+                                const thick = parseFloat(t);
+                                next[idx] = { ...a, insulationThickness: t, rValue: computeInsulationRValue(a.insulationType, thick) };
+                                setAssemblies(next);
+                              }}
+                              className="py-1 px-2.5 rounded text-xs transition-all"
+                              style={a.insulationThickness === t
+                                ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500 }
+                                : { border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
+                            >
+                              {t}&quot;
+                            </button>
+                          ))}
+                        </div>
+                        {a.rValue !== null && (
+                          <div className="mt-2 text-xs font-medium" style={{ color: "var(--bs-teal)" }}>
+                            R-{a.rValue.toFixed(1)}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setAssemblies([...assemblies, {
+                  label: `RT-0${assemblies.length + 1}`,
+                  systemType: systems[0] || "tpo",
+                  insulationType: "",
+                  insulationThickness: "",
+                  rValue: null,
+                  surfaceType: "",
+                }])}
+                className="mt-3 text-xs font-medium"
+                style={{ color: "var(--bs-teal)" }}
+              >
+                + Add Assembly
+              </button>
+
+              <button
+                onClick={() => { setAssemblies([]); setStep(3); }}
+                className="block mt-3 text-xs"
+                style={{ color: "var(--bs-text-dim)" }}
+              >
+                Skip — I&apos;ll set this up later
+              </button>
+            </div>
+          )}
+
+          {/* ── Step 3: Project Info ── */}
+          {step === 3 && (
             <div>
               <h3 className="text-lg font-bold mb-1" style={{ color: "var(--bs-text-primary)" }}>Project details</h3>
               <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>The basics. You can add more later.</p>
@@ -272,11 +487,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
             </div>
           )}
 
-          {/* ── Step 3: Review — show what gets configured ── */}
-          {step === 3 && (
+          {/* ── Step 4: Review — show what gets configured ── */}
+          {step === 4 && (
             <div>
               <h3 className="text-lg font-bold mb-1" style={{ color: "var(--bs-text-primary)" }}>Your bid is ready to build</h3>
-              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Here's what BidShield will set up based on your selections:</p>
+              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Here&apos;s what BidShield will set up based on your selections:</p>
 
               {/* Summary card */}
               <div className="rounded-xl p-4 mb-5 space-y-2" style={{ background: "var(--bs-bg-elevated)" }}>
@@ -289,8 +504,12 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                   <span style={{ color: "var(--bs-text-secondary)" }}>{PROJECT_TYPES.find(t => t.id === projectType)?.label}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span style={{ color: "var(--bs-text-muted)" }}>System</span>
-                  <span className="uppercase" style={{ color: "var(--bs-text-secondary)" }}>{system}</span>
+                  <span style={{ color: "var(--bs-text-muted)" }}>Systems</span>
+                  <div className="flex flex-wrap gap-1 justify-end">
+                    {systems.map(s => (
+                      <span key={s} className="uppercase text-xs py-0.5 px-2 rounded" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>{s}</span>
+                    ))}
+                  </div>
                 </div>
                 {deck && (
                   <div className="flex justify-between text-sm">
@@ -314,6 +533,25 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                 )}
               </div>
 
+              {/* Assemblies table */}
+              {assemblies.length > 0 && (
+                <div className="rounded-xl p-4 mb-5" style={{ background: "var(--bs-bg-elevated)" }}>
+                  <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Assemblies</div>
+                  <div className="space-y-1.5">
+                    {assemblies.map((a, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs" style={{ color: "var(--bs-text-secondary)" }}>
+                        <span className="font-medium" style={{ color: "var(--bs-text-primary)" }}>{a.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="uppercase">{a.systemType}</span>
+                          {a.rValue !== null && <span style={{ color: "var(--bs-teal)" }}>R-{a.rValue.toFixed(1)}</span>}
+                          {a.surfaceType && <span>{SURFACE_TYPES.find(s => s.id === a.surfaceType)?.label}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* What BidShield configures */}
               <div className="rounded-xl p-4" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal)" }}>
                 <div className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--bs-teal)" }}>BidShield will configure</div>
@@ -326,6 +564,28 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
                   ))}
                 </div>
               </div>
+
+              {/* AI System Description */}
+              {(descLoading || aiDescription) && (
+                <div className="rounded-xl p-4 mt-5" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>System Description</div>
+                  {descLoading ? (
+                    <div className="space-y-2">
+                      <div className="h-3 rounded" style={{ background: "var(--bs-border)", width: "80%" }} />
+                      <div className="h-3 rounded" style={{ background: "var(--bs-border)", width: "60%" }} />
+                      <div className="h-3 rounded" style={{ background: "var(--bs-border)", width: "70%" }} />
+                    </div>
+                  ) : (
+                    <textarea
+                      value={aiDescription}
+                      onChange={(e) => setAiDescription(e.target.value)}
+                      rows={5}
+                      className="w-full text-xs rounded-lg p-2 outline-none resize-none"
+                      style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -341,7 +601,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
             </button>
           )}
 
-          {step < 3 ? (
+          {step < 4 ? (
             <button
               onClick={() => canAdvance[step] && setStep(step + 1)}
               disabled={!canAdvance[step]}
@@ -354,8 +614,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
             <button
               onClick={() => onCreate({
                 name, location, bidDate, trade: "roofing",
-                projectType, systemType: system, deckType: deck,
-                gc, sqft, totalBidAmount, assemblies: system ? system.toUpperCase() : "",
+                projectType, systemType: systems[0] || "", deckType: deck,
+                gc, sqft, totalBidAmount,
+                assemblies: systems.map(s => s.toUpperCase()).join(","),
+                roofAssemblies: assemblies.length > 0 ? assemblies : undefined,
+                systemDescription: aiDescription || undefined,
               })}
               className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors"
               style={{ background: "var(--bs-teal)", color: "#13151a" }}
