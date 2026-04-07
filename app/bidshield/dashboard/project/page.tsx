@@ -535,16 +535,16 @@ function ProjectDetail() {
             )}
           </div>
 
-          {/* Row 2 — project identity + key numbers + CTA */}
-          <div className="flex items-center gap-0 pb-3 min-w-0">
+          {/* Row 2 — compact project identity */}
+          <div className="flex items-center gap-3 pb-2.5 min-w-0">
             {/* Project name */}
-            <div className="app-display mr-3 shrink-0" style={{ fontSize: 20, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <div className="app-display shrink-0" style={{ fontSize: 16, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
               {projectData?.name ?? "Project"}
             </div>
 
             {/* Status badge */}
             {(projectData as any)?.status && (projectData as any).status !== "in_progress" && (
-              <span className="mr-3 shrink-0" style={{
+              <span className="shrink-0" style={{
                 fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
                 padding: "2px 7px", borderRadius: 3,
                 background: (projectData as any).status === "won" ? "var(--bs-teal-dim)" : (projectData as any).status === "lost" ? "var(--bs-red-dim)" : (projectData as any).status === "submitted" ? "var(--bs-blue-dim)" : "rgba(255,255,255,0.08)",
@@ -554,43 +554,20 @@ function ProjectDetail() {
               </span>
             )}
 
-            {/* Divider */}
-            <div className="mr-4 shrink-0" style={{ width: 1, height: 14, background: "rgba(255,255,255,0.08)" }} />
+            {projectData?.location && (
+              <span style={{ fontSize: 11, color: "var(--bs-text-dim)", whiteSpace: "nowrap" }}>
+                {projectData.location}
+              </span>
+            )}
 
-            {/* Key numbers inline */}
-            <div className="flex items-center gap-4 min-w-0 flex-1">
-              {grossArea ? (
-                <span style={{ fontSize: 13, color: "var(--bs-text-muted)", whiteSpace: "nowrap" }}>
-                  <span style={{ color: "var(--bs-text-secondary)", fontWeight: 600 }}>{grossArea >= 1000 ? `${(grossArea/1000).toFixed(0)}K` : grossArea.toLocaleString()}</span>
-                  <span style={{ color: "var(--bs-text-dim)", marginLeft: 3 }}>SF</span>
-                </span>
-              ) : null}
-              {bidAmt ? (
-                <span style={{ fontSize: 13, color: "var(--bs-text-muted)", whiteSpace: "nowrap" }}>
-                  <span style={{ color: "var(--bs-text-secondary)", fontWeight: 600 }}>${bidAmt >= 1_000_000 ? `${(bidAmt/1_000_000).toFixed(2)}M` : bidAmt >= 1000 ? `${(bidAmt/1000).toFixed(0)}K` : bidAmt.toLocaleString()}</span>
-                  <span style={{ color: "var(--bs-text-dim)", marginLeft: 3 }}>bid</span>
-                </span>
-              ) : null}
-              {dpsf ? (
-                <span style={{ fontSize: 13, color: "var(--bs-text-muted)", whiteSpace: "nowrap" }}>
-                  <span style={{ color: "var(--bs-text-secondary)", fontWeight: 600 }}>${dpsf.toFixed(2)}</span>
-                  <span style={{ color: "var(--bs-text-dim)", marginLeft: 3 }}>/SF</span>
-                </span>
-              ) : null}
-              {projectData?.location && (
-                <span style={{ fontSize: 12, color: "var(--bs-text-dim)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
-                  {[projectData.location, (projectData as any)?.gc].filter(Boolean).join(" · ")}
-                </span>
-              )}
-            </div>
+            <div className="flex-1" />
 
-            {/* Right: countdown + readiness + CTA */}
-            <div className="flex items-center gap-2.5 shrink-0 ml-4">
-              {/* Bid countdown */}
+            {/* Right: countdown + blocker CTA */}
+            <div className="flex items-center gap-2.5 shrink-0">
               {msUntilBid !== null && (
                 <div style={{
-                  fontSize: 12, fontWeight: 700,
-                  padding: "4px 10px", borderRadius: 6,
+                  fontSize: 11, fontWeight: 700,
+                  padding: "3px 8px", borderRadius: 5,
                   background: msUntilBid <= 0 ? "var(--bs-red-dim)" : hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "var(--bs-teal-dim)",
                   color: msUntilBid <= 0 ? "var(--bs-red)" : hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-teal)",
                   border: `1px solid ${msUntilBid <= 0 ? "var(--bs-red-border)" : hoursUntilBid! <= 24 ? "var(--bs-amber-border)" : "var(--bs-teal-border)"}`,
@@ -600,46 +577,16 @@ function ProjectDetail() {
                 </div>
               )}
 
-              {/* Readiness */}
-              <div style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "4px 10px", borderRadius: 6,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.07)",
-              }}>
-                <div style={{ width: 28, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 9999, overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${readinessScore}%`, background: readinessColor, borderRadius: 9999, transition: "width 0.4s" }} />
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
-              </div>
-
-              {/* Primary CTA */}
-              {(projectData as any)?.status === "submitted" ? (
-                <button
-                  onClick={() => { setOutcomeForm({ result: null, competitorName: "", competitorPrice: "", lossReason: "" }); setOutcomeModalOpen(true); }}
-                  className="cursor-pointer transition-opacity hover:opacity-90"
-                  style={{ fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, background: "var(--bs-teal)", color: "#13151a", border: "none", whiteSpace: "nowrap" }}
-                >
-                  Record Outcome →
-                </button>
-              ) : (projectData as any)?.status === "won" ? (
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-teal)", display: "flex", alignItems: "center", gap: 5 }}>
-                  <svg width={13} height={13} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                  Won
-                </span>
-              ) : (projectData as any)?.status === "lost" ? (
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-red)" }}>Lost</span>
-              ) : (
+              {blockerCount > 0 && (
                 <button
                   onClick={() => openTab("validator")}
                   className="cursor-pointer transition-all hover:opacity-90"
                   style={{
-                    fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 6, border: "none", whiteSpace: "nowrap",
-                    background: blockerCount > 0 ? "rgba(239,68,68,0.12)" : "var(--bs-teal)",
-                    color: blockerCount > 0 ? "var(--bs-red)" : "#13151a",
+                    fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 5, border: "none", whiteSpace: "nowrap",
+                    background: "rgba(239,68,68,0.12)", color: "var(--bs-red)",
                   }}
                 >
-                  {blockerCount > 0 ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""} · Fix` : "Validate →"}
+                  {blockerCount} blocker{blockerCount !== 1 ? "s" : ""} · Fix
                 </button>
               )}
             </div>
@@ -709,14 +656,11 @@ function ProjectDetail() {
           <main className="flex-1 overflow-auto min-w-0" style={{ background: "var(--bs-bg-page)" }}>
             {activeTab ? (
               <>
-                {/* Tab section header — minimal, just a label */}
-                <div
-                  className="px-6 flex items-center gap-3 sticky top-0 z-10"
-                  style={{ background: "var(--bs-bg-page)", height: 44, borderBottom: "1px solid var(--bs-border)" }}
-                >
+                {/* Mobile-only back button */}
+                <div className="px-6 pt-3 lg:hidden">
                   <button
                     onClick={() => setActiveTab(null)}
-                    className="flex items-center gap-1 lg:hidden cursor-pointer"
+                    className="flex items-center gap-1 cursor-pointer"
                     style={{ fontSize: 12, color: "var(--bs-text-dim)" }}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -724,7 +668,6 @@ function ProjectDetail() {
                     </svg>
                     Back
                   </button>
-                  <h2 className="app-display" style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-dim)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{activeTabLabel}</h2>
                 </div>
                 <div className="p-6">
                   {activeTab === "setup"    && <TabErrorBoundary tabLabel="Setup"><SetupTab {...tabProps} /></TabErrorBoundary>}
