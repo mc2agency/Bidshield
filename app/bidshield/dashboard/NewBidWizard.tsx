@@ -285,6 +285,12 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
         }
         return updated;
       });
+      // Update total sqft from merged assembly areas
+      setAssemblies(latest => {
+        const totalArea = latest.reduce((sum, a) => sum + (a.area || 0), 0);
+        if (totalArea > 0) setSqft(String(Math.round(totalArea)));
+        return latest;
+      });
       setTakeoffMode("done");
       setTimeout(() => setTakeoffMode("link"), 3000);
     } catch { setTakeoffError("Failed to read PDF."); setTakeoffMode("error"); }
@@ -459,6 +465,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
                         setAssemblies(pdfResults);
                         if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
                         if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+                        const totalArea = pdfResults.reduce((sum, a) => sum + (a.area || 0), 0);
+                        if (totalArea > 0 && !sqft) setSqft(String(Math.round(totalArea)));
                         setPdfMode("link");
                         setPdfResults([]);
                         setStep(2); // Jump straight to assembly builder to review
