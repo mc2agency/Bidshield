@@ -143,6 +143,9 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
   const [pdfMode, setPdfMode] = useState<"link" | "upload" | "loading" | "preview" | "error">("link");
   const [pdfError, setPdfError] = useState("");
   const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
+  // Takeoff schedule upload state
+  const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
+  const [takeoffError, setTakeoffError] = useState("");
   const [deck, setDeck] = useState("");
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -203,6 +206,76 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
       setPdfResults(mapped);
       setPdfMode("preview");
     } catch { setPdfError("Failed to read PDF."); setPdfMode("error"); }
+  };
+
+  const handleTakeoffFile = async (file: File) => {
+    if (file.type !== "application/pdf") { setTakeoffError("Please select a PDF file."); setTakeoffMode("error"); return; }
+    setTakeoffMode("loading");
+    setTakeoffError("");
+    try {
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const base64 = btoa(binary);
+      const res = await fetch("/api/bidshield/extract-assemblies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setTakeoffError(data.error || "Extraction failed"); setTakeoffMode("error"); return; }
+      const extracted: any[] = data.assemblies || [];
+      if (extracted.length === 0) { setTakeoffError("No area data found in this PDF."); setTakeoffMode("error"); return; }
+
+      // Merge area data into existing assemblies by matching labels
+      setAssemblies(prev => {
+        const updated = [...prev];
+        for (const ext of extracted) {
+          const extLabel = (ext.label || "").replace(/-/g, "-").toUpperCase().trim();
+          // Try exact match first, then prefix match (RT-01 matches RT-01 N)
+          let match = updated.findIndex(a => a.label.toUpperCase().trim() === extLabel);
+          if (match === -1) {
+            // Try matching base label (e.g. extracted "RT-01" matches existing "RT-01")
+            const baseLabel = extLabel.replace(/\s*N$/, "").trim();
+            match = updated.findIndex(a => a.label.toUpperCase().trim() === baseLabel);
+          }
+
+          const area = typeof ext.area === "number" ? ext.area : null;
+          const uValue = typeof ext.uValue === "number" ? ext.uValue : null;
+          const name = ext.name || undefined;
+
+          if (match !== -1) {
+            // Merge into existing assembly
+            updated[match] = {
+              ...updated[match],
+              area: (updated[match].area || 0) + (area || 0),
+              uValue: uValue ?? updated[match].uValue,
+              name: name || updated[match].name,
+            };
+          } else if (area) {
+            // Add as new assembly if it has area data
+            updated.push({
+              label: ext.label || `RT-${String(updated.length + 1).padStart(2, "0")}`,
+              name,
+              systemType: ext.system || ext.systemType || "",
+              insulationType: ext.insulation || ext.insulationType || "",
+              insulationThickness: ext.thickness?.replace(/"/g, "") || "",
+              rValue: null,
+              surfaceType: ext.surface || ext.surfaceType || "",
+              area,
+              uValue,
+            });
+          }
+        }
+        return updated;
+      });
+      setTakeoffMode("done");
+      setTimeout(() => setTakeoffMode("link"), 3000);
+    } catch { setTakeoffError("Failed to read PDF."); setTakeoffMode("error"); }
   };
 
   // Auto-generate assemblies from selected systems when entering step 2
@@ -551,20 +624,78 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
                 ))}
               </div>
 
-              <button
-                onClick={() => setAssemblies([...assemblies, {
-                  label: `RT-0${assemblies.length + 1}`,
-                  systemType: systems[0] || "tpo",
-                  insulationType: "",
-                  insulationThickness: "",
-                  rValue: null,
-                  surfaceType: "",
-                }])}
-                className="mt-3 text-xs font-medium"
-                style={{ color: "var(--bs-teal)" }}
-              >
-                + Add Assembly
-              </button>
+              {assemblies.some(a => a.area) && (
+                <div className="text-right mt-2 text-xs font-semibold" style={{ color: "var(--bs-teal)" }}>
+                  Total: {assemblies.reduce((sum, a) => sum + (a.area || 0), 0).toLocaleString()} SF
+                </div>
+              )}
+
+              <div className="flex items-center gap-4 mt-3">
+                <button
+                  onClick={() => setAssemblies([...assemblies, {
+                    label: `RT-0${assemblies.length + 1}`,
+                    systemType: systems[0] || "tpo",
+                    insulationType: "",
+                    insulationThickness: "",
+                    rValue: null,
+                    surfaceType: "",
+                  }])}
+                  className="text-xs font-medium"
+                  style={{ color: "var(--bs-teal)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                >
+                  + Add Assembly
+                </button>
+
+                {assemblies.length > 0 && (
+                  <span style={{ color: "var(--bs-border)" }}>|</span>
+                )}
+
+                {assemblies.length > 0 && takeoffMode === "link" && (
+                  <button
+                    onClick={() => setTakeoffMode("upload")}
+                    className="text-xs flex items-center gap-1"
+                    style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  >
+                    <span style={{ textDecoration: "underline", textUnderlineOffset: 2 }}>Upload takeoff schedule for areas</span>
+                  </button>
+                )}
+
+                {takeoffMode === "done" && (
+                  <span className="text-xs font-medium" style={{ color: "var(--bs-teal)" }}>Areas merged!</span>
+                )}
+              </div>
+
+              {takeoffMode === "upload" && (
+                <div
+                  className="mt-3 rounded-xl p-5 text-center"
+                  style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)" }}
+                  onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                  onDrop={e => { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f) handleTakeoffFile(f); }}
+                >
+                  <p className="text-xs mb-2" style={{ color: "var(--bs-text-muted)" }}>Drop a takeoff schedule PDF to merge area data into your assemblies</p>
+                  <label className="inline-block text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+                    Choose file
+                    <input type="file" accept=".pdf,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleTakeoffFile(f); }} />
+                  </label>
+                  <button onClick={() => setTakeoffMode("link")} className="block mx-auto mt-2 text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Cancel</button>
+                </div>
+              )}
+
+              {takeoffMode === "loading" && (
+                <div className="mt-3 rounded-xl p-5 text-center" style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin w-4 h-4" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>Extracting areas from takeoff schedule...</span>
+                  </div>
+                </div>
+              )}
+
+              {takeoffMode === "error" && (
+                <div className="mt-3 rounded-xl p-4 text-center" style={{ border: "1px solid var(--bs-red-border)", background: "var(--bs-red-dim)" }}>
+                  <p className="text-xs font-medium mb-2" style={{ color: "var(--bs-red)" }}>{takeoffError}</p>
+                  <button onClick={() => setTakeoffMode("upload")} className="text-xs font-medium" style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Try Again</button>
+                </div>
+              )}
 
               <button
                 onClick={() => { setAssemblies([]); setStep(3); }}
