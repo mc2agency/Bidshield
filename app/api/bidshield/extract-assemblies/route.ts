@@ -49,7 +49,15 @@ thickness: '1.5' | '2' | '2.5' | '3' | '4' | '6' | '8'
 
 surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating'
 
-label: use label from drawing (RT-1, RT-2) if shown, otherwise RT-01, RT-02, etc. Max 6 assemblies.`;
+label: use label from drawing (RT-1, RT-2, RT-01, RT-02) if shown, otherwise RT-01, RT-02, etc. Max 10 assemblies.
+
+area: number in SF if a roof type takeoff schedule, region area, or area table is present. Include sub-areas (e.g. RT-01 and RT-01 N) as separate entries. Omit if no area data found.
+
+uValue: thermal U-value if shown in the schedule. Omit if not found.
+
+name: descriptive name from the schedule (e.g. "TERRACE PAVERS", "BALLAST PAVERS", "GREEN ROOF", "BULKHEAD ROOF"). Omit if not found.
+
+IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60_000);

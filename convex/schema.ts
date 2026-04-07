@@ -98,6 +98,8 @@ export default defineSchema({
       coverBoard: v.optional(v.string()),
       aiDescription: v.optional(v.string()),   // per-assembly AI layer description
       enabled: v.optional(v.boolean()),        // ON/OFF toggle
+      area: v.optional(v.number()),            // assembly area in SF
+      uValue: v.optional(v.number()),          // thermal U-value
     }))),
     systemDescription: v.optional(v.string()), // AI-generated project-level system summary
     grossRoofArea: v.optional(v.number()), // Control number from site plan (SF)

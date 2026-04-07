@@ -34,11 +34,14 @@ const DECKS = [
 
 interface AssemblyRow {
   label: string;
+  name?: string;
   systemType: string;
   insulationType: string;
   insulationThickness: string;
   rValue: number | null;
   surfaceType: string;
+  area: number | null;
+  uValue: number | null;
 }
 
 function systemLabel(id: string) {
@@ -153,11 +156,14 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
       setAssemblies(
         project.roofAssemblies.map((a: any) => ({
           label: a.label || "",
+          name: a.name || undefined,
           systemType: a.systemType || "",
           insulationType: a.insulationType || "",
           insulationThickness: a.insulationThickness || "",
           rValue: a.rValue ?? null,
           surfaceType: a.surfaceType || "",
+          area: a.area ?? null,
+          uValue: a.uValue ?? null,
         }))
       );
     }
@@ -190,6 +196,8 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
         insulationThickness: "",
         rValue: null,
         surfaceType: "",
+        area: null,
+        uValue: null,
       },
     ]);
     setAssembliesDirty(true);
@@ -211,10 +219,13 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
             label: a.label,
             systemType: a.systemType,
           };
+          if (a.name) obj.name = a.name;
           if (a.insulationType) obj.insulationType = a.insulationType;
           if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
           if (a.rValue != null) obj.rValue = a.rValue;
           if (a.surfaceType) obj.surfaceType = a.surfaceType;
+          if (a.area != null) obj.area = a.area;
+          if (a.uValue != null) obj.uValue = a.uValue;
           return obj;
         });
       await updateProject({
@@ -422,7 +433,7 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
             <div
               className="grid gap-2 px-3 pb-2 mb-1"
               style={{
-                gridTemplateColumns: "70px 1fr 1fr 90px 70px 1fr 40px",
+                gridTemplateColumns: "70px 1fr 1fr 90px 70px 90px 1fr 40px",
                 fontSize: 11,
                 fontWeight: 600,
                 color: "var(--bs-text-dim)",
@@ -435,6 +446,7 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
               <span>Insulation</span>
               <span>Thickness</span>
               <span>R-Value</span>
+              <span>Area (SF)</span>
               <span>Surface</span>
               <span></span>
             </div>
@@ -445,7 +457,7 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
                 key={idx}
                 className="grid gap-2 px-3 py-2.5 rounded-lg mb-1.5 items-center"
                 style={{
-                  gridTemplateColumns: "70px 1fr 1fr 90px 70px 1fr 40px",
+                  gridTemplateColumns: "70px 1fr 1fr 90px 70px 90px 1fr 40px",
                   background: "var(--bs-bg-card)",
                   border: "1px solid var(--bs-border)",
                 }}
@@ -498,6 +510,13 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
                 >
                   {a.rValue ? `R-${a.rValue}` : "—"}
                 </span>
+                <input
+                  type="number"
+                  value={a.area ?? ""}
+                  onChange={(e) => updateAssembly(idx, "area", e.target.value ? parseFloat(e.target.value) : null)}
+                  placeholder="—"
+                  style={{ ...inputStyle, padding: "4px 6px", fontSize: 12, border: "none", background: "transparent", textAlign: "right" }}
+                />
                 <select
                   value={a.surfaceType}
                   onChange={(e) => updateAssembly(idx, "surfaceType", e.target.value)}
@@ -524,6 +543,12 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
                 </button>
               </div>
             ))}
+
+            {assemblies.some((a) => a.area) && (
+              <div className="flex justify-end px-3 py-2 text-xs font-semibold" style={{ color: "var(--bs-teal)" }}>
+                Total Area: {assemblies.reduce((sum, a) => sum + (a.area || 0), 0).toLocaleString()} SF
+              </div>
+            )}
 
             <button
               onClick={addAssembly}

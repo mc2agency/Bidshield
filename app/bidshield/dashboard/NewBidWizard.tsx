@@ -109,11 +109,14 @@ const STEPS = [
 
 interface AssemblyInput {
   label: string;
+  name?: string;
   systemType: string;
   insulationType: string;
   insulationThickness: string;
   rValue: number | null;
   surfaceType: string;
+  area?: number | null;
+  uValue?: number | null;
 }
 
 interface Props {
@@ -187,11 +190,14 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
       if (!res.ok || data.error) { setPdfError(data.error || "Extraction failed"); setPdfMode("error"); return; }
       const mapped: AssemblyInput[] = (data.assemblies || []).map((a: any) => ({
         label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "0")}`,
+        name: a.name || undefined,
         systemType: a.system || a.systemType || "",
         insulationType: a.insulation || a.insulationType || "",
         insulationThickness: a.thickness?.replace(/"/g, "") || "",
         rValue: a.rValue ?? null,
         surfaceType: a.surface || a.surfaceType || "",
+        area: typeof a.area === "number" ? a.area : null,
+        uValue: typeof a.uValue === "number" ? a.uValue : null,
       }));
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
       setPdfResults(mapped);
@@ -428,12 +434,19 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
                   {pdfResults.map((r, i) => (
                     <div key={i} className="flex items-center gap-3 text-xs rounded-lg px-3 py-2" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
                       <span className="font-bold" style={{ color: "var(--bs-text-primary)", minWidth: 44 }}>{r.label}</span>
-                      <span style={{ color: "var(--bs-text-secondary)" }}>{SYSTEMS.find(s => s.id === r.systemType)?.label || r.systemType}</span>
+                      {r.name && <span style={{ color: "var(--bs-text-secondary)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>}
+                      {!r.name && <span style={{ color: "var(--bs-text-secondary)" }}>{SYSTEMS.find(s => s.id === r.systemType)?.label || r.systemType}</span>}
                       {r.insulationType && <span style={{ color: "var(--bs-text-dim)" }}>{INSULATION_TYPES.find(t => t.id === r.insulationType)?.label || r.insulationType}</span>}
                       {r.insulationThickness && <span style={{ color: "var(--bs-text-dim)" }}>{r.insulationThickness}&quot;</span>}
-                      {r.surfaceType && <span style={{ color: "var(--bs-text-dim)" }}>{SURFACE_TYPES.find(t => t.id === r.surfaceType)?.label || r.surfaceType}</span>}
+                      {r.area && <span className="font-semibold" style={{ color: "var(--bs-teal)" }}>{r.area.toLocaleString()} SF</span>}
+                      {r.surfaceType && !r.area && <span style={{ color: "var(--bs-text-dim)" }}>{SURFACE_TYPES.find(t => t.id === r.surfaceType)?.label || r.surfaceType}</span>}
                     </div>
                   ))}
+                  {pdfResults.some(r => r.area) && (
+                    <div className="text-xs font-semibold text-right pr-3" style={{ color: "var(--bs-teal)" }}>
+                      Total: {pdfResults.reduce((sum, r) => sum + (r.area || 0), 0).toLocaleString()} SF
+                    </div>
+                  )}
                   <div className="flex items-center gap-3 pt-2">
                     <button
                       onClick={() => { setAssemblies(pdfResults); setPdfMode("link"); setPdfResults([]); }}
@@ -461,6 +474,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
                         <span className="text-xs px-2 py-0.5 rounded uppercase font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
                           {SYSTEMS.find(s => s.id === a.systemType)?.label || a.systemType}
                         </span>
+                        {a.area && (
+                          <span className="text-xs font-medium" style={{ color: "var(--bs-text-muted)" }}>
+                            {a.area.toLocaleString()} SF
+                          </span>
+                        )}
                       </div>
                       {assemblies.length > 1 && (
                         <button onClick={() => setAssemblies(assemblies.filter((_, i) => i !== idx))} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Remove</button>
