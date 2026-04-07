@@ -129,6 +129,7 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
         gc: info.gc || undefined,
         sqft: info.sqft ? parseInt(info.sqft) : undefined,
         grossRoofArea: info.sqft ? parseInt(info.sqft) : undefined,
+        deckType: info.deckType || undefined,
       });
       setInfoSaved(true);
       setTimeout(() => setInfoSaved(false), 2000);
@@ -202,18 +203,22 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
     if (isDemo) return;
     setAsmSaving(true);
     try {
-      await updateProject({
-        projectId: projectId as any,
-        roofAssemblies: assemblies
-          .filter((a) => a.systemType)
-          .map((a) => ({
+      const cleanAssemblies = assemblies
+        .filter((a) => a.systemType)
+        .map((a) => {
+          const obj: Record<string, any> = {
             label: a.label,
             systemType: a.systemType,
-            insulationType: a.insulationType || undefined,
-            insulationThickness: a.insulationThickness || undefined,
-            rValue: a.rValue ?? undefined,
-            surfaceType: a.surfaceType || undefined,
-          })),
+          };
+          if (a.insulationType) obj.insulationType = a.insulationType;
+          if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
+          if (a.rValue != null) obj.rValue = a.rValue;
+          if (a.surfaceType) obj.surfaceType = a.surfaceType;
+          return obj;
+        });
+      await updateProject({
+        projectId: projectId as any,
+        roofAssemblies: cleanAssemblies as any,
       });
       setAssembliesDirty(false);
       setAsmSaved(true);

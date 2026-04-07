@@ -211,6 +211,7 @@ export const updateProject = mutation({
     sqft: v.optional(v.number()),
     assemblies: v.optional(v.array(v.string())),
     grossRoofArea: v.optional(v.number()),
+    deckType: v.optional(v.string()),
     notes: v.optional(v.string()),
     totalBidAmount: v.optional(v.number()),
     materialCost: v.optional(v.number()),
