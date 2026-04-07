@@ -506,8 +506,8 @@ function ProjectDetail() {
           className="shrink-0 px-5"
           style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}
         >
-          {/* Row 1 — breadcrumb */}
-          <div className="flex items-center gap-1.5 pt-2.5 pb-1">
+          {/* Single row — breadcrumb + countdown + blocker */}
+          <div className="flex items-center gap-1.5 py-2.5">
             <Link
               href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
               className="flex items-center gap-0.5 transition-colors cursor-pointer"
@@ -533,63 +533,32 @@ function ProjectDetail() {
                 <span style={{ fontSize: 11, color: "var(--bs-text-dim)", fontWeight: 500 }}>{activeTabLabel}</span>
               </>
             )}
-          </div>
-
-          {/* Row 2 — compact project identity */}
-          <div className="flex items-center gap-3 pb-2.5 min-w-0">
-            {/* Project name */}
-            <div className="app-display shrink-0" style={{ fontSize: 16, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
-              {projectData?.name ?? "Project"}
-            </div>
-
-            {/* Status badge */}
-            {(projectData as any)?.status && (projectData as any).status !== "in_progress" && (
-              <span className="shrink-0" style={{
-                fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
-                padding: "2px 7px", borderRadius: 3,
-                background: (projectData as any).status === "won" ? "var(--bs-teal-dim)" : (projectData as any).status === "lost" ? "var(--bs-red-dim)" : (projectData as any).status === "submitted" ? "var(--bs-blue-dim)" : "rgba(255,255,255,0.08)",
-                color: (projectData as any).status === "won" ? "var(--bs-teal)" : (projectData as any).status === "lost" ? "var(--bs-red)" : (projectData as any).status === "submitted" ? "var(--bs-blue)" : "var(--bs-text-dim)",
-              }}>
-                {(projectData as any).status === "in_progress" ? "Active" : (projectData as any).status?.replace("_", " ")}
-              </span>
-            )}
-
-            {projectData?.location && (
-              <span style={{ fontSize: 11, color: "var(--bs-text-dim)", whiteSpace: "nowrap" }}>
-                {projectData.location}
-              </span>
-            )}
 
             <div className="flex-1" />
 
-            {/* Right: countdown + blocker CTA */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              {msUntilBid !== null && (
-                <div style={{
-                  fontSize: 11, fontWeight: 700,
-                  padding: "3px 8px", borderRadius: 5,
-                  background: msUntilBid <= 0 ? "var(--bs-red-dim)" : hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "var(--bs-teal-dim)",
-                  color: msUntilBid <= 0 ? "var(--bs-red)" : hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-teal)",
-                  border: `1px solid ${msUntilBid <= 0 ? "var(--bs-red-border)" : hoursUntilBid! <= 24 ? "var(--bs-amber-border)" : "var(--bs-teal-border)"}`,
-                  fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
-                }}>
-                  {msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d to bid` : formatCountdown(msUntilBid!)}
-                </div>
-              )}
-
-              {blockerCount > 0 && (
-                <button
-                  onClick={() => openTab("validator")}
-                  className="cursor-pointer transition-all hover:opacity-90"
-                  style={{
-                    fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 5, border: "none", whiteSpace: "nowrap",
-                    background: "rgba(239,68,68,0.12)", color: "var(--bs-red)",
-                  }}
-                >
-                  {blockerCount} blocker{blockerCount !== 1 ? "s" : ""} · Fix
-                </button>
-              )}
-            </div>
+            {msUntilBid !== null && (
+              <div style={{
+                fontSize: 10, fontWeight: 700,
+                padding: "2px 7px", borderRadius: 4,
+                background: msUntilBid <= 0 ? "var(--bs-red-dim)" : hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "var(--bs-teal-dim)",
+                color: msUntilBid <= 0 ? "var(--bs-red)" : hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-teal)",
+                fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
+              }}>
+                {msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d to bid` : formatCountdown(msUntilBid!)}
+              </div>
+            )}
+            {blockerCount > 0 && (
+              <button
+                onClick={() => openTab("validator")}
+                className="cursor-pointer"
+                style={{
+                  fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 4, border: "none", whiteSpace: "nowrap",
+                  background: "rgba(239,68,68,0.12)", color: "var(--bs-red)",
+                }}
+              >
+                {blockerCount} blocker{blockerCount !== 1 ? "s" : ""}
+              </button>
+            )}
           </div>
         </div>
 
