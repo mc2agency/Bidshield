@@ -37,9 +37,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File must be a PDF" }, { status: 415 });
     }
 
-    const systemPrompt = `You are a commercial roofing estimating assistant. Analyze this roof plan or spec page and extract all roof assemblies. Return ONLY a valid JSON array, no markdown, no explanation.
+    const systemPrompt = `You are a commercial roofing estimating assistant. Analyze this roof plan or spec page and extract all roof assemblies.
 
-Each object must use ONLY these exact values:
+Return ONLY a valid JSON object (no markdown, no explanation) with this structure:
+{
+  "assemblies": [ ... ],
+  "deckType": "steel" | "concrete" | "wood" | "lightweight" | "gypsum" | "tectum" | null,
+  "projectName": "string or null if not found",
+  "location": "string or null if not found"
+}
+
+Each assembly object must use ONLY these exact values:
 
 system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'hydrotech'
 
@@ -56,6 +64,12 @@ area: number in SF if a roof type takeoff schedule, region area, or area table i
 uValue: thermal U-value if shown in the schedule. Omit if not found.
 
 name: descriptive name from the schedule (e.g. "TERRACE PAVERS", "BALLAST PAVERS", "GREEN ROOF", "BULKHEAD ROOF"). Omit if not found.
+
+deckType: Look for deck type info in detail drawings — concrete slab, steel deck, wood, etc. Use the standardized values above. Set to null if not identifiable.
+
+projectName: If a title block shows a building/project name, extract it. Set to null if not found.
+
+location: If a title block shows an address or location, extract it. Set to null if not found.
 
 IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.`;
 
@@ -102,14 +116,23 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       );
     }
 
-    if (!Array.isArray(data)) {
-      return NextResponse.json(
-        { error: "Could not extract assemblies from this PDF" },
-        { status: 422 },
-      );
+    // Support both array and object response format
+    if (Array.isArray(data)) {
+      return NextResponse.json({ assemblies: data });
+    }
+    if (data && Array.isArray(data.assemblies)) {
+      return NextResponse.json({
+        assemblies: data.assemblies,
+        deckType: data.deckType || null,
+        projectName: data.projectName || null,
+        location: data.location || null,
+      });
     }
 
-    return NextResponse.json({ assemblies: data });
+    return NextResponse.json(
+      { error: "Could not extract assemblies from this PDF" },
+      { status: 422 },
+    );
   } catch (err: any) {
     console.error("extract-assemblies error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

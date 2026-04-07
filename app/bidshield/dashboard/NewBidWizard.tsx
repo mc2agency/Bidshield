@@ -143,6 +143,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
   const [pdfMode, setPdfMode] = useState<"link" | "upload" | "loading" | "preview" | "error">("link");
   const [pdfError, setPdfError] = useState("");
   const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
+  const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string }>({});
   // Takeoff schedule upload state
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
   const [takeoffError, setTakeoffError] = useState("");
@@ -204,6 +205,17 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
       }));
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
       setPdfResults(mapped);
+      // Extract metadata (deck type, project name, location)
+      const meta: typeof pdfMeta = {};
+      if (data.deckType) meta.deckType = data.deckType;
+      if (data.projectName) meta.projectName = data.projectName;
+      if (data.location) meta.location = data.location;
+      setPdfMeta(meta);
+      // Auto-select systems from extracted assemblies
+      const extractedSystems = [...new Set(mapped.map(a => a.systemType).filter(Boolean))];
+      if (extractedSystems.length > 0) setSystems(extractedSystems);
+      // Auto-set deck type
+      if (data.deckType) setDeck(data.deckType);
       setPdfMode("preview");
     } catch { setPdfError("Failed to read PDF."); setPdfMode("error"); }
   };
@@ -378,7 +390,88 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
           {step === 1 && (
             <div>
               <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Roofing systems</h3>
-              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Select all systems on this project. Configures checks and materials.</p>
+              <p className="text-sm mb-4" style={{ color: "var(--bs-text-muted)" }}>Select systems manually, or extract everything from a PDF.</p>
+
+              {/* PDF quick-start */}
+              {pdfMode === "link" && (
+                <button
+                  onClick={() => setPdfMode("upload")}
+                  className="w-full mb-5 py-3 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                  style={{ border: "1px dashed var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", cursor: "pointer" }}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                  Upload roof plan PDF — auto-detect systems, deck &amp; assemblies
+                </button>
+              )}
+
+              {pdfMode === "upload" && (
+                <div
+                  className="mb-5 rounded-xl p-6 text-center"
+                  style={{ border: "1px dashed var(--bs-teal)", background: "var(--bs-teal-dim)" }}
+                  onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                  onDrop={e => { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f) handlePdfFile(f); }}
+                >
+                  <p className="text-sm mb-2" style={{ color: "var(--bs-text-secondary)" }}>Drop a roof plan or detail drawing PDF</p>
+                  <p className="text-xs mb-3" style={{ color: "var(--bs-text-dim)" }}>We&apos;ll extract systems, deck type, insulation, and assemblies automatically</p>
+                  <label className="inline-block text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
+                    Choose PDF
+                    <input type="file" accept=".pdf,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePdfFile(f); }} />
+                  </label>
+                  <button onClick={() => setPdfMode("link")} className="block mx-auto mt-3 text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Cancel — select manually</button>
+                </div>
+              )}
+
+              {pdfMode === "loading" && (
+                <div className="mb-5 rounded-xl p-6 text-center" style={{ border: "1px dashed var(--bs-teal)", background: "var(--bs-teal-dim)" }}>
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin w-4 h-4" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>Analyzing roof plan...</span>
+                  </div>
+                  <p className="text-xs mt-2" style={{ color: "var(--bs-text-dim)" }}>Extracting systems, deck type, insulation, and assemblies</p>
+                </div>
+              )}
+
+              {pdfMode === "error" && (
+                <div className="mb-5 rounded-xl p-4 text-center" style={{ border: "1px solid var(--bs-red-border)", background: "var(--bs-red-dim)" }}>
+                  <p className="text-xs font-medium mb-2" style={{ color: "var(--bs-red)" }}>{pdfError}</p>
+                  <button onClick={() => setPdfMode("upload")} className="text-xs font-medium" style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Try Again</button>
+                </div>
+              )}
+
+              {pdfMode === "preview" && pdfResults.length > 0 && (
+                <div className="mb-5 rounded-xl p-4" style={{ border: "1px solid var(--bs-teal-border)", background: "var(--bs-teal-dim)" }}>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-teal)" }}>
+                    Detected {pdfResults.length} assembl{pdfResults.length === 1 ? "y" : "ies"}
+                    {pdfMeta.deckType && <span className="normal-case"> · {DECKS.find(d => d.id === pdfMeta.deckType)?.label || pdfMeta.deckType} deck</span>}
+                  </div>
+                  <div className="space-y-1 mb-3">
+                    {pdfResults.map((r, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs px-2 py-1 rounded" style={{ background: "var(--bs-bg-card)" }}>
+                        <span className="font-bold" style={{ color: "var(--bs-text-primary)", minWidth: 40 }}>{r.label}</span>
+                        <span style={{ color: "var(--bs-text-secondary)" }}>{SYSTEMS.find(s => s.id === r.systemType)?.label || r.systemType}</span>
+                        {r.area && <span className="ml-auto font-medium" style={{ color: "var(--bs-teal)" }}>{r.area.toLocaleString()} SF</span>}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setAssemblies(pdfResults);
+                        if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
+                        if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+                        setPdfMode("link");
+                        setPdfResults([]);
+                        setStep(2); // Jump straight to assembly builder to review
+                      }}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+                      style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
+                    >
+                      Use These &amp; Review Assemblies
+                    </button>
+                    <button onClick={() => { setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
+                  </div>
+                </div>
+              )}
 
               <div className="mb-5">
                 <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Popular</div>
@@ -522,7 +615,13 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
                   )}
                   <div className="flex items-center gap-3 pt-2">
                     <button
-                      onClick={() => { setAssemblies(pdfResults); setPdfMode("link"); setPdfResults([]); }}
+                      onClick={() => {
+                        setAssemblies(pdfResults);
+                        if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
+                        if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+                        setPdfMode("link");
+                        setPdfResults([]);
+                      }}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                       style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
                     >
