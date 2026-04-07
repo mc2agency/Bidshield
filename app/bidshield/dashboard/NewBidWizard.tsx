@@ -170,7 +170,14 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
     setPdfError("");
     try {
       const buf = await file.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      // Chunk-based base64 conversion to avoid call stack overflow on large files
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const base64 = btoa(binary);
       const res = await fetch("/api/bidshield/extract-assemblies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -375,14 +382,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
               {/* PDF extract */}
               {pdfMode === "link" && (
                 <button
-                  onClick={() => isPro ? setPdfMode("upload") : undefined}
+                  onClick={() => setPdfMode("upload")}
                   className="text-xs mb-4 flex items-center gap-1.5"
-                  style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: isPro ? "pointer" : "default", padding: 0 }}
+                  style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
                 >
                   Have the roof plan? <span style={{ fontSize: 13 }}>📄</span> <span style={{ textDecoration: "underline", textUnderlineOffset: 2 }}>Extract assemblies from PDF</span>
-                  {!isPro && (
-                    <span className="ml-1 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", letterSpacing: "0.05em" }}>Pro</span>
-                  )}
                 </button>
               )}
 
