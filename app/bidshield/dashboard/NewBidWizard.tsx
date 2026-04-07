@@ -26,6 +26,7 @@ const SYSTEMS = [
   { id: "bur", label: "Built-Up (BUR)", popular: false },
   { id: "metal", label: "Standing Seam Metal", popular: false },
   { id: "spf", label: "Spray Foam (SPF)", popular: false },
+  { id: "hydrotech", label: "Hydrotech (IRMA)", popular: false },
 ];
 
 const DECKS = [
@@ -125,15 +126,20 @@ interface Props {
     systemDescription?: string;
   }) => void;
   isDemo?: boolean;
+  isPro?: boolean;
 }
 
-export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
+export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props) {
   const [step, setStep] = useState(0);
   const [projectType, setProjectType] = useState("");
   const [systems, setSystems] = useState<string[]>([]);
   const [assemblies, setAssemblies] = useState<AssemblyInput[]>([]);
   const [aiDescription, setAiDescription] = useState("");
   const [descLoading, setDescLoading] = useState(false);
+  // PDF extract state
+  const [pdfMode, setPdfMode] = useState<"link" | "upload" | "loading" | "preview" | "error">("link");
+  const [pdfError, setPdfError] = useState("");
+  const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
   const [deck, setDeck] = useState("");
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -157,6 +163,34 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
   const configs = getConfigSummary(projectType, systems);
   const inputCls = "w-full py-2.5 px-3 rounded-lg text-sm outline-none transition-colors";
   const inputStyle = { background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" };
+
+  const handlePdfFile = async (file: File) => {
+    if (file.type !== "application/pdf") { setPdfError("Please select a PDF file."); setPdfMode("error"); return; }
+    setPdfMode("loading");
+    setPdfError("");
+    try {
+      const buf = await file.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      const res = await fetch("/api/bidshield/extract-assemblies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setPdfError(data.error || "Extraction failed"); setPdfMode("error"); return; }
+      const mapped: AssemblyInput[] = (data.assemblies || []).map((a: any) => ({
+        label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "0")}`,
+        systemType: a.system || a.systemType || "",
+        insulationType: a.insulation || a.insulationType || "",
+        insulationThickness: a.thickness?.replace(/"/g, "") || "",
+        rValue: a.rValue ?? null,
+        surfaceType: a.surface || a.surfaceType || "",
+      }));
+      if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
+      setPdfResults(mapped);
+      setPdfMode("preview");
+    } catch { setPdfError("Failed to read PDF."); setPdfMode("error"); }
+  };
 
   // Auto-generate assemblies from selected systems when entering step 2
   useEffect(() => {
@@ -336,7 +370,78 @@ export default function NewBidWizard({ onClose, onCreate, isDemo }: Props) {
           {step === 2 && (
             <div>
               <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>Define assemblies</h3>
-              <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>Add insulation and surface details for each roof area. Optional — you can skip this.</p>
+              <p className="text-sm mb-3" style={{ color: "var(--bs-text-muted)" }}>Add insulation and surface details for each roof area. Optional — you can skip this.</p>
+
+              {/* PDF extract */}
+              {pdfMode === "link" && (
+                <button
+                  onClick={() => isPro ? setPdfMode("upload") : undefined}
+                  className="text-xs mb-4 flex items-center gap-1.5"
+                  style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: isPro ? "pointer" : "default", padding: 0 }}
+                >
+                  Have the roof plan? <span style={{ fontSize: 13 }}>📄</span> <span style={{ textDecoration: "underline", textUnderlineOffset: 2 }}>Extract assemblies from PDF</span>
+                  {!isPro && (
+                    <span className="ml-1 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", letterSpacing: "0.05em" }}>Pro</span>
+                  )}
+                </button>
+              )}
+
+              {pdfMode === "upload" && (
+                <div
+                  className="mb-4 rounded-xl p-6 text-center"
+                  style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)" }}
+                  onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                  onDrop={e => { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f) handlePdfFile(f); }}
+                >
+                  <p className="text-sm mb-2" style={{ color: "var(--bs-text-muted)" }}>Drop a roof plan PDF here, or</p>
+                  <label className="inline-block text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+                    Choose file
+                    <input type="file" accept=".pdf,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePdfFile(f); }} />
+                  </label>
+                  <button onClick={() => setPdfMode("link")} className="block mx-auto mt-2 text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Cancel</button>
+                </div>
+              )}
+
+              {pdfMode === "loading" && (
+                <div className="mb-4 rounded-xl p-6 text-center" style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin w-4 h-4" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span className="text-sm" style={{ color: "var(--bs-text-muted)" }}>Reading roof plan...</span>
+                  </div>
+                </div>
+              )}
+
+              {pdfMode === "error" && (
+                <div className="mb-4 rounded-xl p-4 text-center" style={{ border: "1px solid var(--bs-red-border)", background: "var(--bs-red-dim)" }}>
+                  <p className="text-xs font-medium mb-2" style={{ color: "var(--bs-red)" }}>{pdfError}</p>
+                  <button onClick={() => setPdfMode("upload")} className="text-xs font-medium" style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Try Again</button>
+                </div>
+              )}
+
+              {pdfMode === "preview" && pdfResults.length > 0 && (
+                <div className="mb-4 rounded-xl p-4 space-y-2" style={{ border: "1px solid var(--bs-teal-border)", background: "var(--bs-teal-dim)" }}>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-teal)" }}>Extracted {pdfResults.length} assembl{pdfResults.length === 1 ? "y" : "ies"}</div>
+                  {pdfResults.map((r, i) => (
+                    <div key={i} className="flex items-center gap-3 text-xs rounded-lg px-3 py-2" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                      <span className="font-bold" style={{ color: "var(--bs-text-primary)", minWidth: 44 }}>{r.label}</span>
+                      <span style={{ color: "var(--bs-text-secondary)" }}>{SYSTEMS.find(s => s.id === r.systemType)?.label || r.systemType}</span>
+                      {r.insulationType && <span style={{ color: "var(--bs-text-dim)" }}>{INSULATION_TYPES.find(t => t.id === r.insulationType)?.label || r.insulationType}</span>}
+                      {r.insulationThickness && <span style={{ color: "var(--bs-text-dim)" }}>{r.insulationThickness}&quot;</span>}
+                      {r.surfaceType && <span style={{ color: "var(--bs-text-dim)" }}>{SURFACE_TYPES.find(t => t.id === r.surfaceType)?.label || r.surfaceType}</span>}
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      onClick={() => { setAssemblies(pdfResults); setPdfMode("link"); setPdfResults([]); }}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+                      style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
+                    >
+                      Use These
+                    </button>
+                    <button onClick={() => { setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-3">
                 {assemblies.map((a, idx) => (

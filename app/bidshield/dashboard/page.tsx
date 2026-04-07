@@ -785,7 +785,7 @@ function DashboardContent() {
         </div>
       )}
 
-      {showNewProject && <NewBidWizard isDemo={isDemo} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
+      {showNewProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
       {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
       {deleteTarget && (
         <DeleteConfirmDialog
