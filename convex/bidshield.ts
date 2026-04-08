@@ -100,6 +100,7 @@ export const createProject = mutation({
     location: v.string(),
     bidDate: v.string(),
     trade: v.optional(v.string()),
+    projectType: v.optional(v.string()),
     systemType: v.optional(v.string()),
     deckType: v.optional(v.string()),
     gc: v.optional(v.string()),
@@ -156,6 +157,7 @@ export const createProject = mutation({
       bidDate: args.bidDate,
       status: "setup",
       trade,
+      projectType: args.projectType,
       systemType: args.systemType,
       deckType: args.deckType,
       gc: args.gc,
@@ -199,6 +201,7 @@ export const updateProject = mutation({
     location: v.optional(v.string()),
     bidDate: v.optional(v.string()),
     bidTime: v.optional(v.string()),
+    projectType: v.optional(v.string()),
     status: v.optional(v.union(
       v.literal("setup"),
       v.literal("in_progress"),

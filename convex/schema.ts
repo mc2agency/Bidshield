@@ -75,6 +75,7 @@ export default defineSchema({
       v.literal("no_bid")
     ),
     trade: v.optional(v.string()), // "roofing", "concrete", etc.
+    projectType: v.optional(v.string()), // "new_construction", "reroof", "recover", "repair"
     systemType: v.optional(v.string()), // "tpo", "sbs", "epdm", etc.
     deckType: v.optional(v.string()), // "steel", "concrete", "wood", etc.
     gc: v.optional(v.string()), // General Contractor

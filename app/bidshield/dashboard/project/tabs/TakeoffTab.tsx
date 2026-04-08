@@ -178,6 +178,30 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
     }
   }, [isDemo, isValidConvexId, userId, lineItems, initialized, projectId, initLineItems]);
 
+  // Auto-create sections from roof assemblies when sections are empty
+  const [sectionsInitialized, setSectionsInitialized] = useState(false);
+  useEffect(() => {
+    if (
+      !isDemo && isValidConvexId && userId &&
+      sections !== undefined && sections.length === 0 &&
+      !sectionsInitialized &&
+      roofAssemblies && roofAssemblies.length > 0
+    ) {
+      setSectionsInitialized(true);
+      (async () => {
+        for (const a of roofAssemblies) {
+          await createSection({
+            projectId: projectId as Id<"bidshield_projects">,
+            userId,
+            name: `${a.label}${a.name ? ` — ${a.name}` : ""}`,
+            assemblyType: `${a.label} — ${a.systemType.toUpperCase()}${a.name ? ` (${a.name})` : ""}`,
+            squareFeet: (a as any).area || 0,
+          });
+        }
+      })();
+    }
+  }, [isDemo, isValidConvexId, userId, sections, sectionsInitialized, roofAssemblies, projectId, createSection]);
+
   const [demoSections, setDemoSections] = useState<TakeoffSection[]>([
     { _id: "ts_1", name: "Main Roof Area A", assemblyType: "TPO 60mil Mechanically Attached", squareFeet: 22000, completed: true, sortOrder: 0 },
     { _id: "ts_2", name: "Main Roof Area B", assemblyType: "TPO 60mil Mechanically Attached", squareFeet: 12500, completed: true, sortOrder: 1 },

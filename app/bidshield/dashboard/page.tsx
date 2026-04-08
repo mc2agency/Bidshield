@@ -537,6 +537,7 @@ function DashboardContent() {
     const baseArgs = {
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
       trade: np.trade || "roofing",
+      projectType: np.projectType || undefined,
       systemType: np.systemType || undefined,
       deckType: np.deckType || undefined,
       gc: np.gc || undefined,

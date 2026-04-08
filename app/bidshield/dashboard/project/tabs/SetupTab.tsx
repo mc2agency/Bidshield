@@ -107,6 +107,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     gc: "",
     sqft: "",
     deckType: "",
+    projectType: "",
   });
   const [infoSaving, setInfoSaving] = useState(false);
   const [infoSaved, setInfoSaved] = useState(false);
@@ -120,6 +121,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       gc: project.gc || "",
       sqft: project.sqft ? String(project.sqft) : project.grossRoofArea ? String(project.grossRoofArea) : "",
       deckType: project.deckType || "",
+      projectType: project.projectType || "",
     });
   }, [project]);
 
@@ -136,6 +138,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         sqft: info.sqft ? parseInt(info.sqft) : undefined,
         grossRoofArea: info.sqft ? parseInt(info.sqft) : undefined,
         deckType: info.deckType || undefined,
+        projectType: info.projectType || undefined,
       });
       setInfoSaved(true);
       setTimeout(() => setInfoSaved(false), 2000);
@@ -554,6 +557,20 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               {DECKS.map((d) => (
                 <option key={d.id} value={d.id}>{d.label}</option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Project Type</label>
+            <select
+              value={info.projectType}
+              onChange={(e) => setInfo({ ...info, projectType: e.target.value })}
+              style={selectStyle}
+            >
+              <option value="">Select...</option>
+              <option value="new_construction">New Construction</option>
+              <option value="reroof">Re-Roof (Tear-off)</option>
+              <option value="recover">Recover (Overlay)</option>
+              <option value="repair">Repair</option>
             </select>
           </div>
         </div>

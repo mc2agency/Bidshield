@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
-import { DEFAULT_SCOPE_ITEMS } from "@/lib/bidshield/scope-defaults";
+import { DEFAULT_SCOPE_ITEMS, getDynamicScopeItems } from "@/lib/bidshield/scope-defaults";
 import { DEMO_SCOPE_ITEMS } from "@/lib/bidshield/demo-data";
 
 type ScopeStatus = "unaddressed" | "included" | "excluded" | "by_others" | "na";
@@ -249,12 +249,13 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
   const handleInitialize = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
+    const dynamicItems = getDynamicScopeItems(project);
     await initScope({
       projectId: projectId as Id<"bidshield_projects">,
       userId,
-      items: DEFAULT_SCOPE_ITEMS.map(i => ({ category: i.category, name: i.name, sortOrder: i.sortOrder })),
+      items: dynamicItems.map(i => ({ category: i.category, name: i.name, sortOrder: i.sortOrder })),
     });
-  }, [isDemo, isValidConvexId, userId, projectId, initScope]);
+  }, [isDemo, isValidConvexId, userId, projectId, project, initScope]);
 
   // Empty state
   if (items.length === 0 && !isDemo) {
