@@ -540,8 +540,9 @@ function DashboardContent() {
         roofAssemblies: np.roofAssemblies || undefined,
         systemDescription: np.systemDescription || undefined,
       });
-    } catch {
+    } catch (err) {
       // Fallback: backend may not support roofAssemblies yet
+      console.warn("createProject with roofAssemblies failed, retrying without:", err);
       projectId = await createProjectMut(baseArgs as Parameters<typeof createProjectMut>[0]);
     }
     if (isFirst) track("first_project_created");

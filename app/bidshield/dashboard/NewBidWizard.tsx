@@ -901,7 +901,19 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
                 projectType, systemType: systems[0] || "", deckType: deck,
                 gc, sqft, totalBidAmount,
                 assemblies: systems.map(s => s.toUpperCase()).join(","),
-                roofAssemblies: assemblies.length > 0 ? assemblies : undefined,
+                roofAssemblies: assemblies.length > 0
+                  ? assemblies.map(a => ({
+                      label: a.label,
+                      name: a.name || undefined,
+                      systemType: a.systemType,
+                      insulationType: a.insulationType || undefined,
+                      insulationThickness: a.insulationThickness || undefined,
+                      rValue: a.rValue ?? undefined,
+                      surfaceType: a.surfaceType || undefined,
+                      area: a.area ?? undefined,
+                      uValue: a.uValue ?? undefined,
+                    }))
+                  : undefined,
                 systemDescription: aiDescription || undefined,
               })}
               className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors"
