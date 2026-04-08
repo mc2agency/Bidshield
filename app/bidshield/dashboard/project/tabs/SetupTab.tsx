@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { TabProps } from "../tab-types";
@@ -94,8 +94,10 @@ const btnSecondary = {
   cursor: "pointer",
 };
 
-export default function SetupTab({ project, projectId, isDemo }: TabProps) {
+export default function SetupTab({ project, projectId, isDemo, userId }: TabProps) {
   const updateProject = useMutation(api.bidshield.updateProject);
+  const createTakeoffSection = useMutation(api.bidshield.createTakeoffSection);
+  const initProjectMaterials = useMutation(api.bidshield.initProjectMaterials);
 
   // ── Section 1: Project Info ──
   const [info, setInfo] = useState({
@@ -242,7 +244,172 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
     }
   };
 
-  // ── Section 3: AI System Description ──
+  // ── Section 3: Spec Extraction ──
+  const [specMode, setSpecMode] = useState<"idle" | "upload" | "loading" | "done" | "error">("idle");
+  const [specError, setSpecError] = useState("");
+  const [specData, setSpecData] = useState<any>(null);
+  const [specApplying, setSpecApplying] = useState(false);
+
+  // Load saved spec summary from project
+  useEffect(() => {
+    if (project?.specSummary) {
+      try {
+        setSpecData(JSON.parse(project.specSummary));
+        setSpecMode("done");
+      } catch { /* ignore parse errors */ }
+    }
+  }, [project]);
+
+  const handleSpecFile = useCallback(async (file: File) => {
+    if (file.type !== "application/pdf") { setSpecError("Please select a PDF file."); setSpecMode("error"); return; }
+    if (file.size > 20 * 1024 * 1024) { setSpecError("File too large (max 20 MB)."); setSpecMode("error"); return; }
+    setSpecMode("loading");
+    setSpecError("");
+    try {
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const base64 = btoa(binary);
+      const res = await fetch("/api/bidshield/extract-specification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setSpecError(data.error || "Extraction failed"); setSpecMode("error"); return; }
+      setSpecData(data);
+      setSpecMode("done");
+      // Auto-save the raw spec data
+      if (!isDemo) {
+        try {
+          await updateProject({ projectId: projectId as any, specSummary: JSON.stringify(data) });
+        } catch { /* save silently fails if backend not deployed */ }
+      }
+    } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
+  }, [isDemo, projectId, updateProject]);
+
+  // Apply spec data to assemblies and project info
+  const handleApplySpec = async () => {
+    if (!specData || isDemo) return;
+    setSpecApplying(true);
+    try {
+      const updates: Record<string, any> = { projectId: projectId as any };
+
+      // Apply project info
+      if (specData.projectInfo) {
+        const pi = specData.projectInfo;
+        if (pi.projectName && !info.name) { setInfo(prev => ({ ...prev, name: pi.projectName })); updates.name = pi.projectName; }
+        if (pi.location && !info.location) { setInfo(prev => ({ ...prev, location: pi.location })); updates.location = pi.location; }
+        if (pi.gc && !info.gc) { setInfo(prev => ({ ...prev, gc: pi.gc })); updates.gc = pi.gc; }
+        if (pi.bidDate && !info.bidDate) { setInfo(prev => ({ ...prev, bidDate: pi.bidDate })); updates.bidDate = pi.bidDate; }
+      }
+
+      // Apply assemblies from spec
+      if (specData.assemblies?.length > 0 && assemblies.length === 0) {
+        const mapped = specData.assemblies.map((a: any, i: number) => ({
+          label: a.label || `RT-${String(i + 1).padStart(2, "0")}`,
+          name: a.name || undefined,
+          systemType: a.system || a.membrane?.type || "",
+          insulationType: a.insulation?.type || "",
+          insulationThickness: a.insulation?.thickness?.replace(/"/g, "").replace(/in$/, "") || "",
+          rValue: a.insulation?.rValue ?? null,
+          surfaceType: a.surfaceType || "",
+          area: null as number | null,
+          uValue: null as number | null,
+        }));
+        // Auto-compute R-values where missing
+        mapped.forEach((m: any) => {
+          if (!m.rValue && m.insulationType && m.insulationThickness) {
+            m.rValue = computeInsulationRValue(m.insulationType, parseFloat(m.insulationThickness));
+          }
+        });
+        setAssemblies(mapped);
+        setAssembliesDirty(true);
+
+        // Clean nulls for Convex
+        const cleanAssemblies = mapped.map((a: any) => {
+          const obj: Record<string, any> = { label: a.label, systemType: a.systemType };
+          if (a.name) obj.name = a.name;
+          if (a.insulationType) obj.insulationType = a.insulationType;
+          if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
+          if (a.rValue != null) obj.rValue = a.rValue;
+          if (a.surfaceType) obj.surfaceType = a.surfaceType;
+          return obj;
+        });
+        updates.roofAssemblies = cleanAssemblies;
+
+        // Set deck type from first assembly
+        const deckType = specData.assemblies.find((a: any) => a.deckType)?.deckType;
+        if (deckType && !info.deckType) { setInfo(prev => ({ ...prev, deckType })); updates.deckType = deckType; }
+      }
+
+      // Apply performance/compliance flags
+      if (specData.performance) {
+        if (specData.performance.rValueRequired) updates.energyCode = true;
+        if (specData.performance.climateZone) updates.climateZone = specData.performance.climateZone;
+      }
+      if (specData.warranty?.type === "NDL" || specData.performance?.windUplift?.includes("FM")) {
+        updates.fmGlobal = true;
+      }
+
+      // Save all updates at once
+      if (Object.keys(updates).length > 1) {
+        await updateProject(updates as any);
+      }
+
+      // Auto-create takeoff sections from assemblies
+      if (specData.assemblies?.length > 0 && userId) {
+        try {
+          for (const a of specData.assemblies) {
+            await createTakeoffSection({
+              projectId: projectId as any,
+              userId,
+              name: a.name || a.label || "Roof Section",
+              assemblyType: (a.system || a.membrane?.type || "").toUpperCase(),
+              squareFeet: 0,
+            });
+          }
+        } catch { /* takeoff sections may already exist */ }
+      }
+
+      // Initialize materials from spec's system types
+      if (specData.assemblies?.length > 0 && userId) {
+        try {
+          const { getTemplatesForSystem } = await import("@/lib/bidshield/material-templates");
+          const systemTypes = [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))];
+          const templates = getTemplatesForSystem(systemTypes);
+          if (templates.length > 0) {
+            await initProjectMaterials({
+              projectId: projectId as any,
+              userId,
+              materials: templates.map(t => ({
+                templateKey: t.key,
+                category: t.category,
+                name: t.name,
+                unit: t.unit,
+                calcType: t.calcType,
+                wasteFactor: t.wasteFactor,
+                coverage: t.defaultCoverage,
+                qtyPerSf: t.defaultQtyPerSf,
+                takeoffItemType: t.takeoffItemType,
+                unitPrice: t.defaultUnitPrice,
+              })),
+            });
+          }
+        } catch { /* materials may already exist */ }
+      }
+    } catch (e) {
+      console.error("Failed to apply spec data:", e);
+    } finally {
+      setSpecApplying(false);
+    }
+  };
+
+  // ── Section 4: AI System Description ──
   const [description, setDescription] = useState("");
   const [descLoading, setDescLoading] = useState(false);
   const [descSaving, setDescSaving] = useState(false);
@@ -558,6 +725,262 @@ export default function SetupTab({ project, projectId, isDemo }: TabProps) {
               + Add Assembly
             </button>
           </>
+        )}
+      </div>
+
+      {/* ── Spec Extraction ── */}
+      <div style={cardStyle}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--bs-text-primary)", margin: 0 }}>
+              Specification Review
+            </h3>
+            <p style={{ fontSize: 12, color: "var(--bs-text-muted)", marginTop: 2 }}>
+              Upload a Division 07 spec PDF to auto-extract assemblies, materials, warranty, and compliance data.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {specMode === "done" && specData && (
+              <button
+                onClick={handleApplySpec}
+                disabled={specApplying || isDemo}
+                style={{ ...btnPrimary, opacity: specApplying ? 0.5 : 1 }}
+              >
+                {specApplying ? "Applying..." : "Apply to Project"}
+              </button>
+            )}
+            <button
+              onClick={() => setSpecMode("upload")}
+              style={btnSecondary}
+            >
+              {specMode === "done" ? "Re-upload Spec" : "Upload Spec PDF"}
+            </button>
+          </div>
+        </div>
+
+        {specMode === "upload" && (
+          <div
+            className="rounded-xl p-6 text-center mb-4"
+            style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-card)" }}
+            onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+            onDrop={e => { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f) handleSpecFile(f); }}
+          >
+            <svg className="w-8 h-8 mx-auto mb-2" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <p className="text-xs mb-3" style={{ color: "var(--bs-text-muted)" }}>Drop a spec PDF or click to browse (Division 07 — Roofing)</p>
+            <label className="inline-block text-xs font-medium px-4 py-2 rounded-lg cursor-pointer" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+              Choose File
+              <input type="file" accept=".pdf,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleSpecFile(f); }} />
+            </label>
+            <button onClick={() => setSpecMode("idle")} className="block mx-auto mt-2 text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Cancel</button>
+          </div>
+        )}
+
+        {specMode === "loading" && (
+          <div className="rounded-xl p-8 text-center" style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-card)" }}>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <svg className="animate-spin w-5 h-5" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+              <span className="text-sm font-medium" style={{ color: "var(--bs-teal)" }}>Analyzing specification...</span>
+            </div>
+            <p className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Extracting assemblies, warranty, materials, and compliance data</p>
+          </div>
+        )}
+
+        {specMode === "error" && (
+          <div className="rounded-xl p-4 text-center mb-4" style={{ border: "1px solid var(--bs-red-border)", background: "var(--bs-red-dim)" }}>
+            <p className="text-xs font-medium mb-2" style={{ color: "var(--bs-red)" }}>{specError}</p>
+            <button onClick={() => setSpecMode("upload")} className="text-xs font-medium" style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Try Again</button>
+          </div>
+        )}
+
+        {specMode === "done" && specData && (
+          <div className="space-y-4">
+            {/* Spec Sections */}
+            {specData.specSections?.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {specData.specSections.map((s: any, i: number) => (
+                  <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+                    {s.csiNumber} — {s.title}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Summary Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Warranty */}
+              {specData.warranty && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Warranty</div>
+                  <div className="text-sm font-bold" style={{ color: "var(--bs-teal)" }}>{specData.warranty.tier || `${specData.warranty.years}-yr ${specData.warranty.type}`}</div>
+                  {specData.warranty.manufacturer && <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{specData.warranty.manufacturer}</div>}
+                  {specData.warranty.windSpeed && <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{specData.warranty.windSpeed} wind</div>}
+                </div>
+              )}
+
+              {/* Performance */}
+              {specData.performance && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Performance</div>
+                  {specData.performance.windUplift && <div className="text-sm font-bold" style={{ color: "var(--bs-text-primary)" }}>{specData.performance.windUplift}</div>}
+                  {specData.performance.fireRating && <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>Fire: {specData.performance.fireRating}</div>}
+                  {specData.performance.rValueRequired && <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>R-{specData.performance.rValueRequired} min</div>}
+                </div>
+              )}
+
+              {/* Assemblies Count */}
+              {specData.assemblies?.length > 0 && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Assemblies</div>
+                  <div className="text-sm font-bold" style={{ color: "var(--bs-text-primary)" }}>{specData.assemblies.length} system{specData.assemblies.length !== 1 ? "s" : ""}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                    {[...new Set(specData.assemblies.map((a: any) => (a.system || a.membrane?.type || "").toUpperCase()))].filter(Boolean).join(", ")}
+                  </div>
+                </div>
+              )}
+
+              {/* Materials Count */}
+              {specData.materials?.length > 0 && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Materials</div>
+                  <div className="text-sm font-bold" style={{ color: "var(--bs-text-primary)" }}>{specData.materials.length} items</div>
+                  <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                    {[...new Set(specData.materials.map((m: any) => m.category))].length} categories
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Assemblies Detail */}
+            {specData.assemblies?.length > 0 && (
+              <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Assembly Details</div>
+                <div className="space-y-2">
+                  {specData.assemblies.map((a: any, i: number) => (
+                    <div key={i} className="flex items-start gap-3 text-xs py-1.5" style={{ borderBottom: i < specData.assemblies.length - 1 ? "1px solid var(--bs-border)" : "none" }}>
+                      <span className="font-bold shrink-0" style={{ color: "var(--bs-teal)", minWidth: 48 }}>{a.label || `RT-${String(i + 1).padStart(2, "0")}`}</span>
+                      <div className="flex-1">
+                        <div className="font-semibold" style={{ color: "var(--bs-text-primary)" }}>{a.name || (a.system || a.membrane?.type || "").toUpperCase()}</div>
+                        <div className="mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                          {[
+                            a.membrane && `${(a.membrane.type || "").toUpperCase()} ${a.membrane.thickness || ""}${a.membrane.manufacturer ? ` (${a.membrane.manufacturer})` : ""}`,
+                            a.insulation && `${(a.insulation.type || "").replace("_", " ")} ${a.insulation.thickness || ""}${a.insulation.rValue ? ` R-${a.insulation.rValue}` : ""}`,
+                            a.coverBoard,
+                            a.vaporRetarder && `VR: ${a.vaporRetarder}`,
+                            a.attachmentMethod && a.attachmentMethod.replace(/_/g, " "),
+                          ].filter(Boolean).join(" · ")}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Materials List */}
+            {specData.materials?.length > 0 && (
+              <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Specified Materials</div>
+                <div className="space-y-1">
+                  {specData.materials.map((m: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 text-xs py-1" style={{ borderBottom: i < specData.materials.length - 1 ? "1px solid var(--bs-border)" : "none" }}>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase shrink-0" style={{ background: "rgba(255,255,255,0.06)", color: "var(--bs-text-dim)", minWidth: 72, textAlign: "center" }}>{m.category}</span>
+                      <span className="font-medium" style={{ color: "var(--bs-text-primary)" }}>{m.name}</span>
+                      {m.manufacturer && <span style={{ color: "var(--bs-text-muted)" }}>— {m.manufacturer}</span>}
+                      {m.spec && <span className="ml-auto shrink-0" style={{ color: "var(--bs-text-dim)", fontSize: 10 }}>{m.spec}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Testing, Submittals, Scope in collapsible rows */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              {specData.testingRequirements?.length > 0 && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Testing Required</div>
+                  {specData.testingRequirements.map((t: any, i: number) => (
+                    <div key={i} className="text-xs py-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                      <span className="font-medium" style={{ color: "var(--bs-text-secondary)" }}>{t.type?.replace(/_/g, " ")}</span>
+                      {t.description && <span> — {t.description}</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {specData.submittals?.length > 0 && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Submittals</div>
+                  {specData.submittals.map((s: string, i: number) => (
+                    <div key={i} className="text-xs py-0.5" style={{ color: "var(--bs-text-muted)" }}>{s}</div>
+                  ))}
+                </div>
+              )}
+
+              {specData.scopeNotes?.length > 0 && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Scope Notes</div>
+                  {specData.scopeNotes.map((s: string, i: number) => (
+                    <div key={i} className="text-xs py-0.5" style={{ color: "var(--bs-text-muted)" }}>{s}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Labor & Gen Conds */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {specData.laborRequirements && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Labor Requirements</div>
+                  {specData.laborRequirements.laborType && (
+                    <div className="text-xs py-0.5"><span className="font-medium" style={{ color: "var(--bs-text-secondary)" }}>Type:</span> <span style={{ color: "var(--bs-text-muted)" }}>{specData.laborRequirements.laborType.replace(/_/g, " ")}</span></div>
+                  )}
+                  {specData.laborRequirements.certifiedInstaller && (
+                    <div className="text-xs py-0.5" style={{ color: "var(--bs-amber)" }}>Certified installer required</div>
+                  )}
+                  {specData.laborRequirements.manufacturerTraining && (
+                    <div className="text-xs py-0.5" style={{ color: "var(--bs-amber)" }}>Manufacturer training required</div>
+                  )}
+                </div>
+              )}
+
+              {specData.generalConditions?.length > 0 && (
+                <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>General Conditions</div>
+                  {specData.generalConditions.map((gc: any, i: number) => (
+                    <div key={i} className="text-xs py-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                      <span className="font-medium" style={{ color: "var(--bs-text-secondary)" }}>{gc.item}</span>
+                      {gc.description && <span> — {gc.description}</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Approved Manufacturers */}
+            {specData.approvedManufacturers?.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>Approved:</span>
+                {specData.approvedManufacturers.map((m: string, i: number) => (
+                  <span key={i} className="text-xs px-2 py-0.5 rounded-md" style={{ background: "rgba(255,255,255,0.06)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}>{m}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {specMode === "idle" && !specData && (
+          <div
+            className="text-center py-8 rounded-xl"
+            style={{ border: "1px dashed var(--bs-border)", color: "var(--bs-text-dim)" }}
+          >
+            <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.1)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <p className="text-sm mb-1">No specification uploaded yet.</p>
+            <p className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Upload a Division 07 spec to auto-extract warranty, materials, and compliance data.</p>
+          </div>
         )}
       </div>
 

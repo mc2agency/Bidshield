@@ -102,6 +102,7 @@ export default defineSchema({
       uValue: v.optional(v.number()),          // thermal U-value
     }))),
     systemDescription: v.optional(v.string()), // AI-generated project-level system summary
+    specSummary: v.optional(v.string()), // JSON-stringified spec extraction result
     grossRoofArea: v.optional(v.number()), // Control number from site plan (SF)
     notes: v.optional(v.string()),
     // Bid pricing — canonical field is totalBidAmount
