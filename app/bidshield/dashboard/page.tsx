@@ -183,12 +183,13 @@ function WelcomeCard({ onNewBid, onDismiss }: { onNewBid: () => void; onDismiss:
 // ============================================================
 // PROJECT TABLE (desktop pipeline view)
 // ============================================================
-function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router }: {
+function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router }: {
   project: BidProject;
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
   onDelete: (id: Id<"bidshield_projects">, name: string) => void;
   onEdit: (id: Id<"bidshield_projects">) => void;
+  onEditSetup: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -285,6 +286,16 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
                       <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
                       Edit
                     </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEditSetup(project._id); }}
+                      className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors"
+                      style={{ color: "var(--bs-text-secondary)", background: "none" }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "none"}
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                      Edit Setup
+                    </button>
                     <div className="my-1" style={{ borderTop: "1px solid var(--bs-border)" }} />
                     <button
                       onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(project._id, project.name); }}
@@ -307,12 +318,13 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, router 
   );
 }
 
-function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, router, onNewBid }: {
+function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, onNewBid }: {
   projects: BidProject[];
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
   onDelete: (id: Id<"bidshield_projects">, name: string) => void;
   onEdit: (id: Id<"bidshield_projects">) => void;
+  onEditSetup: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
   onNewBid: () => void;
 }) {
@@ -332,7 +344,7 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
         </thead>
         <tbody>
           {projects.map((project) => (
-            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} router={router} />
+            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} onEditSetup={onEditSetup} router={router} />
           ))}
           <tr>
             <td colSpan={7} className="px-4 py-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
@@ -360,12 +372,13 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, rout
 // ============================================================
 // PROJECT CARD
 // ============================================================
-function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, router }: {
+function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router }: {
   project: BidProject;
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
   onDelete: (id: Id<"bidshield_projects">, name: string) => void;
   onEdit: (id: Id<"bidshield_projects">) => void;
+  onEditSetup: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
 }) {
   const progress = useQuery(
@@ -483,6 +496,7 @@ function DashboardContent() {
   });
 
   const [showNewProject, setShowNewProject] = useState(false);
+  const [editingProject, setEditingProject] = useState<BidProject | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
@@ -548,6 +562,56 @@ function DashboardContent() {
     if (isFirst) track("first_project_created");
     setShowNewProject(false);
     router.push(`/bidshield/dashboard/project?id=${projectId}`);
+  };
+
+  const handleEditSetup = (id: Id<"bidshield_projects">) => {
+    const proj = projects.find(p => p._id === id);
+    if (proj) setEditingProject(proj);
+  };
+
+  const handleUpdateProject = async (np: any) => {
+    if (!editingProject) return;
+    const cleanAssemblies = np.roofAssemblies?.map((a: any) => {
+      const obj: any = { label: a.label, systemType: a.systemType };
+      if (a.name) obj.name = a.name;
+      if (a.insulationType) obj.insulationType = a.insulationType;
+      if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
+      if (a.rValue != null) obj.rValue = a.rValue;
+      if (a.surfaceType) obj.surfaceType = a.surfaceType;
+      if (a.area != null) obj.area = a.area;
+      if (a.uValue != null) obj.uValue = a.uValue;
+      return obj;
+    });
+    try {
+      await updateProjectMut({
+        projectId: editingProject._id,
+        name: np.name || undefined,
+        location: np.location || undefined,
+        bidDate: np.bidDate || undefined,
+        gc: np.gc || undefined,
+        sqft: np.sqft ? parseInt(np.sqft) : undefined,
+        grossRoofArea: np.sqft ? parseInt(np.sqft) : undefined,
+        totalBidAmount: np.totalBidAmount ? parseInt(np.totalBidAmount) : undefined,
+        deckType: np.deckType || undefined,
+        roofAssemblies: cleanAssemblies,
+        systemDescription: np.systemDescription || undefined,
+      });
+    } catch (err) {
+      console.warn("updateProject with roofAssemblies failed, retrying without:", err);
+      await updateProjectMut({
+        projectId: editingProject._id,
+        name: np.name || undefined,
+        location: np.location || undefined,
+        bidDate: np.bidDate || undefined,
+        gc: np.gc || undefined,
+        sqft: np.sqft ? parseInt(np.sqft) : undefined,
+        grossRoofArea: np.sqft ? parseInt(np.sqft) : undefined,
+        totalBidAmount: np.totalBidAmount ? parseInt(np.totalBidAmount) : undefined,
+        deckType: np.deckType || undefined,
+      });
+    }
+    setEditingProject(null);
+    router.push(`/bidshield/dashboard/project?id=${editingProject._id}`);
   };
 
   const handleDeleteRequest = (id: Id<"bidshield_projects">, name: string) => {
@@ -712,13 +776,13 @@ function DashboardContent() {
 
         {/* Desktop: pipeline table */}
         <div className="hidden md:block">
-          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} router={router} onNewBid={handleNewBidClick} />
+          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} onEditSetup={handleEditSetup} router={router} onNewBid={handleNewBidClick} />
         </div>
 
         {/* Mobile: card grid */}
         <div className="grid grid-cols-1 gap-4 md:hidden">
           {activeProjects.map((project: BidProject) => (
-            <ProjectCard key={project._id} project={project} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} router={router} />
+            <ProjectCard key={project._id} project={project} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} onEditSetup={handleEditSetup} router={router} />
           ))}
           <div onClick={handleNewBidClick} className="rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[200px] group" style={{ border: "2px dashed var(--bs-border)", color: "var(--bs-text-dim)" }}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors" style={{ background: "rgba(255,255,255,0.06)" }}>
@@ -787,6 +851,19 @@ function DashboardContent() {
       )}
 
       {showNewProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
+      {editingProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setEditingProject(null)} onCreate={handleUpdateProject} editProject={{
+        projectType: (editingProject as any).projectType,
+        systemType: (editingProject as any).systemType,
+        deckType: (editingProject as any).deckType,
+        name: editingProject.name,
+        location: editingProject.location,
+        bidDate: editingProject.bidDate,
+        gc: editingProject.gc,
+        sqft: editingProject.sqft,
+        totalBidAmount: editingProject.totalBidAmount,
+        roofAssemblies: (editingProject as any).roofAssemblies,
+        systemDescription: (editingProject as any).systemDescription,
+      }} />}
       {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
       {deleteTarget && (
         <DeleteConfirmDialog

@@ -119,25 +119,69 @@ interface AssemblyInput {
   uValue?: number | null;
 }
 
-interface Props {
-  onClose: () => void;
-  onCreate: (data: {
-    name: string; location: string; bidDate: string; trade: string;
-    projectType: string; systemType: string; deckType: string;
-    gc: string; sqft: string; totalBidAmount: string; assemblies: string;
-    roofAssemblies?: AssemblyInput[];
-    systemDescription?: string;
-  }) => void;
-  isDemo?: boolean;
-  isPro?: boolean;
+interface WizardData {
+  name: string; location: string; bidDate: string; trade: string;
+  projectType: string; systemType: string; deckType: string;
+  gc: string; sqft: string; totalBidAmount: string; assemblies: string;
+  roofAssemblies?: AssemblyInput[];
+  systemDescription?: string;
 }
 
-export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props) {
-  const [step, setStep] = useState(0);
-  const [projectType, setProjectType] = useState("");
-  const [systems, setSystems] = useState<string[]>([]);
-  const [assemblies, setAssemblies] = useState<AssemblyInput[]>([]);
-  const [aiDescription, setAiDescription] = useState("");
+export interface EditProjectData {
+  projectType?: string;
+  systemType?: string;
+  deckType?: string;
+  name?: string;
+  location?: string;
+  bidDate?: string;
+  gc?: string;
+  sqft?: number;
+  totalBidAmount?: number;
+  roofAssemblies?: Array<{
+    label: string; name?: string; systemType: string;
+    insulationType?: string; insulationThickness?: string;
+    rValue?: number; surfaceType?: string;
+    area?: number; uValue?: number;
+  }>;
+  systemDescription?: string;
+}
+
+interface Props {
+  onClose: () => void;
+  onCreate: (data: WizardData) => void;
+  isDemo?: boolean;
+  isPro?: boolean;
+  editProject?: EditProjectData;
+}
+
+export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editProject }: Props) {
+  const isEdit = !!editProject;
+  const [step, setStep] = useState(isEdit ? 1 : 0);
+  const [projectType, setProjectType] = useState(editProject?.projectType || "");
+  const [systems, setSystems] = useState<string[]>(() => {
+    if (editProject?.roofAssemblies?.length) {
+      return [...new Set(editProject.roofAssemblies.map(a => a.systemType).filter(Boolean))];
+    }
+    if (editProject?.systemType) return [editProject.systemType];
+    return [];
+  });
+  const [assemblies, setAssemblies] = useState<AssemblyInput[]>(() => {
+    if (editProject?.roofAssemblies?.length) {
+      return editProject.roofAssemblies.map(a => ({
+        label: a.label,
+        name: a.name,
+        systemType: a.systemType,
+        insulationType: a.insulationType || "",
+        insulationThickness: a.insulationThickness || "",
+        rValue: a.rValue ?? null,
+        surfaceType: a.surfaceType || "",
+        area: a.area ?? null,
+        uValue: a.uValue ?? null,
+      }));
+    }
+    return [];
+  });
+  const [aiDescription, setAiDescription] = useState(editProject?.systemDescription || "");
   const [descLoading, setDescLoading] = useState(false);
   // PDF extract state
   const [pdfMode, setPdfMode] = useState<"link" | "upload" | "loading" | "preview" | "error">("link");
@@ -147,13 +191,13 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
   // Takeoff schedule upload state
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
   const [takeoffError, setTakeoffError] = useState("");
-  const [deck, setDeck] = useState("");
-  const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [bidDate, setBidDate] = useState("");
-  const [gc, setGc] = useState("");
-  const [sqft, setSqft] = useState("");
-  const [totalBidAmount, setTotalBidAmount] = useState("");
+  const [deck, setDeck] = useState(editProject?.deckType || "");
+  const [name, setName] = useState(editProject?.name || "");
+  const [location, setLocation] = useState(editProject?.location || "");
+  const [bidDate, setBidDate] = useState(editProject?.bidDate || "");
+  const [gc, setGc] = useState(editProject?.gc || "");
+  const [sqft, setSqft] = useState(editProject?.sqft ? String(editProject.sqft) : "");
+  const [totalBidAmount, setTotalBidAmount] = useState(editProject?.totalBidAmount ? String(editProject.totalBidAmount) : "");
 
   const toggleSystem = (id: string) => {
     setSystems(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
@@ -876,7 +920,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
 
         {/* Footer — always visible */}
         <div className="px-6 py-4 flex justify-between items-center" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}>
-          {step === 0 ? (
+          {step === 0 || (isEdit && step === 1) ? (
             <button onClick={onClose} className="text-sm transition-colors" style={{ color: "var(--bs-text-dim)" }}>Cancel</button>
           ) : (
             <button onClick={() => setStep(step - 1)} className="text-sm transition-colors flex items-center gap-1" style={{ color: "var(--bs-text-muted)" }}>
@@ -919,7 +963,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro }: Props
               className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors"
               style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >
-              Create Project & Start →
+              {isEdit ? "Save Changes →" : "Create Project & Start →"}
             </button>
           )}
         </div>
