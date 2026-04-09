@@ -78,6 +78,16 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const gcMarkupTotal = (gcItems ?? []).filter((i: any) => i.isMarkup).reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0);
   const computedGCTotal = Math.round(gcLineItemsTotal + gcMarkupTotal);
 
+  const addenda = useQuery(
+    api.bidshield.getAddenda,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const addendaImpact = (addenda ?? [])
+    .filter((a: any) => a.repriced && a.priceImpact)
+    .reduce((sum: number, a: any) => sum + (a.priceImpact || 0), 0);
+
+  const computedTotal = computedMaterialTotal + computedLaborTotal + computedGCTotal + addendaImpact;
+
   const grossRoofArea: number | null = isDemo ? 68000 : (project?.grossRoofArea ?? null);
 
   const [demoPricing, setDemoPricing] = useState({
@@ -178,7 +188,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
 
   // Sanity check: components should sum to total bid
   const effectiveGC = pricing.otherCost ?? (computedGCTotal > 0 ? computedGCTotal : 0);
-  const componentSum = computedMaterialTotal + computedLaborTotal + effectiveGC;
+  const componentSum = computedMaterialTotal + computedLaborTotal + effectiveGC + addendaImpact;
   const totalBid = pricing.totalBidAmount ?? 0;
   const componentSumMismatch = totalBid > 0 && componentSum > 0 && Math.abs(componentSum - totalBid) / totalBid > 0.01;
   const variance = dollarPerSf && avgDollarPerSf ? ((dollarPerSf - avgDollarPerSf) / avgDollarPerSf) * 100 : null;
@@ -269,7 +279,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           <div>
             <div className="text-[13px] font-medium" style={{ color: "var(--bs-amber)" }}>Cost components don&rsquo;t add up to Total Bid</div>
             <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
-              Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}) = {fmtDollar(componentSum)} — total bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} gap)
+              Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}){addendaImpact ? ` + Addenda (${addendaImpact > 0 ? "+" : ""}${fmtDollar(addendaImpact)})` : ""} = {fmtDollar(componentSum)} — total bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} gap)
             </div>
           </div>
         </div>
@@ -296,9 +306,21 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
             <div className="bs-metric-label">Total bid</div>
             {editing ? (
-              <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="0" style={inputStyle} />
+              <div className="flex flex-col gap-1">
+                <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="0" style={inputStyle} />
+                {computedTotal > 0 && (
+                  <button type="button" onClick={() => setForm((f) => ({ ...f, totalBidAmount: computedTotal.toString() }))} className="text-[11px] cursor-pointer text-left bs-link">
+                    Use calculated ({fmtDollar(computedTotal)})
+                  </button>
+                )}
+              </div>
             ) : (
-              <div className="text-[24px] font-medium tabular-nums" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.5px" }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>
+              <div>
+                <div className="text-[24px] font-medium tabular-nums" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.5px" }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>
+                {computedTotal > 0 && !pricing.totalBidAmount && (
+                  <div className="text-[11px] mt-1" style={{ color: "var(--bs-text-dim)" }}>Calculated: {fmtDollar(computedTotal)}</div>
+                )}
+              </div>
             )}
           </div>
           {/* Material */}
@@ -347,6 +369,21 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             </div>
           </div>
         </div>
+
+        {/* Addenda adjustments line */}
+        {addendaImpact !== 0 && (
+          <div className="flex items-center justify-between mx-[18px] mb-2 px-4 py-2.5 rounded-lg" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-medium" style={{ color: "var(--bs-text-muted)" }}>Addenda adjustments</span>
+              <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", fontWeight: 600 }}>
+                {(addenda ?? []).filter((a: any) => a.repriced && a.priceImpact).length} addend{(addenda ?? []).filter((a: any) => a.repriced && a.priceImpact).length === 1 ? "um" : "a"}
+              </span>
+            </div>
+            <span className="text-[14px] font-semibold tabular-nums" style={{ color: addendaImpact > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
+              {addendaImpact > 0 ? "+" : ""}{fmtDollar(addendaImpact)}
+            </span>
+          </div>
+        )}
 
         {/* Primary Assembly + Bid Health */}
         <div className="grid px-[18px] pb-[18px] gap-3" style={{ gridTemplateColumns: "1fr 1fr" }}>

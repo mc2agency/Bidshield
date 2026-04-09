@@ -1,7 +1,7 @@
 "use client";
 import { DEMO_MATERIALS as IMPORTED_MATERIALS } from "@/lib/bidshield/demo-data";
 
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { track } from "@vercel/analytics";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -331,6 +331,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [isSavingExtraction, setIsSavingExtraction] = useState(false);
   const [replaceError, setReplaceError] = useState<string | null>(null);
   const [isFixingCategories, setIsFixingCategories] = useState(false);
+  const [syncPreview, setSyncPreview] = useState<{ materialId: string; name: string; oldPrice: number; newPrice: number; quoteName: string; confidence: number }[] | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Resolve materials (demo vs real)
@@ -641,6 +643,70 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       }
     }
   }, [isDemo, materials, totalSF, lineItems, updateMaterial]);
+
+  // Track if takeoff data changed since materials were last calculated
+  const lastCalcSF = useRef<number | null>(null);
+  const [takeoffChanged, setTakeoffChanged] = useState(false);
+
+  useEffect(() => {
+    if (materials.length === 0 || totalSF === 0) return;
+    if (lastCalcSF.current === null) {
+      lastCalcSF.current = totalSF;
+      return;
+    }
+    if (lastCalcSF.current !== totalSF) {
+      setTakeoffChanged(true);
+    }
+  }, [totalSF, materials.length]);
+
+  const handleRecalculateAndTrack = useCallback(async () => {
+    await handleRecalculate();
+    lastCalcSF.current = totalSF;
+    setTakeoffChanged(false);
+  }, [handleRecalculate, totalSF]);
+
+  // ── Quote → Material price sync ──────────────────────────────────────────
+  const handleSyncQuotePrices = useCallback(() => {
+    if (quotes.length === 0 || materials.length === 0) return;
+    const matches: { materialId: string; name: string; oldPrice: number; newPrice: number; quoteName: string; confidence: number }[] = [];
+    for (const m of materials as any[]) {
+      const match = findBestMatchAcrossAllQuotes(m.name, quotes);
+      if (match && match.item.p > 0) {
+        const oldPrice = m.unitPrice ?? 0;
+        if (Math.abs(oldPrice - match.item.p) > 0.01) {
+          matches.push({
+            materialId: m._id,
+            name: m.name,
+            oldPrice,
+            newPrice: match.item.p,
+            quoteName: match.quoteName,
+            confidence: Math.round(match.confidence),
+          });
+        }
+      }
+    }
+    setSyncPreview(matches.length > 0 ? matches : []);
+  }, [quotes, materials]);
+
+  const handleApplySyncPrices = useCallback(async () => {
+    if (!syncPreview || syncPreview.length === 0) return;
+    setIsSyncing(true);
+    try {
+      for (const match of syncPreview) {
+        if (isDemo) continue;
+        const mat = materials.find((m: any) => m._id === match.materialId) as any;
+        const qty = mat?.quantity ?? 0;
+        await updateMaterial({
+          materialId: match.materialId as Id<"bidshield_project_materials">,
+          unitPrice: match.newPrice,
+          totalCost: qty > 0 ? qty * match.newPrice : undefined,
+        });
+      }
+    } finally {
+      setIsSyncing(false);
+      setSyncPreview(null);
+    }
+  }, [syncPreview, isDemo, materials, updateMaterial]);
 
   // Start inline editing
   const startEdit = (m: any) => {
@@ -977,6 +1043,16 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               >
                 {isFixingCategories ? "Fixing..." : "Fix Categories"}
               </button>
+              {quotes.length > 0 && (
+                <button
+                  onClick={handleSyncQuotePrices}
+                  title="Match material names to quote line items and update prices"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
+                >
+                  Sync Quote Prices
+                </button>
+              )}
               <button
                 onClick={handleRecalculate}
                 disabled={totalSF === 0}
@@ -1033,6 +1109,19 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
           <span className="flex-1">{uploadError}</span>
           <button onClick={() => setUploadError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
+        </div>
+      )}
+
+      {/* Takeoff changed banner */}
+      {takeoffChanged && totalSF > 0 && materials.length > 0 && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-amber-dim)", border: "1px solid var(--bs-amber-border)" }}>
+          <div className="flex items-center gap-2" style={{ color: "var(--bs-amber)" }}>
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+            <span>Takeoff areas updated ({totalSF.toLocaleString()} SF) — quantities may be outdated</span>
+          </div>
+          <button onClick={handleRecalculateAndTrack} className="px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap" style={{ background: "var(--bs-amber)", color: "#13151a" }}>
+            Recalculate Now
+          </button>
         </div>
       )}
 
@@ -1329,6 +1418,65 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           onReplace={handleReplaceAll}
           onCancel={() => { setPreviewItems(null); setPreviewFilename(""); setReplaceError(null); }}
         />
+      )}
+
+      {/* Sync Quote Prices Preview Modal */}
+      {syncPreview !== null && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+          <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--bs-text-primary)" }}>
+                Sync Quote Prices
+              </h3>
+              <button onClick={() => setSyncPreview(null)} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Cancel</button>
+            </div>
+            <div className="px-5 py-4 max-h-[400px] overflow-y-auto">
+              {syncPreview.length === 0 ? (
+                <p className="text-sm text-center py-6" style={{ color: "var(--bs-text-dim)" }}>
+                  All material prices already match quotes — nothing to update.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs mb-3" style={{ color: "var(--bs-text-muted)" }}>
+                    Found {syncPreview.length} price {syncPreview.length === 1 ? "update" : "updates"} from quotes:
+                  </p>
+                  <div className="space-y-2">
+                    {syncPreview.map((s) => (
+                      <div key={s.materialId} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-xs" style={{ background: "var(--bs-bg-elevated)" }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate" style={{ color: "var(--bs-text-primary)" }}>{s.name}</div>
+                          <div style={{ color: "var(--bs-text-dim)" }}>{s.quoteName} · {s.confidence}% match</div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 tabular-nums">
+                          <span style={{ color: "var(--bs-text-dim)", textDecoration: s.oldPrice > 0 ? "line-through" : undefined }}>
+                            {s.oldPrice > 0 ? `$${s.oldPrice.toFixed(2)}` : "—"}
+                          </span>
+                          <span style={{ color: "var(--bs-teal)" }}>→</span>
+                          <span className="font-semibold" style={{ color: "var(--bs-teal)" }}>${s.newPrice.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            {syncPreview.length > 0 && (
+              <div className="flex justify-end gap-2 px-5 py-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
+                <button onClick={() => setSyncPreview(null)} className="px-4 py-2 rounded-lg text-xs font-medium" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}>
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApplySyncPrices}
+                  disabled={isSyncing}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50"
+                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
+                >
+                  {isSyncing ? "Updating..." : `Update ${syncPreview.length} ${syncPreview.length === 1 ? "Price" : "Prices"}`}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Add Material Modal */}
