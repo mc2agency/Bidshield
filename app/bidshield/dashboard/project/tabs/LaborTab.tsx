@@ -199,6 +199,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           systemType: project?.systemType,
           deckType: project?.deckType,
           assemblies: project?.assemblies,
+          roofAssemblies: project?.roofAssemblies,
           bidDate: project?.bidDate,
           estimatedDuration: bidQuals?.estimatedDuration,
         }),
