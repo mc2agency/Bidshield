@@ -171,6 +171,33 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           uValue: a.uValue ?? null,
         }))
       );
+    } else if (project.assemblies && project.assemblies.length > 0) {
+      // Fallback: generate assembly rows from the legacy string array
+      // (e.g. ["TPO", "SBS"]) when roofAssemblies hasn't been saved yet
+      setAssemblies(
+        project.assemblies.map((s: string, i: number) => ({
+          label: `RT-${String(i + 1).padStart(2, "0")}`,
+          systemType: s.toLowerCase(),
+          insulationType: "",
+          insulationThickness: "",
+          rValue: null,
+          surfaceType: "",
+          area: null,
+          uValue: null,
+        }))
+      );
+    } else if (project.systemType) {
+      // Last resort: create a single assembly from the project-level systemType
+      setAssemblies([{
+        label: "RT-01",
+        systemType: project.systemType.toLowerCase(),
+        insulationType: "",
+        insulationThickness: "",
+        rValue: null,
+        surfaceType: "",
+        area: project.sqft ?? project.grossRoofArea ?? null,
+        uValue: null,
+      }]);
     }
   }, [project]);
 
