@@ -537,7 +537,6 @@ function DashboardContent() {
     const baseArgs = {
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
       trade: np.trade || "roofing",
-      projectType: np.projectType || undefined,
       systemType: np.systemType || undefined,
       deckType: np.deckType || undefined,
       gc: np.gc || undefined,
@@ -552,6 +551,7 @@ function DashboardContent() {
     try {
       projectId = await createProjectMut({
         ...baseArgs,
+        projectType: np.projectType || undefined,
         roofAssemblies: np.roofAssemblies?.map((a: any) => ({
           label: a.label,
           systemType: a.systemType,
@@ -566,9 +566,14 @@ function DashboardContent() {
         systemDescription: np.systemDescription || undefined,
       });
     } catch (err) {
-      // Fallback: backend may not support roofAssemblies yet
-      console.warn("createProject with roofAssemblies failed, retrying without:", err);
-      projectId = await createProjectMut(baseArgs as Parameters<typeof createProjectMut>[0]);
+      // Fallback: backend may not support newer fields yet
+      console.warn("createProject failed, retrying with base args only:", err);
+      try {
+        projectId = await createProjectMut(baseArgs as Parameters<typeof createProjectMut>[0]);
+      } catch (err2) {
+        console.error("createProject fallback also failed:", err2);
+        return;
+      }
     }
     if (isFirst) track("first_project_created");
     setShowNewProject(false);
