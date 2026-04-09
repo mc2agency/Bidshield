@@ -383,7 +383,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       if (specData.assemblies?.length > 0 && userId) {
         try {
           const { getTemplatesForSystem } = await import("@/lib/bidshield/material-templates");
-          const systemTypes = [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))];
+          const systemTypes = [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))] as string[];
           const templates = getTemplatesForSystem(systemTypes);
           if (templates.length > 0) {
             await initProjectMaterials({
