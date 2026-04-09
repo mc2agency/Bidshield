@@ -388,7 +388,7 @@ function ProjectDetail() {
                 <span style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-primary)" }}>{projectData?.name}</span>
                 {!isDemo && (
                   <button
-                    onClick={openEditProject}
+                    onClick={() => setActiveTab("setup")}
                     style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex" }}
                     title="Edit project"
                   >
