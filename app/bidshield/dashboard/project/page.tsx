@@ -413,7 +413,7 @@ function ProjectDetail() {
         {/* Section nav with groups */}
         <nav className="flex-1 px-2 flex flex-col" style={{ fontSize: 13 }}>
           {[
-            { label: "Review", ids: ["setup", "overview", "checklist", "scope", "takeoff", "materials"] },
+            { label: "Review", ids: ["setup", "checklist", "scope", "takeoff", "materials"] },
             { label: "Pricing", ids: ["pricing", "labor", "generalconditions"] },
             { label: "Docs", ids: ["quotes", "addenda", "rfis", "bidquals", "validator", "decisions", "submission", "prebidmeetings"] },
           ].map(({ label: groupLabel, ids }) => (
