@@ -83,7 +83,7 @@ function ProjectDetail() {
   const projectIdParam = searchParams.get("id");
   const isDemo = searchParams.get("demo") === "true";
   const { userId } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId | null>("setup");
   const updateProject = useMutation(api.bidshield.updateProject);
   const [editingBidInline, setEditingBidInline] = useState(false);
   const [bidInlineValue, setBidInlineValue] = useState("");
