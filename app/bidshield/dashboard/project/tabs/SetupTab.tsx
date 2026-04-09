@@ -154,6 +154,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const [assembliesDirty, setAssembliesDirty] = useState(false);
   const [asmSaving, setAsmSaving] = useState(false);
   const [asmSaved, setAsmSaved] = useState(false);
+  const [asmError, setAsmError] = useState("");
 
   useEffect(() => {
     if (!project) return;
@@ -243,6 +244,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const handleAssembliesSave = async () => {
     if (isDemo) return;
     setAsmSaving(true);
+    setAsmError("");
     try {
       const cleanAssemblies = assemblies
         .filter((a) => a.systemType)
@@ -269,6 +271,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       setTimeout(() => setAsmSaved(false), 2000);
     } catch (e) {
       console.error("Failed to save assemblies:", e);
+      setAsmError("Failed to save — please redeploy Convex and try again.");
     } finally {
       setAsmSaving(false);
     }
@@ -313,11 +316,14 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       if (!res.ok || data.error) { setSpecError(data.error || "Extraction failed"); setSpecMode("error"); return; }
       setSpecData(data);
       setSpecMode("done");
-      // Auto-save the raw spec data
+      // Save the raw spec data to Convex so it persists across navigation
       if (!isDemo) {
         try {
           await updateProject({ projectId: projectId as any, specSummary: JSON.stringify(data) });
-        } catch { /* save silently fails if backend not deployed */ }
+        } catch (e) {
+          console.error("Failed to save spec data to project:", e);
+          setSpecError("Spec extracted but failed to save — click Apply to retry.");
+        }
       }
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
   }, [isDemo, projectId, updateProject]);
@@ -338,8 +344,9 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         if (pi.bidDate && !info.bidDate) { setInfo(prev => ({ ...prev, bidDate: pi.bidDate })); updates.bidDate = pi.bidDate; }
       }
 
-      // Apply assemblies from spec
-      if (specData.assemblies?.length > 0 && assemblies.length === 0) {
+      // Apply assemblies from spec (overwrite if current assemblies are just auto-generated placeholders)
+      const hasRealAssemblies = assemblies.some(a => a.insulationType || a.name || a.rValue != null);
+      if (specData.assemblies?.length > 0 && (!hasRealAssemblies || assemblies.length === 0)) {
         const mapped = specData.assemblies.map((a: any, i: number) => ({
           label: a.label || `RT-${String(i + 1).padStart(2, "0")}`,
           name: a.name || undefined,
@@ -385,6 +392,9 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       if (specData.warranty?.type === "NDL" || specData.performance?.windUplift?.includes("FM")) {
         updates.fmGlobal = true;
       }
+
+      // Also ensure specSummary is saved (retry if auto-save after extraction failed)
+      updates.specSummary = JSON.stringify(specData);
 
       // Save all updates at once
       if (Object.keys(updates).length > 1) {
@@ -434,6 +444,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       }
     } catch (e) {
       console.error("Failed to apply spec data:", e);
+      setSpecError("Failed to apply spec data — Convex backend may need redeployment.");
     } finally {
       setSpecApplying(false);
     }
@@ -616,6 +627,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           </div>
           <div className="flex items-center gap-2">
             {asmSaved && <span style={{ fontSize: 12, color: "var(--bs-teal)" }}>Saved</span>}
+            {asmError && <span style={{ fontSize: 12, color: "var(--bs-red, #ef4444)" }}>{asmError}</span>}
             {assembliesDirty && (
               <button
                 onClick={handleAssembliesSave}
@@ -835,6 +847,11 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           <div className="rounded-xl p-4 text-center mb-4" style={{ border: "1px solid var(--bs-red-border)", background: "var(--bs-red-dim)" }}>
             <p className="text-xs font-medium mb-2" style={{ color: "var(--bs-red)" }}>{specError}</p>
             <button onClick={() => setSpecMode("upload")} className="text-xs font-medium" style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Try Again</button>
+          </div>
+        )}
+        {specMode === "done" && specError && (
+          <div className="rounded-xl p-3 mb-4" style={{ border: "1px solid var(--bs-red-border, #7f1d1d)", background: "var(--bs-red-dim, #1c0a0a)" }}>
+            <p className="text-xs font-medium" style={{ color: "var(--bs-red, #ef4444)" }}>{specError}</p>
           </div>
         )}
 
