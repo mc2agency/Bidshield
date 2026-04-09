@@ -113,7 +113,7 @@ interface AssemblyInput {
   systemType: string;
   insulationType: string;
   insulationThickness: string;
-  rValue: number | null;
+  rValue?: number | null;
   surfaceType: string;
   area?: number | null;
   uValue?: number | null;
