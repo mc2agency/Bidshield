@@ -940,10 +940,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             </button>
           ) : (
             <button
-              onClick={() => onCreate({
+              onClick={() => {
+                // Auto-calculate total sqft from assembly areas if not manually set
+                const effectiveSqft = sqft || (() => {
+                  const totalArea = assemblies.reduce((sum, a) => sum + (a.area || 0), 0);
+                  return totalArea > 0 ? String(Math.round(totalArea)) : "";
+                })();
+                onCreate({
                 name, location, bidDate, trade: "roofing",
                 projectType, systemType: systems[0] || "", deckType: deck,
-                gc, sqft, totalBidAmount,
+                gc, sqft: effectiveSqft, totalBidAmount,
                 assemblies: systems.map(s => s.toUpperCase()).join(","),
                 roofAssemblies: assemblies.length > 0
                   ? assemblies.map(a => ({
@@ -952,14 +958,14 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       systemType: a.systemType,
                       insulationType: a.insulationType || "",
                       insulationThickness: a.insulationThickness || "",
-                      rValue: a.rValue ?? null,
+                      rValue: a.rValue ?? undefined,
                       surfaceType: a.surfaceType || "",
-                      area: a.area ?? null,
-                      uValue: a.uValue ?? null,
+                      area: a.area ?? undefined,
+                      uValue: a.uValue ?? undefined,
                     }))
                   : undefined,
                 systemDescription: aiDescription || undefined,
-              })}
+              });}}
               className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors"
               style={{ background: "var(--bs-teal)", color: "#13151a" }}
             >

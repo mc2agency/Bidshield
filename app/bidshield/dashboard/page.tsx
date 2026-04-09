@@ -552,7 +552,17 @@ function DashboardContent() {
     try {
       projectId = await createProjectMut({
         ...baseArgs,
-        roofAssemblies: np.roofAssemblies || undefined,
+        roofAssemblies: np.roofAssemblies?.map((a: any) => ({
+          label: a.label,
+          systemType: a.systemType,
+          ...(a.name ? { name: a.name } : {}),
+          ...(a.insulationType ? { insulationType: a.insulationType } : {}),
+          ...(a.insulationThickness ? { insulationThickness: a.insulationThickness } : {}),
+          ...(a.rValue != null ? { rValue: a.rValue } : {}),
+          ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
+          ...(a.area != null ? { area: a.area } : {}),
+          ...(a.uValue != null ? { uValue: a.uValue } : {}),
+        })) || undefined,
         systemDescription: np.systemDescription || undefined,
       });
     } catch (err) {
