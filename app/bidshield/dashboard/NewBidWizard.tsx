@@ -683,7 +683,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                             </button>
                           ))}
                         </div>
-                        {a.rValue !== null && (
+                        {a.rValue != null && (
                           <div className="mt-2 text-xs font-medium" style={{ color: "var(--bs-teal)" }}>
                             R-{a.rValue.toFixed(1)}
                           </div>
@@ -871,7 +871,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         <span className="font-medium" style={{ color: "var(--bs-text-primary)" }}>{a.label}</span>
                         <div className="flex items-center gap-2">
                           <span className="uppercase">{a.systemType}</span>
-                          {a.rValue !== null && <span style={{ color: "var(--bs-teal)" }}>R-{a.rValue.toFixed(1)}</span>}
+                          {a.rValue != null && <span style={{ color: "var(--bs-teal)" }}>R-{a.rValue.toFixed(1)}</span>}
                           {a.surfaceType && <span>{SURFACE_TYPES.find(s => s.id === a.surfaceType)?.label}</span>}
                         </div>
                       </div>
