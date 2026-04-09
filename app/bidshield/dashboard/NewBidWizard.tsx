@@ -950,10 +950,10 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       label: a.label,
                       name: a.name || undefined,
                       systemType: a.systemType,
-                      insulationType: a.insulationType || undefined,
-                      insulationThickness: a.insulationThickness || undefined,
+                      insulationType: a.insulationType || "",
+                      insulationThickness: a.insulationThickness || "",
                       rValue: a.rValue ?? undefined,
-                      surfaceType: a.surfaceType || undefined,
+                      surfaceType: a.surfaceType || "",
                       area: a.area ?? undefined,
                       uValue: a.uValue ?? undefined,
                     }))
