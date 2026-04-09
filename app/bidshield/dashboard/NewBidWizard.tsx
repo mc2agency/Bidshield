@@ -113,10 +113,10 @@ interface AssemblyInput {
   systemType: string;
   insulationType: string;
   insulationThickness: string;
-  rValue?: number | null;
+  rValue?: number;
   surfaceType: string;
-  area?: number | null;
-  uValue?: number | null;
+  area?: number;
+  uValue?: number;
 }
 
 interface WizardData {
@@ -173,10 +173,10 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         systemType: a.systemType,
         insulationType: a.insulationType || "",
         insulationThickness: a.insulationThickness || "",
-        rValue: a.rValue ?? null,
+        rValue: a.rValue ?? undefined,
         surfaceType: a.surfaceType || "",
-        area: a.area ?? null,
-        uValue: a.uValue ?? null,
+        area: a.area ?? undefined,
+        uValue: a.uValue ?? undefined,
       }));
     }
     return [];
@@ -242,10 +242,10 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         systemType: a.system || a.systemType || "",
         insulationType: a.insulation || a.insulationType || "",
         insulationThickness: a.thickness?.replace(/"/g, "") || "",
-        rValue: a.rValue ?? null,
+        rValue: a.rValue ?? undefined,
         surfaceType: a.surface || a.surfaceType || "",
-        area: typeof a.area === "number" ? a.area : null,
-        uValue: typeof a.uValue === "number" ? a.uValue : null,
+        area: typeof a.area === "number" ? a.area : undefined,
+        uValue: typeof a.uValue === "number" ? a.uValue : undefined,
       }));
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
       setPdfResults(mapped);
@@ -300,8 +300,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             match = updated.findIndex(a => a.label.toUpperCase().trim() === baseLabel);
           }
 
-          const area = typeof ext.area === "number" ? ext.area : null;
-          const uValue = typeof ext.uValue === "number" ? ext.uValue : null;
+          const area = typeof ext.area === "number" ? ext.area : undefined;
+          const uValue = typeof ext.uValue === "number" ? ext.uValue : undefined;
           const name = ext.name || undefined;
 
           if (match !== -1) {
@@ -320,7 +320,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               systemType: ext.system || ext.systemType || "",
               insulationType: ext.insulation || ext.insulationType || "",
               insulationThickness: ext.thickness?.replace(/"/g, "") || "",
-              rValue: null,
+              rValue: undefined,
               surfaceType: ext.surface || ext.surfaceType || "",
               area,
               uValue,
@@ -348,7 +348,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         systemType: s,
         insulationType: "",
         insulationThickness: "",
-        rValue: null,
+        rValue: undefined,
         surfaceType: "",
       })));
     }
@@ -637,7 +637,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                             const next = [...assemblies];
                             const ins = e.target.value;
                             const thickness = a.insulationThickness ? parseFloat(a.insulationThickness) : 0;
-                            next[idx] = { ...a, insulationType: ins, rValue: ins && thickness ? computeInsulationRValue(ins, thickness) : null };
+                            next[idx] = { ...a, insulationType: ins, rValue: ins && thickness ? computeInsulationRValue(ins, thickness) : undefined };
                             setAssemblies(next);
                           }}
                           className="w-full py-1.5 px-2 rounded-lg text-xs outline-none"
@@ -707,7 +707,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                     systemType: systems[0] || "tpo",
                     insulationType: "",
                     insulationThickness: "",
-                    rValue: null,
+                    rValue: undefined,
                     surfaceType: "",
                   }])}
                   className="text-xs font-medium"
