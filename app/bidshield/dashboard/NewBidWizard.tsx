@@ -952,10 +952,10 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       systemType: a.systemType,
                       insulationType: a.insulationType || "",
                       insulationThickness: a.insulationThickness || "",
-                      rValue: a.rValue ?? undefined,
+                      rValue: a.rValue ?? null,
                       surfaceType: a.surfaceType || "",
-                      area: a.area ?? undefined,
-                      uValue: a.uValue ?? undefined,
+                      area: a.area ?? null,
+                      uValue: a.uValue ?? null,
                     }))
                   : undefined,
                 systemDescription: aiDescription || undefined,
