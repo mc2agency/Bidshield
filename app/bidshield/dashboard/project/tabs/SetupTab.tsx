@@ -416,28 +416,61 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         } catch { /* takeoff sections may already exist */ }
       }
 
-      // Initialize materials from spec's system types
-      if (specData.assemblies?.length > 0 && userId) {
+      // Initialize materials from templates + spec-extracted materials
+      if (userId) {
         try {
           const { getTemplatesForSystem } = await import("@/lib/bidshield/material-templates");
-          const systemTypes = [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))] as string[];
+          const systemTypes = specData.assemblies?.length > 0
+            ? [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))] as string[]
+            : [];
           const templates = getTemplatesForSystem(systemTypes);
-          if (templates.length > 0) {
+
+          // Build combined material list: templates + spec-extracted
+          const unitMap: Record<string, string> = {
+            membrane: "RL", insulation: "BD", fasteners: "BX",
+            adhesive: "GL", sheet_metal: "LF", lumber: "LF",
+            accessories: "EA", miscellaneous: "EA",
+          };
+          const allMaterials: Array<{
+            templateKey?: string; category: string; name: string; unit: string;
+            calcType: string; wasteFactor: number; coverage?: number;
+            qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
+          }> = templates.map(t => ({
+            templateKey: t.key,
+            category: t.category,
+            name: t.name,
+            unit: t.unit,
+            calcType: t.calcType,
+            wasteFactor: t.wasteFactor,
+            coverage: t.defaultCoverage,
+            qtyPerSf: t.defaultQtyPerSf,
+            takeoffItemType: t.takeoffItemType,
+            unitPrice: t.defaultUnitPrice,
+          }));
+
+          // Add spec-extracted materials not covered by templates
+          if (specData.materials?.length > 0) {
+            const templateNames = new Set(allMaterials.map(m => m.name.toLowerCase()));
+            for (const mat of specData.materials) {
+              if (!mat.name || templateNames.has(mat.name.toLowerCase())) continue;
+              const specName = mat.manufacturer && mat.manufacturer !== "as specified"
+                ? `${mat.name} — ${mat.manufacturer}`
+                : mat.name;
+              allMaterials.push({
+                category: mat.category || "miscellaneous",
+                name: specName,
+                unit: unitMap[mat.category] || "EA",
+                calcType: "fixed",
+                wasteFactor: 1.0,
+              });
+            }
+          }
+
+          if (allMaterials.length > 0) {
             await initProjectMaterials({
               projectId: projectId as any,
               userId,
-              materials: templates.map(t => ({
-                templateKey: t.key,
-                category: t.category,
-                name: t.name,
-                unit: t.unit,
-                calcType: t.calcType,
-                wasteFactor: t.wasteFactor,
-                coverage: t.defaultCoverage,
-                qtyPerSf: t.defaultQtyPerSf,
-                takeoffItemType: t.takeoffItemType,
-                unitPrice: t.defaultUnitPrice,
-              })),
+              materials: allMaterials,
             });
           }
         } catch { /* materials may already exist */ }
