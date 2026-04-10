@@ -121,8 +121,17 @@ function ProjectDetail() {
   const laborTasks = useQuery(api.bidshield.getLaborTasks, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const unconfirmedGcFormCount = useQuery(api.bidshield.getUnconfirmedGcBidFormCount, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addDecision = useMutation(api.bidshield.addDecision);
+  const saveTemplateMut = useMutation(api.bidshield.saveProjectTemplate);
+  const gcItems = useQuery(api.bidshield.getGCItems, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const subscription = useQuery(api.users.getUserSubscription, !isDemo && userId ? { clerkId: userId } : "skip");
   const isPro = isDemo || (subscription?.isPro ?? false);
+  const [templateSaving, setTemplateSaving] = useState(false);
+  const [templateSaved, setTemplateSaved] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareInput, setShareInput] = useState("");
+  const [shareAdding, setShareAdding] = useState(false);
+  const addCollaboratorMut = useMutation(api.bidshield.addCollaborator);
+  const removeCollaboratorMut = useMutation(api.bidshield.removeCollaborator);
 
   const projectData = isDemo
     ? { name: "Meridian Business Park — Bldg C", location: "Charlotte, NC", bidDate: "2026-03-07",
@@ -358,6 +367,41 @@ function ProjectDetail() {
 
   const readinessColor = readinessScore >= 75 ? "var(--bs-teal)" : readinessScore >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
 
+  const handleSaveTemplate = async () => {
+    if (!userId || isDemo || !projectData) return;
+    setTemplateSaving(true);
+    try {
+      const pd = projectData as any;
+      await saveTemplateMut({
+        userId,
+        name: `${pd.name} — Template`,
+        trade: pd.trade,
+        systemType: pd.systemType,
+        assemblies: pd.assemblies,
+        roofAssemblies: pd.roofAssemblies,
+        scopeItems: (scopeItems ?? [])
+          .filter((s: any) => s.status !== "unaddressed")
+          .slice(0, 100)
+          .map((s: any) => ({ name: s.name, category: s.category, status: s.status })),
+        gcItems: (gcItems ?? [])
+          .slice(0, 50)
+          .map((g: any) => ({ name: g.name, total: g.total, isMarkup: g.isMarkup, markupPct: g.markupPct })),
+        bidQuals: bidQuals ? {
+          laborType: (bidQuals as any).laborType,
+          bidGoodFor: (bidQuals as any).bidGoodFor,
+          insuranceProgram: (bidQuals as any).insuranceProgram,
+          bondRequired: (bidQuals as any).bondRequired,
+        } : undefined,
+      });
+      setTemplateSaved(true);
+      setTimeout(() => setTemplateSaved(false), 3000);
+    } catch (e) {
+      console.error("Failed to save template:", e);
+    } finally {
+      setTemplateSaving(false);
+    }
+  };
+
   return (
     <>
     <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
@@ -559,8 +603,114 @@ function ProjectDetail() {
                 {blockerCount} blocker{blockerCount !== 1 ? "s" : ""}
               </button>
             )}
+            {isPro && !isDemo && (
+              <button
+                onClick={handleSaveTemplate}
+                disabled={templateSaving}
+                className="cursor-pointer disabled:opacity-50"
+                style={{
+                  fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, border: "none", whiteSpace: "nowrap",
+                  background: templateSaved ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.06)",
+                  color: templateSaved ? "var(--bs-teal)" : "var(--bs-text-muted)",
+                }}
+              >
+                {templateSaving ? "Saving..." : templateSaved ? "Template Saved" : "Save as Template"}
+              </button>
+            )}
+            {isPro && !isDemo && (
+              <button
+                onClick={() => setShareOpen(!shareOpen)}
+                className="cursor-pointer"
+                style={{
+                  fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 4, border: "none", whiteSpace: "nowrap",
+                  background: shareOpen ? "var(--bs-blue-dim)" : "rgba(255,255,255,0.06)",
+                  color: shareOpen ? "var(--bs-blue)" : "var(--bs-text-muted)",
+                }}
+              >
+                Share
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Share / Collaborators panel */}
+        {shareOpen && projectData && (
+          <div style={{
+            background: "var(--bs-blue-dim)",
+            borderBottom: "1px solid var(--bs-blue-border)",
+            padding: "10px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+            flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-blue)" }}>Collaborators</span>
+            {(projectData as any).collaborators?.length > 0 && (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {((projectData as any).collaborators as string[]).map((cid: string) => (
+                  <span key={cid} style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    fontSize: 10, padding: "2px 6px", borderRadius: 4,
+                    background: "rgba(255,255,255,0.06)", color: "var(--bs-text-secondary)",
+                  }}>
+                    {cid.slice(0, 12)}…
+                    <button
+                      onClick={async () => {
+                        if (!userId) return;
+                        await removeCollaboratorMut({ projectId: projectIdParam as Id<"bidshield_projects">, userId, collaboratorId: cid });
+                      }}
+                      className="cursor-pointer"
+                      style={{ background: "none", border: "none", color: "var(--bs-red)", fontSize: 11, padding: 0, lineHeight: 1 }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!shareInput.trim() || !userId || shareAdding) return;
+                setShareAdding(true);
+                try {
+                  await addCollaboratorMut({
+                    projectId: projectIdParam as Id<"bidshield_projects">,
+                    userId,
+                    collaboratorId: shareInput.trim(),
+                  });
+                  setShareInput("");
+                } finally {
+                  setShareAdding(false);
+                }
+              }}
+              style={{ display: "flex", gap: 6, alignItems: "center" }}
+            >
+              <input
+                type="text"
+                value={shareInput}
+                onChange={(e) => setShareInput(e.target.value)}
+                placeholder="Clerk user ID"
+                style={{
+                  fontSize: 11, padding: "3px 8px", borderRadius: 4, border: "1px solid var(--bs-border)",
+                  background: "var(--bs-surface)", color: "var(--bs-text)", width: 180,
+                }}
+              />
+              <button
+                type="submit"
+                disabled={shareAdding || !shareInput.trim()}
+                className="cursor-pointer disabled:opacity-50"
+                style={{
+                  fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 4,
+                  border: "none", background: "var(--bs-blue)", color: "#fff",
+                }}
+              >
+                {shareAdding ? "Adding…" : "Add"}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Deadline warning banner */}
         {activeWarning && (

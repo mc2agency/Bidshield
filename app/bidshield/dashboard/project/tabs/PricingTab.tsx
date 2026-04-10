@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
 import { AddendumImpactBanner } from "../AddendumImpactBanner";
+import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
 
 const DEMO_ALTERNATES = [
   { _id: "alt_1", label: "Alt 1 — Add 4\" Tapered Polyiso", type: "add" as const, amount: 42500, description: "Full tearoff and re-insulate NE quadrant with tapered system" },
@@ -83,11 +84,30 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
     api.bidshield.getAddenda,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const laborTasks = useQuery(
+    api.bidshield.getLaborTasks,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
   const addendaImpact = (addenda ?? [])
     .filter((a: any) => a.repriced && a.priceImpact)
     .reduce((sum: number, a: any) => sum + (a.priceImpact || 0), 0);
 
   const computedTotal = computedMaterialTotal + computedLaborTotal + computedGCTotal + addendaImpact;
+
+  // Scope-pricing conflicts
+  const scopeConflicts = useMemo(() => {
+    if (isDemo) return [];
+    return detectScopePricingConflicts({
+      scopeItems: scopeItems ?? [],
+      projectMaterials: projectMaterials ?? [],
+      laborTasks: laborTasks ?? [],
+      project,
+    });
+  }, [isDemo, scopeItems, projectMaterials, laborTasks, project]);
 
   const grossRoofArea: number | null = isDemo ? 68000 : (project?.grossRoofArea ?? null);
 
@@ -287,6 +307,16 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
       )}
 
       <AddendumImpactBanner addenda={addenda as any[]} section="Pricing" />
+
+      {/* Scope-Pricing conflicts */}
+      {scopeConflicts.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+          <span style={{ color: "var(--bs-red)" }}>
+            {scopeConflicts.length} scope-pricing conflict{scopeConflicts.length !== 1 ? "s" : ""} — review in Scope tab
+          </span>
+        </div>
+      )}
 
       {/* Bid Pricing Card */}
       <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>

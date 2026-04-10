@@ -8,6 +8,7 @@ import type { TabProps } from "../tab-types";
 import { AddendumImpactBanner } from "../AddendumImpactBanner";
 import { DEFAULT_SCOPE_ITEMS, getDynamicScopeItems } from "@/lib/bidshield/scope-defaults";
 import { DEMO_SCOPE_ITEMS } from "@/lib/bidshield/demo-data";
+import { detectScopePricingConflicts, type ScopePricingConflict } from "@/lib/bidshield/scopePricingConflicts";
 
 type ScopeStatus = "unaddressed" | "included" | "excluded" | "by_others" | "na";
 type FilterMode = "all" | "unaddressed" | "included" | "excluded" | "by_others" | "na";
@@ -80,6 +81,14 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     api.bidshield.getAddenda,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const projectMaterials = useQuery(
+    api.bidshield.getProjectMaterials,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const laborTasks = useQuery(
+    api.bidshield.getLaborTasks,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
   const initScope        = useMutation(api.bidshield.initScopeItems);
   const updateItem       = useMutation(api.bidshield.updateScopeItem);
   const addClarification = useMutation(api.bidshield.addScopeClarification);
@@ -112,6 +121,26 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const includedCost     = items
     .filter((i: any) => i.status === "included")
     .reduce((sum: number, i: any) => sum + (i.cost || 0), 0);
+
+  // Scope-Pricing conflict detection
+  const scopeConflicts = useMemo(() => {
+    if (isDemo || items.length === 0) return [];
+    return detectScopePricingConflicts({
+      scopeItems: items,
+      projectMaterials: projectMaterials ?? [],
+      laborTasks: laborTasks ?? [],
+      project,
+    });
+  }, [isDemo, items, projectMaterials, laborTasks, project]);
+
+  // Set of scope item names that have conflicts (for inline badges)
+  const conflictByName = useMemo(() => {
+    const map = new Map<string, ScopePricingConflict>();
+    for (const c of scopeConflicts) {
+      if (c.scopeItemName) map.set(c.scopeItemName.toLowerCase(), c);
+    }
+    return map;
+  }, [scopeConflicts]);
 
   const FILTERS: { id: FilterMode; label: string; count: number }[] = [
     { id: "all",         label: "All",       count: totalCount },
@@ -292,6 +321,22 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
       <AddendumImpactBanner addenda={addenda as any[]} section="Scope" />
 
+      {/* Scope-Pricing Conflicts */}
+      {scopeConflicts.length > 0 && (
+        <div className="flex flex-col gap-1.5 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+            <span className="font-medium" style={{ color: "var(--bs-red)" }}>{scopeConflicts.length} scope-pricing conflict{scopeConflicts.length !== 1 ? "s" : ""}</span>
+          </div>
+          {scopeConflicts.slice(0, 3).map((c, i) => (
+            <div key={i} className="text-xs ml-6" style={{ color: "var(--bs-text-muted)" }}>{c.message}</div>
+          ))}
+          {scopeConflicts.length > 3 && (
+            <div className="text-xs ml-6" style={{ color: "var(--bs-text-dim)" }}>+{scopeConflicts.length - 3} more</div>
+          )}
+        </div>
+      )}
+
       {/* ── STATS BAR ── */}
       <div
         className="flex items-center overflow-hidden"
@@ -400,9 +445,18 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                       {/* Status dot */}
                       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
 
-                      {/* Item name */}
-                      <span className="flex-1 min-w-0 text-[13px] select-none" style={{ color: "var(--bs-text-secondary)" }}>
-                        {item.name}
+                      {/* Item name + conflict badge */}
+                      <span className="flex-1 min-w-0 text-[13px] select-none flex items-center gap-1.5" style={{ color: "var(--bs-text-secondary)" }}>
+                        <span className="truncate">{item.name}</span>
+                        {conflictByName.has((item.name || "").toLowerCase()) && (
+                          <span
+                            className="inline-flex items-center text-[9px] font-semibold px-1 py-0.5 rounded shrink-0"
+                            style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)" }}
+                            title={conflictByName.get((item.name || "").toLowerCase())?.message}
+                          >
+                            Conflict
+                          </span>
+                        )}
                       </span>
 
                       {/* Note preview */}

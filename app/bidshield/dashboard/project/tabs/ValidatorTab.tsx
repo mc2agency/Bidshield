@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -192,6 +192,9 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
 
   const [hasRun] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [aiReview, setAiReview] = useState<string | null>(null);
+  const [aiReviewLoading, setAiReviewLoading] = useState(false);
+  const [aiReviewError, setAiReviewError] = useState("");
   const projectData = project;
 
   const scoreData = (hasRun && (isDemo || projectData)) ? computeBidScore({
@@ -311,6 +314,60 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
       setExporting(false);
     }
   };
+
+  const handleAiReview = useCallback(async () => {
+    setAiReviewLoading(true);
+    setAiReviewError("");
+    try {
+      const scopeExcl = (scopeItems ?? [])
+        .filter((s: any) => s.status === "excluded")
+        .map((s: any) => s.name)
+        .filter(Boolean)
+        .slice(0, 20);
+
+      const res = await fetch("/api/bidshield/ai-bid-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectName: pd?.name || "Untitled",
+          location: pd?.location,
+          gc: pd?.gc,
+          bidDate: pd?.bidDate,
+          systemType: pd?.systemType,
+          squareFeet: sumSqft,
+          totalBid: sumTotalBid,
+          materialCost: sumMaterial,
+          laborCost: sumLabor,
+          gcCost: sumGCLine,
+          costPerSf: sumDpSF,
+          scopeSummary: scopeItems ? {
+            included: (scopeItems as any[]).filter(s => s.status === "included").length,
+            excluded: (scopeItems as any[]).filter(s => s.status === "excluded").length,
+            byOthers: (scopeItems as any[]).filter(s => s.status === "by_others").length,
+            unaddressed: (scopeItems as any[]).filter(s => s.status === "unaddressed").length,
+          } : undefined,
+          exclusions: scopeExcl,
+          validatorScore: scoreData.score,
+          validatorWarnings: warns.map(w => w.message).slice(0, 10),
+          validatorFailures: fails.map(f => f.message).slice(0, 10),
+          addendaCount: addenda?.length ?? 0,
+          quoteCount: quotes?.length ?? 0,
+          rfiCount: rfis?.length ?? 0,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setAiReviewError(err?.error ?? "Failed to generate review.");
+        return;
+      }
+      const data = await res.json();
+      setAiReview(data.review);
+    } catch (e: any) {
+      setAiReviewError(e?.message ?? "Network error — please try again.");
+    } finally {
+      setAiReviewLoading(false);
+    }
+  }, [pd, sumSqft, sumTotalBid, sumMaterial, sumLabor, sumGCLine, sumDpSF, scopeItems, scoreData, warns, fails, addenda, quotes, rfis]);
 
   // Hero status
   const heroTitle = allPass
@@ -571,6 +628,38 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
           </div>
         );
       })()}
+
+      {/* ── AI Bid Review ── */}
+      {(isPro || isDemo) && (
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--bs-text-primary)" }}>AI Bid Review</h3>
+              <p className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
+                Get an independent assessment of your bid before submission.
+              </p>
+            </div>
+            <button
+              onClick={handleAiReview}
+              disabled={aiReviewLoading}
+              className="px-4 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
+              style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)", border: "1px solid var(--bs-blue-border)" }}
+            >
+              {aiReviewLoading ? "Reviewing..." : aiReview ? "Re-review" : "Get AI Review"}
+            </button>
+          </div>
+          {aiReviewError && (
+            <div className="text-xs rounded p-2 mb-3" style={{ color: "var(--bs-red)", background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
+              {aiReviewError}
+            </div>
+          )}
+          {aiReview && (
+            <div className="mt-3 p-4 rounded-lg text-[13px] leading-relaxed whitespace-pre-wrap max-h-[400px] overflow-auto" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)", border: "1px solid var(--bs-border)" }}>
+              {aiReview}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── ZONE 5: Submit gate ── */}
       <div className="rounded-xl p-6 text-center" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>

@@ -486,6 +486,7 @@ function DashboardContent() {
   // isPro must be derived before calling getStats — getStats throws for free users on the server
   const isPro = isDemo || (subscription?.isPro ?? false);
   const convexStats = useQuery(api.bidshield.getStats, !isDemo && userId && isPro ? { userId } : "skip");
+  const projectTemplates = useQuery(api.bidshield.getProjectTemplates, !isDemo && userId ? { userId } : "skip");
   const createProjectMut = useMutation(api.bidshield.createProject);
   const updateProjectMut = useMutation(api.bidshield.updateProject);
   const deleteProjectMut = useMutation(api.bidshield.deleteProject);
@@ -959,7 +960,7 @@ function DashboardContent() {
         </div>
       )}
 
-      {showNewProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
+      {showNewProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} templates={projectTemplates as any} />}
       {editingProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setEditingProject(null)} onCreate={handleUpdateProject} editProject={{
         projectType: (editingProject as any).projectType,
         systemType: (editingProject as any).systemType,

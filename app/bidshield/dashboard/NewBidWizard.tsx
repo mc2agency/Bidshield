@@ -146,15 +146,28 @@ export interface EditProjectData {
   systemDescription?: string;
 }
 
+export interface ProjectTemplate {
+  _id: string;
+  name: string;
+  trade?: string;
+  systemType?: string;
+  assemblies?: string[];
+  roofAssemblies?: any[];
+  scopeItems?: { name: string; category?: string; status?: string }[];
+  gcItems?: { name: string; total?: number; isMarkup?: boolean; markupPct?: number }[];
+  bidQuals?: { laborType?: string; bidGoodFor?: string; insuranceProgram?: string; bondRequired?: boolean };
+}
+
 interface Props {
   onClose: () => void;
   onCreate: (data: WizardData) => void;
   isDemo?: boolean;
   isPro?: boolean;
   editProject?: EditProjectData;
+  templates?: ProjectTemplate[];
 }
 
-export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editProject }: Props) {
+export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editProject, templates }: Props) {
   const isEdit = !!editProject;
   const [step, setStep] = useState(isEdit ? 1 : 0);
   const [projectType, setProjectType] = useState(editProject?.projectType || "");
@@ -408,6 +421,48 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           {/* ── Step 0: Project Type ── */}
           {step === 0 && (
             <div>
+              {/* Template picker */}
+              {templates && templates.length > 0 && (
+                <div className="mb-5">
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--bs-text-primary)", marginBottom: 6 }}>Start from a template</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {templates.map((t) => (
+                      <button
+                        key={t._id}
+                        onClick={() => {
+                          // Pre-fill wizard from template
+                          if (t.systemType) setSystems([t.systemType]);
+                          if (t.assemblies?.length) {
+                            setSystems(prev => [...new Set([...prev, ...t.assemblies!.map(a => a.toLowerCase())])]);
+                          }
+                          if (t.roofAssemblies?.length) {
+                            setSystems(t.roofAssemblies.map((a: any) => a.systemType).filter(Boolean));
+                            setAssemblies(t.roofAssemblies.map((a: any) => ({
+                              label: a.label || "RT-01",
+                              name: a.name || "",
+                              systemType: a.systemType || "",
+                              insulationType: a.insulationType || "",
+                              insulationThickness: a.insulationThickness || "",
+                              rValue: a.rValue ?? undefined,
+                              surfaceType: a.surfaceType || "",
+                              area: a.area ?? undefined,
+                              uValue: a.uValue ?? undefined,
+                            })));
+                          }
+                          // Skip to step 1
+                          setStep(1);
+                        }}
+                        className="px-3 py-2 rounded-lg text-xs font-medium text-left transition-all"
+                        style={{ border: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)" }}
+                      >
+                        <div className="font-semibold">{t.name}</div>
+                        {t.systemType && <div className="text-[10px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>{t.systemType.toUpperCase()}</div>}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-[10px] mt-2" style={{ color: "var(--bs-text-dim)" }}>Or choose a project type below:</div>
+                </div>
+              )}
               <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--bs-text-primary)", letterSpacing: "-0.01em", marginBottom: 4 }}>What kind of project?</h3>
               <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>This determines your checklist items and scope categories.</p>
               <div className="flex flex-col gap-2">

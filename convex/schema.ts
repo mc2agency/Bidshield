@@ -61,6 +61,7 @@ export default defineSchema({
     // integrity. Migrate to v.id("users") (storing the Convex _id) in a future
     // schema migration once all write paths are updated to use the Convex user _id.
     userId: v.string(), // Clerk user ID
+    collaborators: v.optional(v.array(v.string())), // Clerk user IDs of collaborators
     name: v.string(),
     location: v.string(),
     bidDate: v.string(), // YYYY-MM-DD
@@ -661,6 +662,36 @@ export default defineSchema({
   })
     .index("by_project", ["projectId"])
     .index("by_project_section", ["projectId", "section"]),
+
+  // Project templates — reusable bid configurations
+  bidshield_project_templates: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    trade: v.optional(v.string()),
+    systemType: v.optional(v.string()),
+    assemblies: v.optional(v.array(v.string())),
+    roofAssemblies: v.optional(v.array(v.any())),
+    scopeItems: v.optional(v.array(v.object({
+      name: v.string(),
+      category: v.optional(v.string()),
+      status: v.optional(v.string()),
+    }))),
+    gcItems: v.optional(v.array(v.object({
+      name: v.string(),
+      total: v.optional(v.number()),
+      isMarkup: v.optional(v.boolean()),
+      markupPct: v.optional(v.number()),
+    }))),
+    bidQuals: v.optional(v.object({
+      laborType: v.optional(v.string()),
+      bidGoodFor: v.optional(v.string()),
+      insuranceProgram: v.optional(v.string()),
+      bondRequired: v.optional(v.boolean()),
+    })),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"]),
 
   // Distributed rate limit entries — each row is one API call by a user.
   // To check rate: count rows for (userId, action) in the last windowMs.

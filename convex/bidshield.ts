@@ -30,6 +30,8 @@ async function assertProjectOwnership(
   if (!project) throw new Error("Project not found");
   // identity.subject is the Clerk user ID (matches project.userId)
   if (project.userId !== identity.subject) {
+    // Check if user is a collaborator
+    if (project.collaborators?.includes(identity.subject)) return;
     throw new Error("Unauthorized: you do not own this project");
   }
 }
@@ -3098,5 +3100,114 @@ export const deleteAlternate = mutation({
     const doc = await ctx.db.get(args.alternateId);
     await assertRecordOwnership(ctx, doc, "alternate");
     await ctx.db.delete(args.alternateId);
+  },
+});
+
+// ── Project Templates ─────────────────────────────────────────────────────────
+
+export const getProjectTemplates = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    return await ctx.db
+      .query("bidshield_project_templates")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const saveProjectTemplate = mutation({
+  args: {
+    userId: v.string(),
+    name: v.string(),
+    trade: v.optional(v.string()),
+    systemType: v.optional(v.string()),
+    assemblies: v.optional(v.array(v.string())),
+    roofAssemblies: v.optional(v.array(v.any())),
+    scopeItems: v.optional(v.array(v.object({
+      name: v.string(),
+      category: v.optional(v.string()),
+      status: v.optional(v.string()),
+    }))),
+    gcItems: v.optional(v.array(v.object({
+      name: v.string(),
+      total: v.optional(v.number()),
+      isMarkup: v.optional(v.boolean()),
+      markupPct: v.optional(v.number()),
+    }))),
+    bidQuals: v.optional(v.object({
+      laborType: v.optional(v.string()),
+      bidGoodFor: v.optional(v.string()),
+      insuranceProgram: v.optional(v.string()),
+      bondRequired: v.optional(v.boolean()),
+    })),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const now = Date.now();
+    return await ctx.db.insert("bidshield_project_templates", {
+      ...args,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const deleteProjectTemplate = mutation({
+  args: { templateId: v.id("bidshield_project_templates"), userId: v.string() },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const doc = await ctx.db.get(args.templateId);
+    await assertRecordOwnership(ctx, doc, "project template");
+    await ctx.db.delete(args.templateId);
+  },
+});
+
+// ── Collaboration ────────────────────────────────────────────────────────────
+
+export const addCollaborator = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    collaboratorId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    // Only the owner can add collaborators
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || project.userId !== identity.subject) {
+      throw new Error("Only the project owner can add collaborators");
+    }
+    const existing = project.collaborators ?? [];
+    if (existing.includes(args.collaboratorId)) return; // already added
+    await ctx.db.patch(args.projectId, {
+      collaborators: [...existing, args.collaboratorId],
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const removeCollaborator = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    collaboratorId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || project.userId !== identity.subject) {
+      throw new Error("Only the project owner can remove collaborators");
+    }
+    const existing = project.collaborators ?? [];
+    await ctx.db.patch(args.projectId, {
+      collaborators: existing.filter((id: string) => id !== args.collaboratorId),
+      updatedAt: Date.now(),
+    });
   },
 });
