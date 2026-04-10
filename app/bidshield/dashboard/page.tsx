@@ -535,9 +535,21 @@ function DashboardContent() {
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
     if (!userId) return;
     const isFirst = (convexProjects?.length ?? 0) === 0;
-    const baseArgs = {
+    const cleanRoofAssemblies = np.roofAssemblies?.map((a: any) => ({
+      label: a.label,
+      systemType: a.systemType,
+      ...(a.name ? { name: a.name } : {}),
+      ...(a.insulationType ? { insulationType: a.insulationType } : {}),
+      ...(a.insulationThickness ? { insulationThickness: a.insulationThickness } : {}),
+      ...(a.rValue != null ? { rValue: a.rValue } : {}),
+      ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
+      ...(a.area != null ? { area: a.area } : {}),
+      ...(a.uValue != null ? { uValue: a.uValue } : {}),
+    }));
+    const projectArgs = {
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
       trade: np.trade || "roofing",
+      projectType: np.projectType || undefined,
       systemType: np.systemType || undefined,
       deckType: np.deckType || undefined,
       gc: np.gc || undefined,
@@ -547,30 +559,18 @@ function DashboardContent() {
       assemblies: np.assemblies
         ? (Array.isArray(np.assemblies) ? np.assemblies : np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean))
         : [],
+      roofAssemblies: cleanRoofAssemblies?.length > 0 ? cleanRoofAssemblies : undefined,
+      systemDescription: np.systemDescription || undefined,
     };
     let projectId: string;
     try {
-      projectId = await createProjectMut({
-        ...baseArgs,
-        projectType: np.projectType || undefined,
-        roofAssemblies: np.roofAssemblies?.map((a: any) => ({
-          label: a.label,
-          systemType: a.systemType,
-          ...(a.name ? { name: a.name } : {}),
-          ...(a.insulationType ? { insulationType: a.insulationType } : {}),
-          ...(a.insulationThickness ? { insulationThickness: a.insulationThickness } : {}),
-          ...(a.rValue != null ? { rValue: a.rValue } : {}),
-          ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
-          ...(a.area != null ? { area: a.area } : {}),
-          ...(a.uValue != null ? { uValue: a.uValue } : {}),
-        })) || undefined,
-        systemDescription: np.systemDescription || undefined,
-      });
+      projectId = await createProjectMut(projectArgs as Parameters<typeof createProjectMut>[0]);
     } catch (err) {
-      // Fallback: backend may not support newer fields yet
-      console.warn("createProject failed, retrying with base args only:", err);
+      // Fallback: retry without newer fields that backend may not support
+      console.warn("createProject failed, retrying without optional fields:", err);
       try {
-        projectId = await createProjectMut(baseArgs as Parameters<typeof createProjectMut>[0]);
+        const { roofAssemblies: _ra, systemDescription: _sd, projectType: _pt, ...fallbackArgs } = projectArgs;
+        projectId = await createProjectMut(fallbackArgs as Parameters<typeof createProjectMut>[0]);
       } catch (err2) {
         console.error("createProject fallback also failed:", err2);
         return;

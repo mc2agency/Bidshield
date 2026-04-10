@@ -90,7 +90,9 @@ export const getProject = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthorized");
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== identity.subject) return null;
+    if (!project) return null;
+    // Allow owner or collaborators
+    if (project.userId !== identity.subject && !project.collaborators?.includes(identity.subject)) return null;
     return project;
   },
 });

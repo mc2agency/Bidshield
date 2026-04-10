@@ -158,9 +158,10 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
 
   useEffect(() => {
     if (!project) return;
-    if (project.roofAssemblies && project.roofAssemblies.length > 0) {
+    const ra = project.roofAssemblies as any[] | undefined;
+    if (ra && ra.length > 0) {
       setAssemblies(
-        project.roofAssemblies.map((a: any) => ({
+        ra.map((a: any) => ({
           label: a.label || "",
           name: a.name || undefined,
           systemType: a.systemType || "",
