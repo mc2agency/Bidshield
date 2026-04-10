@@ -215,13 +215,26 @@ const demoItems = (() => {
   return items;
 })();
 
-export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab }: TabProps) {
+export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab, cachedData }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const checklistItems   = useQuery(api.bidshield.getChecklist,         !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const overallProgress  = useQuery(api.bidshield.getChecklistProgress, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const updateChecklist  = useMutation(api.bidshield.updateChecklistItem);
   const createRFIMut     = useMutation(api.bidshield.createRFI);
+
+  // Queries for auto-complete detection
+  const meetings   = useQuery(api.bidshield.getPreBidMeetings, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const gcItems    = useQuery(api.bidshield.getGCItems,        !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const laborTasks = useQuery(api.bidshield.getLaborTasks,     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+
+  // Use cachedData where available, fallback to direct queries
+  const quotes     = cachedData?.quotes;
+  const rfis       = cachedData?.rfis;
+  const addenda    = cachedData?.addenda;
+  const materials  = cachedData?.projectMaterials;
+  const scopeItems = cachedData?.scopeItems;
+  const takeoffSections = cachedData?.takeoffSections;
 
   // Template functionality is in ChecklistTemplatesPanel (wrapped in SilentBoundary)
   const userId = project?.userId ?? "";
@@ -305,6 +318,132 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
   const getItemUpdatedAt = useCallback((phaseKey: string, itemId: string): number | null =>
     ((resolvedItems.find((i: any) => i.phaseKey === phaseKey && i.itemId === itemId) as any)?.updatedAt) || null,
   [resolvedItems]);
+
+  // ── Auto-satisfied detection ─────────────────────────────────────────────
+  // Detects checklist items that are satisfied by data in other tabs.
+  // Returns a Map of itemId → reason string for the auto-complete badge.
+  const autoSatisfied = useMemo(() => {
+    const map = new Map<string, string>();
+    if (isDemo) return map;
+
+    // Phase 1 — Project Setup
+    if (project?.name && project?.location) map.set("p1-1", "Setup complete");
+    if (project?.gc) map.set("p1-2", `GC: ${project.gc}`);
+    if (project?.bidDate) map.set("p1-3", `Date: ${project.bidDate}`);
+    if (project?.bidTime) map.set("p1-4", `Time: ${project.bidTime}`);
+    if (project?.bidDate) {
+      // p1-5 delivery method — check if submission tab has portal/recipient
+    }
+    if (meetings && meetings.length > 0) map.set("p1-6", `${meetings.length} meeting(s) logged`);
+    if (meetings && meetings.some((m: any) => m.type === "site_visit" || (m.notes ?? "").toLowerCase().includes("site visit")))
+      map.set("p1-7", "Site visit logged");
+
+    // Phase 2 — Document Receipt & Addenda
+    if ((addenda && addenda.length > 0) || project?.noAddendaAcknowledged)
+      map.set("p2-1", addenda?.length ? `${addenda.length} addenda` : "No addenda confirmed");
+    if (project?.specSummary) map.set("p2-3", "Spec uploaded");
+    if (gcItems && gcItems.length > 0) map.set("p2-5", "Bid form items entered");
+    if (project?.noAddendaAcknowledged || (addenda && addenda.length > 0))
+      map.set("p2-6", project?.noAddendaAcknowledged ? "No addenda" : `${addenda?.length} addenda`);
+    if (addenda && addenda.length > 0 && addenda.every((a: any) => a.reviewStatus === "reviewed"))
+      map.set("p2-7", "All addenda reviewed");
+    if (addenda && addenda.length > 0 && addenda.every((a: any) => a.repriced))
+      map.set("p2-8", "All addenda repriced");
+
+    // Phase 3 — Architectural Review
+    if ((project as any)?.roofAssemblies?.length > 0) map.set("p3-2", "Assemblies defined in Setup");
+
+    // Phase 4 — Structural Review
+    if (project?.deckType) map.set("p4-1", `Deck: ${project.deckType}`);
+
+    // Phase 9 — Specification Review
+    if (project?.specSummary) map.set("p9-1", "Spec sections extracted");
+
+    // Phase 10-12 — Takeoffs
+    if (takeoffSections && takeoffSections.length > 0)
+      map.set("p10-1", `${takeoffSections.length} section(s) measured`);
+
+    // Phase 13 — Pricing Materials
+    if (quotes && quotes.length > 0) map.set("p13-1", `${quotes.length} quote(s) on file`);
+    if (materials && materials.length > 0) {
+      const withWaste = materials.filter((m: any) => m.wasteFactor && m.wasteFactor > 0);
+      if (withWaste.length > 0) map.set("p13-2", `${withWaste.length} items have waste factors`);
+    }
+
+    // Phase 14 — Pricing Labor
+    if (laborTasks && laborTasks.length > 0) map.set("p14-1", `${laborTasks.length} labor task(s)`);
+
+    // Phase 15 — Pre-Submission Review
+    if (rfis && rfis.length > 0 && rfis.every((r: any) => r.answer))
+      map.set("p15-1", "All RFIs answered");
+    if (scopeItems && scopeItems.length > 0) {
+      const excluded = scopeItems.filter((s: any) => s.status === "excluded");
+      if (excluded.length > 0) map.set("p15-3", `${excluded.length} exclusion(s) defined`);
+    }
+    if (gcItems && gcItems.length > 0 && gcItems.every((g: any) => g.confirmed))
+      map.set("p15-7", "All GC bid form items confirmed");
+
+    // Phase 16 — Bid Submission
+    if (project?.totalBidAmount) map.set("p16-1", `Bid: $${project.totalBidAmount.toLocaleString()}`);
+
+    // Phase 17 — Scope Boundaries
+    if (scopeItems && scopeItems.length > 0) {
+      const excluded = scopeItems.filter((s: any) => s.status === "excluded");
+      if (excluded.length > 0) map.set("p17-9", `${excluded.length} exclusion(s) listed`);
+      const alternates = scopeItems.filter((s: any) => s.isAlternate);
+      if (alternates.length > 0) map.set("p17-10", `${alternates.length} alternate(s) priced`);
+    }
+
+    // Phase 18 — General Conditions
+    if (gcItems && gcItems.length > 0) map.set("p18-6", "GC bid forms reviewed");
+
+    return map;
+  }, [project, meetings, addenda, quotes, rfis, materials, scopeItems, takeoffSections, gcItems, laborTasks, isDemo]);
+
+  // Count of auto-satisfied items that are still pending (could be auto-checked)
+  const autoReadyCount = useMemo(() => {
+    let count = 0;
+    for (const [itemId] of autoSatisfied) {
+      for (const [phaseKey, phase] of Object.entries(checklistTemplate)) {
+        if ((phase as any).items.some((i: any) => i.id === itemId)) {
+          const status = getItemStatus(phaseKey, itemId);
+          if (status === "pending") { count++; break; }
+        }
+      }
+    }
+    return count;
+  }, [autoSatisfied, checklistTemplate, getItemStatus]);
+
+  // Bulk auto-check all satisfied items
+  const handleAutoCheckAll = useCallback(async () => {
+    const updates: { phaseKey: string; itemId: string }[] = [];
+    for (const [itemId] of autoSatisfied) {
+      for (const [phaseKey, phase] of Object.entries(checklistTemplate)) {
+        if ((phase as any).items.some((i: any) => i.id === itemId)) {
+          const status = getItemStatus(phaseKey, itemId);
+          if (status === "pending") updates.push({ phaseKey, itemId });
+          break;
+        }
+      }
+    }
+    if (updates.length === 0) return;
+    if (isDemo) {
+      setDemoState(prev => prev.map(i => {
+        const hit = updates.find(u => u.phaseKey === i.phaseKey && u.itemId === i.itemId);
+        return hit ? { ...i, status: "done" as ChecklistStatus, updatedAt: Date.now() } : i;
+      }));
+    } else {
+      await Promise.all(updates.map(({ phaseKey, itemId }) =>
+        updateChecklist({
+          projectId: projectId as Id<"bidshield_projects">,
+          phaseKey,
+          itemId,
+          status: "done",
+          notes: `Auto-verified: ${autoSatisfied.get(itemId) ?? "data from other tabs"}`,
+        })
+      ));
+    }
+  }, [autoSatisfied, checklistTemplate, getItemStatus, isDemo, projectId, updateChecklist]);
 
   const setStatus = useCallback(async (phaseKey: string, itemId: string, target: ChecklistStatus) => {
     if (isDemo) {
@@ -473,6 +612,29 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
           </div>
         </div>
 
+        {/* Auto-check banner */}
+        {autoReadyCount > 0 && (
+          <div
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg"
+            style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+            <span style={{ fontSize: 12, color: "var(--bs-teal)", flex: 1 }}>
+              <strong>{autoReadyCount}</strong> item{autoReadyCount !== 1 ? "s" : ""} can be auto-verified from data in other tabs
+            </span>
+            <button
+              onClick={handleAutoCheckAll}
+              className="cursor-pointer"
+              style={{
+                fontSize: 11, fontWeight: 600, padding: "4px 12px", borderRadius: 6,
+                background: "var(--bs-teal)", color: "#13151a", border: "none",
+              }}
+            >
+              Auto-check all
+            </button>
+          </div>
+        )}
+
         {/* Checklist table — single container, flat groups */}
         {visiblePhases.length === 0 ? (
           <div className="text-center py-16 rounded-[10px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
@@ -602,6 +764,8 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                       const noteSaved         = savedNoteFlash === rowKey;
                       const itemIsHighRisk    = isHighRisk || !!item.critical;
                       const isOptional        = item.text.includes("(if applicable)");
+                      const autoReason        = autoSatisfied.get(item.id);
+                      const isAutoReady       = !!autoReason && !isDone;
 
                       return (
                         <div
@@ -646,6 +810,14 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                 {isOptional && !isDone && (
                                   <span style={{ fontSize: 9, background: "rgba(255,255,255,0.04)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)", borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0 }}>
                                     Optional
+                                  </span>
+                                )}
+                                {isAutoReady && (
+                                  <span
+                                    title={autoReason}
+                                    style={{ fontSize: 9, background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)", borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap", flexShrink: 0, cursor: "help" }}
+                                  >
+                                    Auto
                                   </span>
                                 )}
                               </div>
