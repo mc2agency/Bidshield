@@ -4,6 +4,11 @@ import { Id } from "./_generated/dataModel";
 import { getChecklistForTrade } from "./bidshieldDefaults";
 import { isDemoUser } from "./utils";
 
+/** C2: Round currency values to 2 decimal places to prevent floating-point drift. */
+function roundCurrency(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 async function validateAuth(ctx: any, userId: string) {
   if (isDemoUser(userId)) return; // demo mode bypasses auth
   const identity = await ctx.auth.getUserIdentity();
@@ -821,25 +826,25 @@ export const getStats = query({
     const winRate = decidedProjects > 0 ? Math.round((wonProjects.length / decidedProjects) * 100) : 0;
     const wonValue = wonProjects.reduce((sum, p) => sum + (p.totalBidAmount || 0), 0);
 
-    // Count open RFIs across all projects
-    let openRFIs = 0;
-    for (const project of activeProjects) {
-      const rfis = await ctx.db
-        .query("bidshield_rfis")
-        .withIndex("by_project", (q) => q.eq("projectId", project._id))
-        .collect();
-      openRFIs += rfis.filter((r) => r.status === "sent").length;
-    }
+    // P1: Count open RFIs — batch-load all user RFIs in one query instead of N+1
+    const allRfis = await ctx.db
+      .query("bidshield_rfis")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+    const activeProjectIds = new Set(activeProjects.map((p) => p._id));
+    const openRFIs = allRfis.filter(
+      (r) => r.status === "sent" && activeProjectIds.has(r.projectId)
+    ).length;
 
     const projectsWithPricing = projects.filter(
       (p) => p.totalBidAmount && (p.grossRoofArea || p.sqft) && (p.grossRoofArea || p.sqft)! > 0
     );
     const avgDollarPerSf =
       projectsWithPricing.length > 0
-        ? projectsWithPricing.reduce(
+        ? roundCurrency(projectsWithPricing.reduce(
             (sum, p) => sum + p.totalBidAmount! / (p.grossRoofArea || p.sqft)!,
             0
-          ) / projectsWithPricing.length
+          ) / projectsWithPricing.length)
         : 0;
 
     return {
@@ -946,7 +951,7 @@ export const getComparisonData = query({
       }
     }
     for (const [name, d] of Object.entries(compMap)) {
-      competitorData.push({ name, count: d.count, avgPrice: d.count > 0 ? d.totalPrice / d.count : 0, avgDpsf: d.count > 0 ? d.totalDpsf / d.count : 0 });
+      competitorData.push({ name, count: d.count, avgPrice: d.count > 0 ? roundCurrency(d.totalPrice / d.count) : 0, avgDpsf: d.count > 0 ? roundCurrency(d.totalDpsf / d.count) : 0 });
     }
     competitorData.sort((a, b) => b.count - a.count);
 
@@ -1423,13 +1428,13 @@ export const addProjectMaterial = mutation({
   handler: async (ctx, args) => {
     await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
-    const existing = await ctx.db
+    // P3: Only fetch the last item by sort order instead of loading all materials
+    const lastItem = await ctx.db
       .query("bidshield_project_materials")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-    const maxSort = existing.length > 0
-      ? Math.max(...existing.map((s) => s.sortOrder))
-      : -1;
+      .order("desc")
+      .first();
+    const maxSort = lastItem ? lastItem.sortOrder : -1;
     const now = Date.now();
     return await ctx.db.insert("bidshield_project_materials", {
       projectId: args.projectId,
@@ -2528,7 +2533,7 @@ export const updateLaborTask = mutation({
 
     const quantity = updates.quantity ?? task.quantity;
     const ratePerUnit = updates.ratePerUnit ?? task.ratePerUnit;
-    const totalCost = quantity * ratePerUnit;
+    const totalCost = roundCurrency(quantity * ratePerUnit);
 
     await ctx.db.patch(taskId, {
       quantity,
@@ -2543,9 +2548,9 @@ export const updateLaborTask = mutation({
       .query("bidshield_laborTasks")
       .withIndex("by_project", (q) => q.eq("projectId", task.projectId))
       .collect();
-    const newTotal = allTasks.reduce((sum, t) =>
+    const newTotal = roundCurrency(allTasks.reduce((sum, t) =>
       t._id === taskId ? sum + totalCost : sum + t.totalCost, 0
-    );
+    ));
     const analysis = await ctx.db
       .query("bidshield_laborAnalysis")
       .withIndex("by_project", (q) => q.eq("projectId", task.projectId))

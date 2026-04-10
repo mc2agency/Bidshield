@@ -69,7 +69,13 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Payment not verified' }, { status: 403 });
       }
 
-      const purchasedFiles = session.metadata?.files ? JSON.parse(session.metadata.files) : [];
+      let purchasedFiles: string[] = [];
+      try {
+        purchasedFiles = session.metadata?.files ? JSON.parse(session.metadata.files) : [];
+      } catch {
+        console.error('Failed to parse session metadata files for session', sessionId);
+        return NextResponse.json({ error: 'Invalid session data' }, { status: 500 });
+      }
       if (!purchasedFiles.includes(fileName)) {
         return NextResponse.json({ error: 'File not part of purchase' }, { status: 403 });
       }

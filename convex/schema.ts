@@ -187,7 +187,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_project", ["projectId"])
-    .index("by_user_project", ["userId", "projectId"]),
+    .index("by_user_project", ["userId", "projectId"])
+    .index("by_project_status", ["projectId", "status"]),
 
   // Account-level vendor address book
   bidshield_vendors: defineTable({
@@ -257,7 +258,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_project", ["projectId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_project_status", ["projectId", "status"]),
 
   // ===== LEADS & CONTACT =====
 
@@ -565,7 +567,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_user_created", ["userId", "createdAt"]),
+    .index("by_user_created", ["userId", "createdAt"])
+    .index("by_user_product", ["userId", "productName"]),
 
   // Submission tracking — records how/when a bid was submitted
   bidshield_submissions: defineTable({

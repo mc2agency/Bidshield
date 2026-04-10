@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getProduct } from '@/lib/stripe-products';
+import { auth } from '@clerk/nextjs/server';
 
 // Lazy initialization - only create when needed
 function getStripe() {
@@ -14,6 +15,12 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
+    // S4: Require authentication to prevent abuse
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { productId, customerEmail } = await request.json();
 
     if (!productId) {

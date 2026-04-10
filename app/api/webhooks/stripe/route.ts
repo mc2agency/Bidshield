@@ -50,9 +50,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, duplicate: true });
     }
   } catch (err) {
-    // If Convex is unreachable, log but proceed — better to risk a duplicate
-    // email than to reject a valid webhook (Stripe would retry anyway).
-    console.warn('[stripe-webhook] idempotency check failed, proceeding:', err);
+    // C4: If Convex is unreachable, return 500 so Stripe retries later when
+    // the idempotency guard is available. This prevents duplicate processing.
+    console.error('[stripe-webhook] idempotency check failed, returning 500 for retry:', err);
+    return NextResponse.json(
+      { error: 'Idempotency check unavailable — will retry' },
+      { status: 500 }
+    );
   }
 
   if (event.type === 'checkout.session.completed') {
@@ -91,7 +95,12 @@ async function sendPurchaseEmail(session: Stripe.Checkout.Session) {
 
   const customerEmail = session.customer_email || session.customer_details?.email;
   const productName = session.metadata?.productName || 'Your template';
-  const files: string[] = session.metadata?.files ? JSON.parse(session.metadata.files) : [];
+  let files: string[] = [];
+  try {
+    files = session.metadata?.files ? JSON.parse(session.metadata.files) : [];
+  } catch {
+    console.error('[stripe-webhook] Failed to parse metadata files for session', session.id);
+  }
   const sessionId = session.id;
 
   if (!customerEmail) {

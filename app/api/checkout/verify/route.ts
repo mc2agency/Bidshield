@@ -27,7 +27,12 @@ export async function GET(request: NextRequest) {
 
     const productId = session.metadata?.productId;
     const productName = session.metadata?.productName;
-    const files = session.metadata?.files ? JSON.parse(session.metadata.files) : [];
+    let files: string[] = [];
+    try {
+      files = session.metadata?.files ? JSON.parse(session.metadata.files) : [];
+    } catch {
+      console.error('Failed to parse session metadata files for session', sessionId);
+    }
     const customerEmail = session.customer_email || session.customer_details?.email;
 
     // Generate download URLs (these point to our download API)
