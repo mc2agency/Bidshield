@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -36,11 +36,19 @@ const emptyForm = {
   notes: "",
 };
 
-export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabProps) {
+export default function SubmissionTab({ projectId, isDemo, isPro, userId, project }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const submissions = useQuery(
     api.bidshield.getSubmissions,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const bidQualsRaw = useQuery(
+    api.bidshield.getBidQuals,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
 
@@ -51,6 +59,58 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [letterText, setLetterText] = useState<string | null>(null);
+  const [generatingLetter, setGeneratingLetter] = useState(false);
+  const [letterError, setLetterError] = useState("");
+
+  const handleGenerateLetter = useCallback(async () => {
+    setGeneratingLetter(true);
+    setLetterError("");
+    try {
+      const exclusions = (scopeItems ?? [])
+        .filter((s: any) => s.status === "excluded")
+        .map((s: any) => s.name);
+      // Build qualification strings from structured bid quals record
+      const quals: string[] = [];
+      const bq = bidQualsRaw as any;
+      if (bq) {
+        if (bq.bidGoodFor) quals.push(`Bid valid for ${bq.bidGoodFor}`);
+        if (bq.estimatedDuration) quals.push(`Estimated duration: ${bq.estimatedDuration}`);
+        if (bq.materialLeadTime) quals.push(`Material lead time: ${bq.materialLeadTime}`);
+        if (bq.laborType) quals.push(`Labor type: ${bq.laborType.replace("_", " ")}`);
+        if (bq.bondRequired) quals.push(`Performance bond required${bq.bondTypes ? ` (${bq.bondTypes})` : ""}`);
+        if (bq.insuranceProgram) quals.push(`Insurance: ${bq.insuranceProgram === "own" ? "Own program" : bq.insuranceProgram.toUpperCase()}`);
+        if (bq.wrapUpNotes) quals.push(bq.wrapUpNotes);
+      }
+
+      const res = await fetch("/api/bidshield/generate-bid-letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectName: project?.name || "Untitled Project",
+          gc: project?.gc,
+          location: project?.location,
+          bidDate: project?.bidDate,
+          systemDescription: project?.systemDescription,
+          exclusions,
+          bidQuals: quals,
+          baseBid: project?.totalBidAmount,
+          squareFeet: project?.grossRoofArea || project?.sqft,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setLetterError(err?.error ?? "Failed to generate bid letter.");
+        return;
+      }
+      const data = await res.json();
+      setLetterText(data.letter);
+    } catch (e: any) {
+      setLetterError(e?.message ?? "Network error — please try again.");
+    } finally {
+      setGeneratingLetter(false);
+    }
+  }, [project, scopeItems, bidQualsRaw]);
 
   // Demo mode: show a sample submission
   const demoSubmissions = [
@@ -105,6 +165,64 @@ export default function SubmissionTab({ projectId, isDemo, isPro, userId }: TabP
       <p className="text-sm -mb-1" style={{ color: "var(--bs-text-muted)" }}>
         Record how and when this bid was submitted. This closes the loop on the 5-phase workflow.
       </p>
+
+      {/* ── Bid Letter Generator ──────────────────────────────────── */}
+      {(isPro || isDemo) && (
+        <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--bs-text-primary)" }}>Bid Proposal Letter</h3>
+              <p className="text-xs mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
+                AI-generated professional bid letter using your project scope, exclusions, and qualifications.
+              </p>
+            </div>
+            <button
+              onClick={handleGenerateLetter}
+              disabled={generatingLetter}
+              className="px-4 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
+              style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)", border: "1px solid var(--bs-blue-border)" }}
+            >
+              {generatingLetter ? "Generating..." : letterText ? "Regenerate" : "Generate Bid Letter"}
+            </button>
+          </div>
+          {letterError && (
+            <div className="text-xs rounded p-2 mb-3" style={{ color: "var(--bs-red)", background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
+              {letterError}
+            </div>
+          )}
+          {letterText && (
+            <div className="mt-3">
+              <pre className="whitespace-pre-wrap text-[13px] leading-relaxed p-4 rounded-lg overflow-auto max-h-[400px]" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)", border: "1px solid var(--bs-border)", fontFamily: "inherit" }}>
+                {letterText}
+              </pre>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => { navigator.clipboard.writeText(letterText); }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                  style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
+                >
+                  Copy to Clipboard
+                </button>
+                <button
+                  onClick={() => {
+                    const blob = new Blob([letterText], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `Bid Letter - ${project?.name || "Project"}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                  style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
+                >
+                  Download .txt
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Existing submissions */}
       {list.length > 0 && (

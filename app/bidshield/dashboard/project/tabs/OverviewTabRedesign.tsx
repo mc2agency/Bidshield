@@ -106,6 +106,9 @@ export default function OverviewTabRedesign({
   const _takeoff    = useQuery(api.bidshield.getTakeoffSections,  !skip ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const _materials  = useQuery(api.bidshield.getProjectMaterials, !skip ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const _scope      = useQuery(api.bidshield.getScopeItems,       !skip ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const _decisions  = useQuery(api.bidshield.getDecisions,       !skip ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const _meetings   = useQuery(api.bidshield.getPreBidMeetings,  !skip ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const _submissions = useQuery(api.bidshield.getSubmissions,    !skip ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
 
   const checklist  = cachedData?.checklist       ?? _checklist  ?? [];
   const quotes     = cachedData?.quotes          ?? _quotes     ?? [];
@@ -114,6 +117,58 @@ export default function OverviewTabRedesign({
   const takeoff    = cachedData?.takeoffSections ?? _takeoff    ?? [];
   const materials  = cachedData?.projectMaterials ?? _materials ?? [];
   const scopeItems = cachedData?.scopeItems      ?? _scope      ?? [];
+  const decisions  = _decisions ?? [];
+  const meetings   = _meetings  ?? [];
+  const submissions = _submissions ?? [];
+
+  // ── Timeline events ──────────────────────────────────────────────────────
+  const timelineEvents = useMemo(() => {
+    type TEvent = { date: number; type: string; label: string; color: string; tab: TabId };
+    const events: TEvent[] = [];
+
+    // Project created
+    if (project?.createdAt) {
+      events.push({ date: project.createdAt, type: "project", label: "Project created", color: "var(--bs-text-muted)", tab: "overview" });
+    }
+
+    // Pre-bid meetings
+    for (const m of meetings as any[]) {
+      const d = m.date ? new Date(m.date).getTime() : m.createdAt;
+      if (d) events.push({ date: d, type: "meeting", label: `Pre-bid meeting${m.title ? `: ${m.title}` : ""}`, color: "var(--bs-blue)", tab: "prebidmeetings" });
+    }
+
+    // RFIs
+    for (const r of rfis as any[]) {
+      const d = r.createdAt || r.sentDate ? new Date(r.sentDate || r.createdAt).getTime() : 0;
+      if (d) events.push({ date: d, type: "rfi", label: `RFI${r.subject ? `: ${r.subject}` : ` #${r.number ?? ""}`}`, color: "#a78bfa", tab: "rfis" });
+    }
+
+    // Addenda
+    for (const a of addenda as any[]) {
+      const d = a.receivedDate ? new Date(a.receivedDate).getTime() : a.createdAt;
+      if (d) events.push({ date: d, type: "addendum", label: `Addendum #${a.number}${a.title ? ` — ${a.title}` : ""}`, color: "var(--bs-amber)", tab: "addenda" });
+    }
+
+    // Quotes received
+    for (const q of quotes as any[]) {
+      const d = q.quoteDate ? new Date(q.quoteDate).getTime() : q.createdAt;
+      if (d) events.push({ date: d, type: "quote", label: `Quote from ${q.vendorName || "vendor"}`, color: "var(--bs-teal)", tab: "quotes" });
+    }
+
+    // Decisions
+    for (const dec of decisions as any[]) {
+      const d = dec.timestamp || dec.createdAt;
+      if (d) events.push({ date: d, type: "decision", label: `Decision: ${(dec.text || "").slice(0, 60)}`, color: "var(--bs-text-dim)", tab: "decisions" });
+    }
+
+    // Submissions
+    for (const s of submissions as any[]) {
+      const d = s.submittedAt || s.createdAt;
+      if (d) events.push({ date: d, type: "submission", label: `Bid submitted${s.method ? ` via ${s.method}` : ""}`, color: "var(--bs-teal)", tab: "submission" });
+    }
+
+    return events.sort((a, b) => b.date - a.date);
+  }, [project, meetings, rfis, addenda, quotes, decisions, submissions]);
 
   // ── Demo overrides ───────────────────────────────────────────────────────
   const totalItems    = isDemo ? 95  : checklist.length;
@@ -443,6 +498,46 @@ export default function OverviewTabRedesign({
           </div>
         )}
       </div>
+
+      {/* ── TIMELINE ────────────────────────────────────────────────────────── */}
+      {timelineEvents.length > 0 && (
+        <div className="rounded-[10px] px-[18px] py-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="text-[11px] font-medium uppercase mb-4" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.8px" }}>Project Timeline</div>
+          <div className="relative pl-5">
+            {/* Vertical line */}
+            <div className="absolute left-[5px] top-1 bottom-1 w-px" style={{ background: "var(--bs-border)" }} />
+            <div className="flex flex-col gap-3">
+              {timelineEvents.slice(0, 12).map((ev, i) => (
+                <div
+                  key={`${ev.type}-${i}`}
+                  className="relative flex items-start gap-3 cursor-pointer group"
+                  onClick={() => onNavigateTab?.(ev.tab)}
+                >
+                  {/* Dot */}
+                  <div
+                    className="absolute -left-5 top-[5px] w-[10px] h-[10px] rounded-full border-2 shrink-0"
+                    style={{ borderColor: ev.color, background: i === 0 ? ev.color : "var(--bs-bg-card)" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] truncate group-hover:underline" style={{ color: "var(--bs-text-secondary)" }}>
+                      {ev.label}
+                    </div>
+                    <div className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
+                      {new Date(ev.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </div>
+                  </div>
+                  <span
+                    className="text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0 mt-0.5"
+                    style={{ color: ev.color, background: `color-mix(in srgb, ${ev.color} 15%, transparent)` }}
+                  >
+                    {ev.type === "meeting" ? "Meeting" : ev.type === "rfi" ? "RFI" : ev.type === "addendum" ? "Addendum" : ev.type === "quote" ? "Quote" : ev.type === "decision" ? "Decision" : ev.type === "submission" ? "Submitted" : "Project"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── PROJECT NOTES ────────────────────────────────────────────────────── */}
       {project?.notes && (

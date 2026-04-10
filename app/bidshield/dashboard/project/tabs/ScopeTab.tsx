@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
+import { AddendumImpactBanner } from "../AddendumImpactBanner";
 import { DEFAULT_SCOPE_ITEMS, getDynamicScopeItems } from "@/lib/bidshield/scope-defaults";
 import { DEMO_SCOPE_ITEMS } from "@/lib/bidshield/demo-data";
 
@@ -73,6 +74,10 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   );
   const clarifications = useQuery(
     api.bidshield.getScopeClarifications,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const addenda = useQuery(
+    api.bidshield.getAddenda,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
   const initScope        = useMutation(api.bidshield.initScopeItems);
@@ -284,6 +289,8 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
   return (
     <div className="flex flex-col gap-4">
+
+      <AddendumImpactBanner addenda={addenda as any[]} section="Scope" />
 
       {/* ── STATS BAR ── */}
       <div

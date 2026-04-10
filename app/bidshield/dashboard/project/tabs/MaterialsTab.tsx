@@ -7,6 +7,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
+import { AddendumImpactBanner } from "../AddendumImpactBanner";
 import {
   MATERIAL_CATEGORIES,
   MATERIAL_TEMPLATES,
@@ -300,6 +301,10 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const projectQuotes = useQuery(
     api.bidshield.getQuotes,
     !isDemo && isValidConvexId && userId ? { userId, projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const addenda = useQuery(
+    api.bidshield.getAddenda,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
 
   const initMaterials = useMutation(api.bidshield.initProjectMaterials);
@@ -1124,6 +1129,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           </button>
         </div>
       )}
+
+      <AddendumImpactBanner addenda={addenda as any[]} section="Materials" />
 
       {/* No SF hint */}
       {!isDemo && totalSF === 0 && materials.length > 0 && (

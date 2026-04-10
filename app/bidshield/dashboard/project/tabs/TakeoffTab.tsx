@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
+import { AddendumImpactBanner } from "../AddendumImpactBanner";
 import { DEMO_TAKEOFF_SECTIONS as IMPORTED_SECTIONS, DEMO_LINEAR_ITEMS as IMPORTED_LINEAR, DEMO_COUNT_ITEMS as IMPORTED_COUNT } from "@/lib/bidshield/demo-data";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
 
@@ -165,6 +166,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const updateSection = useMutation(api.bidshield.updateTakeoffSection);
   const deleteSection = useMutation(api.bidshield.deleteTakeoffSection);
   const lineItems = useQuery(api.bidshield.getTakeoffLineItems, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const addenda = useQuery(api.bidshield.getAddenda, !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const initLineItems = useMutation(api.bidshield.initTakeoffLineItems);
   const updateLineItem = useMutation(api.bidshield.updateTakeoffLineItem);
   const createLineItem = useMutation(api.bidshield.createTakeoffLineItem);
@@ -330,6 +332,8 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   };
 
   return (
+    <div className="flex flex-col gap-4">
+    <AddendumImpactBanner addenda={addenda as any[]} section="Takeoff" />
     <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
       <div className="flex justify-between items-center mb-5">
         <h3 style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-primary)", letterSpacing: "-0.01em" }}>Takeoff Reconciliation</h3>
@@ -529,6 +533,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
@@ -745,6 +745,99 @@ function DashboardContent() {
           />
         </div>
       )}
+
+      {/* ── Analytics ─── */}
+      {completedProjects.length >= 3 && (() => {
+        const won = completedProjects.filter(p => getProjectStatus(p) === "won");
+        const lost = completedProjects.filter(p => getProjectStatus(p) === "lost");
+        const winPct = completedProjects.length > 0 ? Math.round((won.length / completedProjects.length) * 100) : 0;
+
+        // $/SF by project
+        const dpsfData = projects
+          .filter(p => p.totalBidAmount && (p.sqft || (p as any).grossRoofArea))
+          .map(p => ({
+            name: p.name.length > 20 ? p.name.slice(0, 20) + "..." : p.name,
+            dpsf: p.totalBidAmount! / ((p as any).grossRoofArea || p.sqft!),
+            status: getProjectStatus(p),
+          }))
+          .slice(0, 8);
+        const maxDpsf = Math.max(...dpsfData.map(d => d.dpsf), 1);
+
+        return (
+          <div className="rounded-xl p-5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: "var(--bs-text-dim)" }}>Analytics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Win/Loss Bar */}
+              <div>
+                <div className="text-xs font-medium mb-2" style={{ color: "var(--bs-text-muted)" }}>Win Rate</div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="text-2xl font-bold tabular-nums" style={{ color: winPct >= 50 ? "var(--bs-teal)" : "var(--bs-amber)" }}>{winPct}%</div>
+                  <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>{won.length}W / {lost.length}L of {completedProjects.length} decided</span>
+                </div>
+                <div className="flex h-3 rounded-full overflow-hidden" style={{ background: "var(--bs-bg-elevated)" }}>
+                  {won.length > 0 && (
+                    <div
+                      className="h-full rounded-l-full"
+                      style={{ width: `${winPct}%`, background: "var(--bs-teal)", minWidth: 4 }}
+                    />
+                  )}
+                  {lost.length > 0 && (
+                    <div
+                      className="h-full rounded-r-full"
+                      style={{ width: `${100 - winPct}%`, background: "var(--bs-red)", minWidth: 4 }}
+                    />
+                  )}
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] font-medium" style={{ color: "var(--bs-teal)" }}>Won</span>
+                  <span className="text-[10px] font-medium" style={{ color: "var(--bs-red)" }}>Lost</span>
+                </div>
+                {/* Won value */}
+                {stats.wonValue > 0 && (
+                  <div className="mt-3 text-xs" style={{ color: "var(--bs-text-dim)" }}>
+                    Won value: <span className="font-semibold" style={{ color: "var(--bs-teal)" }}>${(stats.wonValue / 1_000_000).toFixed(2)}M</span>
+                  </div>
+                )}
+              </div>
+
+              {/* $/SF Comparison */}
+              {dpsfData.length > 0 && (
+                <div>
+                  <div className="text-xs font-medium mb-2" style={{ color: "var(--bs-text-muted)" }}>Cost per SF by Project</div>
+                  <div className="flex flex-col gap-1.5">
+                    {dpsfData.map((d, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-[11px] w-24 truncate shrink-0" style={{ color: "var(--bs-text-dim)" }}>{d.name}</span>
+                        <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: "var(--bs-bg-elevated)" }}>
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min((d.dpsf / maxDpsf) * 100, 100)}%`,
+                              background: d.status === "won" ? "var(--bs-teal)" : d.status === "lost" ? "var(--bs-red)" : "var(--bs-blue)",
+                              minWidth: 4,
+                            }}
+                          />
+                        </div>
+                        <span className="text-[11px] font-mono tabular-nums shrink-0 w-14 text-right" style={{ color: "var(--bs-text-secondary)" }}>
+                          ${d.dpsf.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {dpsfData.length > 1 && (() => {
+                    const avg = dpsfData.reduce((s, d) => s + d.dpsf, 0) / dpsfData.length;
+                    return (
+                      <div className="text-[11px] mt-2" style={{ color: "var(--bs-text-dim)" }}>
+                        Avg: <span className="font-semibold">${avg.toFixed(2)}/SF</span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Alerts */}
       {(stats.expiringQuotes > 0 || stats.openRFIs > 0) && (

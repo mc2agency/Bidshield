@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { defaultLaborRates } from "@/convex/bidshieldDefaults";
 import type { TabProps } from "../tab-types";
+import { AddendumImpactBanner } from "../AddendumImpactBanner";
 
 // ── Demo fixtures ────────────────────────────────────────────────────────────
 
@@ -98,6 +99,10 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
   );
   const bidQuals = useQuery(
     api.bidshield.getBidQuals,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const addenda = useQuery(
+    api.bidshield.getAddenda,
     isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
   const saveLaborAnalysis = useMutation(api.bidshield.saveLaborAnalysis);
@@ -322,6 +327,8 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           Describe your roofing scope and get an AI-generated task-level labor breakdown. Review, edit, and verify each line before it flows to Pricing.
         </p>
       </div>
+
+      <AddendumImpactBanner addenda={addenda as any[]} section="Labor" />
 
       {/* ── State A: Input panel ── */}
       {!hasAnalysis ? (

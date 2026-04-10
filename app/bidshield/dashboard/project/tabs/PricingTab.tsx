@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
+import { AddendumImpactBanner } from "../AddendumImpactBanner";
 
 const DEMO_ALTERNATES = [
   { _id: "alt_1", label: "Alt 1 — Add 4\" Tapered Polyiso", type: "add" as const, amount: 42500, description: "Full tearoff and re-insulate NE quadrant with tapered system" },
@@ -284,6 +285,8 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           </div>
         </div>
       )}
+
+      <AddendumImpactBanner addenda={addenda as any[]} section="Pricing" />
 
       {/* Bid Pricing Card */}
       <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
