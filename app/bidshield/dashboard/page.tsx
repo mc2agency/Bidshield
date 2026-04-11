@@ -547,22 +547,24 @@ function DashboardContent() {
         ? (Array.isArray(np.assemblies) ? np.assemblies : np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean))
         : [],
     };
+    // Clean roofAssemblies: Convex v.optional(v.number()) rejects null — convert nulls to undefined
+    const cleanedAssemblies = np.roofAssemblies?.map((a: any) => ({
+      label: a.label,
+      systemType: a.systemType,
+      ...(a.name ? { name: a.name } : {}),
+      ...(a.insulationType ? { insulationType: a.insulationType } : {}),
+      ...(a.insulationThickness ? { insulationThickness: a.insulationThickness } : {}),
+      ...(a.rValue != null ? { rValue: a.rValue } : {}),
+      ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
+      ...(a.area != null ? { area: a.area } : {}),
+      ...(a.uValue != null ? { uValue: a.uValue } : {}),
+    }));
     let projectId: string;
     try {
       projectId = await createProjectMut({
         ...baseArgs,
         projectType: np.projectType || undefined,
-        roofAssemblies: np.roofAssemblies?.map((a: any) => ({
-          label: a.label,
-          systemType: a.systemType,
-          ...(a.name ? { name: a.name } : {}),
-          ...(a.insulationType ? { insulationType: a.insulationType } : {}),
-          ...(a.insulationThickness ? { insulationThickness: a.insulationThickness } : {}),
-          ...(a.rValue != null ? { rValue: a.rValue } : {}),
-          ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
-          ...(a.area != null ? { area: a.area } : {}),
-          ...(a.uValue != null ? { uValue: a.uValue } : {}),
-        })) || undefined,
+        roofAssemblies: cleanedAssemblies && cleanedAssemblies.length > 0 ? cleanedAssemblies : undefined,
         systemDescription: np.systemDescription || undefined,
       });
     } catch (err) {
