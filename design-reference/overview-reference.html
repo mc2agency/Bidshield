@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BidShield Overview — Design Reference</title>
+<style>
+:root { --bs-dark: #1a1d23; --bs-darker: #13151a; --bs-card: #22252d; --bs-elevated: #2a2d36; --bs-border: rgba(255,255,255,0.08); --bs-border-hover: rgba(255,255,255,0.14); --bs-teal: #2dd4a8; --bs-teal-dim: rgba(45,212,168,0.12); --bs-teal-border: rgba(45,212,168,0.2); --bs-text: #e8e9ec; --bs-text-mid: #9ca0ab; --bs-text-dim: #5f6370; --bs-red: #f06060; --bs-red-dim: rgba(240,96,96,0.12); --bs-amber: #f0a030; --bs-amber-dim: rgba(240,160,48,0.12); --bs-blue: #5a9cf5; --bs-blue-dim: rgba(90,156,245,0.12); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0f12; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+</style>
+</head>
+<body>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; min-height: 850px; max-width: 1200px; width: 100%; border-radius: 12px; overflow: hidden; background: var(--bs-darker); color: var(--bs-text); border: 1px solid var(--bs-border);">
+  <nav style="width: 220px; min-width: 220px; background: var(--bs-darker); border-right: 1px solid var(--bs-border); display: flex; flex-direction: column; padding: 16px 0;">
+    <div style="padding: 0 18px 16px; display: flex; align-items: center; gap: 10px;">
+      <div style="width: 28px; height: 28px; border-radius: 8px; background: var(--bs-teal); display: flex; align-items: center; justify-content: center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#13151a" stroke-width="1.8" fill="none"/><path d="M7 5V9M5 7H9" stroke="#13151a" stroke-width="1.4"/></svg>
+      </div>
+      <span style="font-weight: 500; font-size: 15px; color: #fff; letter-spacing: -0.3px;">BidShield</span>
+    </div>
+    <div style="padding: 0 12px 14px;">
+      <div style="background: var(--bs-card); border-radius: 10px; padding: 11px 13px; border: 1px solid var(--bs-border);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 13px; font-weight: 500; color: #fff;">Test</span>
+          <span style="font-size: 11px; font-weight: 500; color: var(--bs-teal);">84%</span>
+        </div>
+        <div style="height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;">
+          <div style="width: 84%; height: 100%; background: var(--bs-teal); border-radius: 2px;"></div>
+        </div>
+        <div style="font-size: 11px; color: var(--bs-text-dim); margin-top: 5px;">Port Chester</div>
+      </div>
+    </div>
+    <div style="flex: 1; padding: 0 8px;">
+      <div style="font-size: 10px; color: var(--bs-text-dim); padding: 6px 10px 4px; text-transform: uppercase; letter-spacing: 1px; font-weight: 500;">Review</div>
+      <a style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 8px; font-size: 13px; background: var(--bs-teal-dim); color: var(--bs-teal); font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid var(--bs-teal-border);">
+        <span style="display: flex; align-items: center; gap: 9px;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          Overview
+        </span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-teal);"></span>
+      </a>
+      <a style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--bs-text-mid); text-decoration: none; cursor: pointer;">
+        <span style="display: flex; align-items: center; gap: 9px;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Checklist
+        </span>
+        <span style="font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--bs-red-dim); color: var(--bs-red); font-weight: 500;">3</span>
+      </a>
+      <a style="display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--bs-text-mid); text-decoration: none; cursor: pointer;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.2"/></svg> Scope
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-teal); margin-left: auto;"></span>
+      </a>
+      <a style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--bs-text-mid); text-decoration: none; cursor: pointer;">
+        <span style="display: flex; align-items: center; gap: 9px;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 12L8 4l5 8H3z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" fill="none"/></svg>
+          Takeoff
+        </span>
+        <span style="font-size: 11px; padding: 1px 7px; border-radius: 10px; background: rgba(255,255,255,0.06); color: var(--bs-text-dim);">3</span>
+      </a>
+      <a style="display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--bs-text-mid); text-decoration: none; cursor: pointer;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Reconciliation
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-teal); margin-left: auto;"></span>
+      </a>
+      <div style="font-size: 10px; color: var(--bs-text-dim); padding: 14px 10px 4px; text-transform: uppercase; letter-spacing: 1px; font-weight: 500;">Pricing</div>
+      <a style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--bs-text-mid); text-decoration: none; cursor: pointer;">
+        <span style="display: flex; align-items: center; gap: 9px;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Pricing
+        </span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-amber);"></span>
+      </a>
+      <a style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--bs-text-mid); text-decoration: none; cursor: pointer;">
+        <span style="display: flex; align-items: center; gap: 9px;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M4 4h8v8H4z" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M6 2v4M10 2v4" stroke="currentColor" stroke-width="1.2"/></svg> Labor
+        </span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-red);"></span>
+      </a>
+      <a style="display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--bs-text-mid); text-decoration: none; cursor: pointer;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg> Gen. conds
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-teal); margin-left: auto;"></span>
+      </a>
+    </div>
+    <div style="padding: 8px 12px; border-top: 1px solid var(--bs-border); margin-top: 8px;">
+      <div style="display: flex; gap: 6px;">
+        <span style="font-size: 11px; padding: 3px 9px; border-radius: 6px; background: var(--bs-amber-dim); color: var(--bs-amber); font-weight: 500;">3 warnings</span>
+        <span style="font-size: 11px; padding: 3px 9px; border-radius: 6px; background: var(--bs-teal-dim); color: var(--bs-teal); font-weight: 500;">4 passing</span>
+      </div>
+    </div>
+  </nav>
+  <main style="flex: 1; display: flex; flex-direction: column; background: var(--bs-dark);">
+    <header style="padding: 14px 28px; border-bottom: 1px solid var(--bs-border);">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 11px; color: var(--bs-text-dim); margin-bottom: 4px;">
+            <span style="cursor: pointer;">Projects</span> <span style="margin: 0 4px;">/</span> <span style="cursor: pointer;">Test</span> <span style="margin: 0 4px;">/</span> <span style="color: var(--bs-text-mid);">Overview</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <h1 style="font-size: 20px; font-weight: 500; color: #fff; letter-spacing: -0.3px;">Test</h1>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 12px; color: var(--bs-text-dim);">45K SF</span>
+              <span style="color: rgba(255,255,255,0.15);">|</span>
+              <span style="font-size: 12px; color: var(--bs-text-dim);">$2.40M bid</span>
+              <span style="color: rgba(255,255,255,0.15);">|</span>
+              <span style="font-size: 12px; color: var(--bs-text-dim);">$53.33 /SF</span>
+              <span style="color: rgba(255,255,255,0.15);">|</span>
+              <span style="font-size: 12px; color: var(--bs-text-dim);">Port Chester</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: var(--bs-red-dim); color: var(--bs-red); font-weight: 500;">Past due</span>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--bs-border);">
+            <div style="width: 20px; height: 4px; border-radius: 2px; background: var(--bs-teal);"></div>
+            <span style="font-size: 12px; font-weight: 500; color: var(--bs-teal);">84%</span>
+          </div>
+          <span style="font-size: 12px; padding: 5px 14px; border-radius: 8px; background: var(--bs-teal); color: #13151a; font-weight: 500; cursor: pointer;">Validate</span>
+        </div>
+      </div>
+    </header>
+    <div style="padding: 20px 28px; overflow-y: auto; flex: 1;">
+      <div style="padding: 10px 16px; background: var(--bs-red-dim); border-left: 3px solid var(--bs-red); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l6 11H2L8 2z" stroke="#f06060" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M8 7v2" stroke="#f06060" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11" r="0.6" fill="#f06060"/></svg>
+          <span style="font-size: 13px; font-weight: 500; color: var(--bs-red);">Bid deadline has passed</span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="cursor: pointer;"><path d="M3 3l8 8M11 3l-8 8" stroke="var(--bs-text-dim)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px;">
+        <div style="background: var(--bs-card); border-radius: 10px; padding: 20px; border: 1px solid var(--bs-border); display: flex; align-items: center; gap: 16px;">
+          <div style="position: relative; width: 56px; height: 56px;">
+            <svg width="56" height="56" viewBox="0 0 56 56" style="transform: rotate(-90deg);"><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5"/><circle cx="28" cy="28" r="24" fill="none" stroke="var(--bs-teal)" stroke-width="5" stroke-dasharray="150.8" stroke-dashoffset="28.6" stroke-linecap="round"/></svg>
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--bs-teal);">81%</div>
+          </div>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; color: #fff;">On track</div>
+            <div style="font-size: 12px; color: var(--bs-text-dim); margin-top: 2px;">4/8 sections ready</div>
+          </div>
+        </div>
+        <div style="background: var(--bs-card); border-radius: 10px; padding: 20px; border: 1px solid var(--bs-border);">
+          <div style="font-size: 11px; color: var(--bs-text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Square footage</div>
+          <div style="font-size: 28px; font-weight: 500; color: #fff; letter-spacing: -1px;">45.0K</div>
+          <div style="font-size: 12px; color: var(--bs-text-dim); margin-top: 4px;">SF gross roof area</div>
+          <div style="font-size: 11px; color: var(--bs-text-mid); margin-top: 2px;">43,500 SF taken off · 3.3% gap</div>
+        </div>
+        <div style="background: var(--bs-card); border-radius: 10px; padding: 20px; border: 1px solid var(--bs-border);">
+          <div style="font-size: 11px; color: var(--bs-text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Total bid</div>
+          <div style="font-size: 28px; font-weight: 500; color: #fff; letter-spacing: -1px;">$2.40M</div>
+          <div style="font-size: 12px; color: var(--bs-text-dim); margin-top: 4px;">$2,400,000</div>
+          <div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 8px; overflow: hidden;"><div style="width: 75%; height: 100%; background: var(--bs-teal); border-radius: 2px;"></div></div>
+        </div>
+        <div style="background: var(--bs-card); border-radius: 10px; padding: 20px; border: 1px solid var(--bs-teal);">
+          <div style="font-size: 11px; color: var(--bs-text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Cost / SF</div>
+          <div style="font-size: 28px; font-weight: 500; color: var(--bs-teal); letter-spacing: -1px;">$53.33</div>
+          <div style="font-size: 12px; color: var(--bs-text-dim); margin-top: 4px;">per square foot</div>
+          <div style="font-size: 11px; color: var(--bs-amber); margin-top: 4px;">Above market</div>
+        </div>
+      </div>
+      <div style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <h2 style="font-size: 15px; font-weight: 500; color: #fff;">Action items</h2>
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: var(--bs-amber-dim); color: var(--bs-amber); font-weight: 500;">4 warnings</span>
+          </div>
+          <a style="font-size: 12px; color: var(--bs-teal); text-decoration: none; cursor: pointer;">Run validator</a>
+        </div>
+        <div style="background: var(--bs-card); border: 1px solid var(--bs-border); border-radius: 10px; overflow: hidden;">
+          <div style="display: grid; grid-template-columns: 1fr 120px 100px 80px; padding: 10px 18px; border-bottom: 1px solid var(--bs-border);">
+            <span style="font-size: 11px; color: var(--bs-text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Issue</span>
+            <span style="font-size: 11px; color: var(--bs-text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Section</span>
+            <span style="font-size: 11px; color: var(--bs-text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Status</span>
+            <span style="font-size: 11px; color: var(--bs-text-dim); text-transform: uppercase; letter-spacing: 0.5px; text-align: right;">Action</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 120px 100px 80px; padding: 12px 18px; border-bottom: 1px solid var(--bs-border); align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-amber);"></span><span style="font-size: 13px; color: var(--bs-text);">Takeoff gap: 1,500 SF (3.3%)</span></div>
+            <span style="font-size: 12px; padding: 2px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); color: var(--bs-text-mid); width: fit-content;">Takeoff</span>
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bs-amber-dim); color: var(--bs-amber); font-weight: 500; width: fit-content;">Warning</span>
+            <a style="font-size: 12px; color: var(--bs-teal); text-decoration: none; cursor: pointer; text-align: right;">Review</a>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 120px 100px 80px; padding: 12px 18px; border-bottom: 1px solid var(--bs-border); align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-amber);"></span><span style="font-size: 13px; color: var(--bs-text);">1 quote expiring within 14 days</span></div>
+            <span style="font-size: 12px; padding: 2px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); color: var(--bs-text-mid); width: fit-content;">Quotes</span>
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bs-amber-dim); color: var(--bs-amber); font-weight: 500; width: fit-content;">Warning</span>
+            <a style="font-size: 12px; color: var(--bs-teal); text-decoration: none; cursor: pointer; text-align: right;">Review</a>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 120px 100px 80px; padding: 12px 18px; border-bottom: 1px solid var(--bs-border); align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-amber);"></span><span style="font-size: 13px; color: var(--bs-text);">1 RFI awaiting response</span></div>
+            <span style="font-size: 12px; padding: 2px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); color: var(--bs-text-mid); width: fit-content;">RFIs</span>
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bs-amber-dim); color: var(--bs-amber); font-weight: 500; width: fit-content;">Warning</span>
+            <a style="font-size: 12px; color: var(--bs-teal); text-decoration: none; cursor: pointer; text-align: right;">Review</a>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 120px 100px 80px; padding: 12px 18px; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--bs-amber);"></span><span style="font-size: 13px; color: var(--bs-text);">1 checklist item flagged as RFI</span></div>
+            <span style="font-size: 12px; padding: 2px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); color: var(--bs-text-mid); width: fit-content;">Checklist</span>
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bs-amber-dim); color: var(--bs-amber); font-weight: 500; width: fit-content;">Warning</span>
+            <a style="font-size: 12px; color: var(--bs-teal); text-decoration: none; cursor: pointer; text-align: right;">Review</a>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <h2 style="font-size: 15px; font-weight: 500; color: #fff;">Section progress</h2>
+          <span style="font-size: 12px; color: var(--bs-text-dim);">4/8 ready</span>
+        </div>
+        <div style="display: grid; gap: 8px;">
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Checklist</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 98%; height: 100%; background: var(--bs-teal); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-teal); font-weight: 500; text-align: right;">98%</span></div>
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Scope</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 100%; height: 100%; background: var(--bs-teal); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-teal); font-weight: 500; text-align: right;">100%</span></div>
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Takeoff</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 85%; height: 100%; background: var(--bs-amber); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-amber); font-weight: 500; text-align: right;">85%</span></div>
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Reconciliation</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 100%; height: 100%; background: var(--bs-teal); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-teal); font-weight: 500; text-align: right;">100%</span></div>
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Pricing</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 60%; height: 100%; background: var(--bs-amber); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-amber); font-weight: 500; text-align: right;">60%</span></div>
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Labor</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 0%; height: 100%; background: var(--bs-red); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-red); font-weight: 500; text-align: right;">0%</span></div>
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Gen. conds</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 100%; height: 100%; background: var(--bs-teal); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-teal); font-weight: 500; text-align: right;">100%</span></div>
+          <div style="display: grid; grid-template-columns: 110px 1fr 50px; align-items: center; gap: 12px;"><span style="font-size: 13px; color: var(--bs-text-mid);">Quotes</span><div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="width: 100%; height: 100%; background: var(--bs-teal); border-radius: 3px;"></div></div><span style="font-size: 12px; color: var(--bs-teal); font-weight: 500; text-align: right;">100%</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

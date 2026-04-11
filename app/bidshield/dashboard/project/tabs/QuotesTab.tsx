@@ -227,6 +227,11 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       if (!res.ok || data.error) throw new Error(data.error ?? "Extraction failed");
 
       const q = data.quote;
+      if (!q || (!q.vendorName && !q.lineItems?.length && !q.totalAmount)) {
+        setExtractError("Could not extract data from this PDF. Try a different file or enter details manually.");
+        setModalStage("review");
+        return;
+      }
       setForm({
         vendorName: q.vendorName ?? "",
         rep: q.repName ?? "",

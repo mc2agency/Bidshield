@@ -346,7 +346,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_project", ["projectId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_project_category", ["projectId", "category"]),
 
   // Scope items (scope gap checker per project)
   bidshield_scope_items: defineTable({
@@ -369,7 +370,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_project", ["projectId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_project_status", ["projectId", "status"]),
 
   // Bid Qualifications tracker per project (one document per project)
   bidshield_bid_quals: defineTable({
@@ -586,6 +588,8 @@ export default defineSchema({
     confirmationNumber: v.optional(v.string()),
     submittedAt: v.number(), // unix ms timestamp of submission
     notes: v.optional(v.string()),
+    bidScore: v.optional(v.number()), // score at time of submission
+    thresholdBypassed: v.optional(v.boolean()), // estimator acknowledged low score
     createdAt: v.number(),
     updatedAt: v.number(),
   })

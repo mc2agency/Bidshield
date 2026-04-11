@@ -77,6 +77,10 @@ function ChecklistTemplatesPanel({
       setShowSaveTemplate(false);
       setTemplateFlash("Template saved!");
       setTimeout(() => setTemplateFlash(null), 2500);
+    } catch (e) {
+      console.error("Failed to save template:", e);
+      setTemplateFlash("Failed to save template. Please try again.");
+      setTimeout(() => setTemplateFlash(null), 4000);
     } finally {
       setTemplateSaving(false);
     }

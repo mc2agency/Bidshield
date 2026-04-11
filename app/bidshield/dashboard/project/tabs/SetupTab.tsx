@@ -144,6 +144,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       setTimeout(() => setInfoSaved(false), 2000);
     } catch (e) {
       console.error("Failed to save project info:", e);
+      setAreaWarning("Failed to save project info. Please try again.");
+      setTimeout(() => setAreaWarning(null), 4000);
     } finally {
       setInfoSaving(false);
     }
@@ -155,6 +157,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const [asmSaving, setAsmSaving] = useState(false);
   const [asmSaved, setAsmSaved] = useState(false);
   const [asmError, setAsmError] = useState("");
+  const [areaWarning, setAreaWarning] = useState<string | null>(null);
 
   useEffect(() => {
     if (!project) return;
@@ -210,7 +213,18 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       if (field === "insulationType" || field === "insulationThickness") {
         const thickness = field === "insulationThickness" ? parseFloat(value as string) : parseFloat(row.insulationThickness);
         const insType = field === "insulationType" ? (value as string) : row.insulationType;
-        row.rValue = insType && thickness ? computeInsulationRValue(insType, thickness) : null;
+        if (insType && thickness) {
+          const computed = computeInsulationRValue(insType, thickness);
+          if (computed) {
+            row.rValue = computed;
+          } else {
+            row.rValue = null;
+            setAreaWarning(`Could not calculate R-value for ${insType} at ${thickness}″. You can enter it manually.`);
+            setTimeout(() => setAreaWarning(null), 4000);
+          }
+        } else {
+          row.rValue = null;
+        }
       }
       next[idx] = row;
       return next;
@@ -237,6 +251,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   };
 
   const removeAssembly = (idx: number) => {
+    const label = assemblies[idx]?.label || `Assembly ${idx + 1}`;
+    if (!window.confirm(`Remove ${label}? This cannot be undone.`)) return;
     setAssemblies((prev) => prev.filter((_, i) => i !== idx));
     setAssembliesDirty(true);
   };
@@ -272,6 +288,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     } catch (e) {
       console.error("Failed to save assemblies:", e);
       setAsmError("Failed to save — please redeploy Convex and try again.");
+      setAreaWarning("Failed to save assemblies. Please try again.");
+      setTimeout(() => setAreaWarning(null), 4000);
     } finally {
       setAsmSaving(false);
     }
@@ -517,8 +535,9 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       });
       const data = await res.json();
       if (data.text) setDescription(data.text);
-    } catch {
-      // silent fail
+    } catch (err) {
+      setAreaWarning("Failed to generate system description. Check your connection and try again.");
+      setTimeout(() => setAreaWarning(null), 5000);
     } finally {
       setDescLoading(false);
     }
@@ -800,9 +819,41 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               </div>
             ))}
 
-            {assemblies.some((a) => a.area) && (
-              <div className="flex justify-end px-3 py-2 text-xs font-semibold" style={{ color: "var(--bs-teal)" }}>
-                Total Area: {assemblies.reduce((sum, a) => sum + (a.area || 0), 0).toLocaleString()} SF
+            {assemblies.some((a) => a.area) && (() => {
+              const totalAssemblyArea = assemblies.reduce((sum, a) => sum + (a.area || 0), 0);
+              const grossArea = info.sqft ? parseInt(info.sqft) : 0;
+              const delta = grossArea > 0 ? Math.abs(totalAssemblyArea - grossArea) / grossArea : 0;
+              const hasAreaMismatch = grossArea > 0 && delta > 0.05;
+              return (
+                <div className="px-3 py-2">
+                  <div className="flex justify-end text-xs font-semibold" style={{ color: "var(--bs-teal)" }}>
+                    Total Area: {totalAssemblyArea.toLocaleString()} SF
+                    {grossArea > 0 && (
+                      <span style={{ color: hasAreaMismatch ? "#e53e3e" : "var(--bs-text-dim)", marginLeft: 12 }}>
+                        Gross: {grossArea.toLocaleString()} SF ({delta > 0 ? (delta * 100).toFixed(1) : "0"}% {totalAssemblyArea > grossArea ? "over" : "under"})
+                      </span>
+                    )}
+                  </div>
+                  {hasAreaMismatch && (
+                    <div style={{
+                      marginTop: 6, padding: "8px 12px", borderRadius: 8,
+                      background: "#FFF5F5", border: "1px solid #FED7D7",
+                      fontSize: 12, color: "#C53030",
+                    }}>
+                      ⚠ Assembly areas ({totalAssemblyArea.toLocaleString()} SF) differ from gross roof area ({grossArea.toLocaleString()} SF) by {(delta * 100).toFixed(1)}%. Verify your areas before proceeding.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {areaWarning && (
+              <div style={{
+                margin: "8px 12px", padding: "8px 12px", borderRadius: 8,
+                background: "#FFFAF0", border: "1px solid #FEEBC8",
+                fontSize: 12, color: "#C05621",
+              }}>
+                {areaWarning}
               </div>
             )}
 

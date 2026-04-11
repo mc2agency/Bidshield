@@ -169,6 +169,29 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const updateLineItem = useMutation(api.bidshield.updateTakeoffLineItem);
   const createLineItem = useMutation(api.bidshield.createTakeoffLineItem);
   const deleteLineItem = useMutation(api.bidshield.deleteTakeoffLineItem);
+  const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
+
+  // E-13: Sync state
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "done" | "error">("idle");
+  const [syncResult, setSyncResult] = useState<{ updated: number; totalSF: number; warnings: string[] } | null>(null);
+
+  const handleSyncToMaterials = useCallback(async () => {
+    if (isDemo || !userId || !isValidConvexId) return;
+    setSyncStatus("syncing");
+    try {
+      const result = await syncTakeoffToMaterials({
+        projectId: projectId as Id<"bidshield_projects">,
+        userId,
+      });
+      setSyncResult(result);
+      setSyncStatus("done");
+      setTimeout(() => setSyncStatus("idle"), 4000);
+    } catch (e) {
+      console.error("Sync failed:", e);
+      setSyncStatus("error");
+      setTimeout(() => setSyncStatus("idle"), 4000);
+    }
+  }, [isDemo, userId, isValidConvexId, projectId, syncTakeoffToMaterials]);
 
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
@@ -511,6 +534,31 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
         {activeTab === "linear" && <LineItemTable title="Linear Items" unit="LF" items={linearItems} isDemo={isDemo} onUpdateItem={handleUpdateLineItem} onDeleteItem={handleDeleteLineItem} onAddItem={handleAddLinearItem} />}
         {activeTab === "counts" && <LineItemTable title="Count Items" unit="EA" items={countItems} isDemo={isDemo} onUpdateItem={handleUpdateLineItem} onDeleteItem={handleDeleteLineItem} onAddItem={handleAddCountItem} />}
       </div>
+
+      {/* E-13: Sync to Materials button */}
+      {!isDemo && isValidConvexId && (
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            onClick={handleSyncToMaterials}
+            disabled={syncStatus === "syncing"}
+            className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            style={{
+              background: syncStatus === "done" ? "var(--bs-teal-dim)" : "var(--bs-teal)",
+              color: syncStatus === "done" ? "var(--bs-teal)" : "#13151a",
+              opacity: syncStatus === "syncing" ? 0.6 : 1,
+              cursor: syncStatus === "syncing" ? "wait" : "pointer",
+              border: "none",
+            }}
+          >
+            {syncStatus === "syncing" ? "Syncing..." : syncStatus === "done" ? `Updated ${syncResult?.updated ?? 0} materials` : syncStatus === "error" ? "Sync failed — retry" : "Sync to Materials"}
+          </button>
+          {syncResult && syncResult.warnings.length > 0 && syncStatus === "done" && (
+            <span className="text-xs" style={{ color: "var(--bs-amber)" }}>
+              {syncResult.warnings.length} warning{syncResult.warnings.length !== 1 ? "s" : ""} — hover for details
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="mt-3 p-3 rounded-lg" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
         {allGood ? (

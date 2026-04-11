@@ -198,19 +198,37 @@ function PricingFlag({
 }
 
 // ── Waste flag ───────────────────────────────────────────────────────────────
+const WASTE_RANGES: Record<string, [number, number]> = {
+  membrane: [5, 15], insulation: [3, 10], fasteners: [5, 10],
+  adhesive: [5, 10], sheet_metal: [5, 15], lumber: [5, 15],
+};
 function WasteFlag({ material }: { material: any }) {
   if (!WASTE_REQUIRED_CATS.has(material.category)) return null;
-  const wastePct = (material.wasteFactor - 1) * 100;
-  if (wastePct > 0) {
+  const wastePct = Math.round((material.wasteFactor - 1) * 100);
+  const range = WASTE_RANGES[material.category];
+  const isLow = range && wastePct < range[0];
+  const isHigh = range && wastePct > range[1];
+  if (wastePct > 0 && !isLow && !isHigh) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: "var(--bs-teal)" }} title="Waste factor applied">
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: "var(--bs-teal)" }} title={`${wastePct}% waste applied`}>
         <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+        {wastePct}%
       </span>
     );
   }
+  if (wastePct === 0) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: "#e53e3e" }}
+        title={`No waste factor — industry standard is ${range ? `${range[0]}-${range[1]}%` : "3-15%"} for ${material.category}`}>
+        ⚠ 0%
+      </span>
+    );
+  }
+  // Low or high warning
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: "var(--bs-amber)" }} title="Waste factor required for this category">
-      0%
+    <span className="inline-flex items-center gap-1 text-[10px] font-medium" style={{ color: "var(--bs-amber)" }}
+      title={`${wastePct}% waste — ${isLow ? "below" : "above"} standard range (${range ? `${range[0]}-${range[1]}%` : "3-15%"}) for ${material.category}`}>
+      ⚠ {wastePct}%
     </span>
   );
 }

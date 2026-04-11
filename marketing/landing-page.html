@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BidShield - Pre-Flight Checklist for Commercial Roofing Bids</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Navigation */
+        nav {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e5a96;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #666;
+            margin-left: 2rem;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #1e5a96;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1e5a96 0%, #2e75b6 100%);
+            color: white;
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+
+        .hero .container {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero .subheading {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #f97316;
+            color: white;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.3s, transform 0.2s;
+            font-weight: 600;
+        }
+
+        .cta-button:hover {
+            background: #ea580c;
+            transform: translateY(-2px);
+        }
+
+        /* Pain Points Section */
+        .pain-points {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #1e5a96;
+        }
+
+        .pain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .pain-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid #f97316;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .pain-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .pain-card h3 {
+            color: #1e5a96;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .pain-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .stat-highlight {
+            color: #f97316;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-item {
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #1e5a96, #2e75b6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+        }
+
+        .feature-item h3 {
+            color: #1e5a96;
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .feature-item p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: #f97316;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step h3 {
+            color: #1e5a96;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .step p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* Social Proof */
+        .social-proof {
+            padding: 5rem 2rem;
+        }
+
+        .proof-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .proof-text h2 {
+            color: #1e5a96;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .proof-text ul {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .proof-text li {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .proof-text li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #f97316;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .proof-box {
+            background: linear-gradient(135deg, #1e5a96, #2e75b6);
+            color: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            text-align: center;
+        }
+
+        .proof-box .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .proof-box .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-header {
+            background: linear-gradient(135deg, #1e5a96, #2e75b6);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .pricing-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .billing-period {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .pricing-body {
+            padding: 2rem;
+        }
+
+        .pricing-body ul {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-body li {
+            padding: 0.75rem 0;
+            color: #666;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .pricing-body li:last-child {
+            border-bottom: none;
+        }
+
+        .savings-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .pricing-cta {
+            width: 100%;
+            background: #f97316;
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .pricing-cta:hover {
+            background: #ea580c;
+        }
+
+        /* FAQ */
+        .faq {
+            padding: 5rem 2rem;
+        }
+
+        .faq-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 1.5rem;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #1e5a96;
+            cursor: pointer;
+            user-select: none;
+            padding: 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: color 0.3s;
+        }
+
+        .faq-question:hover {
+            color: #f97316;
+        }
+
+        .faq-toggle {
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .faq-toggle.active {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            color: #666;
+            line-height: 1.8;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+
+        .faq-answer.active {
+            max-height: 500px;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            background: linear-gradient(135deg, #1e5a96, #2e75b6);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .final-cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .final-cta p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        footer p {
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .proof-content {
+                grid-template-columns: 1fr;
+            }
+
+            nav .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav a {
+                margin-left: 0;
+            }
+
+            .hero {
+                padding: 4rem 1rem;
+            }
+
+            .final-cta h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">BidShield</div>
+            <div>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#faq">FAQ</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Stop Leaving Money on the Table</h1>
+            <p class="subheading">The pre-flight checklist for commercial roofing bids. Catch scope gaps, expired quotes, and pricing conflicts before you submit.</p>
+            <button class="cta-button">Start Free Trial</button>
+        </div>
+    </section>
+
+    <!-- Pain Points -->
+    <section class="pain-points">
+        <div class="container">
+            <h2 class="section-title">The Bid Preparation Reality</h2>
+            <div class="pain-grid">
+                <div class="pain-card">
+                    <h3>Scope Gaps Cost You</h3>
+                    <p>One missed line item can cost <span class="stat-highlight">$15K-$50K</span> per bid. You're catching them too late—after you've quoted.</p>
+                </div>
+                <div class="pain-card">
+                    <h3>Your Quotes Are Expiring</h3>
+                    <p>Supplier quotes pile up. Addenda get buried. You don't realize your pricing is stale until the bid goes out.</p>
+                </div>
+                <div class="pain-card">
+                    <h3>Manual Reviews Miss Things</h3>
+                    <p>Your team reviews bids by eye. It works 90% of the time. But that 10%? That's your margin walking out the door.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Built for Estimators, by an Estimator</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <h3>AI Bid Score</h3>
+                    <p>Grades your bid A through F. Red flags scope gaps, expired quotes, and pricing conflicts before submission.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📋</div>
+                    <h3>15 Automated Checks</h3>
+                    <p>Labor verification, addenda completeness, insurance expiration, supplier quote validation, and more.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h3>5-Minute Pre-Flight</h3>
+                    <p>Run your checklist in minutes. You control the decisions—the AI checks your work.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Estimator Controlled</h3>
+                    <p>No black box. You see every check, every flag, every recommendation. You decide what matters.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <h3>Bid History & Trends</h3>
+                    <p>Track which checks catch issues. Learn what your common gaps are and fix them in future bids.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Built Into Your Workflow</h3>
+                    <p>Fits your process. Use it solo or with your estimating team. Works with your existing tools.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Upload Your Bid</h3>
+                    <p>Load your estimate, scope of work, supplier quotes, and project details. Takes 2 minutes.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Run the Checklist</h3>
+                    <p>BidShield runs 15 automated checks. You see every flag, every red light, every warning.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Get Your Score & Fix Issues</h3>
+                    <p>A-F grade tells you if you're ready. Fix the gaps, re-run, and submit with confidence.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <div class="container">
+            <div class="proof-content">
+                <div class="proof-text">
+                    <h2>Why Commercial Roofers Trust BidShield</h2>
+                    <ul>
+                        <li>Built by Carlos, a 12-year commercial roofing estimator—not a tech startup guessing at workflows</li>
+                        <li>Solves the exact problems he faced preparing bids under pressure</li>
+                        <li>Estimators know construction. BidShield knows what you need.</li>
+                        <li>Used by subcontractors and estimating departments nationwide</li>
+                        <li>Simple, fast, estimator-controlled. No complexity. No learning curve.</li>
+                    </ul>
+                </div>
+                <div class="proof-box">
+                    <div class="stat-number">$25K</div>
+                    <div class="stat-label">Average savings per caught gap</div>
+                    <hr style="margin: 2rem 0; border: none; border-top: 1px solid rgba(255,255,255,0.3);">
+                    <div class="stat-number">10x</div>
+                    <div class="stat-label">ROI if you catch just one gap per quarter</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Monthly</h3>
+                        <div class="price">$149</div>
+                        <div class="billing-period">per month, cancel anytime</div>
+                    </div>
+                    <div class="pricing-body">
+                        <ul>
+                            <li>Unlimited bids per month</li>
+                            <li>All 15 automated checks</li>
+                            <li>AI Bid Score (A-F)</li>
+                            <li>Bid history & analytics</li>
+                            <li>Email support</li>
+                        </ul>
+                        <button class="pricing-cta">Start Free Trial</button>
+                    </div>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Annual</h3>
+                        <div class="price">$1,490</div>
+                        <div class="billing-period">per year (2 months free)</div>
+                        <div class="savings-badge">Save $298/year</div>
+                    </div>
+                    <div class="pricing-body">
+                        <ul>
+                            <li>Everything in Monthly</li>
+                            <li>Priority email support</li>
+                            <li>Team collaboration features</li>
+                            <li>Quarterly strategy calls</li>
+                        </ul>
+                        <button class="pricing-cta">Start Free Trial</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Is BidShield estimating software?</span>
+                        <span class="faq-toggle">⌄</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No. BidShield is a quality assurance tool—a pre-flight checklist for bids you've already prepared. You create the estimate. BidShield checks your work before you submit. Think of it as a second set of eyes that never gets tired.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>How do I use it with my current workflow?</span>
+                        <span class="faq-toggle">⌄</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>BidShield integrates into your existing process. Prepare your bid as you normally do. Before you submit, upload it to BidShield, run the checks, fix any gaps, and send it out. No software replacement. No retraining your team. Just a checklist step.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>What if I only do a few bids per month?</span>
+                        <span class="faq-toggle">⌄</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Even one caught gap per month pays for the whole year. At $149/month, you're investing about $12 per bid if you do 12 bids per month. Most of our customers make that back on the first catch. The real question is: can you afford NOT to use it?</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Do you store my bid data?</span>
+                        <span class="faq-toggle">⌄</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes. Your bid history stays in your account so you can track trends and see which checks catch issues most often. All data is encrypted and secured. You can export or delete your data anytime.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Can my whole team use one account?</span>
+                        <span class="faq-toggle">⌄</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Absolutely. Add team members to your account and set permissions. Solo estimators use one account. Larger departments can add multiple users and see unified reporting across all team bids.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Is there a free trial?</span>
+                        <span class="faq-toggle">⌄</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes. You get 14 days free, full access, no credit card required. Run as many bids through the checklist as you want. If you love it, upgrade. If not, no charge.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>Your Next Bid Could Be Your Last Mistake</h2>
+            <p>Run the checklist. Catch the gaps. Get the deal.</p>
+            <button class="cta-button">Start Your Free Trial Today</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 BidShield. Built by Carlos at MC2 Agency LLC. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleFaq(element) {
+            const answer = element.nextElementSibling;
+            const toggle = element.querySelector('.faq-toggle');
+
+            // Close all other FAQs
+            document.querySelectorAll('.faq-answer.active').forEach(item => {
+                if (item !== answer) {
+                    item.classList.remove('active');
+                    item.previousElementSibling.querySelector('.faq-toggle').classList.remove('active');
+                }
+            });
+
+            // Toggle current
+            answer.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

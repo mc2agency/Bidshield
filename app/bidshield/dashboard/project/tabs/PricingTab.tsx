@@ -78,6 +78,22 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const gcMarkupTotal = (gcItems ?? []).filter((i: any) => i.isMarkup).reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0);
   const computedGCTotal = Math.round(gcLineItemsTotal + gcMarkupTotal);
 
+  // E-06: Scope items with costs → pricing summary
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const includedScopeWithCost = (scopeItems ?? []).filter((s: any) => s.status === "included" && s.cost && s.cost > 0);
+  const scopeCostTotal = Math.round(includedScopeWithCost.reduce((sum: number, s: any) => sum + (s.cost ?? 0), 0));
+
+  // E-09: Addendum price impacts → pricing summary
+  const addenda = useQuery(
+    api.bidshield.getAddenda,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
+  const addendaWithImpact = (addenda ?? []).filter((a: any) => a.priceImpact !== undefined && a.priceImpact !== null && a.priceImpact !== 0);
+  const addendaPriceImpact = Math.round(addendaWithImpact.reduce((sum: number, a: any) => sum + (a.priceImpact ?? 0), 0));
+
   const grossRoofArea: number | null = isDemo ? 68000 : (project?.grossRoofArea ?? null);
 
   const [demoPricing, setDemoPricing] = useState({
@@ -138,9 +154,12 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
       setEditing(false); return;
     }
     if (!isValidConvexId) { setEditing(false); return; }
+    // E-19: Write computed totals back to project to keep single source of truth in sync
     await updateProject({
       projectId: projectId as Id<"bidshield_projects">,
       totalBidAmount: parse(form.totalBidAmount),
+      materialCost: computedMaterialTotal > 0 ? computedMaterialTotal : undefined,
+      laborCost: computedLaborTotal > 0 ? computedLaborTotal : undefined,
       otherCost: parse(form.otherCost),
       primaryAssembly: form.primaryAssembly || undefined, lossReason: form.lossReason || undefined,
       lossReasonNote: form.lossReasonNote || undefined,
@@ -178,7 +197,8 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
 
   // Sanity check: components should sum to total bid
   const effectiveGC = pricing.otherCost ?? (computedGCTotal > 0 ? computedGCTotal : 0);
-  const componentSum = computedMaterialTotal + computedLaborTotal + effectiveGC;
+  // E-06/E-09: Include scope costs and addendum price impacts in the component sum
+  const componentSum = computedMaterialTotal + computedLaborTotal + effectiveGC + scopeCostTotal + addendaPriceImpact;
   const totalBid = pricing.totalBidAmount ?? 0;
   const componentSumMismatch = totalBid > 0 && componentSum > 0 && Math.abs(componentSum - totalBid) / totalBid > 0.01;
   const variance = dollarPerSf && avgDollarPerSf ? ((dollarPerSf - avgDollarPerSf) / avgDollarPerSf) * 100 : null;
@@ -193,6 +213,8 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const hasActuals = !!(pricing.actualCost);
   const totalVariance = hasActuals && pricing.totalBidAmount ? pricing.actualCost! - pricing.totalBidAmount : null;
   const totalVariancePct = hasActuals && pricing.totalBidAmount ? ((pricing.actualCost! - pricing.totalBidAmount) / pricing.totalBidAmount) * 100 : null;
+  // E-19: Computed totals from Materials tab and Labor tab are the single source of truth.
+  // Fallback to project-level fields only for legacy projects that haven't run the analysis yet.
   const effectiveMaterialCost = computedMaterialTotal > 0 ? computedMaterialTotal : (pricing.materialCost ?? 0);
   const matVariance = pricing.actualMaterialCost && effectiveMaterialCost ? pricing.actualMaterialCost - effectiveMaterialCost : null;
   const matVariancePct = pricing.actualMaterialCost && effectiveMaterialCost ? ((pricing.actualMaterialCost - effectiveMaterialCost) / effectiveMaterialCost) * 100 : null;
@@ -269,7 +291,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           <div>
             <div className="text-[13px] font-medium" style={{ color: "var(--bs-amber)" }}>Cost components don&rsquo;t add up to Total Bid</div>
             <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
-              Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}) = {fmtDollar(componentSum)} — total bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} gap)
+              Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}){scopeCostTotal > 0 ? ` + Scope (${fmtDollar(scopeCostTotal)})` : ""}{addendaPriceImpact !== 0 ? ` + Addenda (${fmtDollar(addendaPriceImpact)})` : ""} = {fmtDollar(componentSum)} — total bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} gap)
             </div>
           </div>
         </div>
@@ -347,6 +369,30 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             </div>
           </div>
         </div>
+
+        {/* E-06/E-09: Scope costs + Addendum impacts */}
+        {(scopeCostTotal > 0 || addendaPriceImpact !== 0) && (
+          <div className="px-[18px] pb-2 flex flex-wrap gap-3">
+            {scopeCostTotal > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                <span style={{ color: "var(--bs-text-dim)" }}>Scope inclusions:</span>
+                <span className="font-medium tabular-nums" style={{ color: "var(--bs-text-primary)" }}>{fmtDollar(scopeCostTotal)}</span>
+                <span style={{ color: "var(--bs-text-dim)" }}>({includedScopeWithCost.length} item{includedScopeWithCost.length !== 1 ? "s" : ""})</span>
+                <button type="button" onClick={() => onNavigateTab?.("scope")} className="bs-link cursor-pointer text-[11px]" style={{ background: "none", border: "none" }}>View</button>
+              </div>
+            )}
+            {addendaPriceImpact !== 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                <span style={{ color: "var(--bs-text-dim)" }}>Addenda impact:</span>
+                <span className="font-medium tabular-nums" style={{ color: addendaPriceImpact > 0 ? "var(--bs-red)" : "var(--bs-teal)" }}>
+                  {addendaPriceImpact > 0 ? "+" : ""}{fmtDollar(addendaPriceImpact)}
+                </span>
+                <span style={{ color: "var(--bs-text-dim)" }}>({addendaWithImpact.length} addend{addendaWithImpact.length !== 1 ? "a" : "um"})</span>
+                <button type="button" onClick={() => onNavigateTab?.("addenda")} className="bs-link cursor-pointer text-[11px]" style={{ background: "none", border: "none" }}>View</button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Primary Assembly + Bid Health */}
         <div className="grid px-[18px] pb-[18px] gap-3" style={{ gridTemplateColumns: "1fr 1fr" }}>
