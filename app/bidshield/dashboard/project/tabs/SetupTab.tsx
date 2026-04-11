@@ -320,10 +320,13 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       // Save the raw spec data to Convex so it persists across navigation
       if (!isDemo) {
         try {
-          await updateProject({ projectId: projectId as any, specSummary: JSON.stringify(data) });
-        } catch (e) {
+          const summaryStr = JSON.stringify(data);
+          const specSummary = summaryStr.length > 500_000 ? summaryStr.slice(0, 500_000) : summaryStr;
+          await updateProject({ projectId: projectId as any, specSummary });
+        } catch (e: any) {
           console.error("Failed to save spec data to project:", e);
-          setSpecError("Spec extracted but failed to save — click Apply to retry.");
+          const detail = e?.message || e?.data || "Unknown error";
+          setSpecError(`Spec extracted but failed to save (${detail}) — click Apply to retry.`);
         }
       }
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
