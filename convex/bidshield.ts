@@ -99,6 +99,7 @@ export {
   deleteScopeClarification,
   addCustomScopeItem,
   deleteScopeItem,
+  bulkUpdateScopeStatus,
 } from "./bidshield/scope";
 
 // Bid Qualifications

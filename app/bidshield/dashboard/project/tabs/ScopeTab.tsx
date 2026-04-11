@@ -79,6 +79,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const updateItem       = useMutation(api.bidshield.updateScopeItem);
   const addClarification = useMutation(api.bidshield.addScopeClarification);
   const deleteClarification = useMutation(api.bidshield.deleteScopeClarification);
+  const bulkUpdateStatus = useMutation(api.bidshield.bulkUpdateScopeStatus);
 
   const [demoState, setDemoState]         = useState<any[]>(DEMO_SCOPE_ITEMS);
   const [filter, setFilter]               = useState<FilterMode>("all");
@@ -87,6 +88,27 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const [demoClarifications, setDemoClarifications] = useState<{ _id: string; text: string; createdAt: number }[]>([]);
   const [newClarText, setNewClarText]     = useState("");
   const debounceRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const [bulkAction, setBulkAction] = useState(false);
+  const [bulkRunning, setBulkRunning] = useState(false);
+
+  const handleBulkAction = useCallback(async (toStatus: ScopeStatus) => {
+    if (isDemo || !userId || !isValidConvexId) return;
+    setBulkRunning(true);
+    try {
+      await bulkUpdateStatus({
+        projectId: projectId as Id<"bidshield_projects">,
+        userId,
+        fromStatus: "unaddressed",
+        toStatus,
+      });
+    } catch (e) {
+      console.error("Bulk update failed:", e);
+    } finally {
+      setBulkRunning(false);
+      setBulkAction(false);
+    }
+  }, [isDemo, userId, isValidConvexId, projectId, bulkUpdateStatus]);
+
   const [aiExclusionsLoading, setAiExclusionsLoading] = useState(false);
   const [aiExclusionsText, setAiExclusionsText]       = useState<string | null>(null);
   const [aiExclusionsError, setAiExclusionsError]     = useState<string | null>(null);
@@ -106,6 +128,10 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const decidedPct       = totalCount > 0 ? Math.round((decidedCount / totalCount) * 100) : 0;
   const includedCost     = items
     .filter((i: any) => i.status === "included")
+    .reduce((sum: number, i: any) => sum + (i.cost || 0), 0);
+  // E-08: Track excluded item costs so estimators see the savings/risk
+  const excludedCost     = items
+    .filter((i: any) => i.status === "excluded")
     .reduce((sum: number, i: any) => sum + (i.cost || 0), 0);
 
   const FILTERS: { id: FilterMode; label: string; count: number }[] = [
@@ -298,6 +324,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
           { label: "By Others", value: String(byOthersCount), color: "var(--bs-blue)" },
           ...(unaddressedCount > 0 ? [{ label: "Undecided", value: String(unaddressedCount), color: "var(--bs-text-muted)" }] : []),
           ...(includedCost > 0 ? [{ label: "Included Cost", value: `$${includedCost >= 1000 ? `${(includedCost/1000).toFixed(0)}K` : includedCost.toLocaleString()}`, color: "var(--bs-teal)" }] : []),
+          ...(excludedCost > 0 ? [{ label: "Excluded Cost", value: `$${excludedCost >= 1000 ? `${(excludedCost/1000).toFixed(0)}K` : excludedCost.toLocaleString()}`, color: "var(--bs-red)" }] : []),
         ].map(({ label, value, color }, i, arr) => (
           <div
             key={label}
@@ -336,6 +363,41 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
             </button>
           ))}
         </div>
+
+        {/* E-07: Bulk actions for unaddressed items */}
+        {!isDemo && unaddressedCount > 0 && (
+          <div className="relative">
+            <button
+              onClick={() => setBulkAction(!bulkAction)}
+              disabled={bulkRunning}
+              className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-md transition-colors"
+              style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
+            >
+              {bulkRunning ? "Updating..." : `Bulk: ${unaddressedCount} undecided`}
+            </button>
+            {bulkAction && (
+              <div className="absolute top-full left-0 mt-1 z-20 rounded-lg shadow-lg py-1 min-w-[180px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                {PILL_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleBulkAction(opt.value)}
+                    className="w-full text-left px-4 py-2 text-xs cursor-pointer transition-colors hover:opacity-80"
+                    style={{ color: opt.color, background: "transparent", border: "none" }}
+                  >
+                    Mark all undecided → {opt.label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setBulkAction(false)}
+                  className="w-full text-left px-4 py-2 text-xs cursor-pointer"
+                  style={{ color: "var(--bs-text-dim)", background: "transparent", border: "none", borderTop: "1px solid var(--bs-border)" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── SCOPE TABLE ── */}

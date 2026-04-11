@@ -138,7 +138,6 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         sqft: info.sqft ? parseInt(info.sqft) : undefined,
         grossRoofArea: info.sqft ? parseInt(info.sqft) : undefined,
         deckType: info.deckType || undefined,
-        projectType: info.projectType || undefined,
       });
       setInfoSaved(true);
       setTimeout(() => setInfoSaved(false), 2000);
@@ -337,7 +336,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       // Save the raw spec data to Convex so it persists across navigation
       if (!isDemo) {
         try {
-          await updateProject({ projectId: projectId as any, specSummary: JSON.stringify(data) });
+          await updateProject({ projectId: projectId as any, specSummary: JSON.stringify(data) } as any);
         } catch (e) {
           console.error("Failed to save spec data to project:", e);
           setSpecError("Spec extracted but failed to save — click Apply to retry.");

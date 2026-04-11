@@ -38,7 +38,7 @@ function cardBorderColor(add: any): string {
   return "border-l-4 border-l-emerald-500";
 }
 
-export default function AddendaTab({ projectId, isDemo, isPro, project, userId }: TabProps) {
+export default function AddendaTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const addenda = useQuery(
@@ -364,6 +364,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId }
                             onUpdate={handleUpdate}
                             onMarkReviewed={handleMarkReviewed}
                             onDelete={handleDelete}
+                            onNavigateTab={onNavigateTab}
                           />
                         </td>
                       </tr>
@@ -393,12 +394,14 @@ function AddendumCard({
   onUpdate,
   onMarkReviewed,
   onDelete,
+  onNavigateTab,
 }: {
   add: any;
   isDemo: boolean;
   onUpdate: (id: Id<"bidshield_addenda">, updates: Record<string, any>) => Promise<void>;
   onMarkReviewed: (id: Id<"bidshield_addenda">) => Promise<void>;
   onDelete: (id: Id<"bidshield_addenda">) => Promise<void>;
+  onNavigateTab?: (tab: any) => void;
 }) {
   const status = getAddendumStatus(add);
   const reviewed = isReviewed(add);
@@ -576,10 +579,20 @@ function AddendumCard({
               <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>Date: {add.repricedDate}</span>
             )}
             {!add.repriced && (
-              <span className="text-[11px] font-semibold inline-flex items-center gap-1" style={{ color: "var(--bs-red)" }}>
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                NEEDS RE-PRICING
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold inline-flex items-center gap-1" style={{ color: "var(--bs-red)" }}>
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                  NEEDS RE-PRICING
+                </span>
+                {/* E-10: Go Reprice action */}
+                <button
+                  onClick={() => onNavigateTab?.("pricing")}
+                  className="text-[11px] font-medium cursor-pointer transition-colors"
+                  style={{ color: "var(--bs-teal)", background: "none", border: "none", padding: 0 }}
+                >
+                  Go Reprice →
+                </button>
+              </div>
             )}
           </div>
 

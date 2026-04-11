@@ -401,10 +401,17 @@ export function computeBidScore(input: BidScoreInput): BidScoreResult {
     }
   }
 
-  const total = items.length;
-  const passCount = items.filter(i => i.status === "pass").length;
-  const warnCount = items.filter(i => i.status === "warn").length;
-  const rawScore = total > 0 ? Math.round(((passCount + warnCount * 0.4) / total) * 100) : 0;
+  // E-28: Weight critical-phase items 2× so incomplete critical phases drag score harder
+  let weightedPass = 0;
+  let weightedTotal = 0;
+  for (const item of items) {
+    const isCritical = item.label.startsWith("Critical:");
+    const weight = isCritical ? 2 : 1;
+    weightedTotal += weight;
+    if (item.status === "pass") weightedPass += weight;
+    else if (item.status === "warn") weightedPass += weight * 0.4;
+  }
+  const rawScore = weightedTotal > 0 ? Math.round((weightedPass / weightedTotal) * 100) : 0;
   const score = Math.min(100, Math.max(0, rawScore));
   let grade = "F";
   if (score >= 90) grade = "A";

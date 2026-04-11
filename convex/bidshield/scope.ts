@@ -83,6 +83,48 @@ export const updateScopeItem = mutation({
   },
 });
 
+// E-07: Bulk status update for scope items (e.g., "mark all unaddressed as NA")
+export const bulkUpdateScopeStatus = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    fromStatus: v.union(
+      v.literal("unaddressed"),
+      v.literal("included"),
+      v.literal("excluded"),
+      v.literal("by_others"),
+      v.literal("na")
+    ),
+    toStatus: v.union(
+      v.literal("unaddressed"),
+      v.literal("included"),
+      v.literal("excluded"),
+      v.literal("by_others"),
+      v.literal("na")
+    ),
+    category: v.optional(v.string()), // optional: only affect a specific category
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
+
+    const items = await ctx.db
+      .query("bidshield_scope_items")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    const now = Date.now();
+    let updated = 0;
+    for (const item of items) {
+      if (item.status !== args.fromStatus) continue;
+      if (args.category && item.category !== args.category) continue;
+      await ctx.db.patch(item._id, { status: args.toStatus, updatedAt: now });
+      updated++;
+    }
+    return { updated };
+  },
+});
+
 // ─── Scope Clarifications & Assumptions ──────────────────────────────────────
 
 export const getScopeClarifications = query({

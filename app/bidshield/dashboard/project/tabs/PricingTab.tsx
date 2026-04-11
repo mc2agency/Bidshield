@@ -34,6 +34,7 @@ function varianceBg(pct: number): { background: string; border: string } {
 export default function PricingTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
   const updateProject = useMutation(api.bidshield.updateProject);
+  const addDecision = useMutation(api.bidshield.addDecision);
   const [editing, setEditing] = useState(false);
   const [editingActuals, setEditingActuals] = useState(false);
 
@@ -155,15 +156,29 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
     }
     if (!isValidConvexId) { setEditing(false); return; }
     // E-19: Write computed totals back to project to keep single source of truth in sync
+    const newBidAmount = parse(form.totalBidAmount);
     await updateProject({
       projectId: projectId as Id<"bidshield_projects">,
-      totalBidAmount: parse(form.totalBidAmount),
+      totalBidAmount: newBidAmount,
       materialCost: computedMaterialTotal > 0 ? computedMaterialTotal : undefined,
       laborCost: computedLaborTotal > 0 ? computedLaborTotal : undefined,
       otherCost: parse(form.otherCost),
       primaryAssembly: form.primaryAssembly || undefined, lossReason: form.lossReason || undefined,
       lossReasonNote: form.lossReasonNote || undefined,
     });
+    // E-31: Audit trail — log bid amount changes to decision log
+    if (userId && isValidConvexId && newBidAmount !== pricing.totalBidAmount) {
+      const oldAmt = pricing.totalBidAmount ? `$${pricing.totalBidAmount.toLocaleString()}` : "none";
+      const newAmt = newBidAmount ? `$${newBidAmount.toLocaleString()}` : "cleared";
+      try {
+        await addDecision({
+          projectId: projectId as Id<"bidshield_projects">,
+          userId,
+          text: `Bid amount changed from ${oldAmt} to ${newAmt}`,
+          section: "pricing",
+        });
+      } catch { /* non-blocking */ }
+    }
     setEditing(false);
   };
 
@@ -302,6 +317,10 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
         <div className="flex justify-between items-center px-[18px] py-[14px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
           <h3 className="text-[15px] font-medium" style={{ color: "var(--bs-text-primary)" }}>Bid pricing &amp; outcome</h3>
           <div className="flex items-center gap-2">
+            {/* E-30: Decision Log entry point */}
+            <button onClick={() => onNavigateTab?.("decisions")} className="text-[11px] cursor-pointer transition-colors" style={{ color: "var(--bs-text-muted)", background: "none", border: "none" }}>
+              Decision Log
+            </button>
             {(isPro || isDemo) ? (
               <button onClick={editing ? handleSave : startEdit} className="bs-btn bs-btn-outline cursor-pointer">
                 {editing ? "Save" : "Edit"}

@@ -563,7 +563,6 @@ function DashboardContent() {
     try {
       projectId = await createProjectMut({
         ...baseArgs,
-        projectType: np.projectType || undefined,
         roofAssemblies: cleanedAssemblies && cleanedAssemblies.length > 0 ? cleanedAssemblies : undefined,
         systemDescription: np.systemDescription || undefined,
       });

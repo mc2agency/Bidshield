@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { validateAuth, assertProjectOwnership } from "./_helpers";
+import { getChecklistForTrade } from "../bidshieldDefaults";
 
 // ===== SUBMISSIONS =====
 
@@ -61,6 +62,52 @@ export const addSubmission = mutation({
     if (scopeItems.length === 0) warnings.push("No scope items defined.");
     const includedScope = scopeItems.filter((s: any) => s.status === "included");
     if (scopeItems.length > 0 && includedScope.length === 0) warnings.push("No scope items marked as included.");
+
+    // E-04: Critical-phase enforcement — block submission if critical checklist phases are incomplete
+    if (project) {
+      const checklistItems = await ctx.db
+        .query("bidshield_checklist_items")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect();
+
+      // Get phase definitions to know which phases are critical
+      const phaseDefs = getChecklistForTrade(
+        project.trade || "roofing",
+        project.systemType,
+        project.deckType,
+        project.fmGlobal,
+        project.pre1990,
+        project.energyCode
+      );
+
+      // Group checklist items by phase and check critical phases
+      const itemsByPhase: Record<string, Array<{ status: string }>> = {};
+      for (const item of checklistItems) {
+        if (!itemsByPhase[item.phaseKey]) itemsByPhase[item.phaseKey] = [];
+        itemsByPhase[item.phaseKey].push(item);
+      }
+
+      const incompleteCritical: string[] = [];
+      for (const [phaseKey, phaseDef] of Object.entries(phaseDefs)) {
+        if (!phaseDef.critical) continue;
+        const phaseItems = itemsByPhase[phaseKey] || [];
+        if (phaseItems.length === 0) continue; // phase has no tracked items yet
+        const incomplete = phaseItems.filter(
+          (i) => i.status !== "done" && i.status !== "na"
+        );
+        if (incomplete.length > 0) {
+          incompleteCritical.push(
+            `${phaseDef.title}: ${incomplete.length} item${incomplete.length !== 1 ? "s" : ""} incomplete`
+          );
+        }
+      }
+
+      if (incompleteCritical.length > 0 && !args.bypassThreshold) {
+        warnings.push(
+          `Critical phases incomplete: ${incompleteCritical.join("; ")}.`
+        );
+      }
+    }
 
     // If there are blocking warnings and estimator hasn't bypassed, throw
     if (warnings.length > 0 && !args.bypassThreshold) {
