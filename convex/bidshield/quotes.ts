@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, MutationCtx } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
 import { validateAuth, assertProjectOwnership, assertRecordOwnership } from "./_helpers";
+import { isDemoUser } from "../utils";
 
 // Helper: parse compact line item JSON {m, u, p, n} stored in products array
 export function parseLineItems(products: string[]): Array<{ m: string; u: string; p: number; n: string }> {
@@ -210,7 +211,6 @@ export const getQuotesWithProjects = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
     // P0-7: Verify caller identity
-    const { isDemoUser } = await import("../utils");
     if (!isDemoUser(userId)) {
       const identity = await ctx.auth.getUserIdentity();
       if (!identity || identity.subject !== userId) throw new Error("Unauthorized");
