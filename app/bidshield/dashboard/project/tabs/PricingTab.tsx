@@ -207,7 +207,10 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
     setEditingActuals(false);
   };
 
-  const dollarPerSf = pricing.totalBidAmount && grossRoofArea && grossRoofArea > 0 ? pricing.totalBidAmount / grossRoofArea : null;
+  // Auto-compute total bid from components when no manual amount is set
+  const autoTotal = computedMaterialTotal + computedLaborTotal + (pricing.otherCost ?? computedGCTotal) + scopeCostTotal + addendaPriceImpact;
+  const effectiveTotalBid = pricing.totalBidAmount ?? (autoTotal > 0 ? autoTotal : null);
+  const dollarPerSf = effectiveTotalBid && grossRoofArea && grossRoofArea > 0 ? effectiveTotalBid / grossRoofArea : null;
   const fmtDollar = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
   const assembly = pricing.primaryAssembly;

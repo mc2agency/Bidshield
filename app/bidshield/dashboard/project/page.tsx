@@ -12,11 +12,9 @@ import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-sys
 import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
 
 import type { TabId } from "./tab-types";
-import OverviewTab from "./tabs/OverviewTabRedesign";
 import {
-  ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
-  ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
-  SetupTab,
+  ChecklistTab, ValidatorTab,
+  SetupTab, EstimateTab, DocumentsTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -29,39 +27,19 @@ function NavIcon({ paths }: { paths: React.ReactNode }) {
 }
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
-  setup:             <><path d="M8 2v2M8 12v2M2 8h2M12 8h2M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/></>,
-  overview:          <><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
-  checklist:         <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
-  scope:             <><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 5v3l2 2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
-  takeoff:           <path d="M3 13L8 3l5 10H3z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" fill="none"/>,
-  materials:         <><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
-  pricing:           <><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
-  labor:             <><path d="M4 4h8v8H4z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M6 2v4M10 2v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
-  generalconditions: <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" fill="none"/>,
-  quotes:            <><path d="M4 3h8a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M6 7h4M6 9.5h2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
-  addenda:           <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M9 3v3h3" stroke="currentColor" strokeWidth="1.1"/></>,
-  rfis:              <><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 7v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><circle cx="8" cy="5.5" r="0.6" fill="currentColor"/></>,
-  bidquals:          <><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></>,
-  validator:         <><path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
-  decisions:         <><path d="M3 5h10M3 8h7M3 11h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
+  setup:     <><path d="M8 2v2M8 12v2M2 8h2M12 8h2M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/></>,
+  checklist: <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
+  estimate:  <><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
+  documents: <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M9 3v3h3" stroke="currentColor" strokeWidth="1.1"/></>,
+  validate:  <><path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
 };
 
 const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
-  { id: "setup",             label: "Project Setup", shortLabel: "Setup" },
-  { id: "overview",          label: "Overview" },
-  { id: "checklist",         label: "Checklist" },
-  { id: "scope",             label: "Scope" },
-  { id: "takeoff",           label: "Takeoff" },
-  { id: "materials",         label: "Material Reconciliation", shortLabel: "Reconciliation" },
-  { id: "pricing",           label: "Pricing" },
-  { id: "labor",             label: "Labor Verification",      shortLabel: "Labor" },
-  { id: "generalconditions", label: "Gen. Conds" },
-  { id: "quotes",            label: "Quotes" },
-  { id: "addenda",           label: "Addenda" },
-  { id: "rfis",              label: "RFIs" },
-  { id: "bidquals",          label: "Bid Quals" },
-  { id: "validator",         label: "Validator" },
-  { id: "decisions",         label: "Decision Log" },
+  { id: "setup",     label: "Setup" },
+  { id: "checklist", label: "Checklist" },
+  { id: "estimate",  label: "Estimate" },
+  { id: "documents", label: "Documents" },
+  { id: "validate",  label: "Validate" },
 ];
 
 function scoreDot(s: number): string {
@@ -80,6 +58,18 @@ function ProjectDetail() {
   const isDemo = searchParams.get("demo") === "true";
   const { userId } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId | null>("setup");
+  // Map legacy tab IDs to the new 5-view structure
+  const navigateTab = useCallback((tab: TabId) => {
+    // If a child component navigates to a legacy sub-tab, route to the parent view
+    const estimateSubTabs: TabId[] = ["takeoff", "materials", "pricing", "labor", "generalconditions"];
+    const documentSubTabs: TabId[] = ["scope", "quotes", "addenda", "rfis", "bidquals"];
+    const validateSubTabs: TabId[] = ["validator", "decisions"];
+    if (estimateSubTabs.includes(tab)) { setActiveTab("estimate"); return; }
+    if (documentSubTabs.includes(tab)) { setActiveTab("documents"); return; }
+    if (validateSubTabs.includes(tab)) { setActiveTab("validate"); return; }
+    if (tab === "overview") { setActiveTab("setup"); return; }
+    setActiveTab(tab);
+  }, []);
   const updateProject = useMutation(api.bidshield.updateProject);
   const [editingBidInline, setEditingBidInline] = useState(false);
   const [bidInlineValue, setBidInlineValue] = useState("");
@@ -106,9 +96,7 @@ function ProjectDetail() {
 
   // ── Keyboard shortcuts (L-17) ──────────────────────────────────────────────
   const TAB_ORDER: TabId[] = useMemo(() => [
-    "overview", "setup", "checklist", "scope", "takeoff", "materials",
-    "pricing", "labor", "generalconditions",
-    "quotes", "addenda", "rfis", "bidquals", "validator", "decisions",
+    "setup", "checklist", "estimate", "documents", "validate",
   ], []);
 
   useEffect(() => {
@@ -380,7 +368,7 @@ function ProjectDetail() {
   const blockerCount = actionItems.filter(a => a.level === "blocker").length;
   const warnCount = actionItems.filter(a => a.level === "warning").length;
   const tabProps = {
-    projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigateTab: openTab,
+    projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigateTab: navigateTab,
     cachedData: isDemo ? undefined : { checklist: checklist ?? undefined, quotes: quotes ?? undefined, rfis: rfis ?? undefined, addenda: addenda ?? undefined, projectMaterials: projectMaterials ?? undefined, scopeItems: scopeItems ?? undefined, takeoffSections: takeoffSections ?? undefined },
   };
   const activeTabLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label;
@@ -448,66 +436,23 @@ function ProjectDetail() {
 
         {/* Section nav with groups */}
         <nav className="flex-1 px-2 flex flex-col" style={{ fontSize: 13 }}>
-          {[
-            { label: "Review", ids: ["setup", "overview", "checklist"] },
-            { label: "Estimating", ids: ["scope", "takeoff", "materials"] },
-            { label: "Pricing", ids: ["pricing", "labor", "generalconditions"] },
-            { label: "Docs", ids: ["quotes", "addenda", "rfis", "bidquals"] },
-            { label: "Finalize", ids: ["validator", "decisions"] },
-          ].map(({ label: groupLabel, ids }) => (
-            <div key={groupLabel}>
-              <div style={{ fontSize: 10, color: "var(--bs-text-dim)", padding: "14px 10px 4px", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 500 }}>
-                {groupLabel}
-              </div>
-              {BROWSE_ITEMS.filter(b => ids.includes(b.id)).map(({ id, label, shortLabel }) => {
-                const sectionScore = scores[id as keyof typeof scores];
-                const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
-                const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
-                const rawScore = sectionScore ?? (hasBlocker ? 0 : hasWarning ? 33 : undefined);
-                const dot = rawScore !== undefined ? scoreDot(rawScore) : "var(--bs-text-dim)";
-                const isActive = activeTab === id;
-                const remainingCount = remaining[id as keyof typeof remaining] ?? 0;
-                const showCount = sectionScore !== undefined && sectionScore > 0 && sectionScore < 100 && remainingCount > 0;
-
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(isActive ? null : id)}
-                    className="bs-nav-item w-full text-left"
-                    style={isActive
-                      ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500, border: "1px solid var(--bs-teal-border)" }
-                      : { color: "var(--bs-text-muted)", border: "1px solid transparent" }
-                    }
-                  >
-                    <NavIcon paths={NAV_ICONS[id]} />
-                    <span style={{ flex: 1 }}>{shortLabel ?? label}</span>
-                    {id === "labor" && unverifiedLaborCount !== null && unverifiedLaborCount !== undefined && unverifiedLaborCount > 0 && (
-                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", flexShrink: 0 }}>
-                        {unverifiedLaborCount}
-                      </span>
-                    )}
-                    {id === "scope" && scopeConflictCount > 0 && (
-                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", flexShrink: 0 }}>
-                        {scopeConflictCount}
-                      </span>
-                    )}
-                    {id === "bidquals" && unconfirmedGcFormCount !== null && unconfirmedGcFormCount !== undefined && unconfirmedGcFormCount > 0 && (
-                      <span style={{ fontSize: 10, fontWeight: 600, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)", borderRadius: 9999, padding: "1px 5px", flexShrink: 0 }}>
-                        {unconfirmedGcFormCount}
-                      </span>
-                    )}
-                    {showCount ? (
-                      <span style={{ fontSize: 11, fontWeight: 500, background: "rgba(255,255,255,0.06)", color: "var(--bs-text-dim)", borderRadius: 9999, padding: "1px 6px", flexShrink: 0 }}>
-                        {remainingCount}
-                      </span>
-                    ) : (
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, flexShrink: 0, display: "inline-block" }} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+          {BROWSE_ITEMS.map(({ id, label }) => {
+            const isActive = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(isActive ? null : id)}
+                className="bs-nav-item w-full text-left"
+                style={isActive
+                  ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500, border: "1px solid var(--bs-teal-border)" }
+                  : { color: "var(--bs-text-muted)", border: "1px solid transparent" }
+                }
+              >
+                <NavIcon paths={NAV_ICONS[id]} />
+                <span style={{ flex: 1 }}>{label}</span>
+              </button>
+            );
+          })}
         </nav>
 
         {/* Status summary */}
@@ -587,7 +532,7 @@ function ProjectDetail() {
             )}
             {blockerCount > 0 && (
               <button
-                onClick={() => openTab("validator")}
+                onClick={() => navigateTab("validator")}
                 className="cursor-pointer"
                 style={{
                   fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 4, border: "none", whiteSpace: "nowrap",
@@ -677,21 +622,11 @@ function ProjectDetail() {
                   </button>
                 </div>
                 <div className="p-6">
-                  {activeTab === "setup"    && <TabErrorBoundary tabLabel="Setup"><SetupTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "overview"  && <TabErrorBoundary tabLabel="Overview"><OverviewTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "setup"     && <TabErrorBoundary tabLabel="Setup"><SetupTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "checklist" && <TabErrorBoundary tabLabel="Checklist"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "takeoff"   && <TabErrorBoundary tabLabel="Takeoff"><TakeoffTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "pricing"   && <TabErrorBoundary tabLabel="Pricing"><PricingTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "materials" && <TabErrorBoundary tabLabel="Materials"><MaterialsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "scope"     && <TabErrorBoundary tabLabel="Scope"><ScopeTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "quotes"    && <TabErrorBoundary tabLabel="Quotes"><QuotesTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "rfis"      && <TabErrorBoundary tabLabel="RFIs"><RFIsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "addenda"   && <TabErrorBoundary tabLabel="Addenda"><AddendaTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "labor"              && <TabErrorBoundary tabLabel="Labor"><LaborTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "generalconditions" && <TabErrorBoundary tabLabel="Gen. Conds"><GeneralConditionsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "validator"         && <TabErrorBoundary tabLabel="Validator"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "decisions" && <TabErrorBoundary tabLabel="Decision Log"><DecisionLogTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Estimate"><EstimateTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "documents" && <TabErrorBoundary tabLabel="Documents"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
                 </div>
               </>
             ) : (
@@ -782,7 +717,7 @@ function ProjectDetail() {
                     <div style={{ fontSize: 15, fontWeight: 700, color: "var(--bs-teal)", marginBottom: 4 }}>Bid ready to submit</div>
                     <div style={{ fontSize: 13, color: "var(--bs-text-dim)", marginBottom: 18 }}>All sections are complete and passing.</div>
                     <button
-                      onClick={() => openTab("validator")}
+                      onClick={() => navigateTab("validator")}
                       style={{ padding: "10px 24px", background: "var(--bs-teal)", color: "#13151a", fontSize: 14, fontWeight: 600, borderRadius: 8, cursor: "pointer", border: "none" }}
                       className="hover:opacity-90 transition-opacity"
                     >
@@ -803,7 +738,7 @@ function ProjectDetail() {
                     {actionItems.map((item, i) => (
                       <button
                         key={`${item.tab}-${i}`}
-                        onClick={() => openTab(item.tab)}
+                        onClick={() => navigateTab(item.tab)}
                         className="w-full text-left transition-all duration-150 active:scale-[0.98] rounded-xl cursor-pointer"
                         style={{
                           background: item.level === "blocker" ? "var(--bs-red-dim)" : item.level === "warning" ? "var(--bs-amber-dim)" : "var(--bs-blue-dim)",
@@ -886,7 +821,7 @@ function ProjectDetail() {
                 </div>
               </div>
               <button
-                onClick={() => openTab("validator")}
+                onClick={() => navigateTab("validator")}
                 style={{
                   padding: "9px 18px",
                   borderRadius: 8,

@@ -97,6 +97,7 @@ const btnSecondary = {
 };
 
 export default function SetupTab({ project, projectId, isDemo, userId }: TabProps) {
+  // @ts-ignore TS2589: Convex API generics hit type-depth limit with Zod v4
   const updateProject = useMutation(api.bidshield.updateProject);
   const createTakeoffSection = useMutation(api.bidshield.createTakeoffSection);
   const initProjectMaterials = useMutation(api.bidshield.initProjectMaterials);

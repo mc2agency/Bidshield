@@ -1,15 +1,19 @@
 // ── BidShield Workflow Architecture ──
-// 5 phases that mirror the real estimating process:
-//   1. Setup → understand the project
-//   2. Takeoff → measure quantities  
-//   3. Price → put dollars on it
-//   4. QA → check your work
-//   5. Submit → validate and send
+// 5 views that mirror the real estimating process:
+//   1. Setup → project info, spec upload, assemblies
+//   2. Checklist → 18-phase QA pre-flight check
+//   3. Estimate → takeoff + materials + labor + gen. conds + pricing summary
+//   4. Documents → scope, quotes, addenda, RFIs, bid quals
+//   5. Validate → readiness scoring
 
 export type TabId =
-  | "overview"
   | "setup"
   | "checklist"
+  | "estimate"
+  | "documents"
+  | "validate"
+  // Legacy tab IDs kept for internal sub-tab routing / onNavigateTab compatibility
+  | "overview"
   | "takeoff"
   | "pricing"
   | "materials"
@@ -53,8 +57,8 @@ export interface TabProps {
   };
 }
 
-// ── Phase definitions ──
-export type PhaseId = "qa" | "setup" | "takeoff" | "price" | "submit";
+// ── Phase definitions (simplified) ──
+export type PhaseId = "setup" | "checklist" | "estimate" | "documents" | "validate";
 
 export interface Phase {
   id: PhaseId;
@@ -64,45 +68,14 @@ export interface Phase {
   defaultTab: TabId;
 }
 
-// Addenda and RFIs are cross-phase: accessible from the sidebar in any phase
-export const CROSS_PHASE_TABS: TabId[] = ["addenda", "rfis"];
+export const CROSS_PHASE_TABS: TabId[] = [];
 
 export const PHASES: Phase[] = [
-  {
-    id: "qa",
-    label: "Checklist & Scope",
-    shortLabel: "Checklist",
-    tabs: ["checklist", "scope", "decisions"],
-    defaultTab: "checklist",
-  },
-  {
-    id: "setup",
-    label: "Project Setup",
-    shortLabel: "Setup",
-    tabs: ["overview", "setup", "addenda", "rfis"],
-    defaultTab: "overview",
-  },
-  {
-    id: "takeoff",
-    label: "Takeoff & Quantities",
-    shortLabel: "Takeoff",
-    tabs: ["takeoff"],
-    defaultTab: "takeoff",
-  },
-  {
-    id: "price",
-    label: "Pricing & Costs",
-    shortLabel: "Price",
-    tabs: ["pricing", "labor", "generalconditions", "quotes", "materials"],
-    defaultTab: "pricing",
-  },
-  {
-    id: "submit",
-    label: "Validate & Submit",
-    shortLabel: "Submit",
-    tabs: ["validator", "bidquals"],
-    defaultTab: "validator",
-  },
+  { id: "setup", label: "Project Setup", shortLabel: "Setup", tabs: ["setup"], defaultTab: "setup" },
+  { id: "checklist", label: "Checklist", shortLabel: "Checklist", tabs: ["checklist"], defaultTab: "checklist" },
+  { id: "estimate", label: "Estimate", shortLabel: "Estimate", tabs: ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"], defaultTab: "estimate" },
+  { id: "documents", label: "Documents", shortLabel: "Docs", tabs: ["documents", "scope", "quotes", "addenda", "rfis", "bidquals"], defaultTab: "documents" },
+  { id: "validate", label: "Validate", shortLabel: "Validate", tabs: ["validate", "validator", "decisions"], defaultTab: "validate" },
 ];
 
 export function getPhaseForTab(tabId: TabId): Phase | undefined {
