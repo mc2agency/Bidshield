@@ -106,6 +106,46 @@ function ProjectDetail() {
   const [decisionModalOpen, setDecisionModalOpen] = useState(false);
   const [decisionText, setDecisionText] = useState("");
   const [decisionWho, setDecisionWho] = useState("");
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  // ── Keyboard shortcuts (L-17) ──────────────────────────────────────────────
+  const TAB_ORDER: TabId[] = useMemo(() => [
+    "overview", "setup", "checklist", "scope", "takeoff", "materials",
+    "pricing", "labor", "generalconditions",
+    "quotes", "addenda", "rfis", "bidquals", "validator", "decisions", "submission", "prebidmeetings",
+  ], []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs / textareas / contenteditable
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      // ? → toggle shortcut help
+      if (e.key === "?") { e.preventDefault(); setShowShortcuts(s => !s); return; }
+      // Escape → close shortcut help or close modals
+      if (e.key === "Escape") { setShowShortcuts(false); return; }
+      // [ / ] → prev / next tab
+      if (e.key === "[" || e.key === "]") {
+        e.preventDefault();
+        const idx = activeTab ? TAB_ORDER.indexOf(activeTab) : -1;
+        const next = e.key === "]"
+          ? TAB_ORDER[Math.min(idx + 1, TAB_ORDER.length - 1)]
+          : TAB_ORDER[Math.max(idx - 1, 0)];
+        if (next) setActiveTab(next);
+        return;
+      }
+      // 1-9 → jump to tab by position (1=overview, 2=setup, ...)
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= 9 && num <= TAB_ORDER.length) {
+        e.preventDefault();
+        setActiveTab(TAB_ORDER[num - 1]);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [activeTab, TAB_ORDER]);
 
   const project = useQuery(api.bidshield.getProject, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const checklist = useQuery(api.bidshield.getChecklist, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
@@ -413,7 +453,7 @@ function ProjectDetail() {
         {/* Section nav with groups */}
         <nav className="flex-1 px-2 flex flex-col" style={{ fontSize: 13 }}>
           {[
-            { label: "Review", ids: ["setup", "checklist", "scope", "takeoff", "materials"] },
+            { label: "Review", ids: ["overview", "setup", "checklist", "scope", "takeoff", "materials"] },
             { label: "Pricing", ids: ["pricing", "labor", "generalconditions"] },
             { label: "Docs", ids: ["quotes", "addenda", "rfis", "bidquals", "validator", "decisions", "submission", "prebidmeetings"] },
           ].map(({ label: groupLabel, ids }) => (
@@ -1363,6 +1403,38 @@ function ProjectDetail() {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ── Keyboard Shortcut Help Overlay (L-17) ── */}
+    {showShortcuts && (
+      <div
+        onClick={() => setShowShortcuts(false)}
+        style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 14, padding: "24px 28px", maxWidth: 400, width: "90vw" }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: "var(--bs-text-primary)" }}>Keyboard Shortcuts</span>
+            <button onClick={() => setShowShortcuts(false)} style={{ background: "none", border: "none", color: "var(--bs-text-dim)", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>&times;</button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
+            {[
+              ["1 – 9", "Jump to tab by position"],
+              ["[", "Previous tab"],
+              ["]", "Next tab"],
+              ["?", "Toggle this help"],
+              ["Esc", "Close overlay"],
+            ].map(([key, desc]) => (
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <kbd style={{ display: "inline-block", minWidth: 32, textAlign: "center", padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.06)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)", fontFamily: "monospace", fontSize: 12, fontWeight: 600 }}>{key}</kbd>
+                <span style={{ color: "var(--bs-text-muted)" }}>{desc}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

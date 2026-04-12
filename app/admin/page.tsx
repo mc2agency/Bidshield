@@ -3,14 +3,15 @@
 export const dynamic = "force-dynamic";
 
 import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useQuery, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 // P1-1: Admin ID from env var only. Set NEXT_PUBLIC_ADMIN_USER_ID in Vercel env vars.
 // If not set, the admin page will be inaccessible (fails closed, not open).
 const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID ?? null;
+const PAGE_SIZE = 50;
 
 function fmt(ts: number) {
   return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -24,20 +25,50 @@ export default function AdminPage() {
     if (isLoaded && (!ADMIN_ID || userId !== ADMIN_ID)) router.push("/");
   }, [isLoaded, userId, router]);
 
-  const data = useQuery(api.users.adminGetAllData, ADMIN_ID && userId === ADMIN_ID ? {} : "skip");
+  const isAuthed = !!(ADMIN_ID && userId === ADMIN_ID);
+
+  // P2-9: Paginated queries replace the old .take(500) safety cap
+  const {
+    results: users,
+    status: usersStatus,
+    loadMore: loadMoreUsers,
+  } = usePaginatedQuery(
+    api.users.adminGetUsersPaginated,
+    isAuthed ? {} : "skip",
+    { initialNumItems: PAGE_SIZE }
+  );
+
+  const {
+    results: projects,
+    status: projectsStatus,
+    loadMore: loadMoreProjects,
+  } = usePaginatedQuery(
+    api.users.adminGetProjectsPaginated,
+    isAuthed ? {} : "skip",
+    { initialNumItems: PAGE_SIZE }
+  );
+
+  // Build a lookup map for user→projects (uses all loaded data)
+  const projectsByUser = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of projects) {
+      map.set(p.userId, (map.get(p.userId) ?? 0) + 1);
+    }
+    return map;
+  }, [projects]);
 
   if (!isLoaded || !ADMIN_ID || userId !== ADMIN_ID) {
     return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Access denied.</div>;
   }
 
-  if (!data) {
+  if (users.length === 0 && usersStatus === "LoadingFirstPage") {
     return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Loading...</div>;
   }
 
-  const proUsers = data.users.filter((u) => u.membershipLevel === "bidshield" || u.membershipLevel === "pro");
-  const mrr = proUsers.length * 249; // P1-2: corrected from $149 to $249/mo
+  const proUsers = users.filter((u) => u.membershipLevel === "bidshield" || u.membershipLevel === "pro");
+  const mrr = proUsers.length * 249;
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const recentSignups = data.users.filter((u) => u.createdAt >= sevenDaysAgo);
+  const recentSignups = users.filter((u) => u.createdAt >= sevenDaysAgo);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
@@ -51,7 +82,7 @@ export default function AdminPage() {
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <div className="bg-slate-900 rounded-xl p-5 border border-slate-800">
-            <div className="text-3xl font-bold text-white">{data.users.length}</div>
+            <div className="text-3xl font-bold text-white">{users.length}{usersStatus !== "Exhausted" ? "+" : ""}</div>
             <div className="text-xs text-slate-500 mt-1">Total Users</div>
           </div>
           <div className="bg-slate-900 rounded-xl p-5 border border-slate-800">
@@ -107,7 +138,7 @@ export default function AdminPage() {
 
         {/* All users */}
         <div className="mb-10">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">All Users ({data.users.length})</h2>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">All Users ({users.length}{usersStatus !== "Exhausted" ? "+" : ""})</h2>
           <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -121,8 +152,8 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.users.map((u) => {
-                  const projectCount = data.projects.filter((p) => p.userId === u.clerkId).length;
+                {users.map((u) => {
+                  const projectCount = projectsByUser.get(u.clerkId) ?? 0;
                   const isPro = u.membershipLevel === "bidshield" || u.membershipLevel === "pro";
                   return (
                     <tr key={u._id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
@@ -144,11 +175,22 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+          {usersStatus === "CanLoadMore" && (
+            <button
+              onClick={() => loadMoreUsers(PAGE_SIZE)}
+              className="mt-3 px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition-colors"
+            >
+              Load more users
+            </button>
+          )}
+          {usersStatus === "LoadingMore" && (
+            <div className="mt-3 text-sm text-slate-500">Loading more...</div>
+          )}
         </div>
 
         {/* All projects */}
         <div>
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">All Projects ({data.projects.length})</h2>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">All Projects ({projects.length}{projectsStatus !== "Exhausted" ? "+" : ""})</h2>
           <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -161,8 +203,8 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.projects.map((p) => {
-                  const owner = data.users.find((u) => u.clerkId === p.userId);
+                {projects.map((p) => {
+                  const owner = users.find((u) => u.clerkId === p.userId);
                   const statusColors: Record<string, string> = {
                     won: "bg-emerald-900/50 text-emerald-400",
                     lost: "bg-red-900/50 text-red-400",
@@ -191,6 +233,17 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+          {projectsStatus === "CanLoadMore" && (
+            <button
+              onClick={() => loadMoreProjects(PAGE_SIZE)}
+              className="mt-3 px-4 py-2 text-sm font-medium rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition-colors"
+            >
+              Load more projects
+            </button>
+          )}
+          {projectsStatus === "LoadingMore" && (
+            <div className="mt-3 text-sm text-slate-500">Loading more...</div>
+          )}
         </div>
       </div>
     </div>

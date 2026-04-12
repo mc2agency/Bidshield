@@ -349,7 +349,10 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [isSavingExtraction, setIsSavingExtraction] = useState(false);
   const [replaceError, setReplaceError] = useState<string | null>(null);
   const [isFixingCategories, setIsFixingCategories] = useState(false);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
 
   // Resolve materials (demo vs real)
   const [demoMaterials, setDemoMaterials] = useState(DEMO_MATERIALS as any[]);
@@ -766,6 +769,68 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     setShowAddModal(false);
   };
 
+  // ── CSV bulk import (L-13) ──────────────────────────────────────────────────
+  const VALID_CATEGORIES = new Set(["membrane", "insulation", "fasteners", "adhesive", "edge_metal", "accessories"]);
+  const handleCsvImport = async (file: File) => {
+    if (isDemo || !isValidConvexId || !userId) return;
+    setCsvImporting(true);
+    setCsvError(null);
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) { setCsvError("CSV must have a header row and at least one data row."); setCsvImporting(false); return; }
+      // Parse header
+      const header = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/[^a-z_]/g, ""));
+      const nameIdx = header.indexOf("name");
+      if (nameIdx === -1) { setCsvError("CSV must have a 'name' column."); setCsvImporting(false); return; }
+      const catIdx = header.indexOf("category");
+      const unitIdx = header.indexOf("unit");
+      const qtyIdx = header.indexOf("quantity");
+      const priceIdx = header.findIndex(h => h === "unit_price" || h === "unitprice" || h === "price");
+      const wasteIdx = header.findIndex(h => h === "waste_factor" || h === "wastefactor" || h === "waste");
+      const notesIdx = header.indexOf("notes");
+
+      let imported = 0;
+      for (let i = 1; i < lines.length; i++) {
+        // Simple CSV parse (handles quoted fields)
+        const row = lines[i].match(/(".*?"|[^,]*),?/g)?.map(c => c.replace(/,?$/, "").replace(/^"|"$/g, "").trim()) ?? [];
+        const name = row[nameIdx];
+        if (!name) continue;
+        const rawCat = catIdx >= 0 ? row[catIdx]?.toLowerCase() : "accessories";
+        const category = VALID_CATEGORIES.has(rawCat) ? rawCat : "accessories";
+        const unit = unitIdx >= 0 ? (row[unitIdx] || "EA") : "EA";
+        const qty = qtyIdx >= 0 ? parseFloat(row[qtyIdx]) : undefined;
+        const price = priceIdx >= 0 ? parseFloat(row[priceIdx]) : undefined;
+        const waste = wasteIdx >= 0 ? parseFloat(row[wasteIdx]) : 1.05;
+        const notes = notesIdx >= 0 ? row[notesIdx] : undefined;
+        const validWaste = waste >= 1.0 && waste <= 1.50 ? waste : 1.05;
+        const validQty = qty && !isNaN(qty) ? qty : undefined;
+        const validPrice = price && !isNaN(price) ? price : undefined;
+
+        await addMaterial({
+          projectId: projectId as Id<"bidshield_projects">,
+          userId,
+          category,
+          name,
+          unit,
+          calcType: "fixed",
+          quantity: validQty,
+          unitPrice: validPrice,
+          totalCost: validQty && validPrice ? validQty * validPrice : undefined,
+          wasteFactor: validWaste,
+          notes: notes || undefined,
+        });
+        imported++;
+      }
+      setCsvError(null);
+      if (imported === 0) setCsvError("No valid rows found in CSV.");
+    } catch (err: any) {
+      setCsvError(err?.message || "Failed to parse CSV file.");
+    } finally {
+      setCsvImporting(false);
+    }
+  };
+
   // If no materials and not demo, show setup screen
   if (!isDemo && materials.length === 0 && projectMaterials !== undefined) {
     return (
@@ -1041,6 +1106,22 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               >
                 Recalculate
               </button>
+              <button
+                onClick={() => csvInputRef.current?.click()}
+                disabled={csvImporting || !isValidConvexId}
+                title="Import materials from a CSV file (columns: name, category, unit, quantity, unit_price, waste_factor, notes)"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
+              >
+                {csvImporting ? "Importing..." : "CSV Import"}
+              </button>
+              <input
+                ref={csvInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCsvImport(f); e.target.value = ""; }}
+              />
             </>
           )}
           {/* Upload Report PDF */}
@@ -1088,6 +1169,14 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
           <span className="flex-1">{uploadError}</span>
           <button onClick={() => setUploadError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
+        </div>
+      )}
+
+      {csvError && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+          <span className="flex-1">{csvError}</span>
+          <button onClick={() => setCsvError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
         </div>
       )}
 

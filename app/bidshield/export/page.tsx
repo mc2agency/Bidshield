@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { Suspense, useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
@@ -11,6 +11,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import type { ChecklistPhaseDef } from "@/lib/bidshield/checklist-data";
 import { computeBidScore } from "@/lib/bidScore";
+import { generateBidSummaryPDF } from "@/lib/generateBidSummaryPDF";
+import type { BidSummaryData } from "@/lib/generateBidSummaryPDF";
 
 interface BidProject {
   name: string;
@@ -275,6 +277,102 @@ function ExportContent() {
     }
   }, [project, printed]);
 
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+
+  // L-5: Build BidSummaryData and trigger jsPDF download (proper PDF, not browser print)
+  const handleDownloadPDF = useCallback(async () => {
+    if (!project) return;
+    setPdfGenerating(true);
+    try {
+      const matCost = (projectMaterials ?? []).reduce((s: number, m: any) => s + (m.totalCost ?? 0), 0) || (project as any).materialCost || 0;
+      const laborCost = laborAnalysis ? (laborAnalysis as any).totalLaborCost ?? 0 : (project as any).laborCost || 0;
+      const gcLineItems = gcItems ?? [];
+      const gcLineTotal = gcLineItems.reduce((s: number, g: any) => s + (!g.isMarkup ? (g.total ?? 0) : 0), 0);
+      const overheadItem = gcLineItems.find((g: any) => g.isMarkup && (g.description ?? "").toLowerCase().includes("overhead"));
+      const profitItem = gcLineItems.find((g: any) => g.isMarkup && (g.description ?? "").toLowerCase().includes("profit"));
+      const otherMarkups = gcLineItems.filter((g: any) => g.isMarkup && g !== overheadItem && g !== profitItem);
+      const subtotal = matCost + laborCost + gcLineTotal;
+      const area = (project as any).grossRoofArea || (project as any).sqft || 0;
+      const totalBid = (project as any).totalBidAmount || subtotal;
+      const scopeInc = scopeData.filter(s => s.status === "included").length;
+      const scopeExc = scopeData.filter(s => s.status === "excluded").length;
+      const scopeOth = scopeData.filter(s => s.status === "by_others").length;
+      const exclusions = scopeData.filter(s => s.status === "excluded").map(s => (s as any).item || (s as any).name || "Unknown").slice(0, 10);
+
+      const bidScore = computeBidScore({
+        isDemo,
+        project,
+        checklist: checklistData,
+        scopeItems: scopeData,
+        quotes: quoteList,
+        rfis: rfiList,
+        addenda: addendaList,
+        bidQuals: isDemo ? null : bidQuals,
+        gcItems: isDemo ? null : gcItems,
+        projectMaterials: isDemo ? null : projectMaterials,
+        datasheets: isDemo ? null : datasheets,
+        laborTasks: isDemo ? null : laborTasks,
+        laborAnalysis: isDemo ? null : laborAnalysis,
+        gcFormDocuments: isDemo ? null : gcFormDocuments,
+        unconfirmedGcFormCount: isDemo ? null : unconfirmedGcFormCount,
+      });
+
+      const passCount = bidScore.items.filter(i => i.status === "pass").length;
+      const warnCount = bidScore.items.filter(i => i.status === "warn").length;
+      const failCount = bidScore.items.filter(i => i.status === "fail").length;
+      const warnings = bidScore.items.filter(i => i.status === "warn").map(i => ({ label: i.label, message: i.message }));
+      const failures = bidScore.items.filter(i => i.status === "fail").map(i => ({ label: i.label, message: i.message }));
+
+      const summaryData: BidSummaryData = {
+        project: {
+          name: project.name,
+          location: project.location,
+          gc: (project as any).gc,
+          bidDate: project.bidDate,
+        },
+        financials: {
+          sumMaterial: matCost || null,
+          sumLabor: laborCost || null,
+          sumGCLine: gcLineTotal || null,
+          sumSubtotal: subtotal || null,
+          sumTotalBid: totalBid || null,
+          sumSqft: area || null,
+          sumDpSF: area && totalBid ? totalBid / area : null,
+          overheadPct: overheadItem ? (overheadItem as any).markupPct ?? null : null,
+          overheadAmt: overheadItem ? (overheadItem as any).total ?? null : null,
+          profitPct: profitItem ? (profitItem as any).markupPct ?? null : null,
+          profitAmt: profitItem ? (profitItem as any).total ?? null : null,
+          otherMarkupAmt: otherMarkups.reduce((s: number, m: any) => s + (m.total ?? 0), 0) || null,
+        },
+        validator: {
+          score: bidScore.score,
+          passCount,
+          warnCount,
+          failCount,
+          isReady: bidScore.score >= 80,
+          allPass: failCount === 0 && warnCount === 0,
+          warnings,
+          failures,
+        },
+        scope: {
+          includedCount: scopeInc,
+          excludedCount: scopeExc,
+          byOthersCount: scopeOth,
+          exclusions,
+        },
+        addendaCount: addendaList.length,
+        roofSystem: (project as any).systemType?.toUpperCase() ?? null,
+        laborLabel: laborAnalysis ? `${((laborAnalysis as any).totalCrewDays ?? 0).toFixed(1)} crew-days` : null,
+      };
+
+      await generateBidSummaryPDF(summaryData);
+    } catch (err) {
+      console.error("[export] PDF generation failed:", err);
+    } finally {
+      setPdfGenerating(false);
+    }
+  }, [project, projectMaterials, laborAnalysis, gcItems, scopeData, checklistData, quoteList, rfiList, addendaList, bidQuals, datasheets, laborTasks, gcFormDocuments, unconfirmedGcFormCount, isDemo, readinessScore]);
+
   if (!project) {
     return <div className="p-12 text-center text-slate-500">Loading bid summary...</div>;
   }
@@ -299,10 +397,17 @@ function ExportContent() {
           />
         </div>
         <button
-          onClick={() => window.print()}
-          className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-semibold shadow-lg hover:bg-emerald-700"
+          onClick={handleDownloadPDF}
+          disabled={pdfGenerating}
+          className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-semibold shadow-lg hover:bg-emerald-700 disabled:opacity-60"
         >
-          📄 Save as PDF
+          {pdfGenerating ? "Generating..." : "Download PDF"}
+        </button>
+        <button
+          onClick={() => window.print()}
+          className="px-4 py-2.5 bg-white text-slate-600 rounded-lg text-sm font-medium shadow-lg border hover:bg-slate-50"
+        >
+          Print
         </button>
         <button onClick={() => window.history.back()} className="px-4 py-2.5 bg-white text-slate-600 rounded-lg text-sm font-medium shadow-lg border hover:bg-slate-50">
           ← Back

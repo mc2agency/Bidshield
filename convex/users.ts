@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
@@ -177,6 +178,32 @@ export const adminGetAllData = query({
     const users = await ctx.db.query("users").order("desc").take(500);
     const projects = await ctx.db.query("bidshield_projects").order("desc").take(500);
     return { users, projects };
+  },
+});
+
+// ── Paginated admin queries (P2-9) ─────────────────────────────────────────
+// Replace .take(500) with proper Convex paginated queries so the admin dashboard
+// scales beyond 500 records without OOM or data truncation.
+
+export const adminGetUsersPaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const user = await ctx.db.query("users").withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject)).first();
+    if (user?.role !== "admin") throw new Error("Unauthorized");
+    return await ctx.db.query("users").order("desc").paginate(args.paginationOpts);
+  },
+});
+
+export const adminGetProjectsPaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const user = await ctx.db.query("users").withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject)).first();
+    if (user?.role !== "admin") throw new Error("Unauthorized");
+    return await ctx.db.query("bidshield_projects").order("desc").paginate(args.paginationOpts);
   },
 });
 
