@@ -186,8 +186,42 @@ Return only the JSON object.`;
       );
     }
 
+    // M-3/L-3: Validate numeric fields in AI labor analysis to catch NaN/string issues
+    const LaborTaskSchema = z.object({
+      category: z.string().default("general"),
+      task: z.string().default("Unnamed Task"),
+      unit: z.string().default("SF"),
+      quantity: z.number().min(0).default(0),
+      ratePerUnit: z.number().min(0).default(0),
+      totalCost: z.number().min(0).default(0),
+      crewSize: z.number().min(1).default(1),
+      days: z.number().min(0).default(0),
+      notes: z.string().nullable().optional(),
+      rateFlag: z.string().default("ok"),
+      detailType: z.string().default("SF_based"),
+    });
+    const LaborResultSchema = z.object({
+      tasks: z.array(LaborTaskSchema).default([]),
+      totalLaborCost: z.number().min(0).default(0),
+      totalDays: z.number().min(0).default(0),
+      laborPerSf: z.number().min(0).default(0),
+      scheduleConflict: z.boolean().default(false),
+      scheduleNote: z.string().nullable().optional(),
+      assumptions: z.array(z.string()).default([]),
+      warnings: z.array(z.string()).default([]),
+    });
+
+    const validated = LaborResultSchema.safeParse(result);
+    if (!validated.success) {
+      console.error("[ai-shape-error]", { endpoint: req.url, zodErrors: validated.error.issues.slice(0, 5), userId });
+      return NextResponse.json(
+        { error: "AI returned labor data in an unexpected format — please try again." },
+        { status: 422 }
+      );
+    }
+
     return NextResponse.json({
-      ...result,
+      ...validated.data,
       laborType: laborType ?? "open_shop",
       baseWage: resolvedBaseWage,
       burdenMultiplier,

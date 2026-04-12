@@ -2,8 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// M-3/L-3: Shape validation for price sheet items
+const PriceSheetItemSchema = z.object({
+  productName: z.string().default("Unknown Product"),
+  category: z.string().default("accessories"),
+  unit: z.string().default("EA"),
+  unitPrice: z.number().min(0).default(0),
+  coverage: z.number().nullable().optional(),
+  coverageUnit: z.string().nullable().optional(),
+  vendorName: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
 
 // 20 MB limit — base64 adds ~33% overhead so we check against 27.3 MB of chars
 const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
@@ -102,7 +115,21 @@ Return only the JSON array. If a field cannot be determined, use null.`;
       );
     }
 
-    return NextResponse.json({ items });
+    // M-3/L-3: Validate each item shape — filter out malformed entries instead of rejecting entire batch
+    const validItems = items
+      .map((item: unknown) => PriceSheetItemSchema.safeParse(item))
+      .filter((r: any) => r.success)
+      .map((r: any) => r.data as z.infer<typeof PriceSheetItemSchema>);
+
+    if (validItems.length === 0 && items.length > 0) {
+      console.error("[ai-shape-error]", { endpoint: req.url, sampleItem: JSON.stringify(items[0])?.substring(0, 300), userId });
+      return NextResponse.json(
+        { error: "Extracted items had unexpected format — please try again." },
+        { status: 422 }
+      );
+    }
+
+    return NextResponse.json({ items: validItems });
   } catch (err: any) {
     console.error("extract-price-sheet error:", err);
     return NextResponse.json(

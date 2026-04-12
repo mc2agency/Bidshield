@@ -2,8 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// M-3/L-3: Shape validation for AI-extracted quote data
+const QuoteLineItemSchema = z.object({
+  material: z.string().default("Unknown"),
+  unit: z.string().default("EA"),
+  unitPrice: z.number().min(0).default(0),
+  notes: z.string().nullable().optional(),
+});
+
+const ExtractedQuoteSchema = z.object({
+  vendorName: z.string().default("Unknown Vendor"),
+  repName: z.string().nullable().optional(),
+  repEmail: z.string().nullable().optional(),
+  repPhone: z.string().nullable().optional(),
+  quoteNumber: z.string().nullable().optional(),
+  quoteDate: z.string().nullable().optional(),
+  expirationDate: z.string().nullable().optional(),
+  totalAmount: z.number().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  lineItems: z.array(QuoteLineItemSchema).default([]),
+});
 
 // 20 MB limit — base64 adds ~33% overhead so we check against 27.3 MB of chars
 const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
@@ -97,7 +119,17 @@ If a field cannot be determined, use null. Return only the JSON object.`;
       );
     }
 
-    return NextResponse.json({ quote: data });
+    // M-3/L-3: Validate shape — coerce fields with defaults so partial AI output doesn't break the UI
+    const validated = ExtractedQuoteSchema.safeParse(data);
+    if (!validated.success) {
+      console.error("[ai-shape-error]", { endpoint: req.url, zodErrors: validated.error.issues.slice(0, 5), userId });
+      return NextResponse.json(
+        { error: "AI returned data in an unexpected format — please try again." },
+        { status: 422 }
+      );
+    }
+
+    return NextResponse.json({ quote: validated.data });
   } catch (err: any) {
     console.error("extract-quote error:", err);
     return NextResponse.json(
