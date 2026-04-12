@@ -578,7 +578,10 @@ function DashboardContent() {
     }
     if (isFirst) track("first_project_created");
     setShowNewProject(false);
-    router.push(`/bidshield/dashboard/project?id=${projectId}`);
+    // Use full page navigation instead of router.push to ensure Clerk
+    // re-initialises with a fresh JWT — soft navigations can hit the
+    // middleware with an expired token when the user spent time in the wizard.
+    window.location.href = `/bidshield/dashboard/project?id=${projectId}`;
   };
 
   const handleEditSetup = (id: Id<"bidshield_projects">) => {
@@ -628,7 +631,8 @@ function DashboardContent() {
       });
     }
     setEditingProject(null);
-    router.push(`/bidshield/dashboard/project?id=${editingProject._id}`);
+    // Full page navigation to avoid stale Clerk JWT hitting middleware
+    window.location.href = `/bidshield/dashboard/project?id=${editingProject._id}`;
   };
 
   const handleDeleteRequest = (id: Id<"bidshield_projects">, name: string) => {
