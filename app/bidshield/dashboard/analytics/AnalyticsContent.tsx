@@ -60,6 +60,10 @@ function AnalyticsInner() {
     api.bidshield.getComparisonData,
     !isDemo && userId && isPro ? { userId } : "skip"
   );
+  const aiUsage = useQuery(
+    api.bidshield.getAiUsageStats,
+    !isDemo && userId ? { userId } : "skip"
+  );
 
   // Gate: Pro only (demo bypasses)
   if (!isDemo) {
@@ -784,6 +788,77 @@ function AnalyticsInner() {
           </p>
         )}
       </div>
+
+      {/* ── L-16: AI Usage Dashboard ── */}
+      {aiUsage && (
+        <div style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 14, padding: 20, marginTop: 20 }}>
+          <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "var(--bs-text-muted)" }}>AI Usage — Last 30 Days</h3>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div style={{ background: "var(--bs-bg-elevated)", borderRadius: 10, padding: "12px 14px" }}>
+              <div className="text-2xl font-extrabold" style={{ color: "var(--bs-text-primary)" }}>{aiUsage.totalCalls30d}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>Calls (30d)</div>
+            </div>
+            <div style={{ background: "var(--bs-bg-elevated)", borderRadius: 10, padding: "12px 14px" }}>
+              <div className="text-2xl font-extrabold" style={{ color: "var(--bs-text-primary)" }}>{aiUsage.totalCallsToday}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>Today</div>
+            </div>
+            <div style={{ background: "var(--bs-bg-elevated)", borderRadius: 10, padding: "12px 14px" }}>
+              <div className="text-2xl font-extrabold" style={{ color: aiUsage.successRate >= 90 ? "var(--bs-teal)" : "var(--bs-amber)" }}>{aiUsage.successRate}%</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>Success Rate</div>
+            </div>
+            <div style={{ background: "var(--bs-bg-elevated)", borderRadius: 10, padding: "12px 14px" }}>
+              <div className="text-2xl font-extrabold" style={{ color: "var(--bs-text-primary)" }}>{aiUsage.totalCalls7d}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>This Week</div>
+            </div>
+          </div>
+
+          {/* By endpoint breakdown */}
+          {Object.keys(aiUsage.byEndpoint).length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs font-semibold mb-2" style={{ color: "var(--bs-text-muted)" }}>By Endpoint</div>
+              <div className="grid gap-2">
+                {Object.entries(aiUsage.byEndpoint).map(([ep, stats]: [string, any]) => (
+                  <div key={ep} className="flex items-center justify-between px-3 py-2 rounded-lg" style={{ background: "var(--bs-bg-elevated)" }}>
+                    <span className="text-xs font-medium" style={{ color: "var(--bs-text-secondary)" }}>{ep}</span>
+                    <div className="flex items-center gap-4 text-xs" style={{ color: "var(--bs-text-dim)" }}>
+                      <span>{stats.count} calls</span>
+                      {stats.errors > 0 && <span style={{ color: "var(--bs-red)" }}>{stats.errors} errors</span>}
+                      <span>{stats.avgDurationMs > 0 ? `${(stats.avgDurationMs / 1000).toFixed(1)}s avg` : "—"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Daily chart (7-day) */}
+          {aiUsage.dailyCounts.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold mb-2" style={{ color: "var(--bs-text-muted)" }}>Daily Calls (7d)</div>
+              <div style={{ height: 120 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={aiUsage.dailyCounts}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="date" tick={{ fill: "var(--bs-text-dim)", fontSize: 10 }} tickFormatter={(d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })} />
+                    <YAxis tick={{ fill: "var(--bs-text-dim)", fontSize: 10 }} allowDecimals={false} />
+                    <Tooltip contentStyle={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 8, fontSize: 12 }} />
+                    <Bar dataKey="count" fill="var(--bs-teal)" radius={[4, 4, 0, 0]} name="Calls" />
+                    <Bar dataKey="errors" fill="var(--bs-red)" radius={[4, 4, 0, 0]} name="Errors" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {aiUsage.totalCalls30d === 0 && (
+            <p className="text-center text-xs py-4" style={{ color: "var(--bs-text-dim)" }}>
+              No AI calls recorded yet. Usage will appear here when you use labor analysis, quote extraction, or PDF extraction.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

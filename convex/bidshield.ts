@@ -197,6 +197,25 @@ export {
   getValidatorData,
 } from "./bidshield/validatorBatch";
 
+// Notifications (L-15)
+export {
+  getNotifications,
+  getUnreadCount,
+  markRead,
+  markAllRead,
+  dismiss as dismissNotification,
+  // checkQuoteExpirations and checkBidDeadlines are internalMutations
+  // accessed via internal.bidshield.checkQuoteExpirations / checkBidDeadlines
+  checkQuoteExpirations,
+  checkBidDeadlines,
+} from "./bidshield/notifications";
+
+// AI Usage Tracking (L-16)
+export {
+  logUsage as logAiUsage,
+  getUsageStats as getAiUsageStats,
+} from "./bidshield/aiUsage";
+
 // Re-export helpers for internal use
 export {
   roundCurrency,
@@ -204,4 +223,5 @@ export {
   assertProjectOwnership,
   assertRecordOwnership,
   requirePro,
+  resolveUserId,
 } from "./bidshield/_helpers";

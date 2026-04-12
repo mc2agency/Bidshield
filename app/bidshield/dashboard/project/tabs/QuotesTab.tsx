@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
+import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
 
 // ─── Line item + meta encoding ──────────────────────────────────────────────
 // products[] stores JSON-encoded line items: {m, u, p, n}
@@ -95,6 +96,7 @@ const UNITS = ["RL", "SQ", "SF", "LF", "EA", "GAL", "BG", "TON", "LS", "BDL", "C
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function QuotesTab({ projectId, isDemo, project, userId }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
+  const logAiCall = useAiUsageLog(userId);
 
   const quotes = useQuery(
     api.bidshield.getQuotes,
@@ -217,6 +219,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
         reader.readAsDataURL(file);
       });
 
+      const t0 = Date.now();
       const res = await fetch("/api/bidshield/extract-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -224,6 +227,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       });
 
       const data = await res.json();
+      logAiCall({ endpoint: "extract-quote", success: res.ok && !data.error, durationMs: Date.now() - t0, errorMessage: data.error, projectId: projectId ?? undefined });
       if (!res.ok || data.error) throw new Error(data.error ?? "Extraction failed");
 
       const q = data.quote;

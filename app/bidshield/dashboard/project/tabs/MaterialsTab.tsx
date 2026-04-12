@@ -7,6 +7,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
+import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
 import {
   MATERIAL_CATEGORIES,
   MATERIAL_TEMPLATES,
@@ -294,6 +295,7 @@ function CoverageFlag({ material, onLookup, lookupResults }: {
 
 export default function MaterialsTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
+  const logAiCall = useAiUsageLog(userId);
 
   const projectMaterials = useQuery(
     api.bidshield.getProjectMaterials,
@@ -503,6 +505,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         const base64 = dataUrl.split(",")[1];
         if (!base64) { setIsUploading(false); return; }
 
+        const t0 = Date.now();
         const res = await fetch("/api/bidshield/extract-estimating-report", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -511,12 +514,14 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
+          logAiCall({ endpoint: "extract-estimating-report", success: false, durationMs: Date.now() - t0, errorMessage: err?.error, projectId: projectId ?? undefined });
           setUploadError(err?.error ?? "PDF extraction failed — please try again or use a different file.");
           setIsUploading(false);
           return;
         }
 
         const data = await res.json();
+        logAiCall({ endpoint: "extract-estimating-report", success: true, durationMs: Date.now() - t0, projectId: projectId ?? undefined });
         if (!data.items?.length) {
           setUploadError("No materials found in this PDF. Make sure you're uploading an estimating report with line items.");
           setIsUploading(false);

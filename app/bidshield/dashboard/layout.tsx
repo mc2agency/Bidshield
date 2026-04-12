@@ -53,6 +53,70 @@ const NAV_ITEMS = [
   },
 ];
 
+function NotificationBell({ userId, isDemo }: { userId: string | null | undefined; isDemo: boolean }) {
+  const [open, setOpen] = useState(false);
+  const unreadCount = useQuery(api.bidshield.getUnreadCount, !isDemo && userId ? { userId } : "skip");
+  const notifications = useQuery(api.bidshield.getNotifications, !isDemo && userId && open ? { userId, limit: 10 } : "skip");
+  const markRead = useMutation(api.bidshield.markRead);
+  const markAllRead = useMutation(api.bidshield.markAllRead);
+  const dismiss = useMutation(api.bidshield.dismissNotification);
+
+  if (isDemo || !userId) return null;
+  const count = unreadCount ?? 0;
+
+  return (
+    <div className="relative px-3 py-2">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+        style={{ background: open ? "var(--bs-bg-elevated)" : "transparent", color: "var(--bs-text-muted)" }}
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+        </svg>
+        <span>Notifications</span>
+        {count > 0 && (
+          <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 600, background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)", borderRadius: 9999, padding: "1px 6px" }}>
+            {count}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div style={{ position: "absolute", left: 12, right: 12, bottom: "calc(100% + 4px)", background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 12, maxHeight: 320, overflowY: "auto", zIndex: 50, boxShadow: "0 8px 24px rgba(0,0,0,0.3)" }}>
+          <div style={{ padding: "10px 12px 6px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--bs-border)" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>Notifications</span>
+            {count > 0 && (
+              <button onClick={() => markAllRead({ userId })} style={{ fontSize: 10, color: "var(--bs-teal)", background: "none", border: "none", cursor: "pointer" }}>
+                Mark all read
+              </button>
+            )}
+          </div>
+          {!notifications?.length ? (
+            <div style={{ padding: "16px 12px", fontSize: 12, color: "var(--bs-text-dim)", textAlign: "center" }}>No notifications</div>
+          ) : (
+            notifications.filter((n: any) => !n.dismissedAt).map((n: any) => (
+              <div
+                key={n._id}
+                style={{ padding: "8px 12px", borderBottom: "1px solid rgba(255,255,255,0.03)", display: "flex", gap: 8, alignItems: "flex-start", background: n.read ? "transparent" : "rgba(27,58,75,0.08)" }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: n.read ? 400 : 600, color: "var(--bs-text-secondary)" }}>{n.title}</div>
+                  <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{n.message}</div>
+                  <div style={{ fontSize: 9, color: "var(--bs-text-dim)", marginTop: 2 }}>{new Date(n.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</div>
+                </div>
+                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                  {!n.read && <button onClick={() => markRead({ notificationId: n._id })} style={{ fontSize: 9, color: "var(--bs-teal)", background: "none", border: "none", cursor: "pointer" }}>Read</button>}
+                  <button onClick={() => dismiss({ notificationId: n._id })} style={{ fontSize: 9, color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>×</button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: string; isPro: boolean }) {
   // Project pages have their own sidebar — hide the outer one entirely
   if (pathname.startsWith("/bidshield/dashboard/project")) return null;
@@ -100,6 +164,9 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
           );
         })}
       </nav>
+
+      {/* L-15: Notification bell */}
+      <NotificationBell userId={userId} isDemo={isDemo} />
 
       {/* Free plan upgrade nudge */}
       {!isDemo && !isPro && isSignedIn && (

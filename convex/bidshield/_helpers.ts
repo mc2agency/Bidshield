@@ -56,6 +56,24 @@ export async function assertRecordOwnership(
   }
 }
 
+/**
+ * M-9: Resolve a Clerk user ID to the Convex users table _id.
+ * This is the foundation for the eventual userId schema migration.
+ * Once all tables store v.id("users") instead of v.string(), this lookup
+ * becomes the single point of Clerk→Convex translation.
+ */
+export async function resolveUserId(
+  ctx: QueryCtx | MutationCtx,
+  clerkId: string
+): Promise<Id<"users"> | null> {
+  if (isDemoUser(clerkId)) return null;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", clerkId))
+    .first();
+  return user?._id ?? null;
+}
+
 export async function requirePro(ctx: any, userId: string) {
   if (isDemoUser(userId)) return; // demo always allowed
   const user = await ctx.db

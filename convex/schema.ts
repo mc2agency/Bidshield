@@ -680,4 +680,37 @@ export default defineSchema({
   })
     .index("by_user_action", ["userId", "action"])
     .index("by_user_action_time", ["userId", "action", "timestamp"]),
+
+  // L-15: In-app notifications (quote expirations, reminders, system alerts)
+  bidshield_notifications: defineTable({
+    userId: v.string(),
+    type: v.string(),         // "quote_expiring" | "quote_expired" | "bid_due_soon" | "system"
+    title: v.string(),
+    message: v.string(),
+    projectId: v.optional(v.id("bidshield_projects")),
+    quoteId: v.optional(v.id("bidshield_quotes")),
+    read: v.boolean(),
+    dismissedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_read", ["userId", "read"])
+    .index("by_user_created", ["userId", "createdAt"]),
+
+  // L-16: AI usage tracking — logs each AI API call for dashboard/rate visibility
+  bidshield_ai_usage: defineTable({
+    userId: v.string(),
+    endpoint: v.string(),     // "analyze-labor" | "extract-quote" | "extract-price-sheet"
+    model: v.optional(v.string()),
+    tokensIn: v.optional(v.number()),
+    tokensOut: v.optional(v.number()),
+    durationMs: v.optional(v.number()),
+    success: v.boolean(),
+    errorMessage: v.optional(v.string()),
+    projectId: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_endpoint", ["userId", "endpoint"])
+    .index("by_user_created", ["userId", "createdAt"]),
 });
