@@ -14,7 +14,7 @@ import GeneralConditionsTab from "./GeneralConditionsTab";
 type SubTabId = "pricing" | "takeoff" | "materials" | "labor" | "genconds";
 
 const SUB_TABS: { id: SubTabId; label: string }[] = [
-  { id: "pricing", label: "Pricing" },
+  { id: "pricing", label: "Recap" },
   { id: "takeoff", label: "Takeoff" },
   { id: "materials", label: "Materials" },
   { id: "labor", label: "Labor" },
