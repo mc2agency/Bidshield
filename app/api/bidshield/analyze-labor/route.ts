@@ -156,13 +156,13 @@ DO NOT generate tasks for Gen. Conds items. Only direct field labor goes in the 
 Return only the JSON object.`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
+    const timeout = setTimeout(() => controller.abort(), 45_000);
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
         {
           model: "claude-sonnet-4-6",
-          max_tokens: 4096,
+          max_tokens: 8192,
           system: systemPrompt,
           messages: [{ role: "user", content: `Analyze this roofing scope and generate a labor breakdown:\n\n${description}` }],
         },
