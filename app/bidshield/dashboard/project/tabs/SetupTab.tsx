@@ -30,6 +30,7 @@ const DECKS = [
   { id: "lightweight", label: "Lightweight Concrete" },
   { id: "gypsum", label: "Gypsum Deck" },
   { id: "tectum", label: "Tectum / Cementwood" },
+  { id: "plank", label: "Plank Deck (Precast / Cementitious)" },
 ];
 
 interface AssemblyRow {

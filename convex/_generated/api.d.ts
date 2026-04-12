@@ -29,6 +29,7 @@ import type * as bidshield_scope from "../bidshield/scope.js";
 import type * as bidshield_stats from "../bidshield/stats.js";
 import type * as bidshield_submissions from "../bidshield/submissions.js";
 import type * as bidshield_takeoff from "../bidshield/takeoff.js";
+import type * as bidshield_validatorBatch from "../bidshield/validatorBatch.js";
 import type * as bidshield_vendors from "../bidshield/vendors.js";
 import type * as bidshieldDefaults from "../bidshieldDefaults.js";
 import type * as checklistTemplates from "../checklistTemplates.js";
@@ -69,6 +70,7 @@ declare const fullApi: ApiFromModules<{
   "bidshield/stats": typeof bidshield_stats;
   "bidshield/submissions": typeof bidshield_submissions;
   "bidshield/takeoff": typeof bidshield_takeoff;
+  "bidshield/validatorBatch": typeof bidshield_validatorBatch;
   "bidshield/vendors": typeof bidshield_vendors;
   bidshieldDefaults: typeof bidshieldDefaults;
   checklistTemplates: typeof checklistTemplates;

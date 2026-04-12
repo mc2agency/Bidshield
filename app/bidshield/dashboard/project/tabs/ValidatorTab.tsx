@@ -133,62 +133,28 @@ function worstStatus(items: ScoreItem[]): "pass" | "warn" | "fail" | "none" {
 export default function ValidatorTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
-  const checklist = useQuery(
-    api.bidshield.getChecklist,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  // H-6: Single batched query replaces 15 individual useQuery subscriptions
+  const validatorData = useQuery(
+    api.bidshield.getValidatorData,
+    !isDemo && isValidConvexId && userId
+      ? { projectId: projectId as Id<"bidshield_projects">, userId }
+      : "skip"
   );
-  const quotes = useQuery(
-    api.bidshield.getQuotes,
-    !isDemo && userId ? { userId, projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined } : "skip"
-  );
-  const rfis = useQuery(
-    api.bidshield.getRFIs,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const scopeItems = useQuery(
-    api.bidshield.getScopeItems,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const addenda = useQuery(
-    api.bidshield.getAddenda,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const bidQuals = useQuery(
-    api.bidshield.getBidQuals,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const gcItems = useQuery(
-    api.bidshield.getGCItems,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const projectMaterials = useQuery(
-    api.bidshield.getProjectMaterials,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const datasheets = useQuery(
-    api.bidshield.getDatasheets,
-    !isDemo && userId ? { userId } : "skip"
-  );
-  const laborTasks = useQuery(
-    api.bidshield.getLaborTasks,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const laborAnalysis = useQuery(
-    api.bidshield.getLaborAnalysis,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const gcFormDocuments = useQuery(
-    api.bidshield.getGcBidFormDocuments,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const unconfirmedGcFormCount = useQuery(
-    api.bidshield.getUnconfirmedGcBidFormCount,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
-  const laborTotal = useQuery(
-    api.bidshield.getLaborTotal,
-    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
-  );
+
+  const checklist = validatorData?.checklist ?? null;
+  const quotes = validatorData?.quotes ?? null;
+  const rfis = validatorData?.rfis ?? null;
+  const scopeItems = validatorData?.scopeItems ?? null;
+  const addenda = validatorData?.addenda ?? null;
+  const bidQuals = validatorData?.bidQuals ?? null;
+  const gcItems = validatorData?.gcItems ?? null;
+  const projectMaterials = validatorData?.projectMaterials ?? null;
+  const datasheets = validatorData?.datasheets ?? null;
+  const laborTasks = validatorData?.laborTasks ?? null;
+  const laborAnalysis = validatorData?.laborAnalysis ?? null;
+  const gcFormDocuments = validatorData?.gcFormDocuments ?? null;
+  const unconfirmedGcFormCount = validatorData?.unconfirmedGcFormCount ?? null;
+  const laborTotal = validatorData?.laborTotal ?? null;
 
   const [hasRun] = useState(true);
   const [exporting, setExporting] = useState(false);

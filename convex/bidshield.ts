@@ -192,6 +192,11 @@ export {
   deleteAlternate,
 } from "./bidshield/alternates";
 
+// Validator Batch (H-6)
+export {
+  getValidatorData,
+} from "./bidshield/validatorBatch";
+
 // Re-export helpers for internal use
 export {
   roundCurrency,

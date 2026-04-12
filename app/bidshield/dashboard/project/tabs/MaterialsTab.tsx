@@ -1169,9 +1169,16 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             <td className="px-5 py-2.5">
                               <div style={{ color: "var(--bs-text-secondary)" }}>{m.name}</div>
                               <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                                {m.calcType === "linear_from_takeoff" && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>From takeoff (linear)</span>}
-                                {m.calcType === "count_from_takeoff" && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>From takeoff (count)</span>}
-                                {m.calcType === "coverage" && !m.coverageRate && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>{m.coverage} SF/unit</span>}
+                                {m.calcType === "linear_from_takeoff" && (() => {
+                                  const tkQty = m.takeoffItemType ? (lineItems as any[]).filter((li: any) => li.itemType === m.takeoffItemType).reduce((s: number, li: any) => s + (li.quantity || 0), 0) : 0;
+                                  return <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>Takeoff: {tkQty > 0 ? `${tkQty.toLocaleString()} LF` : "—"} × {((m.wasteFactor - 1) * 100).toFixed(0)}% waste</span>;
+                                })()}
+                                {m.calcType === "count_from_takeoff" && (() => {
+                                  const tkQty = m.takeoffItemType ? (lineItems as any[]).filter((li: any) => li.itemType === m.takeoffItemType).reduce((s: number, li: any) => s + (li.quantity || 0), 0) : 0;
+                                  return <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>Takeoff: {tkQty > 0 ? `${tkQty.toLocaleString()} EA` : "—"}</span>;
+                                })()}
+                                {m.calcType === "coverage" && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>{totalSF > 0 ? `${totalSF.toLocaleString()} SF` : "—"} ÷ {m.coverage || "?"} SF/unit</span>}
+                                {m.calcType === "qty_per_sf" && <span className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>{totalSF > 0 ? `${totalSF.toLocaleString()} SF` : "—"} × {m.qtyPerSf || "?"}/SF</span>}
                                 <CoverageFlag material={m} onLookup={handleCoverageLookup} lookupResults={coverageLookups} />
                               </div>
                             </td>

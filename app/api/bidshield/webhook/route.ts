@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
   // M9: Idempotency guard — skip if we've already processed this Stripe event.
   // Stripe retries webhooks on non-2xx responses; without this check a retry after
   // a partial Convex write could create duplicate subscription records.
+  // @ts-expect-error TS2589: Convex API generics hit type-depth limit with Zod v4
   const alreadyProcessed = await convex.mutation(api.users.isWebhookEventProcessed, {
     stripeEventId: event.id,
   });

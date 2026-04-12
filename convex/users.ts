@@ -39,11 +39,13 @@ export const getOrCreateUser = mutation({
     // Schedule onboarding email sequence
     const DAY = 24 * 60 * 60 * 1000;
     const emailArgs = { email: args.email, name: args.name };
-    await ctx.scheduler.runAfter(0,         internal.email.sendOnboardingEmail, { ...emailArgs, day: 1 });
-    await ctx.scheduler.runAfter(3 * DAY,   internal.email.sendOnboardingEmail, { ...emailArgs, day: 3 });
-    await ctx.scheduler.runAfter(5 * DAY,   internal.email.sendOnboardingEmail, { ...emailArgs, day: 5 });
-    await ctx.scheduler.runAfter(8 * DAY,   internal.email.sendOnboardingEmail, { ...emailArgs, day: 8 });
-    await ctx.scheduler.runAfter(12 * DAY,  internal.email.sendOnboardingEmail, { ...emailArgs, day: 12 });
+    // @ts-expect-error TS2589: Convex internal API generics hit type-depth limit with Zod v4
+    const emailFn = internal.email.sendOnboardingEmail;
+    await ctx.scheduler.runAfter(0,         emailFn, { ...emailArgs, day: 1 });
+    await ctx.scheduler.runAfter(3 * DAY,   emailFn, { ...emailArgs, day: 3 });
+    await ctx.scheduler.runAfter(5 * DAY,   emailFn, { ...emailArgs, day: 5 });
+    await ctx.scheduler.runAfter(8 * DAY,   emailFn, { ...emailArgs, day: 8 });
+    await ctx.scheduler.runAfter(12 * DAY,  emailFn, { ...emailArgs, day: 12 });
 
     // Check for existing purchases with this email and link them
     const orphanedPurchases = await ctx.db
