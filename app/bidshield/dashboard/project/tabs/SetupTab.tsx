@@ -101,6 +101,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const updateProject = useMutation(api.bidshield.updateProject);
   const createTakeoffSection = useMutation(api.bidshield.createTakeoffSection);
   const initProjectMaterials = useMutation(api.bidshield.initProjectMaterials);
+  const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
   const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
 
@@ -495,6 +496,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           }));
 
           // Add spec-extracted materials not covered by templates
+          // Fuzzy-match against template catalog to inherit default pricing
           if (specData.materials?.length > 0) {
             const templateNames = new Set(allMaterials.map(m => m.name.toLowerCase()));
             for (const mat of specData.materials) {
@@ -502,12 +504,23 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               const specName = mat.manufacturer && mat.manufacturer !== "as specified"
                 ? `${mat.name} — ${mat.manufacturer}`
                 : mat.name;
+              // Try to find a matching template by category + keyword overlap
+              const cat = mat.category || "miscellaneous";
+              const nameWords = mat.name.toLowerCase().split(/\s+/);
+              const matchedTemplate = templates.find(t =>
+                t.category === cat &&
+                nameWords.some((w: string) => w.length > 3 && t.name.toLowerCase().includes(w))
+              );
               allMaterials.push({
-                category: mat.category || "miscellaneous",
+                category: cat,
                 name: specName,
-                unit: unitMap[mat.category] || "EA",
-                calcType: "fixed",
-                wasteFactor: 1.0,
+                unit: matchedTemplate?.unit || unitMap[cat] || "EA",
+                calcType: matchedTemplate?.calcType || "fixed",
+                wasteFactor: matchedTemplate?.wasteFactor || 1.0,
+                coverage: matchedTemplate?.defaultCoverage,
+                qtyPerSf: matchedTemplate?.defaultQtyPerSf,
+                takeoffItemType: matchedTemplate?.takeoffItemType,
+                unitPrice: matchedTemplate?.defaultUnitPrice,
               });
             }
           }
@@ -518,6 +531,14 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               userId,
               materials: allMaterials,
             });
+            // Auto-calculate quantities from takeoff data (coverage, qty/SF, linear, count)
+            // This computes quantity × unitPrice = totalCost for all materials
+            try {
+              await syncTakeoffToMaterials({
+                projectId: projectId as any,
+                userId,
+              });
+            } catch { /* takeoff data may not exist yet — quantities will sync when takeoff is filled in */ }
           }
         } catch { /* materials may already exist */ }
       }

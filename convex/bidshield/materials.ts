@@ -185,7 +185,22 @@ export const initProjectMaterials = mutation({
         (e) => e.name.toLowerCase() === m.name.toLowerCase() && e.category === m.category
       );
 
-      if (!existingMaterial) {
+      if (existingMaterial) {
+        // Material exists — backfill missing fields (unitPrice, calcType, coverage, etc.)
+        const patches: Record<string, any> = {};
+        if (!existingMaterial.unitPrice && m.unitPrice) patches.unitPrice = roundCurrency(m.unitPrice);
+        if (!existingMaterial.calcType || existingMaterial.calcType === "fixed") {
+          if (m.calcType && m.calcType !== "fixed") patches.calcType = m.calcType;
+        }
+        if (!existingMaterial.coverage && m.coverage) patches.coverage = m.coverage;
+        if (!existingMaterial.qtyPerSf && m.qtyPerSf) patches.qtyPerSf = m.qtyPerSf;
+        if (!existingMaterial.takeoffItemType && m.takeoffItemType) patches.takeoffItemType = m.takeoffItemType;
+        if (!existingMaterial.wasteFactor && m.wasteFactor) patches.wasteFactor = m.wasteFactor;
+        if (Object.keys(patches).length > 0) {
+          patches.updatedAt = now;
+          await ctx.db.patch(existingMaterial._id, patches);
+        }
+      } else {
         // Material is new — insert it
         const maxSort = allMaterials.length > 0
           ? Math.max(...allMaterials.map(mat => mat.sortOrder || 0))
