@@ -101,6 +101,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const updateProject = useMutation(api.bidshield.updateProject);
   const createTakeoffSection = useMutation(api.bidshield.createTakeoffSection);
   const initProjectMaterials = useMutation(api.bidshield.initProjectMaterials);
+  const clearProjectMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
   const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
@@ -463,16 +464,15 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         } catch { /* takeoff sections may already exist */ }
       }
 
-      // Initialize materials from templates + spec-extracted materials
+      // Initialize materials: spec-extracted materials are PRIMARY, templates fill gaps
       if (userId) {
         try {
-          const { getTemplatesForSystem } = await import("@/lib/bidshield/material-templates");
+          const { getTemplatesForSystem, MATERIAL_TEMPLATES } = await import("@/lib/bidshield/material-templates");
           const systemTypes = specData.assemblies?.length > 0
             ? [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))] as string[]
             : [];
           const templates = getTemplatesForSystem(systemTypes);
 
-          // Build combined material list: templates + spec-extracted
           const unitMap: Record<string, string> = {
             membrane: "RL", insulation: "BD", fasteners: "BX",
             adhesive: "GL", sheet_metal: "LF", lumber: "LF",
@@ -482,36 +482,26 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             templateKey?: string; category: string; name: string; unit: string;
             calcType: string; wasteFactor: number; coverage?: number;
             qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
-          }> = templates.map(t => ({
-            templateKey: t.key,
-            category: t.category,
-            name: t.name,
-            unit: t.unit,
-            calcType: t.calcType,
-            wasteFactor: t.wasteFactor,
-            coverage: t.defaultCoverage,
-            qtyPerSf: t.defaultQtyPerSf,
-            takeoffItemType: t.takeoffItemType,
-            unitPrice: t.defaultUnitPrice,
-          }));
+          }> = [];
 
-          // Add spec-extracted materials not covered by templates
-          // Fuzzy-match against template catalog to inherit default pricing
+          // 1. Add spec-extracted materials FIRST — these are what the actual project requires
+          const usedTemplateKeys = new Set<string>();
           if (specData.materials?.length > 0) {
-            const templateNames = new Set(allMaterials.map(m => m.name.toLowerCase()));
             for (const mat of specData.materials) {
-              if (!mat.name || templateNames.has(mat.name.toLowerCase())) continue;
+              if (!mat.name) continue;
               const specName = mat.manufacturer && mat.manufacturer !== "as specified"
                 ? `${mat.name} — ${mat.manufacturer}`
                 : mat.name;
-              // Try to find a matching template by category + keyword overlap
               const cat = mat.category || "miscellaneous";
+              // Fuzzy-match against template catalog to inherit pricing + calc logic
               const nameWords = mat.name.toLowerCase().split(/\s+/);
               const matchedTemplate = templates.find(t =>
                 t.category === cat &&
                 nameWords.some((w: string) => w.length > 3 && t.name.toLowerCase().includes(w))
               );
+              if (matchedTemplate) usedTemplateKeys.add(matchedTemplate.key);
               allMaterials.push({
+                templateKey: matchedTemplate?.key,
                 category: cat,
                 name: specName,
                 unit: matchedTemplate?.unit || unitMap[cat] || "EA",
@@ -525,7 +515,35 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             }
           }
 
+          // 2. Fill in essential template materials NOT already covered by spec
+          //    Only add templates that have a calcType tied to takeoff (coverage, qty_per_sf, linear, count)
+          //    so the estimator has a complete quantity picture
+          const specNames = new Set(allMaterials.map(m => m.name.toLowerCase()));
+          for (const t of templates) {
+            if (usedTemplateKeys.has(t.key)) continue;
+            if (specNames.has(t.name.toLowerCase())) continue;
+            // Only add essential calc-based templates (fasteners, accessories, sheet metal)
+            // Skip membrane/insulation since spec materials already define those
+            if (t.category === "membrane" || t.category === "insulation") continue;
+            allMaterials.push({
+              templateKey: t.key,
+              category: t.category,
+              name: t.name,
+              unit: t.unit,
+              calcType: t.calcType,
+              wasteFactor: t.wasteFactor,
+              coverage: t.defaultCoverage,
+              qtyPerSf: t.defaultQtyPerSf,
+              takeoffItemType: t.takeoffItemType,
+              unitPrice: t.defaultUnitPrice,
+            });
+          }
+
           if (allMaterials.length > 0) {
+            // Clear old materials before re-initializing from spec
+            try {
+              await clearProjectMaterials({ projectId: projectId as any, userId });
+            } catch { /* may not have any to clear */ }
             await initProjectMaterials({
               projectId: projectId as any,
               userId,
