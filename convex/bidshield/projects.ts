@@ -213,77 +213,49 @@ export const deleteProject = mutation({
   args: { projectId: v.id("bidshield_projects") },
   handler: async (ctx, args) => {
     await assertProjectOwnership(ctx, args.projectId);
-    // Delete all checklist items
-    const items = await ctx.db
-      .query("bidshield_checklist_items")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
 
-    for (const item of items) {
-      await ctx.db.delete(item._id);
-    }
+    // P2: Collect all child records across every project-linked table, then batch-delete.
+    const pid = args.projectId;
+    const byProject = (q: any) => q.eq("projectId", pid);
 
-    // Delete all quotes linked to this project
-    const quotes = await ctx.db
-      .query("bidshield_quotes")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
+    const [
+      checklistItems, quotes, rfis, takeoffSections, takeoffLineItems,
+      materials, scopeItems, addenda, bidQuals, scopeClarifications,
+      laborTasks, gcBidFormDocs, gcBidFormItems, laborAnalysis,
+      gcItems, submissions, prebidMeetings, alternates, decisions,
+    ] = await Promise.all([
+      ctx.db.query("bidshield_checklist_items").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_quotes").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_rfis").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_takeoff_sections").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_takeoff_line_items").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_project_materials").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_scope_items").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_addenda").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_bid_quals").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_scope_clarifications").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_laborTasks").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_gcBidFormDocuments").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_gcBidFormItems").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_laborAnalysis").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_gc_items").withIndex("by_project", byProject).collect(),
+      // Note: bidshield_datasheets is user-level (no projectId), not deleted here
+      ctx.db.query("bidshield_submissions").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_prebid_meetings").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_alternates").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_decisions").withIndex("by_project", byProject).collect(),
+    ]);
 
-    for (const quote of quotes) {
-      await ctx.db.delete(quote._id);
-    }
+    // Flatten all records and delete in parallel
+    const allDocs = [
+      ...checklistItems, ...quotes, ...rfis, ...takeoffSections, ...takeoffLineItems,
+      ...materials, ...scopeItems, ...addenda, ...bidQuals, ...scopeClarifications,
+      ...laborTasks, ...gcBidFormDocs, ...gcBidFormItems, ...laborAnalysis,
+      ...gcItems, ...submissions, ...prebidMeetings, ...alternates, ...decisions,
+    ];
+    await Promise.all(allDocs.map((d) => ctx.db.delete(d._id)));
 
-    // Delete all RFIs
-    const rfis = await ctx.db
-      .query("bidshield_rfis")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-
-    for (const rfi of rfis) {
-      await ctx.db.delete(rfi._id);
-    }
-
-    // Delete all takeoff sections
-    const sections = await ctx.db
-      .query("bidshield_takeoff_sections")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-
-    for (const section of sections) {
-      await ctx.db.delete(section._id);
-    }
-
-    // Delete all takeoff line items
-    const lineItems = await ctx.db
-      .query("bidshield_takeoff_line_items")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-
-    for (const li of lineItems) {
-      await ctx.db.delete(li._id);
-    }
-
-    // Delete all project materials
-    const materials = await ctx.db
-      .query("bidshield_project_materials")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-
-    for (const mat of materials) {
-      await ctx.db.delete(mat._id);
-    }
-
-    // Delete all scope items
-    const scopeItems = await ctx.db
-      .query("bidshield_scope_items")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-
-    for (const si of scopeItems) {
-      await ctx.db.delete(si._id);
-    }
-
-    // Delete the project
+    // Delete the project itself
     await ctx.db.delete(args.projectId);
   },
 });

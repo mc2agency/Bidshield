@@ -45,6 +45,7 @@ export const updateRFI = mutation({
     sentAt: v.optional(v.number()),
     response: v.optional(v.string()),
     respondedAt: v.optional(v.number()),
+    responseDeadline: v.optional(v.string()), // E-11: YYYY-MM-DD
     status: v.optional(v.union(
       v.literal("draft"),
       v.literal("sent"),

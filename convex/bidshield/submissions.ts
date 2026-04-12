@@ -109,12 +109,32 @@ export const addSubmission = mutation({
       }
     }
 
+    // E-21: Unverified labor tasks warning
+    const laborTasks = await ctx.db
+      .query("bidshield_laborTasks")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    if (laborTasks.length > 0) {
+      const unverified = laborTasks.filter((t) => !t.verified);
+      if (unverified.length > 0) {
+        warnings.push(
+          `${unverified.length} of ${laborTasks.length} labor task${laborTasks.length !== 1 ? "s" : ""} not verified.`
+        );
+      }
+    }
+
     // If there are blocking warnings and estimator hasn't bypassed, throw
     if (warnings.length > 0 && !args.bypassThreshold) {
       throw new Error(`Cannot submit: ${warnings.join(" ")}`);
     }
 
     const now = Date.now();
+
+    // E-29: Auto-update project status to "submitted" on first submission
+    if (project && project.status !== "submitted" && project.status !== "won" && project.status !== "lost") {
+      await ctx.db.patch(args.projectId, { status: "submitted", updatedAt: now });
+    }
+
     return await ctx.db.insert("bidshield_submissions", {
       projectId: args.projectId,
       userId: args.userId,

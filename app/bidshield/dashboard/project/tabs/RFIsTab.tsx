@@ -271,6 +271,13 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
                               <p className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>{rfi.response}</p>
                             </div>
                           )}
+                          {/* E-11: Response deadline display */}
+                          {rfi.responseDeadline && rfi.status === "sent" && (
+                            <div className="mb-2 text-xs" style={{ color: new Date(rfi.responseDeadline) < new Date() ? "var(--bs-red)" : "var(--bs-text-muted)" }}>
+                              {new Date(rfi.responseDeadline) < new Date() ? "⚠ Deadline passed: " : "Deadline: "}
+                              {new Date(rfi.responseDeadline).toLocaleDateString()}
+                            </div>
+                          )}
                           {rfi.status === "sent" && !isDemo && (
                             <div className="mb-3">
                               <label className="block text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "var(--bs-text-dim)" }}>Record Response</label>
@@ -282,6 +289,21 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
                                 className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none"
                                 style={{ background: "var(--bs-bg-input, var(--bs-bg-card))", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
                               />
+                              {/* E-11: Set response deadline */}
+                              <div className="flex items-center gap-2 mt-2">
+                                <label className="text-[10px] font-medium" style={{ color: "var(--bs-text-dim)" }}>Response deadline:</label>
+                                <input
+                                  type="date"
+                                  defaultValue={rfi.responseDeadline || ""}
+                                  onChange={(e) => {
+                                    if (e.target.value) {
+                                      updateRFIMut({ rfiId: rfi._id, responseDeadline: e.target.value });
+                                    }
+                                  }}
+                                  className="text-xs px-2 py-1 rounded focus:outline-none"
+                                  style={{ background: "var(--bs-bg-input, var(--bs-bg-card))", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+                                />
+                              </div>
                             </div>
                           )}
                           <div className="flex flex-wrap gap-2">
@@ -293,6 +315,10 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
                             )}
                             {(rfi.status === "answered" || rfi.status === "sent") && (
                               <button onClick={() => handleClose(rfi._id)} disabled={isDemo} className="h-7 px-3 text-[11px] font-bold rounded-lg disabled:opacity-50 cursor-pointer" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}>Close</button>
+                            )}
+                            {/* E-12: Reopen answered/closed RFIs */}
+                            {(rfi.status === "answered" || rfi.status === "closed") && !isDemo && (
+                              <button onClick={() => updateRFIMut({ rfiId: rfi._id, status: "sent" })} className="h-7 px-3 text-[11px] font-bold rounded-lg cursor-pointer" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>Reopen</button>
                             )}
                             {!isDemo && (
                               <button onClick={() => handleDelete(rfi._id)} className="h-7 px-3 ml-auto text-[11px] font-bold rounded-lg cursor-pointer" style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)" }}>Delete</button>

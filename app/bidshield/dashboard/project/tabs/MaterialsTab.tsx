@@ -407,6 +407,15 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     const pricingGaps: string[] = [];
     const coverageIssues: string[] = [];
     const wasteIssues: string[] = [];
+    const unsyncedMaterials: string[] = []; // E-15: takeoff-dependent materials needing sync
+
+    // E-15: Find latest takeoff update timestamp
+    const takeoffDeps = ["coverage", "qty_per_sf", "linear_from_takeoff", "count_from_takeoff"];
+    const latestTakeoffUpdate = Math.max(
+      ...(sections as any[]).map((s: any) => s.updatedAt || s._creationTime || 0),
+      ...(lineItems as any[]).map((li: any) => li.updatedAt || li._creationTime || 0),
+      0
+    );
 
     for (const m of materials as any[]) {
       // Pricing gap: no quote match when a quote is selected
@@ -424,11 +433,19 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       if (WASTE_REQUIRED_CATS.has(m.category) && (m.wasteFactor - 1) * 100 === 0) {
         wasteIssues.push(m.name);
       }
+      // E-15: Takeoff sync check — material depends on takeoff but has no quantity or is stale
+      if (takeoffDeps.includes(m.calcType)) {
+        if (!m.quantity || m.quantity <= 0) {
+          unsyncedMaterials.push(m.name);
+        } else if (latestTakeoffUpdate > 0 && m.updatedAt < latestTakeoffUpdate) {
+          unsyncedMaterials.push(m.name);
+        }
+      }
     }
-    return { pricingGaps, coverageIssues, wasteIssues };
-  }, [materials, ds, isComparing, isBestMatch, quotes, selectedQuoteLineItems]);
+    return { pricingGaps, coverageIssues, wasteIssues, unsyncedMaterials };
+  }, [materials, ds, isComparing, isBestMatch, quotes, selectedQuoteLineItems, sections, lineItems]);
 
-  const totalIssues = verificationIssues.pricingGaps.length + verificationIssues.coverageIssues.length + verificationIssues.wasteIssues.length;
+  const totalIssues = verificationIssues.pricingGaps.length + verificationIssues.coverageIssues.length + verificationIssues.wasteIssues.length + verificationIssues.unsyncedMaterials.length;
 
   // ── Category-level quote coverage ─────────────────────────────────────────
   const categoryHasQuote = useMemo(() => {
@@ -807,11 +824,12 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           >
             <span className="text-sm font-medium flex items-center gap-1.5" style={{ color: "var(--bs-amber)" }}>
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-amber)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-              {verificationIssues.pricingGaps.length > 0 && `${verificationIssues.pricingGaps.length} pricing gap${verificationIssues.pricingGaps.length !== 1 ? "s" : ""}`}
-              {verificationIssues.pricingGaps.length > 0 && verificationIssues.coverageIssues.length > 0 && " · "}
-              {verificationIssues.coverageIssues.length > 0 && `${verificationIssues.coverageIssues.length} coverage issue${verificationIssues.coverageIssues.length !== 1 ? "s" : ""}`}
-              {(verificationIssues.pricingGaps.length > 0 || verificationIssues.coverageIssues.length > 0) && verificationIssues.wasteIssues.length > 0 && " · "}
-              {verificationIssues.wasteIssues.length > 0 && `${verificationIssues.wasteIssues.length} missing waste`}
+              {[
+                verificationIssues.pricingGaps.length > 0 && `${verificationIssues.pricingGaps.length} pricing gap${verificationIssues.pricingGaps.length !== 1 ? "s" : ""}`,
+                verificationIssues.coverageIssues.length > 0 && `${verificationIssues.coverageIssues.length} coverage issue${verificationIssues.coverageIssues.length !== 1 ? "s" : ""}`,
+                verificationIssues.wasteIssues.length > 0 && `${verificationIssues.wasteIssues.length} missing waste`,
+                verificationIssues.unsyncedMaterials.length > 0 && `${verificationIssues.unsyncedMaterials.length} unsynced from takeoff`,
+              ].filter(Boolean).join(" · ")}
               {" — review before submitting"}
             </span>
             <svg className={`w-4 h-4 transition-transform ${alertExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-amber)">
@@ -848,6 +866,25 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                       <li key={n} className="text-xs truncate" style={{ color: "var(--bs-amber)" }}>• {n}</li>
                     ))}
                   </ul>
+                </div>
+              )}
+              {verificationIssues.unsyncedMaterials.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold mb-1.5" style={{ color: "var(--bs-amber)" }}>Unsynced from takeoff ({verificationIssues.unsyncedMaterials.length})</div>
+                  <ul className="space-y-0.5">
+                    {verificationIssues.unsyncedMaterials.map(n => (
+                      <li key={n} className="text-xs truncate" style={{ color: "var(--bs-amber)" }}>• {n}</li>
+                    ))}
+                  </ul>
+                  {onNavigateTab && (
+                    <button
+                      onClick={() => onNavigateTab("takeoff" as any)}
+                      className="text-xs mt-1.5 underline"
+                      style={{ color: "var(--bs-amber)" }}
+                    >
+                      Go to Takeoff → Sync
+                    </button>
+                  )}
                 </div>
               )}
             </div>

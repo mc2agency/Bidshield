@@ -216,6 +216,41 @@ export default function GeneralConditionsTab({ isDemo, isPro, userId, projectId,
         ))}
       </div>
 
+      {/* E-22: Markup calculation breakdown */}
+      {markupItems.length > 0 && markupBase > 0 && (
+        <div className="mb-4 rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="px-4 py-3" style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+            <span className="text-xs font-semibold" style={{ color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Markup Calculation Order</span>
+          </div>
+          <div className="px-4 py-3 space-y-1.5">
+            <div className="flex justify-between text-xs" style={{ color: "var(--bs-text-muted)" }}>
+              <span>Materials</span><span>{fmt(computedMaterialCost)}</span>
+            </div>
+            <div className="flex justify-between text-xs" style={{ color: "var(--bs-text-muted)" }}>
+              <span>+ Labor</span><span>{fmt(computedLaborCost)}</span>
+            </div>
+            <div className="flex justify-between text-xs" style={{ color: "var(--bs-text-muted)" }}>
+              <span>+ GC Line Items</span><span>{fmt(lineItemsTotal)}</span>
+            </div>
+            <div className="flex justify-between text-xs font-medium pt-1" style={{ color: "var(--bs-text-primary)", borderTop: "1px solid var(--bs-border)" }}>
+              <span>Markup Base</span><span>{fmt(markupBase)}</span>
+            </div>
+            {markupItems.map((item: any) => {
+              const pct = item.markupPct ?? 0;
+              const amt = markupBase * (pct / 100);
+              return (
+                <div key={item._id || item.name} className="flex justify-between text-xs" style={{ color: "var(--bs-text-muted)" }}>
+                  <span>{item.name} ({pct}%)</span><span>{fmt(amt)}</span>
+                </div>
+              );
+            })}
+            <div className="flex justify-between text-xs font-medium pt-1" style={{ color: "var(--bs-teal)", borderTop: "1px solid var(--bs-border)" }}>
+              <span>Total Markups</span><span>{fmt(markupTotal)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Category sections */}
       {GC_CATEGORIES.map((cat) => {
         const catItems   = categoryItems(cat.id);

@@ -210,6 +210,13 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
     ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / p.grossRoofArea, 0) / similarProjects.length
     : null;
 
+  // E-18: Material-to-bid reconciliation
+  const unpricedMaterials = (projectMaterials ?? []).filter((m: any) => !m.unitPrice || m.unitPrice <= 0);
+  const unsyncedMaterialCount = (projectMaterials ?? []).filter((m: any) =>
+    ["coverage", "qty_per_sf", "linear_from_takeoff", "count_from_takeoff"].includes(m.calcType) && (!m.quantity || m.quantity <= 0)
+  ).length;
+  const materialReconciliationIssue = unpricedMaterials.length > 0 || unsyncedMaterialCount > 0;
+
   // Sanity check: components should sum to total bid
   const effectiveGC = pricing.otherCost ?? (computedGCTotal > 0 ? computedGCTotal : 0);
   // E-06/E-09: Include scope costs and addendum price impacts in the component sum
@@ -307,6 +314,25 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             <div className="text-[13px] font-medium" style={{ color: "var(--bs-amber)" }}>Cost components don&rsquo;t add up to Total Bid</div>
             <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
               Material ({fmtDollar(computedMaterialTotal)}) + Labor ({fmtDollar(computedLaborTotal)}) + Gen. Conds ({fmtDollar(effectiveGC)}){scopeCostTotal > 0 ? ` + Scope (${fmtDollar(scopeCostTotal)})` : ""}{addendaPriceImpact !== 0 ? ` + Addenda (${fmtDollar(addendaPriceImpact)})` : ""} = {fmtDollar(componentSum)} — total bid is {fmtDollar(totalBid)} (${Math.abs(componentSum - totalBid).toLocaleString()} gap)
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* E-18: Material-to-bid reconciliation warning */}
+      {!isDemo && materialReconciliationIssue && (projectMaterials ?? []).length > 0 && (
+        <div className="flex items-start gap-3 px-4 py-3" style={{ background: "var(--bs-amber-dim)", borderLeft: "3px solid var(--bs-amber)" }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginTop: 1, flexShrink: 0 }}><path d="M8 2l6 11H2L8 2z" stroke="var(--bs-amber)" strokeWidth="1.3" fill="none" strokeLinejoin="round"/><path d="M8 7v2.5" stroke="var(--bs-amber)" strokeWidth="1.3" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.6" fill="var(--bs-amber)"/></svg>
+          <div>
+            <div className="text-[13px] font-medium" style={{ color: "var(--bs-amber)" }}>Material costs may be incomplete</div>
+            <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+              {unpricedMaterials.length > 0 && `${unpricedMaterials.length} material${unpricedMaterials.length !== 1 ? "s" : ""} missing unit price`}
+              {unpricedMaterials.length > 0 && unsyncedMaterialCount > 0 && " · "}
+              {unsyncedMaterialCount > 0 && `${unsyncedMaterialCount} material${unsyncedMaterialCount !== 1 ? "s" : ""} not synced from takeoff`}
+              {" — "}
+              <button onClick={() => onNavigateTab?.("materials")} className="underline bg-transparent border-0 p-0 cursor-pointer" style={{ color: "var(--bs-amber)", fontSize: "inherit" }}>
+                review in Materials tab
+              </button>
             </div>
           </div>
         </div>
