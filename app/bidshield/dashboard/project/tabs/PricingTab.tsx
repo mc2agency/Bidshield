@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -37,6 +37,14 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const addDecision = useMutation(api.bidshield.addDecision);
   const [editing, setEditing] = useState(false);
   const [editingActuals, setEditingActuals] = useState(false);
+
+  // P2-3: Warn on unsaved changes when navigating away
+  useEffect(() => {
+    if (!editing && !editingActuals) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [editing, editingActuals]);
 
   // Alternates
   const alternates = useQuery(
@@ -203,11 +211,13 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const fmtDollar = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
   const assembly = pricing.primaryAssembly;
+  // M-16: Use grossRoofArea with sqft fallback so legacy projects are included in benchmarks
+  const getArea = (p: any) => p.grossRoofArea || p.sqft || 0;
   const similarProjects = (allProjects ?? []).filter((p: any) =>
-    p.primaryAssembly === assembly && p.totalBidAmount && p.grossRoofArea && p.grossRoofArea > 0 && p._id !== projectId
+    p.primaryAssembly === assembly && p.totalBidAmount && getArea(p) > 0 && p._id !== projectId
   );
   const avgDollarPerSf = similarProjects.length >= 3
-    ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / p.grossRoofArea, 0) / similarProjects.length
+    ? similarProjects.reduce((sum: number, p: any) => sum + p.totalBidAmount / getArea(p), 0) / similarProjects.length
     : null;
 
   // E-18: Material-to-bid reconciliation

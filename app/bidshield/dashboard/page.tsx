@@ -655,10 +655,26 @@ function DashboardContent() {
     return project.status;
   };
 
+  // M-17: Urgency-based sorting — bid date soonest first, then by status (in_progress before setup)
   const activeProjects = projects
     .filter((p) => { const s = getProjectStatus(p); return s === "setup" || s === "in_progress"; })
-    .sort((a, b) => new Date(a.bidDate).getTime() - new Date(b.bidDate).getTime());
-  const completedProjects = projects.filter((p) => { const s = getProjectStatus(p); return s === "won" || s === "lost"; });
+    .sort((a, b) => {
+      const now = Date.now();
+      const aDate = new Date(a.bidDate).getTime();
+      const bDate = new Date(b.bidDate).getTime();
+      // Overdue bids (past due) float to top
+      const aOverdue = aDate < now ? 1 : 0;
+      const bOverdue = bDate < now ? 1 : 0;
+      if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+      // Then sort by bid date (soonest first)
+      if (aDate !== bDate) return aDate - bDate;
+      // Tie-break: in_progress before setup
+      const statusOrder: Record<string, number> = { in_progress: 0, setup: 1 };
+      return (statusOrder[getProjectStatus(a)] ?? 2) - (statusOrder[getProjectStatus(b)] ?? 2);
+    });
+  const completedProjects = projects
+    .filter((p) => { const s = getProjectStatus(p); return s === "won" || s === "lost"; })
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
   const handleNewBidClick = () => {
     if (!isDemo && !isPro && activeProjects.length >= 1) {
