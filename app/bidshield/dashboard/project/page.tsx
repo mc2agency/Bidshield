@@ -16,7 +16,7 @@ import OverviewTab from "./tabs/OverviewTabRedesign";
 import {
   ChecklistTab, TakeoffTab, PricingTab, MaterialsTab,
   ScopeTab, QuotesTab, RFIsTab, AddendaTab, LaborTab, GeneralConditionsTab, ValidatorTab, BidQualsTab, DecisionLogTab,
-  SubmissionTab, PreBidMeetingsTab, SetupTab,
+  SetupTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -44,8 +44,6 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   bidquals:          <><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></>,
   validator:         <><path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
   decisions:         <><path d="M3 5h10M3 8h7M3 11h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
-  submission:        <><path d="M14 2L2 7l5 2.5M14 2L9 14l-2-4.5M14 2L7 9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
-  prebidmeetings:    <><rect x="2.5" y="3.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M2.5 7h11M6 2v3M10 2v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>,
 };
 
 const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
@@ -64,8 +62,6 @@ const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
   { id: "bidquals",          label: "Bid Quals" },
   { id: "validator",         label: "Validator" },
   { id: "decisions",         label: "Decision Log" },
-  { id: "submission",        label: "Submission" },
-  { id: "prebidmeetings",    label: "Pre-Bid Meetings", shortLabel: "Pre-Bid" },
 ];
 
 function scoreDot(s: number): string {
@@ -112,7 +108,7 @@ function ProjectDetail() {
   const TAB_ORDER: TabId[] = useMemo(() => [
     "overview", "setup", "checklist", "scope", "takeoff", "materials",
     "pricing", "labor", "generalconditions",
-    "quotes", "addenda", "rfis", "bidquals", "validator", "decisions", "submission", "prebidmeetings",
+    "quotes", "addenda", "rfis", "bidquals", "validator", "decisions",
   ], []);
 
   useEffect(() => {
@@ -453,9 +449,11 @@ function ProjectDetail() {
         {/* Section nav with groups */}
         <nav className="flex-1 px-2 flex flex-col" style={{ fontSize: 13 }}>
           {[
-            { label: "Review", ids: ["overview", "setup", "checklist", "scope", "takeoff", "materials"] },
+            { label: "Review", ids: ["setup", "overview", "checklist"] },
+            { label: "Estimating", ids: ["scope", "takeoff", "materials"] },
             { label: "Pricing", ids: ["pricing", "labor", "generalconditions"] },
-            { label: "Docs", ids: ["quotes", "addenda", "rfis", "bidquals", "validator", "decisions", "submission", "prebidmeetings"] },
+            { label: "Docs", ids: ["quotes", "addenda", "rfis", "bidquals"] },
+            { label: "Finalize", ids: ["validator", "decisions"] },
           ].map(({ label: groupLabel, ids }) => (
             <div key={groupLabel}>
               <div style={{ fontSize: 10, color: "var(--bs-text-dim)", padding: "14px 10px 4px", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 500 }}>
@@ -694,8 +692,6 @@ function ProjectDetail() {
                   {activeTab === "validator"         && <TabErrorBoundary tabLabel="Validator"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "decisions" && <TabErrorBoundary tabLabel="Decision Log"><DecisionLogTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "submission"     && <TabErrorBoundary tabLabel="Submission"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "prebidmeetings" && <TabErrorBoundary tabLabel="Pre-Bid Meetings"><PreBidMeetingsTab {...tabProps} /></TabErrorBoundary>}
                 </div>
               </>
             ) : (

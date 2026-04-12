@@ -167,40 +167,57 @@ export const initProjectMaterials = mutation({
   handler: async (ctx, args) => {
     const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
-    // Check if materials already exist
+    // Get existing materials (don't early-exit — we'll merge)
     const existing = await ctx.db
       .query("bidshield_project_materials")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .collect();
-    if (existing.length > 0) return existing.sort((a, b) => a.sortOrder - b.sortOrder);
 
     const now = Date.now();
     const created = [];
+    const allMaterials = [...existing];
+
+    // For each incoming material, check if one with the same name already exists
     for (let i = 0; i < args.materials.length; i++) {
       const m = args.materials[i];
-      const id = await ctx.db.insert("bidshield_project_materials", {
-        projectId: args.projectId,
-        userId: args.userId,
-        convexUserId,
-        templateKey: m.templateKey,
-        category: m.category,
-        name: m.name,
-        unit: m.unit,
-        calcType: m.calcType,
-        quantity: m.quantity,
-        unitPrice: m.unitPrice,
-        totalCost: m.totalCost,
-        wasteFactor: m.wasteFactor,
-        coverage: m.coverage,
-        qtyPerSf: m.qtyPerSf,
-        takeoffItemType: m.takeoffItemType,
-        sortOrder: i,
-        createdAt: now,
-        updatedAt: now,
-      });
-      created.push({ _id: id, ...m, sortOrder: i });
+      // Match by name (case-insensitive) and category
+      const existingMaterial = existing.find(
+        (e) => e.name.toLowerCase() === m.name.toLowerCase() && e.category === m.category
+      );
+
+      if (!existingMaterial) {
+        // Material is new — insert it
+        const maxSort = allMaterials.length > 0
+          ? Math.max(...allMaterials.map(mat => mat.sortOrder || 0))
+          : -1;
+        const id = await ctx.db.insert("bidshield_project_materials", {
+          projectId: args.projectId,
+          userId: args.userId,
+          convexUserId,
+          templateKey: m.templateKey,
+          category: m.category,
+          name: m.name,
+          unit: m.unit,
+          calcType: m.calcType,
+          quantity: m.quantity,
+          unitPrice: m.unitPrice,
+          totalCost: m.totalCost,
+          wasteFactor: m.wasteFactor,
+          coverage: m.coverage,
+          qtyPerSf: m.qtyPerSf,
+          takeoffItemType: m.takeoffItemType,
+          sortOrder: maxSort + 1,
+          createdAt: now,
+          updatedAt: now,
+        });
+        const newItem = { _id: id, ...m, sortOrder: maxSort + 1 };
+        created.push(newItem);
+        allMaterials.push(newItem as any);
+      }
     }
-    return created;
+
+    // Return all materials (existing + newly added), sorted by sortOrder
+    return allMaterials.sort((a, b) => a.sortOrder - b.sortOrder);
   },
 });
 

@@ -21,9 +21,7 @@ export type TabId =
   | "generalconditions"
   | "validator"
   | "bidquals"
-  | "decisions"
-  | "submission"
-  | "prebidmeetings";
+  | "decisions";
 
 export type TabBadge = {
   label: string;
@@ -81,7 +79,7 @@ export const PHASES: Phase[] = [
     id: "setup",
     label: "Project Setup",
     shortLabel: "Setup",
-    tabs: ["overview", "prebidmeetings", "addenda", "rfis"],
+    tabs: ["overview", "setup", "addenda", "rfis"],
     defaultTab: "overview",
   },
   {
@@ -102,7 +100,7 @@ export const PHASES: Phase[] = [
     id: "submit",
     label: "Validate & Submit",
     shortLabel: "Submit",
-    tabs: ["validator", "bidquals", "submission"],
+    tabs: ["validator", "bidquals"],
     defaultTab: "validator",
   },
 ];

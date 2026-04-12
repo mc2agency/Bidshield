@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import {
   INSULATION_TYPES,
@@ -99,6 +100,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const updateProject = useMutation(api.bidshield.updateProject);
   const createTakeoffSection = useMutation(api.bidshield.createTakeoffSection);
   const initProjectMaterials = useMutation(api.bidshield.initProjectMaterials);
+  const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
+  const takeoffSections = useQuery(api.bidshield.getTakeoffSections, isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
 
   // ── Section 1: Project Info ──
   const [info, setInfo] = useState({
@@ -282,6 +285,30 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         projectId: projectId as any,
         roofAssemblies: cleanAssemblies as any,
       });
+
+      // Auto-create takeoff sections for assemblies that don't already have one
+      if (userId && cleanAssemblies.length > 0) {
+        try {
+          const existingSectionNames = new Set((takeoffSections || []).map((s: any) => s.name));
+          for (const asm of cleanAssemblies) {
+            const sectionName = asm.name || asm.label || "Roof Section";
+            // Only create if this section name doesn't already exist
+            if (!existingSectionNames.has(sectionName)) {
+              await createTakeoffSection({
+                projectId: projectId as any,
+                userId,
+                name: sectionName,
+                assemblyType: (asm.systemType || "").toUpperCase(),
+                squareFeet: 0,
+              });
+            }
+          }
+        } catch (err) {
+          // Takeoff sections may already exist or other error — log but don't fail the save
+          console.warn("Warning: could not auto-create takeoff sections:", err);
+        }
+      }
+
       setAssembliesDirty(false);
       setAsmSaved(true);
       setTimeout(() => setAsmSaved(false), 2000);
