@@ -35,10 +35,11 @@ export const createLaborRate = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_labor_rates", {
       userId: args.userId,
+      convexUserId,
       category: args.category,
       task: args.task,
       rate: args.rate,

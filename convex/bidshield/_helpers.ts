@@ -7,10 +7,18 @@ export function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-export async function validateAuth(ctx: any, userId: string) {
-  if (isDemoUser(userId)) return; // demo mode bypasses auth
+/**
+ * Validate auth and optionally resolve the Convex user _id for dual-write.
+ * Returns the Convex _id (or null for demo users) so mutations can set convexUserId.
+ */
+export async function validateAuth(
+  ctx: QueryCtx | MutationCtx,
+  userId: string
+): Promise<Id<"users"> | undefined> {
+  if (isDemoUser(userId)) return undefined; // demo mode bypasses auth
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
+  return resolveUserId(ctx, userId);
 }
 
 /**
@@ -65,13 +73,13 @@ export async function assertRecordOwnership(
 export async function resolveUserId(
   ctx: QueryCtx | MutationCtx,
   clerkId: string
-): Promise<Id<"users"> | null> {
-  if (isDemoUser(clerkId)) return null;
+): Promise<Id<"users"> | undefined> {
+  if (isDemoUser(clerkId)) return undefined;
   const user = await ctx.db
     .query("users")
     .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", clerkId))
     .first();
-  return user?._id ?? null;
+  return user?._id ?? undefined;
 }
 
 export async function requirePro(ctx: any, userId: string) {

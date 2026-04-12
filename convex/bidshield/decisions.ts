@@ -25,9 +25,9 @@ export const addDecision = mutation({
     section: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
-    await ctx.db.insert("bidshield_decisions", { ...args, timestamp: Date.now() });
+    await ctx.db.insert("bidshield_decisions", { ...args, convexUserId, timestamp: Date.now() });
   },
 });
 

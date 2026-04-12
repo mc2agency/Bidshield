@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "../_generated/server";
+import { resolveUserId } from "./_helpers";
 
 // ── L-15: In-app notification system ──────────────────────────────────────────
 
@@ -105,8 +106,10 @@ export const checkQuoteExpirations = internalMutation({
       );
       if (alreadyNotified) continue;
 
+      const convexUserId = await resolveUserId(ctx, quote.userId);
       await ctx.db.insert("bidshield_notifications", {
         userId: quote.userId,
+        convexUserId,
         type,
         title,
         message,
@@ -154,8 +157,10 @@ export const checkBidDeadlines = internalMutation({
       );
       if (alreadyNotified) continue;
 
+      const convexUserId = await resolveUserId(ctx, p.userId);
       await ctx.db.insert("bidshield_notifications", {
         userId: p.userId,
+        convexUserId,
         type: "bid_due_soon",
         title: "Bid due soon",
         message: `${p.name} is due in ${hoursUntil < 24 ? `${hoursUntil} hours` : `${Math.ceil(hoursUntil / 24)} day${Math.ceil(hoursUntil / 24) > 1 ? "s" : ""}`}`,

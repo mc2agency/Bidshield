@@ -21,6 +21,7 @@ export async function upsertLineItemsToDatasheets(
   ctx: MutationCtx,
   opts: {
     userId: string;
+    convexUserId: Id<"users"> | undefined;
     quoteId: Id<"bidshield_quotes">;
     vendorName: string;
     category: string;
@@ -66,6 +67,7 @@ export async function upsertLineItemsToDatasheets(
     } else {
       await ctx.db.insert("bidshield_datasheets", {
         userId: opts.userId,
+        convexUserId: opts.convexUserId,
         productName: item.m,
         category: opts.category,
         unit: item.u,
@@ -121,10 +123,11 @@ export const createQuote = mutation({
     isExtracted: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     const now = Date.now();
     const quoteId = await ctx.db.insert("bidshield_quotes", {
       userId: args.userId,
+      convexUserId,
       projectId: args.projectId,
       vendorName: args.vendorName,
       vendorEmail: args.vendorEmail,
@@ -145,6 +148,7 @@ export const createQuote = mutation({
     // Auto-populate Price Library from line items
     await upsertLineItemsToDatasheets(ctx, {
       userId: args.userId,
+      convexUserId,
       quoteId,
       vendorName: args.vendorName,
       category: args.category,
@@ -238,7 +242,7 @@ export const importQuoteToProject = mutation({
     projectId: v.id("bidshield_projects"),
   },
   handler: async (ctx, { userId, quoteId, projectId }) => {
-    await validateAuth(ctx, userId);
+    const convexUserId = await validateAuth(ctx, userId);
     await assertProjectOwnership(ctx, projectId);
     const source = await ctx.db.get(quoteId);
     if (!source) throw new Error("Quote not found");
@@ -247,6 +251,7 @@ export const importQuoteToProject = mutation({
     const now = Date.now();
     return await ctx.db.insert("bidshield_quotes", {
       userId,
+      convexUserId,
       projectId,
       globalQuoteId: quoteId,
       vendorName: source.vendorName,

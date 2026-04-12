@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { resolveUserId } from "./_helpers";
 
 // ── L-16: AI usage tracking ──────────────────────────────────────────────────
 
@@ -17,8 +18,10 @@ export const logUsage = mutation({
     projectId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const convexUserId = await resolveUserId(ctx, args.userId);
     return await ctx.db.insert("bidshield_ai_usage", {
       ...args,
+      convexUserId,
       createdAt: Date.now(),
     });
   },

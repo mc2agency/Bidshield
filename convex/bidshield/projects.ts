@@ -68,7 +68,7 @@ export const createProject = mutation({
     systemDescription: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
 
     // Enforce free tier: 1 active project max
     const user = await ctx.db
@@ -91,6 +91,7 @@ export const createProject = mutation({
     // Create the project
     const projectId = await ctx.db.insert("bidshield_projects", {
       userId: args.userId,
+      convexUserId,
       name: args.name,
       location: args.location,
       bidDate: args.bidDate,
@@ -120,6 +121,7 @@ export const createProject = mutation({
         await ctx.db.insert("bidshield_checklist_items", {
           projectId,
           userId: args.userId,
+          convexUserId,
           phaseKey,
           itemId: item.id,
           status: "pending",

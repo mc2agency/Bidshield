@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { validateAuth, assertProjectOwnership } from "./_helpers";
+import { validateAuth, assertProjectOwnership, resolveUserId } from "./_helpers";
 
 export const getChecklist = query({
   args: { projectId: v.id("bidshield_projects") },
@@ -48,9 +48,11 @@ export const updateChecklistItem = mutation({
       // Upsert: create item if it doesn't exist (e.g. new phases added after project creation)
       const project = await ctx.db.get(args.projectId);
       if (project) {
+        const convexUserId = await resolveUserId(ctx, project.userId);
         await ctx.db.insert("bidshield_checklist_items", {
           projectId: args.projectId,
           userId: project.userId,
+          convexUserId,
           phaseKey: args.phaseKey,
           itemId: args.itemId,
           status: args.status,

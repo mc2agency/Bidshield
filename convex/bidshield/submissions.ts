@@ -33,7 +33,7 @@ export const addSubmission = mutation({
     bypassThreshold: v.optional(v.boolean()), // estimator acknowledged low score
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
 
     // E-26: Submission threshold gate
@@ -138,6 +138,7 @@ export const addSubmission = mutation({
     return await ctx.db.insert("bidshield_submissions", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       method: args.method,
       portalOrRecipient: args.portalOrRecipient,
       confirmationNumber: args.confirmationNumber,

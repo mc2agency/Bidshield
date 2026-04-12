@@ -7,6 +7,7 @@ const crons = cronJobs();
 crons.interval(
   "check-quote-expirations",
   { hours: 6 },
+  // @ts-ignore TS2589: Convex internal API generics hit type-depth limit with Zod v4
   internal.bidshield.checkQuoteExpirations
 );
 
@@ -14,6 +15,7 @@ crons.interval(
 crons.interval(
   "check-bid-deadlines",
   { hours: 4 },
+  // @ts-ignore TS2589: Convex internal API generics hit type-depth limit with Zod v4
   internal.bidshield.checkBidDeadlines
 );
 

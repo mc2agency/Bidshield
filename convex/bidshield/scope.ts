@@ -27,7 +27,7 @@ export const initScopeItems = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     // Check if items already exist
     const existing = await ctx.db
@@ -42,6 +42,7 @@ export const initScopeItems = mutation({
       const id = await ctx.db.insert("bidshield_scope_items", {
         projectId: args.projectId,
         userId: args.userId,
+        convexUserId,
         category: item.category,
         name: item.name,
         status: "unaddressed",
@@ -105,7 +106,7 @@ export const bulkUpdateScopeStatus = mutation({
     category: v.optional(v.string()), // optional: only affect a specific category
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
 
     const items = await ctx.db
@@ -146,11 +147,12 @@ export const addScopeClarification = mutation({
     text: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     return await ctx.db.insert("bidshield_scope_clarifications", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       text: args.text,
       createdAt: Date.now(),
     });
@@ -174,7 +176,7 @@ export const addCustomScopeItem = mutation({
     name: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const existing = await ctx.db
       .query("bidshield_scope_items")
@@ -187,6 +189,7 @@ export const addCustomScopeItem = mutation({
     return await ctx.db.insert("bidshield_scope_items", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       category: args.category,
       name: args.name,
       status: "unaddressed",

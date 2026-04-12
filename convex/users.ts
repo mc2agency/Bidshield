@@ -40,7 +40,6 @@ export const getOrCreateUser = mutation({
     // Schedule onboarding email sequence
     const DAY = 24 * 60 * 60 * 1000;
     const emailArgs = { email: args.email, name: args.name };
-    // @ts-expect-error TS2589: Convex internal API generics hit type-depth limit with Zod v4
     const emailFn = internal.email.sendOnboardingEmail;
     await ctx.scheduler.runAfter(0,         emailFn, { ...emailArgs, day: 1 });
     await ctx.scheduler.runAfter(3 * DAY,   emailFn, { ...emailArgs, day: 3 });

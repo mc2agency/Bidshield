@@ -47,10 +47,11 @@ export const addDatasheet = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_datasheets", {
       ...args,
+      convexUserId,
       unitPrice: roundCurrency(args.unitPrice),
       createdAt: now,
       updatedAt: now,
@@ -119,7 +120,7 @@ export const getMonthlyExtractionCount = query({
 export const backfillPriceLibraryFromQuotes = mutation({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
-    await validateAuth(ctx, userId);
+    const convexUserId = await validateAuth(ctx, userId);
     const quotes = await ctx.db
       .query("bidshield_quotes")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -164,6 +165,7 @@ export const backfillPriceLibraryFromQuotes = mutation({
         } else {
           await ctx.db.insert("bidshield_datasheets", {
             userId,
+            convexUserId,
             productName: item.m,
             category: quote.category ?? "Other",
             unit: item.u,

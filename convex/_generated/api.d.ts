@@ -11,6 +11,7 @@
 import type * as bidshield from "../bidshield.js";
 import type * as bidshield__helpers from "../bidshield/_helpers.js";
 import type * as bidshield_addenda from "../bidshield/addenda.js";
+import type * as bidshield_aiUsage from "../bidshield/aiUsage.js";
 import type * as bidshield_alternates from "../bidshield/alternates.js";
 import type * as bidshield_bidQuals from "../bidshield/bidQuals.js";
 import type * as bidshield_checklist from "../bidshield/checklist.js";
@@ -21,6 +22,7 @@ import type * as bidshield_gcItems from "../bidshield/gcItems.js";
 import type * as bidshield_labor from "../bidshield/labor.js";
 import type * as bidshield_laborRates from "../bidshield/laborRates.js";
 import type * as bidshield_materials from "../bidshield/materials.js";
+import type * as bidshield_notifications from "../bidshield/notifications.js";
 import type * as bidshield_preBidMeetings from "../bidshield/preBidMeetings.js";
 import type * as bidshield_projects from "../bidshield/projects.js";
 import type * as bidshield_quotes from "../bidshield/quotes.js";
@@ -33,6 +35,7 @@ import type * as bidshield_validatorBatch from "../bidshield/validatorBatch.js";
 import type * as bidshield_vendors from "../bidshield/vendors.js";
 import type * as bidshieldDefaults from "../bidshieldDefaults.js";
 import type * as checklistTemplates from "../checklistTemplates.js";
+import type * as crons from "../crons.js";
 import type * as email from "../email.js";
 import type * as gumroad from "../gumroad.js";
 import type * as leads from "../leads.js";
@@ -52,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   bidshield: typeof bidshield;
   "bidshield/_helpers": typeof bidshield__helpers;
   "bidshield/addenda": typeof bidshield_addenda;
+  "bidshield/aiUsage": typeof bidshield_aiUsage;
   "bidshield/alternates": typeof bidshield_alternates;
   "bidshield/bidQuals": typeof bidshield_bidQuals;
   "bidshield/checklist": typeof bidshield_checklist;
@@ -62,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   "bidshield/labor": typeof bidshield_labor;
   "bidshield/laborRates": typeof bidshield_laborRates;
   "bidshield/materials": typeof bidshield_materials;
+  "bidshield/notifications": typeof bidshield_notifications;
   "bidshield/preBidMeetings": typeof bidshield_preBidMeetings;
   "bidshield/projects": typeof bidshield_projects;
   "bidshield/quotes": typeof bidshield_quotes;
@@ -74,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   "bidshield/vendors": typeof bidshield_vendors;
   bidshieldDefaults: typeof bidshieldDefaults;
   checklistTemplates: typeof checklistTemplates;
+  crons: typeof crons;
   email: typeof email;
   gumroad: typeof gumroad;
   leads: typeof leads;

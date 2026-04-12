@@ -25,12 +25,13 @@ export const createAddendum = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_addenda", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       number: args.number,
       title: args.title,
       receivedDate: args.receivedDate,
@@ -93,7 +94,7 @@ export const acknowledgeNoAddenda = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     await ctx.db.patch(args.projectId, {
       noAddendaAcknowledged: true,

@@ -74,9 +74,10 @@ export const createVendor = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     return await ctx.db.insert("bidshield_vendors", {
       userId: args.userId,
+      convexUserId,
       companyName: args.companyName,
       repName: args.repName,
       repPhone: args.repPhone,
@@ -104,7 +105,7 @@ export const updateVendor = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     const vendor = await ctx.db.get(args.vendorId);
     await assertRecordOwnership(ctx, vendor, "vendor");
     const { vendorId, userId, ...fields } = args;
@@ -119,7 +120,7 @@ export const updateVendor = mutation({
 export const deleteVendor = mutation({
   args: { vendorId: v.id("bidshield_vendors"), userId: v.string() },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     const vendor = await ctx.db.get(args.vendorId);
     await assertRecordOwnership(ctx, vendor, "vendor");
     await ctx.db.delete(args.vendorId);

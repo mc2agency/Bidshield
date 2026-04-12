@@ -22,12 +22,13 @@ export const createRFI = mutation({
     sentTo: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     return await ctx.db.insert("bidshield_rfis", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       question: args.question,
       sentTo: args.sentTo,
       status: "draft",

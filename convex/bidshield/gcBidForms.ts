@@ -20,7 +20,7 @@ export const saveGcBidForm = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
     const confirmedCount = args.items.filter(i => i.autoConfirmed).length;
@@ -28,6 +28,7 @@ export const saveGcBidForm = mutation({
     const documentId = await ctx.db.insert("bidshield_gcBidFormDocuments", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       label: args.label,
       uploadedAt: now,
       processed: true,

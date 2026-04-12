@@ -26,7 +26,7 @@ export const createTakeoffSection = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const existing = await ctx.db
       .query("bidshield_takeoff_sections")
@@ -39,6 +39,7 @@ export const createTakeoffSection = mutation({
     return await ctx.db.insert("bidshield_takeoff_sections", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       name: args.name,
       assemblyType: args.assemblyType,
       squareFeet: args.squareFeet,
@@ -130,7 +131,7 @@ export const initTakeoffLineItems = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     // Check if items already exist
     const existing = await ctx.db
@@ -147,6 +148,7 @@ export const initTakeoffLineItems = mutation({
       const id = await ctx.db.insert("bidshield_takeoff_line_items", {
         projectId: args.projectId,
         userId: args.userId,
+        convexUserId,
         category: "linear",
         itemType: item.itemType,
         label: item.label,
@@ -164,6 +166,7 @@ export const initTakeoffLineItems = mutation({
       const id = await ctx.db.insert("bidshield_takeoff_line_items", {
         projectId: args.projectId,
         userId: args.userId,
+        convexUserId,
         category: "count",
         itemType: item.itemType,
         label: item.label,
@@ -212,7 +215,7 @@ export const createTakeoffLineItem = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const existing = await ctx.db
       .query("bidshield_takeoff_line_items")
@@ -226,6 +229,7 @@ export const createTakeoffLineItem = mutation({
     return await ctx.db.insert("bidshield_takeoff_line_items", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       category: args.category,
       itemType: "custom",
       label: args.label,

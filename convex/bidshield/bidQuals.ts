@@ -57,7 +57,7 @@ export const upsertBidQuals = mutation({
   },
   handler: async (ctx, args) => {
     const { projectId, userId, ...fields } = args;
-    await validateAuth(ctx, userId);
+    const convexUserId = await validateAuth(ctx, userId);
     await assertProjectOwnership(ctx, projectId);
     const existing = await ctx.db
       .query("bidshield_bid_quals")
@@ -65,9 +65,9 @@ export const upsertBidQuals = mutation({
       .first();
     const now = Date.now();
     if (existing) {
-      await ctx.db.patch(existing._id, { ...fields, updatedAt: now });
+      await ctx.db.patch(existing._id, { ...fields, convexUserId, updatedAt: now });
     } else {
-      await ctx.db.insert("bidshield_bid_quals", { projectId, userId, ...fields, updatedAt: now });
+      await ctx.db.insert("bidshield_bid_quals", { projectId, userId, convexUserId, ...fields, updatedAt: now });
     }
   },
 });

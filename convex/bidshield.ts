@@ -216,6 +216,11 @@ export {
   getUsageStats as getAiUsageStats,
 } from "./bidshield/aiUsage";
 
+// M-9: Backfill migration (internalMutation — run from dashboard)
+export {
+  backfillConvexUserId,
+} from "./bidshield/backfillConvexUserId";
+
 // Re-export helpers for internal use
 export {
   roundCurrency,

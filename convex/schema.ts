@@ -61,6 +61,7 @@ export default defineSchema({
     // integrity. Migrate to v.id("users") (storing the Convex _id) in a future
     // schema migration once all write paths are updated to use the Convex user _id.
     userId: v.string(), // Clerk user ID
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     name: v.string(),
     location: v.string(),
     bidDate: v.string(), // YYYY-MM-DD
@@ -134,12 +135,14 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_convex_user", ["convexUserId"])
     .index("by_status", ["userId", "status"]),
 
   // Takeoff sections for reconciliation
   bidshield_takeoff_sections: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     name: v.string(),
     assemblyType: v.string(),
     squareFeet: v.number(),
@@ -156,6 +159,7 @@ export default defineSchema({
   bidshield_takeoff_line_items: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     category: v.union(v.literal("linear"), v.literal("count")),
     itemType: v.string(), // e.g., "parapet_wall", "pipe_penetration"
     label: v.string(),
@@ -174,6 +178,7 @@ export default defineSchema({
   bidshield_checklist_items: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     phaseKey: v.string(), // "phase1", "phase2", etc
     itemId: v.string(), // "p1-1", "p1-2", etc
     status: v.union(
@@ -193,6 +198,7 @@ export default defineSchema({
   // Account-level vendor address book
   bidshield_vendors: defineTable({
     userId: v.string(), // Clerk user ID
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     companyName: v.string(),
     repName: v.optional(v.string()),
     repPhone: v.optional(v.string()),
@@ -204,11 +210,13 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_convex_user", ["convexUserId"])
     .index("by_user_active", ["userId", "active"]),
 
   // Vendor quotes
   bidshield_quotes: defineTable({
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     projectId: v.optional(v.id("bidshield_projects")), // Can be project-specific or general
     vendorId: v.optional(v.id("bidshield_vendors")), // Link to vendor record
     vendorName: v.string(),
@@ -236,6 +244,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_convex_user", ["convexUserId"])
     .index("by_project", ["projectId"])
     .index("by_status", ["userId", "status"]),
 
@@ -243,6 +252,7 @@ export default defineSchema({
   bidshield_rfis: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     question: v.string(),
     sentTo: v.optional(v.string()), // GC/Architect email
     sentAt: v.optional(v.number()),
@@ -295,6 +305,7 @@ export default defineSchema({
   bidshield_addenda: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     number: v.number(), // Addendum #1, #2, etc.
     title: v.string(),
     receivedDate: v.string(),
@@ -322,6 +333,7 @@ export default defineSchema({
   bidshield_project_materials: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     templateKey: v.optional(v.string()), // links to static template, null for custom
     category: v.string(), // "membrane", "insulation", "fasteners", "adhesive", "edge_metal", "accessories"
     name: v.string(),
@@ -354,6 +366,7 @@ export default defineSchema({
   bidshield_scope_items: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     category: v.string(), // "demolition", "access", "protection", "schedule", "flashing", "warranty", "safety", "general"
     name: v.string(),
     status: v.union(
@@ -378,6 +391,7 @@ export default defineSchema({
   bidshield_bid_quals: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     plansDated: v.optional(v.string()),
     planRevision: v.optional(v.string()),
     specSections: v.optional(v.string()),
@@ -421,6 +435,7 @@ export default defineSchema({
   bidshield_scope_clarifications: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     text: v.string(),
     createdAt: v.number(),
   })
@@ -429,6 +444,7 @@ export default defineSchema({
   // User-saved material prices (personal price book)
   bidshield_user_material_prices: defineTable({
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     materialName: v.string(),
     unit: v.string(),
     unitPrice: v.number(),
@@ -441,6 +457,7 @@ export default defineSchema({
   // Custom labor rates (user-specific)
   bidshield_labor_rates: defineTable({
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     category: v.string(), // "membrane", "flashing", "insulation"
     task: v.string(),
     rate: v.string(), // "450 SF/day"
@@ -457,6 +474,7 @@ export default defineSchema({
   bidshield_laborTasks: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     category: v.string(),           // "membrane", "insulation", "flashing", "tearoff", "accessories", "other"
     task: v.string(),               // e.g. "TPO Membrane Install"
     unit: v.string(),               // "SF", "LF", "EA", "Day"
@@ -480,6 +498,7 @@ export default defineSchema({
   bidshield_gcBidFormDocuments: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     label: v.string(),
     uploadedAt: v.number(),
     processed: v.boolean(),
@@ -513,6 +532,7 @@ export default defineSchema({
   bidshield_laborAnalysis: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     inputSummary: v.string(),       // what the user described
     laborType: v.string(),          // "open_shop" | "prevailing_wage" | "union"
     baseWage: v.number(),           // $/hr
@@ -534,6 +554,7 @@ export default defineSchema({
   bidshield_gc_items: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     category: v.string(), // "bidding", "site", "safety", "supervision", "insurance", "markup"
     description: v.string(),
     quantity: v.optional(v.number()),
@@ -553,6 +574,7 @@ export default defineSchema({
   // Master material/product datasheet library (global, per user)
   bidshield_datasheets: defineTable({
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     productName: v.string(),
     category: v.string(),
     unit: v.string(),
@@ -570,6 +592,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_convex_user", ["convexUserId"])
     .index("by_user_created", ["userId", "createdAt"])
     .index("by_user_product", ["userId", "productName"]),
 
@@ -577,6 +600,7 @@ export default defineSchema({
   bidshield_submissions: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     method: v.union(
       v.literal("email"),
       v.literal("portal"),
@@ -601,6 +625,7 @@ export default defineSchema({
   bidshield_prebid_meetings: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     meetingDate: v.string(), // YYYY-MM-DD
     mandatory: v.boolean(),
     location: v.optional(v.string()),
@@ -616,6 +641,7 @@ export default defineSchema({
   bidshield_alternates: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     label: v.string(), // e.g. "Alt 1 — Add TPO over metal"
     type: v.union(v.literal("add"), v.literal("deduct")),
     amount: v.optional(v.number()),
@@ -630,6 +656,7 @@ export default defineSchema({
   // Checklist templates — user-saved QA checklists per roof system type
   bidshield_checklist_templates: defineTable({
     userId: v.string(), // Clerk user ID
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     name: v.string(), // e.g. "TPO Standard", "SBS Mod Bit - FM Global"
     systemType: v.optional(v.string()), // "tpo", "sbs", "epdm", "metal", etc.
     // Snapshot of item statuses (only non-pending items stored to keep it lean)
@@ -662,6 +689,7 @@ export default defineSchema({
   bidshield_decisions: defineTable({
     projectId: v.id("bidshield_projects"),
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     text: v.string(),
     who: v.optional(v.string()),
     section: v.string(),
@@ -675,6 +703,7 @@ export default defineSchema({
   // Rows older than 1 hour can be garbage-collected in a scheduled job.
   rateLimits: defineTable({
     userId: v.string(),    // Clerk user ID
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     action: v.string(),    // e.g. "ai_endpoint", "demo_email"
     timestamp: v.number(), // Date.now() when the call was made
   })
@@ -684,6 +713,7 @@ export default defineSchema({
   // L-15: In-app notifications (quote expirations, reminders, system alerts)
   bidshield_notifications: defineTable({
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     type: v.string(),         // "quote_expiring" | "quote_expired" | "bid_due_soon" | "system"
     title: v.string(),
     message: v.string(),
@@ -694,12 +724,14 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_convex_user", ["convexUserId"])
     .index("by_user_read", ["userId", "read"])
     .index("by_user_created", ["userId", "createdAt"]),
 
   // L-16: AI usage tracking — logs each AI API call for dashboard/rate visibility
   bidshield_ai_usage: defineTable({
     userId: v.string(),
+    convexUserId: v.optional(v.id("users")), // M-9: Convex native user ref
     endpoint: v.string(),     // "analyze-labor" | "extract-quote" | "extract-price-sheet"
     model: v.optional(v.string()),
     tokensIn: v.optional(v.number()),
@@ -711,6 +743,7 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_convex_user", ["convexUserId"])
     .index("by_user_endpoint", ["userId", "endpoint"])
     .index("by_user_created", ["userId", "createdAt"]),
 });

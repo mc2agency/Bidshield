@@ -27,10 +27,10 @@ export const addPreBidMeeting = mutation({
     attendees: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
-    return await ctx.db.insert("bidshield_prebid_meetings", { ...args, createdAt: now, updatedAt: now });
+    return await ctx.db.insert("bidshield_prebid_meetings", { ...args, convexUserId, createdAt: now, updatedAt: now });
   },
 });
 

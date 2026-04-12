@@ -21,7 +21,7 @@ export const seedGCItems = mutation({
     userId: v.string(),
   },
   handler: async (ctx, { projectId, userId }) => {
-    await validateAuth(ctx, userId);
+    const convexUserId = await validateAuth(ctx, userId);
     await assertProjectOwnership(ctx, projectId);
     // Only seed if no items exist
     const existing = await ctx.db
@@ -74,6 +74,7 @@ export const seedGCItems = mutation({
       await ctx.db.insert("bidshield_gc_items", {
         projectId,
         userId,
+        convexUserId,
         ...item,
         createdAt: now,
         updatedAt: now,
@@ -99,14 +100,14 @@ export const upsertGCItem = mutation({
     sortOrder: v.optional(v.number()),
   },
   handler: async (ctx, { id, ...fields }) => {
-    await validateAuth(ctx, fields.userId);
+    const convexUserId = await validateAuth(ctx, fields.userId);
     await assertProjectOwnership(ctx, fields.projectId);
     const now = Date.now();
     if (id) {
-      await ctx.db.patch(id, { ...fields, updatedAt: now });
+      await ctx.db.patch(id, { ...fields, convexUserId, updatedAt: now });
       return id;
     } else {
-      return await ctx.db.insert("bidshield_gc_items", { ...fields, createdAt: now, updatedAt: now });
+      return await ctx.db.insert("bidshield_gc_items", { ...fields, convexUserId, createdAt: now, updatedAt: now });
     }
   },
 });

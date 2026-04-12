@@ -35,7 +35,7 @@ export const saveLaborAnalysis = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const now = Date.now();
 
@@ -56,6 +56,7 @@ export const saveLaborAnalysis = mutation({
     await ctx.db.insert("bidshield_laborAnalysis", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       inputSummary: args.inputSummary,
       laborType: args.laborType,
       baseWage: roundCurrency(args.baseWage),
@@ -77,6 +78,7 @@ export const saveLaborAnalysis = mutation({
       await ctx.db.insert("bidshield_laborTasks", {
         projectId: args.projectId,
         userId: args.userId,
+        convexUserId,
         category: t.category,
         task: t.task,
         unit: t.unit,
@@ -209,7 +211,7 @@ export const toggleLaborTaskVerified = mutation({
 export const clearLaborTasks = mutation({
   args: { projectId: v.id("bidshield_projects"), userId: v.string() },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     const tasks = await ctx.db
       .query("bidshield_laborTasks")

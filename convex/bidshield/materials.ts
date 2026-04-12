@@ -69,7 +69,7 @@ export const addProjectMaterial = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     validateNumericFields(args);
     const wasteFactor = validateWasteFactor(args.wasteFactor);
@@ -84,6 +84,7 @@ export const addProjectMaterial = mutation({
     return await ctx.db.insert("bidshield_project_materials", {
       projectId: args.projectId,
       userId: args.userId,
+      convexUserId,
       templateKey: args.templateKey,
       category: args.category,
       name: args.name,
@@ -164,7 +165,7 @@ export const initProjectMaterials = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     // Check if materials already exist
     const existing = await ctx.db
@@ -180,6 +181,7 @@ export const initProjectMaterials = mutation({
       const id = await ctx.db.insert("bidshield_project_materials", {
         projectId: args.projectId,
         userId: args.userId,
+        convexUserId,
         templateKey: m.templateKey,
         category: m.category,
         name: m.name,
@@ -209,7 +211,7 @@ export const clearProjectMaterials = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     try {
       const existing = await ctx.db
@@ -244,7 +246,7 @@ export const bulkSaveMaterialsFromExtraction = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
     try {
       const now = Date.now();
@@ -278,6 +280,7 @@ export const bulkSaveMaterialsFromExtraction = mutation({
         await ctx.db.insert("bidshield_project_materials", {
           projectId: args.projectId,
           userId: args.userId,
+          convexUserId,
           category: cat,
           name: item.materialName,
           unit: item.unit,
@@ -399,7 +402,7 @@ export const syncTakeoffToMaterials = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     await assertProjectOwnership(ctx, args.projectId);
 
     // 1. Sum total SF from takeoff sections
@@ -541,7 +544,7 @@ export const upsertUserMaterialPrice = mutation({
     vendorName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await validateAuth(ctx, args.userId);
+    const convexUserId = await validateAuth(ctx, args.userId);
     const existing = await ctx.db
       .query("bidshield_user_material_prices")
       .withIndex("by_user_material", (q) => q.eq("userId", args.userId).eq("materialName", args.materialName))
@@ -560,6 +563,7 @@ export const upsertUserMaterialPrice = mutation({
 
     return await ctx.db.insert("bidshield_user_material_prices", {
       userId: args.userId,
+      convexUserId,
       materialName: args.materialName,
       unit: args.unit,
       unitPrice: price,
