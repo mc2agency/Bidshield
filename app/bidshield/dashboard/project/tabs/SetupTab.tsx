@@ -498,9 +498,12 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               if (!mat.name) continue;
               // Skip fastener materials for adhered/concrete systems
               if (skipFasteners && mat.category === "fasteners") continue;
+              // Use actual product name from spec field if available (e.g. "Paradene 20TG, 80mil..." → "Paradene 20TG")
+              const productName = mat.spec?.match(/^([A-Z][A-Za-z0-9\-]+(?:\s+[A-Za-z0-9\-\.]+){0,3})/)?.[1];
+              const baseName = productName && !productName.startsWith("ASTM") ? productName : mat.name;
               const specName = mat.manufacturer && mat.manufacturer !== "as specified"
-                ? `${mat.name} — ${mat.manufacturer}`
-                : mat.name;
+                ? `${baseName} — ${mat.manufacturer}`
+                : baseName;
               const cat = mat.category || "miscellaneous";
               // Fuzzy-match against template catalog to inherit pricing + calc logic
               const nameWords = mat.name.toLowerCase().split(/\s+/);

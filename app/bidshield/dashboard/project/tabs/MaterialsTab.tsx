@@ -731,9 +731,11 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           if (!mat.name) continue;
           // Skip fastener materials for adhered/concrete systems
           if (skipFasteners && mat.category === "fasteners") continue;
+          const productName = mat.spec?.match(/^([A-Z][A-Za-z0-9\-]+(?:\s+[A-Za-z0-9\-\.]+){0,3})/)?.[1];
+          const baseName = productName && !productName.startsWith("ASTM") ? productName : mat.name;
           const specName = mat.manufacturer && mat.manufacturer !== "as specified"
-            ? `${mat.name} — ${mat.manufacturer}`
-            : mat.name;
+            ? `${baseName} — ${mat.manufacturer}`
+            : baseName;
           const cat = mat.category || "miscellaneous";
           const nameWords = mat.name.toLowerCase().split(/\s+/);
           const matchedTemplate = templates.find((t: any) =>

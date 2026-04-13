@@ -81,13 +81,13 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
   "materials": [
     {
       "category": "membrane",
-      "name": "TPO 60mil Membrane",
+      "name": "Sure-Weld TPO 60mil Membrane",
       "spec": "ASTM D6878, min 60 mil thickness",
-      "manufacturer": "Carlisle Sure-Weld or equal"
+      "manufacturer": "Carlisle"
     },
     {
       "category": "insulation",
-      "name": "Polyiso Insulation Board",
+      "name": "Polyiso Insulation Board 2.5in",
       "spec": "ASTM C1289, Type II, Class 1, Grade 2",
       "manufacturer": "as specified"
     }
@@ -132,7 +132,7 @@ EXTRACTION RULES:
 
 3. PERFORMANCE: Extract wind uplift ratings (FM 1-60, 1-90, 1-120, etc.), fire ratings (Class A/B/C), R-value requirements, energy code references (ASHRAE, IECC), climate zone.
 
-4. MATERIALS: Extract every specified material with its ASTM standard, thickness, and approved manufacturer/product. Categories: membrane, insulation, fasteners, adhesive, sheet_metal, lumber, accessories, miscellaneous.
+4. MATERIALS: Extract every specified material. CRITICAL — use the ACTUAL PRODUCT NAME as the "name" field, not a generic description. For example: "Paradene 20TG" not "SBS Modified Bitumen Base Ply"; "Teranap 1M Sand" not "SBS Modified Bitumen Finish Ply"; "Sure-Weld TPO 60mil" not "TPO Membrane". Include thickness/size in the name when specified (e.g. "Polyiso 2.5in" not just "Polyiso"). Put ASTM standards and technical specs in the "spec" field. Categories: membrane, insulation, fasteners, adhesive, sheet_metal, flashing, drainage, filter_fabric, pavers, lumber, accessories, miscellaneous.
 
 5. TESTING: Extract all required testing (flood test, core cuts, pull tests, infrared scans, visual inspections).
 

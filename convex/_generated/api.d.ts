@@ -13,6 +13,7 @@ import type * as bidshield__helpers from "../bidshield/_helpers.js";
 import type * as bidshield_addenda from "../bidshield/addenda.js";
 import type * as bidshield_aiUsage from "../bidshield/aiUsage.js";
 import type * as bidshield_alternates from "../bidshield/alternates.js";
+import type * as bidshield_backfillConvexUserId from "../bidshield/backfillConvexUserId.js";
 import type * as bidshield_bidQuals from "../bidshield/bidQuals.js";
 import type * as bidshield_checklist from "../bidshield/checklist.js";
 import type * as bidshield_datasheets from "../bidshield/datasheets.js";
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   "bidshield/addenda": typeof bidshield_addenda;
   "bidshield/aiUsage": typeof bidshield_aiUsage;
   "bidshield/alternates": typeof bidshield_alternates;
+  "bidshield/backfillConvexUserId": typeof bidshield_backfillConvexUserId;
   "bidshield/bidQuals": typeof bidshield_bidQuals;
   "bidshield/checklist": typeof bidshield_checklist;
   "bidshield/datasheets": typeof bidshield_datasheets;
