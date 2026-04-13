@@ -747,24 +747,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         }
       }
 
-      // Fill gaps with templates for categories not in spec
-      const specCategories = new Set(allMaterials.map(m => m.category));
-      for (const t of templates) {
-        if (usedTemplateKeys.has(t.key)) continue;
-        if (specCategories.has(t.category)) continue;
-        allMaterials.push({
-          templateKey: t.key,
-          category: t.category,
-          name: t.name,
-          unit: t.unit,
-          calcType: t.calcType,
-          wasteFactor: t.wasteFactor,
-          coverage: t.defaultCoverage,
-          qtyPerSf: t.defaultQtyPerSf,
-          takeoffItemType: t.takeoffItemType,
-          unitPrice: t.defaultUnitPrice,
-        });
-      }
+      // No template gap-fill — only spec-extracted materials.
+      // Users can add extras via "+ Add Material".
 
       // Clear old → insert new → sync quantities
       await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });

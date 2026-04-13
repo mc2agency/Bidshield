@@ -515,26 +515,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             }
           }
 
-          // 2. Fill in template materials ONLY for categories the spec didn't mention
-          //    If the spec already lists items in a category, skip all templates for it
-          const specCategories = new Set(allMaterials.map(m => m.category));
-          for (const t of templates) {
-            if (usedTemplateKeys.has(t.key)) continue;
-            // Skip entire category if spec already covers it
-            if (specCategories.has(t.category)) continue;
-            allMaterials.push({
-              templateKey: t.key,
-              category: t.category,
-              name: t.name,
-              unit: t.unit,
-              calcType: t.calcType,
-              wasteFactor: t.wasteFactor,
-              coverage: t.defaultCoverage,
-              qtyPerSf: t.defaultQtyPerSf,
-              takeoffItemType: t.takeoffItemType,
-              unitPrice: t.defaultUnitPrice,
-            });
-          }
+          // No template gap-fill — only spec-extracted materials are added.
+          // Users can add additional items manually via "+ Add Material".
 
           if (allMaterials.length > 0) {
             // Clear old materials before re-initializing from spec
