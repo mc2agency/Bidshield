@@ -330,6 +330,20 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const [specError, setSpecError] = useState("");
   const [specData, setSpecData] = useState<any>(null);
   const [specApplying, setSpecApplying] = useState(false);
+  // Multi-spec support: track all uploaded specs for this project
+  const projectSpecs = useQuery(
+    api.bidshield.projectSpecs.listByProject,
+    !isDemo && projectId && userId
+      ? { projectId: projectId as Id<"bidshield_projects">, userId }
+      : "skip",
+  );
+  const addProjectSpecMut = useMutation(api.bidshield.projectSpecs.addProjectSpec);
+  const deleteProjectSpecMut = useMutation(api.bidshield.projectSpecs.deleteProjectSpec);
+  const updateProjectSpecMut = useMutation(api.bidshield.projectSpecs.updateProjectSpec);
+  const [pendingLabel, setPendingLabel] = useState<string>("");
+  const [pendingSourceType, setPendingSourceType] = useState<
+    "base_spec" | "addendum" | "related_division" | "other"
+  >("base_spec");
 
   // Load saved spec summary from project
   useEffect(() => {
@@ -372,9 +386,30 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           console.error("Failed to save spec data to project:", e);
           setSpecError("Spec extracted but failed to save — click Apply to retry.");
         }
+        // Persist as a project_spec row (multi-spec support)
+        if (userId) {
+          try {
+            const existingCount = projectSpecs?.length ?? 0;
+            const defaultLabel =
+              pendingLabel.trim() ||
+              (existingCount === 0 ? "Base Spec" : `Spec ${existingCount + 1} — ${file.name}`);
+            await addProjectSpecMut({
+              projectId: projectId as Id<"bidshield_projects">,
+              userId,
+              label: defaultLabel,
+              sourceType: existingCount === 0 ? "base_spec" : pendingSourceType,
+              filename: file.name,
+              extractionJson: JSON.stringify(data),
+            });
+            setPendingLabel("");
+            setPendingSourceType("other");
+          } catch (e) {
+            console.error("Failed to add project spec row:", e);
+          }
+        }
       }
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
-  }, [isDemo, projectId, updateProject]);
+  }, [isDemo, projectId, updateProject, userId, projectSpecs, pendingLabel, pendingSourceType, addProjectSpecMut]);
 
   // Apply spec data to assemblies and project info
   const handleApplySpec = async () => {
@@ -956,6 +991,58 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           </div>
         </div>
 
+        {/* Uploaded spec list (multi-spec) */}
+        {!isDemo && projectSpecs && projectSpecs.length > 0 && (
+          <div className="rounded-xl p-3 mb-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>
+              Uploaded Specs ({projectSpecs.length})
+            </div>
+            <div className="space-y-1">
+              {projectSpecs.map((s) => (
+                <div key={s._id} className="flex items-center gap-2 text-xs py-1" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                  <select
+                    value={s.sourceType}
+                    onChange={async (e) => {
+                      await updateProjectSpecMut({ id: s._id, sourceType: e.target.value as any });
+                    }}
+                    style={{ fontSize: 10, background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", borderRadius: 4, padding: "2px 4px" }}
+                  >
+                    <option value="base_spec">Base Spec</option>
+                    <option value="addendum">Addendum</option>
+                    <option value="related_division">Related Division</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <input
+                    defaultValue={s.label}
+                    onBlur={async (e) => {
+                      if (e.target.value !== s.label) {
+                        await updateProjectSpecMut({ id: s._id, label: e.target.value });
+                      }
+                    }}
+                    style={{ flex: 1, fontSize: 12, background: "transparent", color: "var(--bs-text-primary)", border: "none", outline: "none" }}
+                  />
+                  {s.filename && (
+                    <span style={{ fontSize: 10, color: "var(--bs-text-dim)" }}>{s.filename}</span>
+                  )}
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Delete "${s.label}"?`)) {
+                        await deleteProjectSpecMut({ id: s._id });
+                      }
+                    }}
+                    style={{ fontSize: 10, color: "var(--bs-red)", background: "none", border: "none", cursor: "pointer" }}
+                  >
+                    delete
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] mt-2" style={{ color: "var(--bs-text-dim)" }}>
+              Materials across all specs are merged in the Materials tab.
+            </p>
+          </div>
+        )}
+
         {specMode === "upload" && (
           <div
             className="rounded-xl p-6 text-center mb-4"
@@ -963,6 +1050,26 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
             onDrop={e => { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f) handleSpecFile(f); }}
           >
+            {projectSpecs && projectSpecs.length > 0 && (
+              <div className="flex items-center gap-2 mb-3 justify-center">
+                <select
+                  value={pendingSourceType}
+                  onChange={(e) => setPendingSourceType(e.target.value as any)}
+                  style={{ fontSize: 11, background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)", borderRadius: 4, padding: "4px 6px" }}
+                >
+                  <option value="addendum">Addendum</option>
+                  <option value="related_division">Related Division</option>
+                  <option value="base_spec">Base Spec</option>
+                  <option value="other">Other</option>
+                </select>
+                <input
+                  value={pendingLabel}
+                  onChange={(e) => setPendingLabel(e.target.value)}
+                  placeholder="Label (e.g. Addendum 2, Div 05 Metal Deck)"
+                  style={{ fontSize: 11, width: 260, background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)", borderRadius: 4, padding: "4px 6px" }}
+                />
+              </div>
+            )}
             <svg className="w-8 h-8 mx-auto mb-2" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
             </svg>

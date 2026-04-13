@@ -361,6 +361,8 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
                           <AddendumCard
                             add={add}
                             isDemo={isDemo}
+                            projectId={projectId}
+                            userId={userId}
                             onUpdate={handleUpdate}
                             onMarkReviewed={handleMarkReviewed}
                             onDelete={handleDelete}
@@ -391,6 +393,8 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
 function AddendumCard({
   add,
   isDemo,
+  projectId,
+  userId,
   onUpdate,
   onMarkReviewed,
   onDelete,
@@ -398,11 +402,69 @@ function AddendumCard({
 }: {
   add: any;
   isDemo: boolean;
+  projectId?: string;
+  userId?: string;
   onUpdate: (id: Id<"bidshield_addenda">, updates: Record<string, any>) => Promise<void>;
   onMarkReviewed: (id: Id<"bidshield_addenda">) => Promise<void>;
   onDelete: (id: Id<"bidshield_addenda">) => Promise<void>;
   onNavigateTab?: (tab: any) => void;
 }) {
+  const addProjectSpec = useMutation(api.bidshield.projectSpecs.addProjectSpec);
+  const extractInputRef = useRef<HTMLInputElement | null>(null);
+  const [extractStatus, setExtractStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [extractMessage, setExtractMessage] = useState<string>("");
+
+  const handleExtractFile = async (file: File) => {
+    if (!projectId || !userId || isDemo) return;
+    if (file.type !== "application/pdf") {
+      setExtractStatus("error");
+      setExtractMessage("Please select a PDF.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setExtractStatus("error");
+      setExtractMessage("File too large (max 20 MB).");
+      return;
+    }
+    setExtractStatus("loading");
+    setExtractMessage("Extracting spec…");
+    try {
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const base64 = btoa(binary);
+      const res = await fetch("/api/bidshield/extract-specification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setExtractStatus("error");
+        setExtractMessage(data.error || "Extraction failed");
+        return;
+      }
+      await addProjectSpec({
+        projectId: projectId as Id<"bidshield_projects">,
+        userId,
+        label: `Addendum ${add.number} — ${add.title}`,
+        sourceType: "addendum",
+        addendumId: add._id as Id<"bidshield_addenda">,
+        filename: file.name,
+        extractionJson: JSON.stringify(data),
+      });
+      setExtractStatus("done");
+      setExtractMessage(`Extracted ${data.materials?.length ?? 0} materials. Review in Materials tab.`);
+    } catch (e: any) {
+      setExtractStatus("error");
+      setExtractMessage(e?.message ?? "Extraction failed");
+    }
+  };
+
   const status = getAddendumStatus(add);
   const reviewed = isReviewed(add);
   const priority = add.priority || "normal";
@@ -455,8 +517,49 @@ function AddendumCard({
             </div>
           )}
         </div>
-        <button onClick={() => onDelete(add._id)} className="text-xs transition-colors shrink-0" style={{ color: "var(--bs-text-muted)" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}>Delete</button>
+        <div className="flex items-center gap-3 shrink-0">
+          {!isDemo && (
+            <>
+              <input
+                ref={extractInputRef}
+                type="file"
+                accept=".pdf,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleExtractFile(f);
+                  e.target.value = "";
+                }}
+              />
+              <button
+                onClick={() => extractInputRef.current?.click()}
+                className="text-[11px] font-medium px-2 py-1 rounded"
+                style={{
+                  background: "var(--bs-teal-dim)",
+                  color: "var(--bs-teal)",
+                  border: "1px solid var(--bs-teal-border)",
+                }}
+                disabled={extractStatus === "loading"}
+              >
+                {extractStatus === "loading" ? "Extracting…" : "Run Spec Extraction"}
+              </button>
+            </>
+          )}
+          <button onClick={() => onDelete(add._id)} className="text-xs transition-colors" style={{ color: "var(--bs-text-muted)" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}>Delete</button>
+        </div>
       </div>
+      {extractStatus !== "idle" && extractMessage && (
+        <div
+          className="mt-2 px-3 py-2 rounded text-[11px]"
+          style={{
+            background: extractStatus === "error" ? "var(--bs-red-dim)" : "var(--bs-bg-elevated)",
+            color: extractStatus === "error" ? "var(--bs-red)" : "var(--bs-text-muted)",
+            border: `1px solid ${extractStatus === "error" ? "var(--bs-red-border)" : "var(--bs-border)"}`,
+          }}
+        >
+          {extractMessage}
+        </div>
+      )}
 
       {/* Mark as Reviewed CTA — shown prominently when pending */}
       {!reviewed && (

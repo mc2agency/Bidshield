@@ -746,4 +746,54 @@ export default defineSchema({
     .index("by_convex_user", ["convexUserId"])
     .index("by_user_endpoint", ["userId", "endpoint"])
     .index("by_user_created", ["userId", "createdAt"]),
+  // Individual spec documents uploaded to a project (base spec, addenda, related divisions)
+  // Each row is one uploaded PDF with its own AI extraction. Materials merge across rows.
+  bidshield_project_specs: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    convexUserId: v.optional(v.id("users")),
+    label: v.string(), // "Base Spec", "Addendum 2", "Div 05 Metal Deck"
+    sourceType: v.union(
+      v.literal("base_spec"),
+      v.literal("addendum"),
+      v.literal("related_division"),
+      v.literal("other"),
+    ),
+    addendumId: v.optional(v.id("bidshield_addenda")), // link back when extracted from addenda tab
+    filename: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")), // original PDF
+    extractionJson: v.string(), // JSON-stringified extraction result
+    extractedAt: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"])
+    .index("by_addendum", ["addendumId"]),
+
+  // Product datasheets / submittals — auto-fetched from manufacturer sites
+  bidshield_submittals: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    convexUserId: v.optional(v.id("users")),
+    productName: v.string(),
+    manufacturer: v.optional(v.string()),
+    category: v.optional(v.string()),
+    sourceUrl: v.string(), // original PDF URL on manufacturer site
+    storageId: v.optional(v.id("_storage")), // Convex file storage
+    fileSize: v.optional(v.number()),
+    title: v.optional(v.string()), // search result title
+    status: v.union(
+      v.literal("found"),
+      v.literal("downloaded"),
+      v.literal("failed"),
+      v.literal("manual"),
+    ),
+    errorMessage: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"])
+    .index("by_project_product", ["projectId", "productName"]),
 });

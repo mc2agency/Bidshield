@@ -332,6 +332,14 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const updateCoverageRate = useMutation(api.bidshield.updateMaterialCoverageRate);
   const fixCategories = useMutation(api.bidshield.fixMaterialCategories);
 
+  // Merged materials across all uploaded specs (base, addenda, related divisions)
+  const mergedSpecMaterials = useQuery(
+    api.bidshield.projectSpecs.getMergedMaterials,
+    !isDemo && isValidConvexId && userId
+      ? { projectId: projectId as Id<"bidshield_projects">, userId }
+      : "skip",
+  );
+
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>("__best_match__");
   const [filterCategory, setFilterCategory] = useState<MaterialCategory | "all">("all");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -692,11 +700,18 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [isResyncing, setIsResyncing] = useState(false);
   const handleResyncFromSpecs = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
-    // Read saved specSummary from the project
+    console.log("[Re-sync DEBUG] mergedSpecMaterials =", mergedSpecMaterials);
+    console.log("[Re-sync DEBUG] project.specSummary (parsed) =",
+      (() => { try { return JSON.parse((project as any)?.specSummary ?? "null"); } catch { return "PARSE ERROR"; } })());
+    if (!mergedSpecMaterials || mergedSpecMaterials.length === 0) {
+      alert("No spec materials found. Upload spec PDFs in the Setup tab first.");
+      return;
+    }
+
+    // Parse specSummary only to determine deck/attachment (for fastener filter)
     const specRaw = (project as any)?.specSummary;
-    if (!specRaw) { alert("No spec data found. Upload and apply specs in the Setup tab first."); return; }
-    let specData: any;
-    try { specData = JSON.parse(specRaw); } catch { alert("Spec data is corrupted. Re-upload specs in Setup."); return; }
+    let specData: any = {};
+    try { if (specRaw) specData = JSON.parse(specRaw); } catch { /* ignore */ }
 
     setIsResyncing(true);
     try {
@@ -714,6 +729,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       const allMaterials: Array<{
         templateKey?: string; category: string; name: string; unit: string;
         calcType: string; wasteFactor: number; coverage?: number;
+        coverageRate?: string; coverageSource?: string;
         qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
       }> = [];
 
@@ -724,38 +740,36 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       const hasConcreteDeck = deckTypes.some((d: string) => d.toLowerCase().includes("concrete"));
       const skipFasteners = !isMechanicallyAttached || hasConcreteDeck;
 
-      // Spec-extracted materials first
+      // Walk merged materials (deduped across base spec + addenda + related divisions).
+      // The server-side merge already normalized productName and deduped by productName+manufacturer.
+      console.log("[Re-sync DEBUG] Walking", mergedSpecMaterials.length, "merged materials:");
+      mergedSpecMaterials.forEach((m, i) =>
+        console.log(`  [${i}] productName="${m.productName}" manufacturer="${m.manufacturer ?? ""}" category="${m.category}" coverageRate="${m.coverageRate ?? ""}" sources=${m.sources.map(s => s.label).join(",")}`));
       const usedTemplateKeys = new Set<string>();
-      if (specData.materials?.length > 0) {
-        for (const mat of specData.materials) {
-          if (!mat.name) continue;
-          // Skip fastener materials for adhered/concrete systems
-          if (skipFasteners && mat.category === "fasteners") continue;
-          const productName = mat.spec?.match(/^([A-Z][A-Za-z0-9\-]+(?:\s+[A-Za-z0-9\-\.]+){0,3})/)?.[1];
-          const baseName = productName && !productName.startsWith("ASTM") ? productName : mat.name;
-          const specName = mat.manufacturer && mat.manufacturer !== "as specified"
-            ? `${baseName} — ${mat.manufacturer}`
-            : baseName;
-          const cat = mat.category || "miscellaneous";
-          const nameWords = mat.name.toLowerCase().split(/\s+/);
-          const matchedTemplate = templates.find((t: any) =>
-            t.category === cat &&
-            nameWords.some((w: string) => w.length > 3 && t.name.toLowerCase().includes(w))
-          );
-          if (matchedTemplate) usedTemplateKeys.add(matchedTemplate.key);
-          allMaterials.push({
-            templateKey: matchedTemplate?.key,
-            category: cat,
-            name: specName,
-            unit: matchedTemplate?.unit || unitMap[cat] || "EA",
-            calcType: matchedTemplate?.calcType || "fixed",
-            wasteFactor: matchedTemplate?.wasteFactor || 1.0,
-            coverage: matchedTemplate?.defaultCoverage,
-            qtyPerSf: matchedTemplate?.defaultQtyPerSf,
-            takeoffItemType: matchedTemplate?.takeoffItemType,
-            unitPrice: matchedTemplate?.defaultUnitPrice,
-          });
-        }
+      for (const mat of mergedSpecMaterials) {
+        if (skipFasteners && mat.category === "fasteners") continue;
+        const specName = mat.manufacturer ? `${mat.productName} — ${mat.manufacturer}` : mat.productName;
+        const cat = mat.category || "miscellaneous";
+        const nameWords = mat.productName.toLowerCase().split(/\s+/);
+        const matchedTemplate = templates.find((t: any) =>
+          t.category === cat &&
+          nameWords.some((w: string) => w.length > 3 && t.name.toLowerCase().includes(w))
+        );
+        if (matchedTemplate) usedTemplateKeys.add(matchedTemplate.key);
+        allMaterials.push({
+          templateKey: matchedTemplate?.key,
+          category: cat,
+          name: specName,
+          unit: matchedTemplate?.unit || unitMap[cat] || "EA",
+          calcType: matchedTemplate?.calcType || "fixed",
+          wasteFactor: matchedTemplate?.wasteFactor || 1.0,
+          coverage: matchedTemplate?.defaultCoverage,
+          coverageRate: mat.coverageRate,
+          coverageSource: mat.coverageRate ? "spec" : undefined,
+          qtyPerSf: matchedTemplate?.defaultQtyPerSf,
+          takeoffItemType: matchedTemplate?.takeoffItemType,
+          unitPrice: matchedTemplate?.defaultUnitPrice,
+        });
       }
 
       // No template gap-fill — only spec-extracted materials.
@@ -783,7 +797,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     } finally {
       setIsResyncing(false);
     }
-  }, [isDemo, isValidConvexId, userId, project, projectId, clearMaterials, initMaterials, syncTakeoffMutation]);
+  }, [isDemo, isValidConvexId, userId, project, projectId, mergedSpecMaterials, clearMaterials, initMaterials, syncTakeoffMutation]);
 
   // Start inline editing
   const startEdit = (m: any) => {

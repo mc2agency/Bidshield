@@ -160,6 +160,8 @@ export const initProjectMaterials = mutation({
       totalCost: v.optional(v.number()),
       wasteFactor: v.number(),
       coverage: v.optional(v.number()),
+      coverageRate: v.optional(v.string()),
+      coverageSource: v.optional(v.string()),
       qtyPerSf: v.optional(v.number()),
       takeoffItemType: v.optional(v.string()),
     })),
@@ -193,6 +195,10 @@ export const initProjectMaterials = mutation({
           if (m.calcType && m.calcType !== "fixed") patches.calcType = m.calcType;
         }
         if (!existingMaterial.coverage && m.coverage) patches.coverage = m.coverage;
+        if (!existingMaterial.coverageRate && m.coverageRate) {
+          patches.coverageRate = m.coverageRate;
+          patches.coverageSource = m.coverageSource ?? "spec";
+        }
         if (!existingMaterial.qtyPerSf && m.qtyPerSf) patches.qtyPerSf = m.qtyPerSf;
         if (!existingMaterial.takeoffItemType && m.takeoffItemType) patches.takeoffItemType = m.takeoffItemType;
         if (!existingMaterial.wasteFactor && m.wasteFactor) patches.wasteFactor = m.wasteFactor;
@@ -219,6 +225,8 @@ export const initProjectMaterials = mutation({
           totalCost: m.totalCost,
           wasteFactor: m.wasteFactor,
           coverage: m.coverage,
+          coverageRate: m.coverageRate,
+          coverageSource: m.coverageRate ? (m.coverageSource ?? "spec") : undefined,
           qtyPerSf: m.qtyPerSf,
           takeoffItemType: m.takeoffItemType,
           sortOrder: maxSort + 1,

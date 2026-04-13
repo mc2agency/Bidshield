@@ -81,15 +81,19 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
   "materials": [
     {
       "category": "membrane",
+      "productName": "Sure-Weld TPO 60mil",
       "name": "Sure-Weld TPO 60mil Membrane",
       "spec": "ASTM D6878, min 60 mil thickness",
-      "manufacturer": "Carlisle"
+      "manufacturer": "Carlisle",
+      "coverageRate": "100 SF/RL"
     },
     {
       "category": "insulation",
+      "productName": "Polyiso 2.5in",
       "name": "Polyiso Insulation Board 2.5in",
       "spec": "ASTM C1289, Type II, Class 1, Grade 2",
-      "manufacturer": "as specified"
+      "manufacturer": "as specified",
+      "coverageRate": "32 SF/BD"
     }
   ],
   "testingRequirements": [
@@ -132,7 +136,14 @@ EXTRACTION RULES:
 
 3. PERFORMANCE: Extract wind uplift ratings (FM 1-60, 1-90, 1-120, etc.), fire ratings (Class A/B/C), R-value requirements, energy code references (ASHRAE, IECC), climate zone.
 
-4. MATERIALS: Extract every specified material. CRITICAL — use the ACTUAL PRODUCT NAME as the "name" field, not a generic description. For example: "Paradene 20TG" not "SBS Modified Bitumen Base Ply"; "Teranap 1M Sand" not "SBS Modified Bitumen Finish Ply"; "Sure-Weld TPO 60mil" not "TPO Membrane". Include thickness/size in the name when specified (e.g. "Polyiso 2.5in" not just "Polyiso"). Put ASTM standards and technical specs in the "spec" field. Categories: membrane, insulation, fasteners, adhesive, sheet_metal, flashing, drainage, filter_fabric, pavers, lumber, accessories, miscellaneous.
+4. MATERIALS: Extract every specified material. For EACH material return BOTH fields:
+   - "productName": the ACTUAL manufacturer product name, short form. Examples: "Paradene 20TG", "Teranap 1M Sand", "Sure-Weld TPO 60mil", "Polyiso 2.5in", "Parapro 123". NEVER put a generic description here (no "SBS Modified Bitumen Base Ply", no "TPO Membrane").
+   - "name": a slightly longer descriptive label, safe to show in a list. Usually the productName plus a short type hint ("Sure-Weld TPO 60mil Membrane").
+   Also include:
+   - "spec": ASTM standards and technical specs ("ASTM D6878, min 60 mil thickness")
+   - "manufacturer": brand name ("Carlisle", "Siplast"). Use "as specified" only when the spec truly leaves it open.
+   - "coverageRate": the unit-of-purchase coverage stated in the spec or product datasheet reference, formatted as "<number> <unit>/<purchaseUnit>". Examples: "100 SF/RL" (roll), "32 SF/BD" (board), "500 EA/BX" (box of fasteners), "1.5 GAL/100 SF" (liquid). Omit if not stated.
+   Categories: membrane, insulation, fasteners, adhesive, sheet_metal, flashing, drainage, filter_fabric, pavers, lumber, accessories, miscellaneous.
 
 5. TESTING: Extract all required testing (flood test, core cuts, pull tests, infrared scans, visual inspections).
 
