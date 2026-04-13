@@ -751,16 +751,24 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       // Users can add extras via "+ Add Material".
 
       // Clear old → insert new → sync quantities
-      await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
+      console.log(`[Re-sync] Spec has ${specData.materials?.length ?? 0} materials. Building ${allMaterials.length} items (spec-only, no templates).`);
+      allMaterials.forEach((m, i) => console.log(`  [${i}] ${m.category}: ${m.name} — $${m.unitPrice ?? "no price"}`));
+
+      const cleared = await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
+      console.log("[Re-sync] Cleared old materials:", cleared);
+
       if (allMaterials.length > 0) {
-        await initMaterials({ projectId: projectId as Id<"bidshield_projects">, userId, materials: allMaterials });
+        const result = await initMaterials({ projectId: projectId as Id<"bidshield_projects">, userId, materials: allMaterials });
+        console.log("[Re-sync] Inserted materials:", result);
         try {
-          await syncTakeoffMutation({ projectId: projectId as Id<"bidshield_projects">, userId });
+          const syncResult = await syncTakeoffMutation({ projectId: projectId as Id<"bidshield_projects">, userId });
+          console.log("[Re-sync] Takeoff sync:", syncResult);
         } catch { /* takeoff data may not exist yet */ }
       }
+      alert(`Re-sync complete: ${allMaterials.length} spec materials loaded (no templates).`);
     } catch (e) {
       console.error("Re-sync from specs failed:", e);
-      alert("Failed to re-sync. Check console for details.");
+      alert("Failed to re-sync: " + (e as Error).message);
     } finally {
       setIsResyncing(false);
     }
