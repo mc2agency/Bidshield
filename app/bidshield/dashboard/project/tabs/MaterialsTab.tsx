@@ -717,11 +717,20 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
       }> = [];
 
+      // Determine if project uses mechanical fastening (skip fasteners for adhered/concrete)
+      const attachMethods = (specData.assemblies ?? []).map((a: any) => a.attachmentMethod).filter(Boolean);
+      const deckTypes = (specData.assemblies ?? []).map((a: any) => a.deckType).filter(Boolean);
+      const isMechanicallyAttached = attachMethods.some((m: string) => m.includes("mechanic"));
+      const hasConcreteDeck = deckTypes.some((d: string) => d.toLowerCase().includes("concrete"));
+      const skipFasteners = !isMechanicallyAttached || hasConcreteDeck;
+
       // Spec-extracted materials first
       const usedTemplateKeys = new Set<string>();
       if (specData.materials?.length > 0) {
         for (const mat of specData.materials) {
           if (!mat.name) continue;
+          // Skip fastener materials for adhered/concrete systems
+          if (skipFasteners && mat.category === "fasteners") continue;
           const specName = mat.manufacturer && mat.manufacturer !== "as specified"
             ? `${mat.name} — ${mat.manufacturer}`
             : mat.name;
@@ -751,7 +760,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       // Users can add extras via "+ Add Material".
 
       // Clear old → insert new → sync quantities
-      console.log(`[Re-sync] Spec has ${specData.materials?.length ?? 0} materials. Building ${allMaterials.length} items (spec-only, no templates).`);
+      console.log(`[Re-sync] Spec has ${specData.materials?.length ?? 0} materials. Building ${allMaterials.length} items (spec-only, no templates). skipFasteners=${skipFasteners}, deckTypes=${deckTypes}, attachMethods=${attachMethods}`);
       allMaterials.forEach((m, i) => console.log(`  [${i}] ${m.category}: ${m.name} — $${m.unitPrice ?? "no price"}`));
 
       const cleared = await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });

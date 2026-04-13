@@ -484,11 +484,20 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
           }> = [];
 
+          // Determine if project uses mechanical fastening (skip fasteners for adhered/concrete)
+          const attachMethods = (specData.assemblies ?? []).map((a: any) => a.attachmentMethod).filter(Boolean);
+          const deckTypes = (specData.assemblies ?? []).map((a: any) => a.deckType).filter(Boolean);
+          const isMechanicallyAttached = attachMethods.some((m: string) => m.includes("mechanic"));
+          const hasConcreteDeck = deckTypes.some((d: string) => d.toLowerCase().includes("concrete"));
+          const skipFasteners = !isMechanicallyAttached || hasConcreteDeck;
+
           // 1. Add spec-extracted materials FIRST — these are what the actual project requires
           const usedTemplateKeys = new Set<string>();
           if (specData.materials?.length > 0) {
             for (const mat of specData.materials) {
               if (!mat.name) continue;
+              // Skip fastener materials for adhered/concrete systems
+              if (skipFasteners && mat.category === "fasteners") continue;
               const specName = mat.manufacturer && mat.manufacturer !== "as specified"
                 ? `${mat.name} — ${mat.manufacturer}`
                 : mat.name;
