@@ -515,16 +515,13 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             }
           }
 
-          // 2. Fill in essential template materials NOT already covered by spec
-          //    Only add templates that have a calcType tied to takeoff (coverage, qty_per_sf, linear, count)
-          //    so the estimator has a complete quantity picture
-          const specNames = new Set(allMaterials.map(m => m.name.toLowerCase()));
+          // 2. Fill in template materials ONLY for categories the spec didn't mention
+          //    If the spec already lists items in a category, skip all templates for it
+          const specCategories = new Set(allMaterials.map(m => m.category));
           for (const t of templates) {
             if (usedTemplateKeys.has(t.key)) continue;
-            if (specNames.has(t.name.toLowerCase())) continue;
-            // Only add essential calc-based templates (fasteners, accessories, sheet metal)
-            // Skip membrane/insulation since spec materials already define those
-            if (t.category === "membrane" || t.category === "insulation") continue;
+            // Skip entire category if spec already covers it
+            if (specCategories.has(t.category)) continue;
             allMaterials.push({
               templateKey: t.key,
               category: t.category,
