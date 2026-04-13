@@ -52,8 +52,11 @@ export const MATERIAL_TEMPLATES: MaterialTemplate[] = [
   { key: "densdeck", category: "insulation", name: 'DensDeck Cover Board 1/2"', unit: "BD", calcType: "coverage", defaultCoverage: 32, wasteFactor: 1.05, defaultUnitPrice: 22, systemTypes: ALL_SYSTEMS, sortOrder: 15 },
 
   // ===== FASTENERS & PLATES =====
-  { key: "iso-fasteners", category: "fasteners", name: "Insulation Screws + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", defaultQtyPerSf: 1 / 4, wasteFactor: 1.05, defaultUnitPrice: 145, systemTypes: ALL_SYSTEMS, sortOrder: 20 },
-  { key: "membrane-fasteners", category: "fasteners", name: "Membrane Fasteners + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", defaultQtyPerSf: 1 / 6, wasteFactor: 1.05, defaultUnitPrice: 165, systemTypes: ["tpo", "pvc"], sortOrder: 21 },
+  // qtyPerSf = individual fasteners per SF ÷ box size
+  // iso-fasteners: 1 fastener per 4 SF = 0.25/SF → 0.25/500 = 0.0005 boxes/SF
+  // membrane-fasteners: 1 fastener per 6 SF ≈ 0.167/SF → 0.167/500 = 0.000333 boxes/SF
+  { key: "iso-fasteners", category: "fasteners", name: "Insulation Screws + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", defaultQtyPerSf: 0.0005, wasteFactor: 1.05, defaultUnitPrice: 145, systemTypes: ALL_SYSTEMS, sortOrder: 20 },
+  { key: "membrane-fasteners", category: "fasteners", name: "Membrane Fasteners + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", defaultQtyPerSf: 0.000333, wasteFactor: 1.05, defaultUnitPrice: 165, systemTypes: ["tpo", "pvc"], sortOrder: 21 },
   { key: "term-bar-fasteners", category: "fasteners", name: "Termination Bar Screws (box of 250)", unit: "BX", calcType: "linear_from_takeoff", takeoffItemType: "base_flashing", wasteFactor: 1.10, defaultUnitPrice: 45, systemTypes: ALL_SYSTEMS, sortOrder: 22 },
 
   // ===== ADHESIVE & SEALANT =====
@@ -137,8 +140,7 @@ export function calculateMaterialQuantity(
     case "qty_per_sf": {
       const qtyPerSf = overrides?.qtyPerSf ?? template.defaultQtyPerSf;
       if (!qtyPerSf || totalSF <= 0) return null;
-      // For box-based items: total fasteners = SF * qtyPerSf, then divide by box size
-      // qtyPerSf is already normalized (e.g., 1/4 = 0.25 fasteners per SF means 1 box per 4 SF)
+      // qtyPerSf is in UNITS per SF (e.g., 0.0005 = 0.0005 boxes/SF for 500-count fastener boxes)
       return Math.ceil(totalSF * qtyPerSf * waste);
     }
     case "linear_from_takeoff": {

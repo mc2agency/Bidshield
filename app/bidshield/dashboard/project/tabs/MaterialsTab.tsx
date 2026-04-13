@@ -22,8 +22,8 @@ const DEMO_MATERIALS = [
   { _id: "dm_1", templateKey: "tpo-60mil", category: "membrane", name: "TPO 60mil Membrane (10' wide)", unit: "RL", calcType: "coverage", quantity: 48, unitPrice: 285, totalCost: 13680, wasteFactor: 1.05, coverage: 1000, coverageRate: "1000 SF/RL" },
   { _id: "dm_2", templateKey: "iso-2.5in", category: "insulation", name: 'Polyiso 2.5" (4x8)', unit: "BD", calcType: "coverage", quantity: 1477, unitPrice: 34, totalCost: 50218, wasteFactor: 1.05, coverage: 32, coverageRate: "32 SF/BD" },
   { _id: "dm_3", templateKey: "densdeck", category: "insulation", name: 'DensDeck Cover Board 1/2"', unit: "BD", calcType: "coverage", quantity: 1477, unitPrice: 22, totalCost: 32494, wasteFactor: 1.05, coverage: 32, coverageRate: "32 SF/BD" },
-  { _id: "dm_4", templateKey: "iso-fasteners", category: "fasteners", name: "Insulation Screws + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", quantity: 24, unitPrice: 145, totalCost: 3480, wasteFactor: 1.05, qtyPerSf: 0.25 },
-  { _id: "dm_5", templateKey: "membrane-fasteners", category: "fasteners", name: "Membrane Fasteners + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", quantity: 16, unitPrice: 165, totalCost: 2640, wasteFactor: 1.05, qtyPerSf: 0.167 },
+  { _id: "dm_4", templateKey: "iso-fasteners", category: "fasteners", name: "Insulation Screws + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", quantity: 24, unitPrice: 145, totalCost: 3480, wasteFactor: 1.05, qtyPerSf: 0.0005 },
+  { _id: "dm_5", templateKey: "membrane-fasteners", category: "fasteners", name: "Membrane Fasteners + Plates (box of 500)", unit: "BX", calcType: "qty_per_sf", quantity: 16, unitPrice: 165, totalCost: 2640, wasteFactor: 1.05, qtyPerSf: 0.000333 },
   { _id: "dm_6", templateKey: "bonding-adhesive", category: "adhesive", name: "Bonding Adhesive (5 gal pail)", unit: "GL", calcType: "coverage", quantity: 198, unitPrice: 185, totalCost: 36630, wasteFactor: 1.10, coverage: 250, coverageRate: "250 SF/GL" },
   { _id: "dm_7", templateKey: "tpo-primer", category: "adhesive", name: "TPO/PVC Primer (1 gal)", unit: "GL", calcType: "coverage", quantity: 248, unitPrice: 65, totalCost: 16120, wasteFactor: 1.10, coverage: 200, coverageRate: "200 SF/GL" },
   { _id: "dm_8", templateKey: "drip-edge", category: "sheet_metal", name: "Drip Edge (10' sticks)", unit: "PC", calcType: "linear_from_takeoff", quantity: 84, unitPrice: 18, totalCost: 1512, wasteFactor: 1.05 },
@@ -668,19 +668,21 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       if (!mat.templateKey) continue;
       const template = MATERIAL_TEMPLATES.find((t) => t.key === mat.templateKey);
       if (!template) continue;
+      // Use template defaults for qtyPerSf/coverage (corrected values), but keep user's waste factor
       const qty = calculateMaterialQuantity(
         template,
         totalSF,
         lineItems as any,
-        { coverage: mat.coverage, qtyPerSf: mat.qtyPerSf, wasteFactor: mat.wasteFactor }
+        { coverage: mat.coverage || undefined, wasteFactor: mat.wasteFactor }
       );
       if (qty !== null && qty !== mat.quantity) {
         const cost = mat.unitPrice ? qty * mat.unitPrice : undefined;
-        await updateMaterial({
-          materialId: mat._id,
-          quantity: qty,
-          totalCost: cost,
-        });
+        const patches: Record<string, any> = { materialId: mat._id, quantity: qty, totalCost: cost };
+        // Also fix stored qtyPerSf if it differs from template (corrects legacy bad values)
+        if (template.defaultQtyPerSf && mat.qtyPerSf !== template.defaultQtyPerSf) {
+          patches.qtyPerSf = template.defaultQtyPerSf;
+        }
+        await updateMaterial(patches as any);
       }
     }
   }, [isDemo, materials, totalSF, lineItems, updateMaterial]);
