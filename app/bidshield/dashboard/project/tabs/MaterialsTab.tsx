@@ -685,6 +685,101 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     }
   }, [isDemo, materials, totalSF, lineItems, updateMaterial]);
 
+  // Re-sync materials from spec data: clear all → rebuild from spec + templates
+  const syncTakeoffMutation = useMutation(api.bidshield.syncTakeoffToMaterials);
+  const [isResyncing, setIsResyncing] = useState(false);
+  const handleResyncFromSpecs = useCallback(async () => {
+    if (isDemo || !isValidConvexId || !userId) return;
+    // Read saved specSummary from the project
+    const specRaw = (project as any)?.specSummary;
+    if (!specRaw) { alert("No spec data found. Upload and apply specs in the Setup tab first."); return; }
+    let specData: any;
+    try { specData = JSON.parse(specRaw); } catch { alert("Spec data is corrupted. Re-upload specs in Setup."); return; }
+
+    setIsResyncing(true);
+    try {
+      const { getTemplatesForSystem } = await import("@/lib/bidshield/material-templates");
+      const systemTypes = specData.assemblies?.length > 0
+        ? [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))] as string[]
+        : [];
+      const templates = getTemplatesForSystem(systemTypes);
+
+      const unitMap: Record<string, string> = {
+        membrane: "RL", insulation: "BD", fasteners: "BX",
+        adhesive: "GL", sheet_metal: "LF", lumber: "LF",
+        accessories: "EA", miscellaneous: "EA",
+      };
+      const allMaterials: Array<{
+        templateKey?: string; category: string; name: string; unit: string;
+        calcType: string; wasteFactor: number; coverage?: number;
+        qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
+      }> = [];
+
+      // Spec-extracted materials first
+      const usedTemplateKeys = new Set<string>();
+      if (specData.materials?.length > 0) {
+        for (const mat of specData.materials) {
+          if (!mat.name) continue;
+          const specName = mat.manufacturer && mat.manufacturer !== "as specified"
+            ? `${mat.name} — ${mat.manufacturer}`
+            : mat.name;
+          const cat = mat.category || "miscellaneous";
+          const nameWords = mat.name.toLowerCase().split(/\s+/);
+          const matchedTemplate = templates.find((t: any) =>
+            t.category === cat &&
+            nameWords.some((w: string) => w.length > 3 && t.name.toLowerCase().includes(w))
+          );
+          if (matchedTemplate) usedTemplateKeys.add(matchedTemplate.key);
+          allMaterials.push({
+            templateKey: matchedTemplate?.key,
+            category: cat,
+            name: specName,
+            unit: matchedTemplate?.unit || unitMap[cat] || "EA",
+            calcType: matchedTemplate?.calcType || "fixed",
+            wasteFactor: matchedTemplate?.wasteFactor || 1.0,
+            coverage: matchedTemplate?.defaultCoverage,
+            qtyPerSf: matchedTemplate?.defaultQtyPerSf,
+            takeoffItemType: matchedTemplate?.takeoffItemType,
+            unitPrice: matchedTemplate?.defaultUnitPrice,
+          });
+        }
+      }
+
+      // Fill gaps with templates for categories not in spec
+      const specCategories = new Set(allMaterials.map(m => m.category));
+      for (const t of templates) {
+        if (usedTemplateKeys.has(t.key)) continue;
+        if (specCategories.has(t.category)) continue;
+        allMaterials.push({
+          templateKey: t.key,
+          category: t.category,
+          name: t.name,
+          unit: t.unit,
+          calcType: t.calcType,
+          wasteFactor: t.wasteFactor,
+          coverage: t.defaultCoverage,
+          qtyPerSf: t.defaultQtyPerSf,
+          takeoffItemType: t.takeoffItemType,
+          unitPrice: t.defaultUnitPrice,
+        });
+      }
+
+      // Clear old → insert new → sync quantities
+      await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
+      if (allMaterials.length > 0) {
+        await initMaterials({ projectId: projectId as Id<"bidshield_projects">, userId, materials: allMaterials });
+        try {
+          await syncTakeoffMutation({ projectId: projectId as Id<"bidshield_projects">, userId });
+        } catch { /* takeoff data may not exist yet */ }
+      }
+    } catch (e) {
+      console.error("Re-sync from specs failed:", e);
+      alert("Failed to re-sync. Check console for details.");
+    } finally {
+      setIsResyncing(false);
+    }
+  }, [isDemo, isValidConvexId, userId, project, projectId, clearMaterials, initMaterials, syncTakeoffMutation]);
+
   // Start inline editing
   const startEdit = (m: any) => {
     setEditingId(m._id);
@@ -1093,6 +1188,15 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           )}
           {!isDemo && (
             <>
+              <button
+                onClick={handleResyncFromSpecs}
+                disabled={isResyncing || !isValidConvexId || !(project as any)?.specSummary}
+                title={!(project as any)?.specSummary ? "Upload specs in Setup first" : "Clear all materials and rebuild from spec data"}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }}
+              >
+                {isResyncing ? "Syncing..." : "Re-sync from Specs"}
+              </button>
               <button
                 onClick={handleFixCategories}
                 disabled={isFixingCategories || !isValidConvexId}
