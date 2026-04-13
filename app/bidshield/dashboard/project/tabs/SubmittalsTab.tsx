@@ -25,6 +25,14 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
       ? { projectId: projectId as Id<"bidshield_projects">, userId }
       : "skip",
   );
+  // Use the same merged materials source as the Materials tab so we get
+  // real product names from the new extraction pipeline (productName + manufacturer).
+  const mergedMaterials = useQuery(
+    api.bidshield.projectSpecs.getMergedMaterials,
+    projectId && userId
+      ? { projectId: projectId as Id<"bidshield_projects">, userId }
+      : "skip",
+  );
   const generateUploadUrl = useMutation(api.bidshield.submittals.generateUploadUrl);
   const addSubmittal = useMutation(api.bidshield.submittals.addSubmittal);
   const deleteSubmittal = useMutation(api.bidshield.submittals.deleteSubmittal);
@@ -33,17 +41,28 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
   const [status, setStatus] = useState<string>("");
 
   async function handleFind() {
-    if (!project?.specSummary) {
-      setStatus("No spec data on this project. Upload and extract a spec first.");
+    if (!mergedMaterials || mergedMaterials.length === 0) {
+      setStatus("No spec materials found. Upload spec PDFs in the Setup tab first.");
+      return;
+    }
+    const candidates = mergedMaterials
+      .filter((m) => m.manufacturer)
+      .map((m) => ({
+        productName: m.productName,
+        manufacturer: m.manufacturer,
+        category: m.category,
+      }));
+    if (candidates.length === 0) {
+      setStatus("No materials with a manufacturer to search for.");
       return;
     }
     setBusy(true);
-    setStatus("Searching manufacturer sites…");
+    setStatus(`Searching for ${candidates.length} products on manufacturer sites…`);
     try {
       const res = await fetch("/api/bidshield/find-datasheets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ specSummary: project.specSummary }),
+        body: JSON.stringify({ materials: candidates }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

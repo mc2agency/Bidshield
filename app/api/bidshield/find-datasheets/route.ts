@@ -18,13 +18,6 @@ const MANUFACTURER_DOMAINS: Record<string, string> = {
   soprema: "soprema.us",
 };
 
-type SpecMaterial = {
-  name?: string;
-  spec?: string;
-  manufacturer?: string;
-  category?: string;
-};
-
 type Candidate = {
   productName: string;
   manufacturer?: string;
@@ -43,27 +36,15 @@ type ResultItem = {
   errorMessage?: string;
 };
 
-function extractCandidates(specSummary: string): Candidate[] {
-  let parsed: any;
-  try {
-    parsed = JSON.parse(specSummary);
-  } catch {
-    return [];
-  }
-  const mats: SpecMaterial[] = parsed?.materials ?? [];
+function dedupeCandidates(input: Candidate[]): Candidate[] {
   const seen = new Set<string>();
   const out: Candidate[] = [];
-  for (const mat of mats) {
-    if (!mat?.name) continue;
-    const productName = mat.spec?.match(/^([A-Z][A-Za-z0-9\-]+(?:\s+[A-Za-z0-9\-\.]+){0,3})/)?.[1];
-    const baseName = productName && !productName.startsWith("ASTM") ? productName : mat.name;
-    const manufacturer =
-      mat.manufacturer && mat.manufacturer !== "as specified" ? mat.manufacturer : undefined;
-    if (!manufacturer) continue; // need manufacturer to scope search
-    const key = `${baseName.toLowerCase()}::${manufacturer.toLowerCase()}`;
+  for (const c of input) {
+    if (!c.productName || !c.manufacturer) continue;
+    const key = `${c.productName.toLowerCase()}::${c.manufacturer.toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ productName: baseName, manufacturer, category: mat.category });
+    out.push(c);
   }
   return out;
 }
@@ -128,19 +109,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { specSummary?: string };
+  let body: { materials?: Candidate[] };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  if (!body.specSummary) {
-    return NextResponse.json({ error: "Missing specSummary" }, { status: 400 });
+  if (!body.materials || !Array.isArray(body.materials)) {
+    return NextResponse.json({ error: "Missing materials array" }, { status: 400 });
   }
 
-  const candidates = extractCandidates(body.specSummary);
+  const candidates = dedupeCandidates(body.materials);
   if (candidates.length === 0) {
-    return NextResponse.json({ results: [], message: "No materials with manufacturer found" });
+    return NextResponse.json({
+      results: [],
+      message: "No materials with both productName and manufacturer found",
+    });
   }
 
   const results: ResultItem[] = [];
