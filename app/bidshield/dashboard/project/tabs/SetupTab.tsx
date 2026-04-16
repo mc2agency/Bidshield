@@ -381,10 +381,13 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       // Save the raw spec data to Convex so it persists across navigation
       if (!isDemo) {
         try {
-          await updateProject({ projectId: projectId as any, specSummary: JSON.stringify(data) } as any);
-        } catch (e) {
+          const summaryStr = JSON.stringify(data);
+          const specSummary = summaryStr.length > 500_000 ? summaryStr.slice(0, 500_000) : summaryStr;
+          await updateProject({ projectId: projectId as any, specSummary } as any);
+        } catch (e: any) {
           console.error("Failed to save spec data to project:", e);
-          setSpecError("Spec extracted but failed to save — click Apply to retry.");
+          const detail = e?.message || e?.data || "Unknown error";
+          setSpecError(`Spec extracted but failed to save (${detail}) — click Apply to retry.`);
         }
         // Persist as a project_spec row (multi-spec support)
         if (userId) {
@@ -429,18 +432,24 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
 
       // Apply assemblies from spec (overwrite if current assemblies are just auto-generated placeholders)
       const hasRealAssemblies = assemblies.some(a => a.insulationType || a.name || a.rValue != null);
-      if (specData.assemblies?.length > 0 && (!hasRealAssemblies || assemblies.length === 0)) {
-        const mapped = specData.assemblies.map((a: any, i: number) => ({
-          label: a.label || `RT-${String(i + 1).padStart(2, "0")}`,
-          name: a.name || undefined,
-          systemType: a.system || a.membrane?.type || "",
-          insulationType: a.insulation?.type || "",
-          insulationThickness: a.insulation?.thickness?.replace(/"/g, "").replace(/in$/, "") || "",
-          rValue: a.insulation?.rValue ?? null,
-          surfaceType: a.surfaceType || "",
-          area: null as number | null,
-          uValue: null as number | null,
-        }));
+      const specAssemblies = Array.isArray(specData.assemblies) ? specData.assemblies : [];
+      if (specAssemblies.length > 0 && (!hasRealAssemblies || assemblies.length === 0)) {
+        const mapped = specAssemblies.map((a: any, i: number) => {
+          // AI can return rValue as string — coerce to number, reject NaN
+          const rawR = a.insulation?.rValue;
+          const parsedR = typeof rawR === "number" ? rawR : typeof rawR === "string" ? parseFloat(rawR) : null;
+          return {
+            label: a.label || `RT-${String(i + 1).padStart(2, "0")}`,
+            name: a.name || undefined,
+            systemType: a.system || a.membrane?.type || "",
+            insulationType: a.insulation?.type || "",
+            insulationThickness: a.insulation?.thickness?.replace(/"/g, "").replace(/in$/, "") || "",
+            rValue: (parsedR != null && !isNaN(parsedR)) ? parsedR : null,
+            surfaceType: a.surfaceType || "",
+            area: null as number | null,
+            uValue: null as number | null,
+          };
+        });
         // Auto-compute R-values where missing
         mapped.forEach((m: any) => {
           if (!m.rValue && m.insulationType && m.insulationThickness) {
@@ -450,20 +459,22 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         setAssemblies(mapped);
         setAssembliesDirty(true);
 
-        // Clean nulls for Convex
-        const cleanAssemblies = mapped.map((a: any) => {
-          const obj: Record<string, any> = { label: a.label, systemType: a.systemType };
-          if (a.name) obj.name = a.name;
-          if (a.insulationType) obj.insulationType = a.insulationType;
-          if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
-          if (a.rValue != null) obj.rValue = a.rValue;
-          if (a.surfaceType) obj.surfaceType = a.surfaceType;
-          return obj;
-        });
-        updates.roofAssemblies = cleanAssemblies;
+        // Clean nulls for Convex — filter out assemblies with no system type
+        const cleanAssemblies = mapped
+          .filter((a: any) => a.systemType)
+          .map((a: any) => {
+            const obj: Record<string, any> = { label: a.label, systemType: a.systemType };
+            if (a.name) obj.name = a.name;
+            if (a.insulationType) obj.insulationType = a.insulationType;
+            if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
+            if (a.rValue != null && typeof a.rValue === "number") obj.rValue = a.rValue;
+            if (a.surfaceType) obj.surfaceType = a.surfaceType;
+            return obj;
+          });
+        if (cleanAssemblies.length > 0) updates.roofAssemblies = cleanAssemblies;
 
         // Set deck type from first assembly
-        const deckType = specData.assemblies.find((a: any) => a.deckType)?.deckType;
+        const deckType = specAssemblies.find((a: any) => a.deckType)?.deckType;
         if (deckType && !info.deckType) { setInfo(prev => ({ ...prev, deckType })); updates.deckType = deckType; }
       }
 
@@ -477,7 +488,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       }
 
       // Also ensure specSummary is saved (retry if auto-save after extraction failed)
-      updates.specSummary = JSON.stringify(specData);
+      const specSummaryStr = JSON.stringify(specData);
+      updates.specSummary = specSummaryStr.length > 500_000 ? specSummaryStr.slice(0, 500_000) : specSummaryStr;
 
       // Save all updates at once
       if (Object.keys(updates).length > 1) {
@@ -586,9 +598,10 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           }
         } catch { /* materials may already exist */ }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to apply spec data:", e);
-      setSpecError("Failed to apply spec data — Convex backend may need redeployment.");
+      const detail = e?.message || e?.data || "Unknown error";
+      setSpecError(`Failed to apply spec data: ${detail}`);
     } finally {
       setSpecApplying(false);
     }
