@@ -4,6 +4,7 @@
 
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
 import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
+import { getQuoteFreshness } from "@/lib/bidshield/quote-status";
 
 export interface ScoreItem {
   label: string;
@@ -337,6 +338,88 @@ export function computeBidScore(input: BidScoreInput): BidScoreResult {
       });
     } else if ((projectMaterials as any[]).filter(m => WASTE_REQUIRED.has(m.category)).length > 0) {
       items.push({ label: "Waste Factors", status: "pass", message: "Waste factors applied to all membrane, insulation, and fastener items" });
+    }
+  }
+
+  // 12b. STALE VENDOR PRICING (quote-linkage)
+  // For materials that have a priced unit cost, check whether their linked
+  // vendor quote is still valid. Unlinked priced materials are flagged as a
+  // warning — the estimator hasn't tied the price to a source quote yet.
+  if (!isDemo && projectMaterials && quotes) {
+    const quoteById: Record<string, any> = {};
+    for (const q of quotes as any[]) quoteById[q._id] = q;
+
+    const pricedMaterials = (projectMaterials as any[]).filter(
+      (m) => typeof m.unitPrice === "number" && m.unitPrice > 0
+    );
+
+    if (pricedMaterials.length > 0) {
+      const expired: string[] = [];
+      const expiring: string[] = [];
+      const stale: string[] = [];
+      const unlinked: string[] = [];
+
+      for (const m of pricedMaterials) {
+        const linked = m.quoteId ? quoteById[m.quoteId] : null;
+        if (!linked) {
+          unlinked.push(m.name);
+          continue;
+        }
+        const freshness = getQuoteFreshness(linked);
+        if (freshness === "expired") expired.push(m.name);
+        else if (freshness === "expiring") expiring.push(m.name);
+        else if (freshness === "stale") stale.push(m.name);
+      }
+
+      if (expired.length > 0) {
+        items.push({
+          label: "Stale Vendor Pricing",
+          status: "fail",
+          message: `${expired.length} material${expired.length !== 1 ? "s are" : " is"} priced from an expired quote — refresh before submitting`,
+          tabLink: "materials",
+        });
+      }
+      if (expiring.length > 0) {
+        items.push({
+          label: "Stale Vendor Pricing",
+          status: "warn",
+          message: `${expiring.length} material${expiring.length !== 1 ? "s" : ""} priced from a quote expiring within 14 days`,
+          tabLink: "materials",
+        });
+      }
+      if (stale.length > 0) {
+        items.push({
+          label: "Stale Vendor Pricing",
+          status: "warn",
+          message: `${stale.length} material${stale.length !== 1 ? "s" : ""} priced from a quote older than 90 days with no expiration on file`,
+          tabLink: "materials",
+        });
+      }
+      if (unlinked.length > 0) {
+        // Only surface unlinked materials if the user has actually logged some
+        // quotes — otherwise the Vendor Quotes check above already covers it.
+        const totalQuotes = (quotes as any[]).length;
+        if (totalQuotes > 0) {
+          items.push({
+            label: "Stale Vendor Pricing",
+            status: "warn",
+            message: `${unlinked.length} priced material${unlinked.length !== 1 ? "s are" : " is"} not linked to a vendor quote — link each price to its source quote`,
+            tabLink: "materials",
+          });
+        }
+      }
+      if (
+        expired.length === 0 &&
+        expiring.length === 0 &&
+        stale.length === 0 &&
+        unlinked.length === 0
+      ) {
+        items.push({
+          label: "Stale Vendor Pricing",
+          status: "pass",
+          message: `All ${pricedMaterials.length} priced materials linked to current vendor quotes`,
+        });
+      }
     }
   }
 
