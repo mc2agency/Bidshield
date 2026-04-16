@@ -391,7 +391,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         if (cleanAssemblies.length > 0) updates.roofAssemblies = cleanAssemblies;
 
         // Set deck type from first assembly
-        const deckType = specData.assemblies.find((a: any) => a.deckType)?.deckType;
+        const deckType = specAssemblies.find((a: any) => a.deckType)?.deckType;
         if (deckType && !info.deckType) { setInfo(prev => ({ ...prev, deckType })); updates.deckType = deckType; }
       }
 
