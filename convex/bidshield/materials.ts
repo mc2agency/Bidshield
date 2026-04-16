@@ -115,19 +115,33 @@ export const updateProjectMaterial = mutation({
     coverage: v.optional(v.number()),
     qtyPerSf: v.optional(v.number()),
     notes: v.optional(v.string()),
+    // Explicit link to the vendor quote this price came from. Pass `null`
+    // to clear an existing link.
+    quoteId: v.optional(v.union(v.id("bidshield_quotes"), v.null())),
   },
   handler: async (ctx, args) => {
     const material = await ctx.db.get(args.materialId);
     await assertRecordOwnership(ctx, material, "project material");
     validateNumericFields(args);
-    const { materialId, ...updates } = args;
+    const { materialId, quoteId, ...rest } = args;
     // Apply roundCurrency to financial fields and validate waste
-    if (updates.unitPrice !== undefined) updates.unitPrice = roundCurrency(updates.unitPrice);
-    if (updates.totalCost !== undefined) updates.totalCost = roundCurrency(updates.totalCost);
-    if (updates.wasteFactor !== undefined) updates.wasteFactor = validateWasteFactor(updates.wasteFactor);
-    const filteredUpdates = Object.fromEntries(
-      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    if (rest.unitPrice !== undefined) rest.unitPrice = roundCurrency(rest.unitPrice);
+    if (rest.totalCost !== undefined) rest.totalCost = roundCurrency(rest.totalCost);
+    if (rest.wasteFactor !== undefined) rest.wasteFactor = validateWasteFactor(rest.wasteFactor);
+    const filteredUpdates: Record<string, any> = Object.fromEntries(
+      Object.entries(rest).filter(([_, v]) => v !== undefined)
     );
+    // quoteId: undefined = no change, null = clear link, Id = set link
+    if (quoteId === null) {
+      filteredUpdates.quoteId = undefined;
+    } else if (quoteId !== undefined) {
+      // Verify the quote belongs to the same project before linking
+      const quote = await ctx.db.get(quoteId);
+      if (!quote || (quote as any).projectId !== (material as any).projectId) {
+        throw new Error("Quote does not belong to this project");
+      }
+      filteredUpdates.quoteId = quoteId;
+    }
     await ctx.db.patch(materialId, {
       ...filteredUpdates,
       updatedAt: Date.now(),

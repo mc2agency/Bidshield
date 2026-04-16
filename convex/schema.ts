@@ -351,6 +351,10 @@ export default defineSchema({
     // Verification fields
     coverageRate: v.optional(v.string()),   // e.g. "100 SF/RL" — from report, AI, or manual
     coverageSource: v.optional(v.string()), // "report" | "ai_estimated" | "manual"
+    // Quote linkage — explicit link to the vendor quote a price came from, so the
+    // Validator can deterministically flag stale/expired vendor pricing instead of
+    // relying on fuzzy name matching.
+    quoteId: v.optional(v.id("bidshield_quotes")),
     extractedFromPdf: v.optional(v.boolean()),
     pricingVerified: v.optional(v.boolean()),
     coverageVerified: v.optional(v.boolean()),

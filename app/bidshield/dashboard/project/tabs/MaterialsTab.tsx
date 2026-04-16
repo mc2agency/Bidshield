@@ -16,6 +16,7 @@ import {
   type MaterialCategory,
   type MaterialTemplate,
 } from "@/lib/bidshield/material-templates";
+import { getQuoteFreshness } from "@/lib/bidshield/quote-status";
 
 // Demo material data for Meridian Business Park (TPO 60mil, 68,000 SF)
 const DEMO_MATERIALS = [
@@ -346,6 +347,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [editPrice, setEditPrice] = useState("");
   const [editQty, setEditQty] = useState("");
   const [editWaste, setEditWaste] = useState("");
+  const [editQuoteId, setEditQuoteId] = useState<string>("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [checkRowId, setCheckRowId] = useState<string | null>(null);
@@ -805,6 +807,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     setEditPrice(m.unitPrice?.toString() || "");
     setEditQty(m.quantity?.toString() || "");
     setEditWaste(((m.wasteFactor - 1) * 100).toFixed(0));
+    setEditQuoteId(m.quoteId || "");
   };
 
   // Save inline edit
@@ -821,12 +824,20 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     const qty = editQty ? parseFloat(editQty) : undefined;
     const waste = editWaste ? 1 + parseFloat(editWaste) / 100 : undefined;
     const cost = price && qty ? qty * price : undefined;
+    // quoteId: "" = clear link, non-empty string = set link, undefined = no change
+    const quoteIdArg: Id<"bidshield_quotes"> | null | undefined =
+      editQuoteId === (m.quoteId || "")
+        ? undefined
+        : editQuoteId
+          ? (editQuoteId as Id<"bidshield_quotes">)
+          : null;
     await updateMaterial({
       materialId: m._id,
       unitPrice: price,
       quantity: qty,
       wasteFactor: waste,
       totalCost: cost,
+      quoteId: quoteIdArg,
     });
     if (price && userId) {
       await upsertPrice({
@@ -1423,11 +1434,66 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             {/* Your Price */}
                             <td className="text-right px-3 py-2.5">
                               {isEditing ? (
-                                <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="w-20 text-right text-xs rounded px-2 py-1 bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]" step="0.01" />
+                                <div className="flex flex-col items-end gap-1">
+                                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="w-20 text-right text-xs rounded px-2 py-1 bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-primary)]" step="0.01" />
+                                  {!isDemo && quotes.length > 0 && (
+                                    <select
+                                      value={editQuoteId}
+                                      onChange={(e) => setEditQuoteId(e.target.value)}
+                                      className="w-32 text-[10px] rounded px-1 py-0.5 bg-[var(--bs-bg-input)] border border-[var(--bs-border)] text-[var(--bs-text-muted)]"
+                                      title="Link this price to a vendor quote"
+                                    >
+                                      <option value="">— no quote —</option>
+                                      {(quotes as any[]).map((q: any) => {
+                                        const f = getQuoteFreshness(q);
+                                        const suffix =
+                                          f === "expired" ? " (expired)"
+                                          : f === "expiring" ? " (expiring)"
+                                          : f === "stale" ? " (>90d)"
+                                          : "";
+                                        return (
+                                          <option key={q._id} value={q._id}>
+                                            {q.vendorName}{suffix}
+                                          </option>
+                                        );
+                                      })}
+                                    </select>
+                                  )}
+                                </div>
                               ) : (
-                                <span className="text-xs" style={{ color: m.unitPrice ? "var(--bs-text-secondary)" : "var(--bs-amber)" }}>
-                                  {m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}
-                                </span>
+                                <div className="flex flex-col items-end gap-0.5">
+                                  <span className="text-xs" style={{ color: m.unitPrice ? "var(--bs-text-secondary)" : "var(--bs-amber)" }}>
+                                    {m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}
+                                  </span>
+                                  {!isDemo && m.quoteId && (() => {
+                                    const linked = (quotes as any[]).find((q: any) => q._id === m.quoteId);
+                                    if (!linked) return null;
+                                    const f = getQuoteFreshness(linked);
+                                    const color =
+                                      f === "expired" ? "var(--bs-red)"
+                                      : f === "expiring" || f === "stale" ? "var(--bs-amber)"
+                                      : "var(--bs-teal)";
+                                    const label =
+                                      f === "expired" ? "expired"
+                                      : f === "expiring" ? "expiring"
+                                      : f === "stale" ? ">90d"
+                                      : "current";
+                                    return (
+                                      <span
+                                        className="text-[10px] leading-tight"
+                                        style={{ color }}
+                                        title={`Linked to ${linked.vendorName}${linked.quoteDate ? ` — quoted ${linked.quoteDate}` : ""}${linked.expirationDate ? ` — exp ${linked.expirationDate}` : ""}`}
+                                      >
+                                        {linked.vendorName} · {label}
+                                      </span>
+                                    );
+                                  })()}
+                                  {!isDemo && !m.quoteId && m.unitPrice && quotes.length > 0 && (
+                                    <span className="text-[10px] leading-tight" style={{ color: "var(--bs-text-dim)" }} title="No vendor quote linked to this price">
+                                      unlinked
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </td>
                             {/* Quote Price (conditional) */}
