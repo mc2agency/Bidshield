@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useProGate } from "@/hooks/useProGate";
+import { useProGate } from "@/hooks/useProGate.tsx";
 
 // ─── Shared constants ─────────────────────────────────────────────────────────
 

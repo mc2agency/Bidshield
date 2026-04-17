@@ -8,7 +8,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
-import { useProGate } from "@/hooks/useProGate";
+import { useProGate } from "@/hooks/useProGate.tsx";
 import {
   MATERIAL_CATEGORIES,
   MATERIAL_TEMPLATES,
