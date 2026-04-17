@@ -25,6 +25,7 @@ export async function requireProSubscription(
 ): Promise<NextResponse | null> {
   try {
     const convex = getConvex();
+    // @ts-ignore TS2589: Convex internal API generics hit type-depth limit with Zod v4
     const user = await convex.query(api.users.getCurrentUser, { clerkId });
 
     if (!user) {
