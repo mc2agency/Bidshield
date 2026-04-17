@@ -131,6 +131,8 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const resolvedApiKey = apiKey as string;
+
   // Process one candidate: search → fallback search → download
   async function processCandidate(c: Candidate): Promise<ResultItem> {
     const manuKey = (c.manufacturer ?? "").toLowerCase().trim();
@@ -139,12 +141,12 @@ export async function POST(req: NextRequest) {
       ? `"${c.productName}" datasheet site:${domain}`
       : `"${c.productName}" "${c.manufacturer}" datasheet filetype:pdf`;
 
-    const hit = await braveSearchPdf(query, apiKey);
+    const hit = await braveSearchPdf(query, resolvedApiKey);
     if (!hit) {
       // Fallback: drop site filter
       const fallback = await braveSearchPdf(
         `"${c.productName}" "${c.manufacturer}" datasheet filetype:pdf`,
-        apiKey,
+        resolvedApiKey,
       );
       if (!fallback) {
         return { ...c, status: "failed", errorMessage: "No PDF result found" };
