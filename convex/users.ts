@@ -241,3 +241,50 @@ export const countActiveProjects = query({
     return active.length;
   },
 });
+
+// Sync user email/name from Clerk (called by user.updated webhook)
+export const syncUserFromClerk = mutation({
+  args: {
+    clerkId: v.string(),
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (!user) {
+      console.warn("syncUserFromClerk: user not found for clerkId", args.clerkId);
+      return;
+    }
+
+    await ctx.db.patch(user._id, {
+      email: args.email,
+      name: args.name,
+    });
+  },
+});
+
+// Mark user as deleted and revoke access (called by user.deleted webhook)
+export const markUserDeleted = mutation({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (!user) {
+      console.warn("markUserDeleted: user not found for clerkId", args.clerkId);
+      return;
+    }
+
+    // Revoke access and record deletion timestamp
+    await ctx.db.patch(user._id, {
+      membershipLevel: "free",
+      deletedAt: Date.now(),
+    });
+  },
+});

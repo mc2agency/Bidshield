@@ -100,10 +100,14 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
 
-      // Templates are included with BidShield Pro subscription
-      const hasProAccess =
-        user.membershipLevel === 'pro' ||
-        user.bidshieldSubscription?.status === 'active';
+      // Templates are included with an active BidShield Pro subscription.
+      // Both membershipLevel AND subscription.status must be checked — if the
+      // webhook failed to downgrade membershipLevel on cancellation, this prevents
+      // access from persisting indefinitely with a stale membershipLevel.
+      const isProMember =
+        user.membershipLevel === 'bidshield' || user.membershipLevel === 'pro';
+      const hasActiveSubscription = user.bidshieldSubscription?.status === 'active';
+      const hasProAccess = isProMember && hasActiveSubscription;
 
       if (!hasProAccess) {
         return NextResponse.json({ error: 'BidShield Pro subscription required' }, { status: 403 });

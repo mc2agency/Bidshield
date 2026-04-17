@@ -96,14 +96,52 @@ export async function POST(request: NextRequest) {
 
   if (eventType === 'user.updated') {
     const { id, email_addresses, first_name, last_name } = evt.data;
-    console.log('User updated:', id);
-    // Optionally update user in Convex
+    const email = email_addresses?.[0]?.email_address;
+    const name = [first_name, last_name].filter(Boolean).join(' ') || email || 'User';
+
+    console.log('User updated via Clerk webhook:', { clerkId: id, email, name });
+
+    try {
+      const { ConvexHttpClient } = await import('convex/browser');
+      const { api } = await import('@/convex/_generated/api');
+      const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+      if (!convexUrl) throw new Error('NEXT_PUBLIC_CONVEX_URL not configured');
+
+      const convex = new ConvexHttpClient(convexUrl);
+      // Sync updated email and name to Convex so records stay in sync with Clerk
+      await convex.mutation(api.users.syncUserFromClerk, {
+        clerkId: id,
+        email: email || '',
+        name,
+      });
+      console.log('User synced to Convex:', id);
+    } catch (error) {
+      console.error('Error syncing user update to Convex:', error);
+    }
   }
 
   if (eventType === 'user.deleted') {
     const { id } = evt.data;
-    console.log('User deleted:', id);
-    // Optionally mark user as deleted in Convex
+    if (!id) {
+      console.warn('user.deleted event missing id — skipping');
+      return NextResponse.json({ success: true });
+    }
+
+    console.log('User deleted via Clerk webhook:', id);
+
+    try {
+      const { ConvexHttpClient } = await import('convex/browser');
+      const { api } = await import('@/convex/_generated/api');
+      const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+      if (!convexUrl) throw new Error('NEXT_PUBLIC_CONVEX_URL not configured');
+
+      const convex = new ConvexHttpClient(convexUrl);
+      // Mark user as deleted and revoke subscription access
+      await convex.mutation(api.users.markUserDeleted, { clerkId: id });
+      console.log('User marked as deleted in Convex:', id);
+    } catch (error) {
+      console.error('Error marking user as deleted in Convex:', error);
+    }
   }
 
   return NextResponse.json({ success: true });

@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const CheckAddendumSchema = z.object({
-  description: z.string().max(2000).trim(),
+  description: z.string().min(1).max(2000).trim(),
 });
 
 export async function POST(req: NextRequest) {
@@ -22,6 +23,9 @@ export async function POST(req: NextRequest) {
       { status: 429, headers: rateLimitHeaders(rl) }
     );
   }
+
+  const proGuard = await requireProSubscription(userId);
+  if (proGuard) return proGuard;
 
   try {
     const parsed = CheckAddendumSchema.safeParse(await req.json());
@@ -64,7 +68,23 @@ Return only the JSON array. No explanation, no markdown fences.`;
         { status: 422 }
       );
     }
-    return NextResponse.json({ impacts });
+
+    // Validate the AI output shape before returning to the client
+    const AddendumImpactItemSchema = z.object({
+      section: z.string().min(1).max(200),
+      action: z.string().min(1).max(500),
+    });
+    const AddendumImpactsSchema = z.array(AddendumImpactItemSchema);
+    const validated = AddendumImpactsSchema.safeParse(impacts);
+    if (!validated.success) {
+      console.error("[ai-shape-error]", { endpoint: "check-addendum-impact", issues: validated.error.issues, raw: raw?.substring(0, 500) });
+      return NextResponse.json(
+        { error: "AI returned an unexpected response shape — please try again." },
+        { status: 422 }
+      );
+    }
+
+    return NextResponse.json({ impacts: validated.data });
   } catch (err: any) {
     console.error("check-addendum-impact error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

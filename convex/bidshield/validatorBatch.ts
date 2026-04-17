@@ -53,9 +53,10 @@ export const getValidatorData = query({
       .withIndex("by_user", (q: any) => q.eq("userId", args.userId))
       .collect();
 
-    // Unconfirmed GC form count
+    // Unconfirmed GC form count: a form document is unconfirmed when
+    // itemCount (total extracted items) exceeds confirmedCount (user-confirmed items).
     const unconfirmedGcFormCount = gcFormDocuments.filter(
-      (d: any) => d.status === "needs_review" || d.status === "unconfirmed"
+      (d: any) => (d.itemCount ?? 0) > (d.confirmedCount ?? 0)
     ).length;
 
     return {

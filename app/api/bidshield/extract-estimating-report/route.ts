@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { requireProSubscription } from "@/lib/requireProSubscription";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -24,6 +25,9 @@ export async function POST(req: NextRequest) {
       { status: 429, headers: rateLimitHeaders(rl) }
     );
   }
+
+  const proGuard = await requireProSubscription(userId);
+  if (proGuard) return proGuard;
 
   try {
     const { pdfBase64 } = await req.json();

@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const DraftRfiSchema = z.object({
-  context: z.string().max(2000).trim(),
+  context: z.string().min(1).max(2000).trim(),
 });
 
 export async function POST(req: NextRequest) {
@@ -22,6 +23,9 @@ export async function POST(req: NextRequest) {
       { status: 429, headers: rateLimitHeaders(rl) }
     );
   }
+
+  const proGuard = await requireProSubscription(userId);
+  if (proGuard) return proGuard;
 
   try {
     const parsed = DraftRfiSchema.safeParse(await req.json());

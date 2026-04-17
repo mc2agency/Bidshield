@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { internalMutation, mutation, query } from "../_generated/server";
 import { resolveUserId } from "./_helpers";
 
 // ── L-16: AI usage tracking ──────────────────────────────────────────────────
@@ -91,5 +91,23 @@ export const getUsageStats = query({
       dailyCounts,
       recentCalls: last30.slice(0, 10),
     };
+  },
+});
+
+/**
+ * GC-2: Delete AI usage rows older than 90 days.
+ * Called by the "purge-ai-usage" cron every 24 hours.
+ */
+export const purgeOldAiUsage = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000; // 90 days ago
+    const stale = await ctx.db
+      .query("bidshield_ai_usage")
+      .withIndex("by_user_created")
+      .filter((q) => q.lt(q.field("createdAt"), cutoff))
+      .take(500);
+    await Promise.all(stale.map((row) => ctx.db.delete(row._id)));
+    return { deleted: stale.length };
   },
 });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { ConvexHttpClient } from 'convex/browser';
-import { anyApi } from 'convex/server';
+import { api } from '@/convex/_generated/api';
 import { buildPurchaseEmailHtml, buildDownloadLinks } from '@/lib/emails/purchase';
 
 const FROM = 'BidShield <hello@bidshield.co>';
@@ -38,11 +38,12 @@ export async function POST(request: NextRequest) {
 
   console.info('[stripe-webhook] received event', { type: event.type, id: event.id });
 
-  // P0-4: Idempotency guard — check if this event has already been processed
+  // P0-4: Idempotency guard — atomic check-and-insert in a single Convex mutation.
   // Prevents duplicate email sends on Stripe retries (up to 3× over 3 days).
+  // Uses the same isWebhookEventProcessed mutation as the subscription webhook handler.
   const convex = getConvex();
   try {
-    const alreadyProcessed = await convex.query(anyApi.webhooks.isEventProcessed, {
+    const alreadyProcessed = await convex.mutation(api.users.isWebhookEventProcessed, {
       stripeEventId: event.id,
     });
     if (alreadyProcessed) {
@@ -74,14 +75,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Mark event as processed AFTER handling
-  try {
-    await convex.mutation(anyApi.webhooks.markEventProcessed, {
-      stripeEventId: event.id,
-    });
-  } catch (err) {
-    console.warn('[stripe-webhook] failed to mark event processed:', err);
-  }
+  // Event was already marked as processed atomically above by isWebhookEventProcessed.
 
   return NextResponse.json({ received: true });
 }

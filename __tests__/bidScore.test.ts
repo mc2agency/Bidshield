@@ -132,10 +132,34 @@ describe("computeBidScore", () => {
 
   describe("grade boundaries", () => {
     it("assigns correct grade letters", () => {
-      // Test the formula: score = ((pass + warn*0.4) / total) * 100
-      // 100% pass → score 100 → A
-      // All warn → score 40 → F
-      // All fail → score 0 → F
+      // Grade thresholds: A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60, F < 60
+      // All-pass input → score ≥ 80 → A or B
+      const allPass = computeBidScore(makeInput({
+        checklist: Array.from({ length: 20 }, (_, i) => ({
+          phaseKey: "phase2",
+          itemId: `p2-${i}`,
+          status: "done",
+        })),
+        addenda: [{ number: 1, reviewStatus: "reviewed", affectsScope: false }],
+        quotes: [{ status: "valid", expirationDate: "2027-01-01" }],
+        rfis: [],
+        bidQuals: { plansDated: "2026-01-01", laborType: "open_shop", insuranceProgram: "own", estimatedDuration: "30 days" },
+        project: { ...makeInput().project, bidDate: "2026-08-01", gc: "GC", sqft: 10000, totalBidAmount: 200000, materialCost: 100000, laborCost: 80000 },
+      }));
+      expect(["A", "B"]).toContain(allPass.grade);
+      expect(allPass.score).toBeGreaterThanOrEqual(80);
+
+      // All-fail input → score < 60 → F
+      const allFail = computeBidScore(makeInput({
+        project: { trade: "roofing", bidDate: "2026-04-01" }, // past date
+        checklist: Array.from({ length: 10 }, (_, i) => ({
+          phaseKey: "phase2", itemId: `p2-${i}`, status: "pending",
+        })),
+        quotes: [],
+        addenda: [{ number: 1, reviewStatus: "pending_review" }],
+      }));
+      expect(allFail.grade).toBe("F");
+      expect(allFail.score).toBeLessThan(60);
     });
   });
 

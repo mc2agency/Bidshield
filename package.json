@@ -10,7 +10,7 @@
     "test:watch": "vitest",
     "lint": "eslint",
     "check-terms": "bash scripts/check-forbidden-terms.sh",
-    "prebuild": "bash scripts/check-forbidden-terms.sh || true"
+    "prebuild": "bash scripts/check-forbidden-terms.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.78.0",

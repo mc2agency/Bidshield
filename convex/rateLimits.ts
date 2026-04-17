@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 
 const DEFAULT_LIMIT = 10;
 const WINDOW_MS = 60 * 1000; // 1 minute
@@ -72,5 +72,25 @@ export const checkLimit = query({
       limit,
       remaining: Math.max(0, limit - recent.length),
     };
+  },
+});
+
+/**
+ * GC-1: Delete rate limit rows older than 1 hour.
+ * Called by the "purge-rate-limits" cron every hour.
+ * Keeps the rateLimits table from growing unboundedly.
+ */
+export const purgeStaleRateLimits = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoff = Date.now() - 60 * 60 * 1000; // 1 hour ago
+    // Use the timestamp index to find stale rows efficiently
+    const stale = await ctx.db
+      .query("rateLimits")
+      .withIndex("by_user_action_time")
+      .filter((q) => q.lt(q.field("timestamp"), cutoff))
+      .take(500); // batch to stay within Convex mutation limits
+    await Promise.all(stale.map((row) => ctx.db.delete(row._id)));
+    return { deleted: stale.length };
   },
 });

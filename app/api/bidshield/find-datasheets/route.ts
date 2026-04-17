@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { requireProSubscription } from "@/lib/requireProSubscription";
 
 const BRAVE_ENDPOINT = "https://api.search.brave.com/res/v1/web/search";
 const MIN_PDF_BYTES = 10_000;
@@ -101,6 +102,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const proGuard = await requireProSubscription(userId);
+  if (proGuard) return proGuard;
+
   const apiKey = process.env.BRAVE_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -115,8 +119,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  if (!body.materials || !Array.isArray(body.materials)) {
-    return NextResponse.json({ error: "Missing materials array" }, { status: 400 });
+  if (!body.materials || !Array.isArray(body.materials) || body.materials.length > 20) {
+    return NextResponse.json({ error: "materials must be an array of 1–20 items" }, { status: 400 });
   }
 
   const candidates = dedupeCandidates(body.materials);
