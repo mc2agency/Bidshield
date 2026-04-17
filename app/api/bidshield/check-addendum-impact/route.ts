@@ -50,7 +50,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
-        { model: "claude-haiku-4-5-20251001", max_tokens: 512, messages: [{ role: "user", content: prompt }] },
+        { model: "claude-haiku-4-5-20251001", max_tokens: 1024, system: "You are a commercial roofing estimator reviewing bid addenda. Identify which parts of a roofing bid are affected and what action the estimator must take. Return only valid JSON arrays.", messages: [{ role: "user", content: prompt }] },
         { signal: controller.signal }
       );
     } finally {

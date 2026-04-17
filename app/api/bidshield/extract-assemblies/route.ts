@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -84,7 +85,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 1024,
+          max_tokens: 2048,
           system: systemPrompt,
           messages: [
             {
@@ -120,23 +121,32 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       );
     }
 
-    // Support both array and object response format
-    if (Array.isArray(data)) {
-      return NextResponse.json({ assemblies: data });
-    }
-    if (data && Array.isArray(data.assemblies)) {
-      return NextResponse.json({
-        assemblies: data.assemblies,
-        deckType: data.deckType || null,
-        projectName: data.projectName || null,
-        location: data.location || null,
-      });
+    const AssemblyItemSchema = z.object({
+      label: z.string().default(""),
+      system: z.string().default("tpo"),
+      insulation: z.string().nullable().optional(),
+      thickness: z.string().nullable().optional(),
+      surface: z.string().nullable().optional(),
+      area: z.number().nullable().optional(),
+      name: z.string().nullable().optional(),
+      deckType: z.string().nullable().optional(),
+    });
+    const AssembliesResultSchema = z.object({
+      assemblies: z.array(AssemblyItemSchema).default([]),
+      deckType: z.string().nullable().optional(),
+      projectName: z.string().nullable().optional(),
+      location: z.string().nullable().optional(),
+    });
+
+    // Normalise array format to object format before validating
+    const normalised = Array.isArray(data) ? { assemblies: data } : data;
+    const validated = AssembliesResultSchema.safeParse(normalised);
+    if (!validated.success) {
+      console.error("[ai-shape-error]", { endpoint: "extract-assemblies", issues: validated.error.issues });
+      return NextResponse.json({ error: "AI returned an unexpected response shape — please try again." }, { status: 422 });
     }
 
-    return NextResponse.json(
-      { error: "Could not extract assemblies from this PDF" },
-      { status: 422 },
-    );
+    return NextResponse.json(validated.data);
   } catch (err: any) {
     console.error("extract-assemblies error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

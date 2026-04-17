@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -116,7 +117,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
     try {
       message = await client.messages.create(
         {
-          model: "claude-haiku-4-5-20251001",
+          model: "claude-sonnet-4-6",
           max_tokens: 8192,
           system: systemPrompt,
           messages: [
@@ -150,22 +151,23 @@ Return only the JSON array. No explanation, no markdown fences.`;
       );
     }
 
-    // Shape validation: filter out items missing required fields
-    items = items.filter((item: any) =>
-      typeof item.questionText === "string" && item.questionText.trim() !== "" &&
-      typeof item.itemType === "string"
-    );
+    // Shape validation and normalization using Zod
+    const GcFormItemSchema = z.object({
+      questionText: z.string().min(1),
+      itemType: z.enum(["fill-in", "scope-item"]).default("fill-in"),
+      autoConfirmed: z.boolean().default(false),
+      confirmedValue: z.string().nullable().optional(),
+      matchedField: z.string().nullable().optional(),
+      scopeMatch: z.object({
+        foundInScope: z.boolean().default(false),
+        foundInChecklist: z.boolean().default(false),
+      }).nullable().optional(),
+    });
 
-    // Normalize items
-    const normalized = items.map((item: any) => ({
-      questionText: item.questionText ?? "",
-      itemType: item.itemType === "scope-item" ? "scope-item" : "fill-in",
-      autoConfirmed: !!item.autoConfirmed,
-      confirmedValue: item.confirmedValue ?? undefined,
-      matchedField: item.matchedField ?? undefined,
-      foundInScope: item.scopeMatch?.foundInScope ?? undefined,
-      foundInChecklist: item.scopeMatch?.foundInChecklist ?? undefined,
-    }));
+    const normalized = items
+      .map((item: unknown) => GcFormItemSchema.safeParse(item))
+      .filter((r): r is z.SafeParseSuccess<z.infer<typeof GcFormItemSchema>> => r.success)
+      .map(r => r.data);
 
     return NextResponse.json({ items: normalized });
   } catch (err: any) {

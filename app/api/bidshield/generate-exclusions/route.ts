@@ -76,6 +76,9 @@ Return only the numbered list. No preamble, no closing remarks.`;
     }
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
+    if (!text.trim()) {
+      return NextResponse.json({ error: "AI returned an empty response — please try again." }, { status: 422 });
+    }
     return NextResponse.json({ text });
   } catch (err: any) {
     console.error("generate-exclusions error:", err);

@@ -127,7 +127,7 @@ After all assemblies, add a one-line PROJECT SUMMARY that lists all systems used
       message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 1024,
+          max_tokens: 1536,
           system: "You are BidShield, a QA assistant for commercial roofing estimators. You have deep knowledge of commercial roof assemblies — membrane systems (TPO, EPDM, SBS, PVC, BUR), IRMA/PMR systems, insulation types (polyiso, XPS, EPS, VIP), attachment methods, vapor retarders, protection boards, drainage mats, paver systems, green roofs, and traffic coatings. Generate descriptions that match the format and terminology used in manufacturer system letters and architectural detail schedules (like Siplast, Carlisle, GAF, Firestone). Be precise about layer order — waterproofing membrane goes below insulation in IRMA/PMR assemblies, above insulation in conventional assemblies.",
           messages: [{ role: "user", content: prompt }],
         },
@@ -138,6 +138,9 @@ After all assemblies, add a one-line PROJECT SUMMARY that lists all systems used
     }
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
+    if (!text.trim()) {
+      return NextResponse.json({ error: "AI returned an empty response — please try again." }, { status: 422 });
+    }
     return NextResponse.json({ text });
   } catch (err: unknown) {
     console.error("generate-system-description error:", err);

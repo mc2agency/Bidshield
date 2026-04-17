@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -167,7 +168,7 @@ Only include fields where data is found in the document. Omit fields with no dat
     try {
       message = await client.messages.create(
         {
-          model: "claude-haiku-4-5-20251001",
+          model: "claude-sonnet-4-6",
           max_tokens: 8192,
           system: systemPrompt,
           messages: [
@@ -204,7 +205,26 @@ Only include fields where data is found in the document. Omit fields with no dat
       );
     }
 
-    return NextResponse.json(data);
+    const SpecResultSchema = z.object({
+      specSections: z.array(z.object({ csiNumber: z.string(), title: z.string() }).passthrough()).optional().default([]),
+      assemblies: z.array(z.object({ label: z.string(), system: z.string() }).passthrough()).optional().default([]),
+      warranty: z.object({ tier: z.string().optional(), years: z.number().optional() }).passthrough().optional(),
+      materials: z.array(z.object({ category: z.string(), productName: z.string() }).passthrough()).optional().default([]),
+      generalConditions: z.array(z.string()).optional().default([]),
+      laborRequirements: z.object({}).passthrough().optional(),
+      submittals: z.array(z.string()).optional().default([]),
+      specialInspections: z.array(z.string()).optional().default([]),
+    }).passthrough();
+    const validated = SpecResultSchema.safeParse(data);
+    if (!validated.success) {
+      console.error("[ai-shape-error]", { endpoint: "extract-specification", issues: validated.error.issues });
+      return NextResponse.json({ error: "AI returned an unexpected response shape — please try again." }, { status: 422 });
+    }
+    if (Object.keys(validated.data).length === 0) {
+      return NextResponse.json({ error: "AI returned an empty specification — please try again." }, { status: 422 });
+    }
+
+    return NextResponse.json(validated.data);
   } catch (err: any) {
     console.error("extract-specification error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

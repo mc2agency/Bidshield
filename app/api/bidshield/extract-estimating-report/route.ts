@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
+import { z } from "zod";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -120,12 +121,22 @@ Return only the JSON array. No explanation, no markdown fences.`;
       );
     }
 
-    // Shape validation: filter out items missing required fields
-    const validItems = items.filter((item: any) =>
-      typeof item.materialName === "string" &&
-      typeof item.category === "string" &&
-      typeof item.unit === "string"
-    );
+    // Shape validation: filter out items missing required fields using Zod
+    const ReportItemSchema = z.object({
+      materialName: z.string().min(1),
+      category: z.string().default("Miscellaneous"),
+      unit: z.string().default("EA"),
+      quantity: z.number().min(0).default(0),
+      coverageRate: z.string().nullable().optional(),
+      wastePct: z.number().min(0).default(0),
+      unitPrice: z.number().min(0).default(0),
+      extendedTotal: z.number().min(0).default(0),
+    });
+    const parsedItems = items;
+    const validItems = parsedItems
+      .map((item: unknown) => ReportItemSchema.safeParse(item))
+      .filter((r): r is z.SafeParseSuccess<z.infer<typeof ReportItemSchema>> => r.success)
+      .map(r => r.data);
 
     return NextResponse.json({ items: validItems });
   } catch (err: any) {

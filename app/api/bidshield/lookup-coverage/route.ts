@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
         {
           model: "claude-haiku-4-5-20251001",
           max_tokens: 128,
+          system: "You are a construction materials reference assistant. Return only valid JSON with no explanation or markdown.",
           messages: [
             {
               role: "user",
@@ -97,7 +98,11 @@ Only return a coverageRate value if you are confident. Common standards:
     const text = message.content[0].type === "text" ? message.content[0].text : "";
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
 
-    let result: { coverageRate: string | null; confidence: "high" | "low" };
+    if (!cleaned.trim()) {
+      return NextResponse.json({ coverageRate: null, confidence: "low" });
+    }
+
+    let result: unknown;
     try {
       result = JSON.parse(cleaned);
     } catch (parseErr: any) {
@@ -105,7 +110,15 @@ Only return a coverageRate value if you are confident. Common standards:
       return NextResponse.json({ coverageRate: null, confidence: "low" });
     }
 
-    return NextResponse.json(result);
+    const CoverageResultSchema = z.object({
+      coverageRate: z.string().nullable(),
+      confidence: z.enum(["high", "low"]),
+    });
+    const validated = CoverageResultSchema.safeParse(result);
+    if (!validated.success) {
+      return NextResponse.json({ coverageRate: null, confidence: "low" });
+    }
+    return NextResponse.json(validated.data);
   } catch (err: any) {
     console.error("lookup-coverage error:", err);
     return NextResponse.json(

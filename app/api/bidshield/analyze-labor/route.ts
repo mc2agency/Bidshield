@@ -201,8 +201,8 @@ Return only the JSON object.`;
       crewSize: z.number().min(1).default(1),
       days: z.number().min(0).default(0),
       notes: z.string().nullable().optional(),
-      rateFlag: z.string().default("ok"),
-      detailType: z.string().default("SF_based"),
+      rateFlag: z.enum(["low", "ok", "high"]).default("ok"),
+      detailType: z.enum(["SF_based", "LF_based", "count", "lump_sum"]).default("SF_based"),
     });
     const LaborResultSchema = z.object({
       tasks: z.array(LaborTaskSchema).default([]),
