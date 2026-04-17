@@ -166,8 +166,8 @@ Return only the JSON array. No explanation, no markdown fences.`;
 
     const normalized = items
       .map((item: unknown) => GcFormItemSchema.safeParse(item))
-      .filter((r): r is z.SafeParseSuccess<z.infer<typeof GcFormItemSchema>> => r.success)
-      .map(r => r.data);
+      .filter((r) => r.success)
+      .map((r) => (r as { success: true; data: z.infer<typeof GcFormItemSchema> }).data);
 
     return NextResponse.json({ items: normalized });
   } catch (err: any) {
