@@ -135,8 +135,8 @@ Return only the JSON array. No explanation, no markdown fences.`;
     const parsedItems = items;
     const validItems = parsedItems
       .map((item: unknown) => ReportItemSchema.safeParse(item))
-      .filter((r): r is z.SafeParseSuccess<z.infer<typeof ReportItemSchema>> => r.success)
-      .map(r => r.data);
+      .filter((r) => r.success)
+      .map((r) => (r as { success: true; data: z.infer<typeof ReportItemSchema> }).data);
 
     return NextResponse.json({ items: validItems });
   } catch (err: any) {
