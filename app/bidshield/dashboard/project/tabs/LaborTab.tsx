@@ -7,7 +7,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { defaultLaborRates } from "@/convex/bidshieldDefaults";
 import type { TabProps } from "../tab-types";
 import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
-import { useProGate } from "@/hooks/useProGate.tsx";
+import { useProGate } from "@/hooks/useProGate";
 
 // ── Demo fixtures ────────────────────────────────────────────────────────────
 
