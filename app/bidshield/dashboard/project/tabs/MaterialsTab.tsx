@@ -1694,6 +1694,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           datasheets={ds}
         />
       )}
+      {proGateModal}
     </div>
   );
 }
@@ -1972,7 +1973,6 @@ function AddMaterialModal({
           )}
         </div>
       </div>
-      {proGateModal}
     </div>
   );
 }
