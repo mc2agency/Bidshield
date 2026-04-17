@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useProGate } from "@/hooks/useProGate";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -97,6 +98,7 @@ const btnSecondary = {
 };
 
 export default function SetupTab({ project, projectId, isDemo, userId }: TabProps) {
+  const { proGateModal, guardedFetch } = useProGate();
   // @ts-ignore TS2589: Convex API generics hit type-depth limit with Zod v4
   const updateProject = useMutation(api.bidshield.updateProject);
   const createTakeoffSection = useMutation(api.bidshield.createTakeoffSection);
@@ -369,11 +371,12 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
       }
       const base64 = btoa(binary);
-      const res = await fetch("/api/bidshield/extract-specification", {
+      const res = await guardedFetch("/api/bidshield/extract-specification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdfBase64: base64 }),
       });
+      if (!res) return;
       const data = await res.json();
       if (!res.ok || data.error) { setSpecError(data.error || "Extraction failed"); setSpecMode("error"); return; }
       setSpecData(data);
@@ -624,7 +627,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     if (rows.length === 0) return;
     setDescLoading(true);
     try {
-      const res = await fetch("/api/bidshield/generate-system-description", {
+      const res = await guardedFetch("/api/bidshield/generate-system-description", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -639,6 +642,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           deckType: info.deckType || undefined,
         }),
       });
+      if (!res) return;
       const data = await res.json();
       if (data.text) setDescription(data.text);
     } catch (err) {
@@ -677,6 +681,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
 
   return (
     <div className="flex flex-col gap-5">
+      {proGateModal}
       {/* ── Project Info ── */}
       <div style={cardStyle}>
         <div className="flex items-center justify-between mb-5">

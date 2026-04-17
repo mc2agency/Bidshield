@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useProGate } from "@/hooks/useProGate";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -19,6 +20,7 @@ type FindResult = {
 };
 
 export default function SubmittalsTab({ projectId, project, userId }: TabProps) {
+  const { proGateModal, guardedFetch } = useProGate();
   const submittals = useQuery(
     api.bidshield.submittals.listByProject,
     projectId && userId
@@ -59,11 +61,12 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
     setBusy(true);
     setStatus(`Searching for ${candidates.length} products on manufacturer sites…`);
     try {
-      const res = await fetch("/api/bidshield/find-datasheets", {
+      const res = await guardedFetch("/api/bidshield/find-datasheets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ materials: candidates }),
       });
+      if (!res) { setBusy(false); return; }
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         setStatus(`Search failed: ${err.error ?? res.statusText}`);
@@ -131,6 +134,7 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
 
   return (
     <div style={{ padding: 24 }}>
+      {proGateModal}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--bs-text-primary)" }}>Submittals</h2>

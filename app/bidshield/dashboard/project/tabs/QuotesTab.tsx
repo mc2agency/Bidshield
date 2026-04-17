@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback } from "react";
+import { useProGate } from "@/hooks/useProGate";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -95,6 +96,7 @@ const UNITS = ["RL", "SQ", "SF", "LF", "EA", "GAL", "BG", "TON", "LS", "BDL", "C
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function QuotesTab({ projectId, isDemo, project, userId }: TabProps) {
+  const { proGateModal, guardedFetch } = useProGate();
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
   const logAiCall = useAiUsageLog(userId);
 
@@ -220,11 +222,12 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       });
 
       const t0 = Date.now();
-      const res = await fetch("/api/bidshield/extract-quote", {
+      const res = await guardedFetch("/api/bidshield/extract-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdfBase64: base64 }),
       });
+      if (!res) return;
 
       const data = await res.json();
       logAiCall({ endpoint: "extract-quote", success: res.ok && !data.error, durationMs: Date.now() - t0, errorMessage: data.error, projectId: projectId ?? undefined });
@@ -359,7 +362,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
 
   return (
     <div className="flex flex-col gap-5">
-
+      {proGateModal}
       {/* Toast */}
       {notification && (
         <div className="fixed top-20 right-6 px-5 py-3 rounded-lg text-sm font-medium z-50" style={{ background: "var(--bs-teal)", color: "#13151a" }}>

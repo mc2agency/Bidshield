@@ -2,6 +2,7 @@
 import { DEMO_RFIS as IMPORTED_RFIS } from "@/lib/bidshield/demo-data";
 
 import React, { useState } from "react";
+import { useProGate } from "@/hooks/useProGate";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -53,6 +54,7 @@ const demoRFIs = [
 ];
 
 export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: TabProps) {
+  const { proGateModal, guardedFetch } = useProGate();
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const convexRFIs = useQuery(
@@ -91,11 +93,12 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
     if (!draftAiContext.trim()) return;
     setDraftAiLoading(true);
     try {
-      const res = await fetch("/api/bidshield/draft-rfi", {
+      const res = await guardedFetch("/api/bidshield/draft-rfi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context: draftAiContext }),
       });
+      if (!res) { setDraftAiLoading(false); return; }
       const data = await res.json();
       if (data.text) setNewQuestion(data.text);
     } catch {
@@ -144,7 +147,7 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
 
   return (
     <div className="flex flex-col gap-5">
-
+      {proGateModal}
       {/* ── STATS BAR ─────────────────────────────────────────────────────────── */}
       <div className="flex items-stretch rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         {([

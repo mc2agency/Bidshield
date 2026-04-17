@@ -2,6 +2,7 @@
 import { DEMO_ADDENDA as IMPORTED_ADDENDA } from "@/lib/bidshield/demo-data";
 
 import { useState, useRef, useCallback } from "react";
+import { useProGate } from "@/hooks/useProGate";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -39,6 +40,7 @@ function cardBorderColor(add: any): string {
 }
 
 export default function AddendaTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
+  const { proGateModal, guardedFetch } = useProGate();
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const addenda = useQuery(
@@ -127,11 +129,12 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
     setImpactCheckLoading(true);
     setImpactCheckResults(null);
     try {
-      const res = await fetch("/api/bidshield/check-addendum-impact", {
+      const res = await guardedFetch("/api/bidshield/check-addendum-impact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: desc }),
       });
+      if (!res) return;
       const data = await res.json();
       setImpactCheckResults(data.impacts ?? []);
     } catch {
@@ -180,8 +183,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
 
   return (
     <div className="flex flex-col gap-5">
-
-      {/* ── STATS BAR ─────────────────────────────────────────────────────────── */}
+      {proGateModal}
       <div className="flex items-stretch rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         {([
           { label: "Total", value: totalAddenda, valueColor: "var(--bs-text-primary)" },

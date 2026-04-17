@@ -131,8 +131,8 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const results: ResultItem[] = [];
-  for (const c of candidates) {
+  // Process one candidate: search → fallback search → download
+  async function processCandidate(c: Candidate): Promise<ResultItem> {
     const manuKey = (c.manufacturer ?? "").toLowerCase().trim();
     const domain = MANUFACTURER_DOMAINS[manuKey];
     const query = domain
@@ -147,54 +147,29 @@ export async function POST(req: NextRequest) {
         apiKey,
       );
       if (!fallback) {
-        results.push({
-          ...c,
-          status: "failed",
-          errorMessage: "No PDF result found",
-        });
-        continue;
+        return { ...c, status: "failed", errorMessage: "No PDF result found" };
       }
       const dl = await downloadPdf(fallback.url);
       if ("error" in dl) {
-        results.push({
-          ...c,
-          status: "failed",
-          sourceUrl: fallback.url,
-          title: fallback.title,
-          errorMessage: dl.error,
-        });
-        continue;
+        return { ...c, status: "failed", sourceUrl: fallback.url, title: fallback.title, errorMessage: dl.error };
       }
-      results.push({
-        ...c,
-        status: "downloaded",
-        sourceUrl: fallback.url,
-        title: fallback.title,
-        pdfBase64: dl.base64,
-        fileSize: dl.size,
-      });
-      continue;
+      return { ...c, status: "downloaded", sourceUrl: fallback.url, title: fallback.title, pdfBase64: dl.base64, fileSize: dl.size };
     }
 
     const dl = await downloadPdf(hit.url);
     if ("error" in dl) {
-      results.push({
-        ...c,
-        status: "failed",
-        sourceUrl: hit.url,
-        title: hit.title,
-        errorMessage: dl.error,
-      });
-      continue;
+      return { ...c, status: "failed", sourceUrl: hit.url, title: hit.title, errorMessage: dl.error };
     }
-    results.push({
-      ...c,
-      status: "downloaded",
-      sourceUrl: hit.url,
-      title: hit.title,
-      pdfBase64: dl.base64,
-      fileSize: dl.size,
-    });
+    return { ...c, status: "downloaded", sourceUrl: hit.url, title: hit.title, pdfBase64: dl.base64, fileSize: dl.size };
+  }
+
+  // Run up to 4 candidates in parallel to avoid hammering Brave / download servers
+  const CONCURRENCY = 4;
+  const results: ResultItem[] = [];
+  for (let i = 0; i < candidates.length; i += CONCURRENCY) {
+    const batch = candidates.slice(i, i + CONCURRENCY);
+    const batchResults = await Promise.all(batch.map(processCandidate));
+    results.push(...batchResults);
   }
 
   return NextResponse.json({ results });

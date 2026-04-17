@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef } from "react";
+import { useProGate } from "@/hooks/useProGate";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -65,6 +66,7 @@ function SegmentedPill({
 }
 
 export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: TabProps) {
+  const { proGateModal, guardedFetch } = useProGate();
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
 
   const scopeItems = useQuery(
@@ -227,7 +229,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     try {
       const excl   = items.filter((i: any) => i.status === "excluded");
       const others = items.filter((i: any) => i.status === "by_others");
-      const res = await fetch("/api/bidshield/generate-exclusions", {
+      const res = await guardedFetch("/api/bidshield/generate-exclusions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -236,6 +238,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
           clarifications: resolvedClarifications.map((c: any) => ({ text: c.text })),
         }),
       });
+      if (!res) return;
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         setAiExclusionsError(err?.error ?? "Failed to generate exclusions — please try again.");
@@ -310,7 +313,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
   return (
     <div className="flex flex-col gap-4">
-
+      {proGateModal}
       {/* ── STATS BAR ── */}
       <div
         className="flex items-center overflow-hidden"
