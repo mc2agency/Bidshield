@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
+import { useProGate } from "@/hooks/useProGate";
 import {
   MATERIAL_CATEGORIES,
   MATERIAL_TEMPLATES,
@@ -297,6 +298,7 @@ function CoverageFlag({ material, onLookup, lookupResults }: {
 export default function MaterialsTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
   const logAiCall = useAiUsageLog(userId);
+  const { proGateModal, guardedFetch } = useProGate();
 
   const projectMaterials = useQuery(
     api.bidshield.getProjectMaterials,
@@ -481,11 +483,12 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const handleCoverageLookup = useCallback(async (materialId: string, materialName: string) => {
     setCoverageLookups(prev => ({ ...prev, [materialId]: { coverageRate: null, confidence: "low", loading: true } }));
     try {
-      const res = await fetch("/api/bidshield/lookup-coverage", {
+      const res = await guardedFetch("/api/bidshield/lookup-coverage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ materialName }),
       });
+      if (!res) { setCoverageLookups(prev => ({ ...prev, [materialId]: { coverageRate: null, confidence: "low" } })); return; }
       const data = await res.json();
       setCoverageLookups(prev => ({ ...prev, [materialId]: { coverageRate: data.coverageRate, confidence: data.confidence } }));
       // If high confidence and not demo, save to db
@@ -516,11 +519,13 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         if (!base64) { setIsUploading(false); return; }
 
         const t0 = Date.now();
-        const res = await fetch("/api/bidshield/extract-estimating-report", {
+        const res = await guardedFetch("/api/bidshield/extract-estimating-report", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pdfBase64: base64 }),
         });
+
+        if (!res) { setIsUploading(false); return; } // paywall shown
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
@@ -1968,5 +1973,6 @@ function AddMaterialModal({
         </div>
       </div>
     </div>
+    {proGateModal}
   );
 }

@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { useProGate } from "@/hooks/useProGate";
 
 // ─── Shared constants ─────────────────────────────────────────────────────────
 
@@ -332,6 +333,8 @@ export default function QuotesPricingPage() {
   const extractionsUsed = monthlyCount ?? 0;
   const atLimit = extractionsUsed >= MONTHLY_LIMIT;
 
+  const { proGateModal, guardedFetch } = useProGate();
+
   // ═══════════════════════════════════════════════════════════════════════════
   // TAB 1 — VENDOR QUOTES state
   // ═══════════════════════════════════════════════════════════════════════════
@@ -455,11 +458,12 @@ export default function QuotesPricingPage() {
         reader.readAsDataURL(file);
       });
 
-      const res = await fetch("/api/bidshield/extract-quote", {
+      const res = await guardedFetch("/api/bidshield/extract-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdfBase64: base64 }),
       });
+      if (!res) { setQuoteExtracting(false); return; } // paywall shown
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error ?? "Extraction failed");
       const q = data.quote;
@@ -593,10 +597,11 @@ export default function QuotesPricingPage() {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const res = await fetch("/api/bidshield/extract-price-sheet", {
+      const res = await guardedFetch("/api/bidshield/extract-price-sheet", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdfBase64: base64, vendorName: pdfVendor, priceListDate: pdfDate }),
       });
+      if (!res) { setExtracting(false); return; } // paywall shown
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error ?? "Extraction failed");
       setPreviewItems((data.items as Omit<ExtractedItem, "selected">[]).map(item => ({
@@ -953,7 +958,19 @@ export default function QuotesPricingPage() {
                   <span className="text-xs opacity-75">{extractionsUsed}/{MONTHLY_LIMIT}</span>
                 </button>
               ) : (
-                <button disabled title="Upgrade to Pro to upload vendor price sheets" className="px-4 py-2.5 text-sm font-semibold rounded-lg cursor-not-allowed flex items-center gap-2" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)" }}>
+                <button
+                  onClick={async () => {
+                    // Trigger the paywall modal for non-Pro users
+                    await guardedFetch("/api/bidshield/extract-price-sheet", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ __proGateCheck: true }),
+                    });
+                  }}
+                  title="Upgrade to Pro to upload vendor price sheets"
+                  className="px-4 py-2.5 text-sm font-semibold rounded-lg flex items-center gap-2"
+                  style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)", cursor: "pointer" }}
+                >
                   <span>Upload Price Sheet</span>
                   <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>Pro</span>
                 </button>
@@ -1375,5 +1392,6 @@ export default function QuotesPricingPage() {
         );
       })()}
     </div>
+    {proGateModal}
   );
 }

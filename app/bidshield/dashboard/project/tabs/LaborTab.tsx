@@ -7,6 +7,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { defaultLaborRates } from "@/convex/bidshieldDefaults";
 import type { TabProps } from "../tab-types";
 import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
+import { useProGate } from "@/hooks/useProGate";
 
 // ── Demo fixtures ────────────────────────────────────────────────────────────
 
@@ -88,6 +89,7 @@ const fmtDollar = (n: number) => `$${Math.round(n).toLocaleString()}`;
 export default function LaborTab({ isDemo, isPro, userId, projectId, project }: TabProps) {
   const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
   const logAiCall = useAiUsageLog(userId);
+  const { proGateModal, guardedFetch } = useProGate();
 
   // Convex queries/mutations
   const laborTasks = useQuery(
@@ -190,7 +192,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
     setAnalyzeError(null);
     const t0 = Date.now();
     try {
-      const res = await fetch("/api/bidshield/analyze-labor", {
+      const res = await guardedFetch("/api/bidshield/analyze-labor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -207,6 +209,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           estimatedDuration: bidQuals?.estimatedDuration,
         }),
       });
+      if (!res) return; // paywall shown
       const data = await res.json();
       logAiCall({ endpoint: "analyze-labor", success: res.ok && !data.error, durationMs: Date.now() - t0, errorMessage: data.error, projectId: projectId ?? undefined });
       if (!res.ok || data.error) {
@@ -733,5 +736,6 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
         )}
       </div>
     </div>
+    {proGateModal}
   );
 }
