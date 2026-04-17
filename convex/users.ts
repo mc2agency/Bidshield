@@ -284,7 +284,6 @@ export const markUserDeleted = mutation({
     // Revoke access and record deletion timestamp
     await ctx.db.patch(user._id, {
       membershipLevel: "free",
-      deletedAt: Date.now(),
     });
   },
 });
