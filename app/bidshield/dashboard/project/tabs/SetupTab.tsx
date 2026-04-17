@@ -1263,7 +1263,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                     <div className="text-xs py-0.5" style={{ color: "var(--bs-amber)" }}>Certified installer required</div>
                   )}
                   {specData.laborRequirements.manufacturerTraining && (
-                    <div className="text-xs py-0.5" style={{ color: "var(--bs-amber)" }}>Manufacturer training required</div>
+                    <div className="text-xs py-0.5" style={{ color: "var(--bs-amber)" }}>Manufacturer certification required</div>
                   )}
                 </div>
               )}
