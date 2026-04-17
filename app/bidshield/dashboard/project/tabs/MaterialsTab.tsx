@@ -1972,7 +1972,7 @@ function AddMaterialModal({
           )}
         </div>
       </div>
+      {proGateModal}
     </div>
-    {proGateModal}
   );
 }

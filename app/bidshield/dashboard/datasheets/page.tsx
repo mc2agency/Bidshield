@@ -1391,7 +1391,7 @@ export default function QuotesPricingPage() {
         </div>
         );
       })()}
+      {proGateModal}
     </div>
-    {proGateModal}
   );
 }

@@ -735,7 +735,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           </div>
         )}
       </div>
+      {proGateModal}
     </div>
-    {proGateModal}
   );
 }
