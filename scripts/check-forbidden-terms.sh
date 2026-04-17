@@ -106,7 +106,7 @@ fi
 
 # Training - filter out OSHA/safety training (legitimate) and blog posts (informational)
 TRAIN_MATCHES=$(grep -rniE "[Tt]rain(ing|ed)?" $SCAN_DIRS $EXCLUDE_PATTERN 2>/dev/null | \
-    grep -viE "OSHA|safety|competent person|fall protection|hazcom|restraints|disruption|specialized|equipment|support|hours|we trained|API|team" | \
+    grep -viE "OSHA|safety|competent person|fall protection|hazcom|restraints|disruption|specialized|equipment|support|hours|we trained|API|team|manufacturer" | \
     grep -v "app/blog/" || true)
 if [ -n "$TRAIN_MATCHES" ]; then
     COUNT=$(echo "$TRAIN_MATCHES" | wc -l)
