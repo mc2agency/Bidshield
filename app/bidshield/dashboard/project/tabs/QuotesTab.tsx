@@ -208,22 +208,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     }
   };
 
-  const handleImport = async (quoteId: string) => {
-    if (!userId || !isValidConvexId) return;
-    setImportingId(quoteId);
-    try {
-      await importQuoteMut({
-        userId,
-        quoteId: quoteId as Id<"bidshield_quotes">,
-        projectId: projectId as Id<"bidshield_projects">,
-      });
-      setImportModal(false);
-      notify("Quote imported!");
-    } finally {
-      setImportingId(null);
-    }
-  };
-
   // PDF extraction state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extracting, setExtracting] = useState(false);
