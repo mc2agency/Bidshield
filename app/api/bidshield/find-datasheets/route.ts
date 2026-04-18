@@ -19,6 +19,25 @@ const MANUFACTURER_DOMAINS: Record<string, string> = {
   soprema: "soprema.us",
 };
 
+const ALLOWED_DOMAIN_SUFFIXES = new Set(Object.values(MANUFACTURER_DOMAINS));
+
+// SSRF guard — refuse to fetch URLs that aren't plain HTTPS on a known manufacturer
+// domain. Brave is a partial-trust source and will happily return URLs that redirect
+// to internal networks if an attacker seeds one.
+function isSafeDownloadUrl(url: string): boolean {
+  let u: URL;
+  try { u = new URL(url); } catch { return false; }
+  if (u.protocol !== "https:") return false;
+  const host = u.hostname.toLowerCase();
+  if (/^(\d+\.){3}\d+$/.test(host)) return false; // raw IPv4
+  if (host.includes(":")) return false;            // raw IPv6 / port tricks
+  if (host === "localhost" || host.endsWith(".localhost")) return false;
+  for (const suffix of ALLOWED_DOMAIN_SUFFIXES) {
+    if (host === suffix || host.endsWith(`.${suffix}`)) return true;
+  }
+  return false;
+}
+
 type Candidate = {
   productName: string;
   manufacturer?: string;
@@ -73,8 +92,9 @@ async function braveSearchPdf(
 async function downloadPdf(
   url: string,
 ): Promise<{ base64: string; size: number } | { error: string }> {
+  if (!isSafeDownloadUrl(url)) return { error: "Blocked: URL not on allowed manufacturer domain" };
   try {
-    const res = await fetch(url, { redirect: "follow" });
+    const res = await fetch(url, { redirect: "error" });
     if (!res.ok) return { error: `HTTP ${res.status}` };
     const ct = res.headers.get("content-type") ?? "";
     if (!ct.toLowerCase().includes("pdf") && !url.toLowerCase().endsWith(".pdf")) {

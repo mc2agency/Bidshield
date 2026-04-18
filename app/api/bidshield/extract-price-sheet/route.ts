@@ -19,6 +19,19 @@ const PriceSheetItemSchema = z.object({
   notes: z.string().nullable().optional(),
 });
 
+// Prevent prompt-injection via user-controlled fields interpolated into the
+// LLM prompt: cap length, strip newlines + angle brackets that could frame
+// fake instructions. Defense-in-depth (self-attack only — not cross-tenant).
+const SafePromptText = z.string().max(100).transform(s =>
+  s.replace(/[\r\n<>]/g, "").trim()
+);
+
+const ExtractPriceSheetInputSchema = z.object({
+  pdfBase64: z.string(),
+  vendorName: SafePromptText.optional(),
+  priceListDate: SafePromptText.optional(),
+});
+
 // 20 MB limit — base64 adds ~33% overhead so we check against 27.3 MB of chars
 const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
 
@@ -44,7 +57,14 @@ export async function POST(req: NextRequest) {
   if (proGuard) return proGuard;
 
   try {
-    const { pdfBase64, vendorName, priceListDate } = await req.json();
+    const parsed = ExtractPriceSheetInputSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
+    }
+    const { pdfBase64, vendorName, priceListDate } = parsed.data;
 
     if (!pdfBase64) {
       return NextResponse.json({ error: "No PDF data provided" }, { status: 400 });
