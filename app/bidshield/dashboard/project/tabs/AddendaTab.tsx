@@ -61,7 +61,8 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
     notes: "",
   });
   const [impactCheckLoading, setImpactCheckLoading] = useState(false);
-  const [impactCheckResults, setImpactCheckResults] = useState<{ section: string; action: string }[] | null>(null);
+  const [impactCheckResults, setImpactCheckResults] = useState<{ phase: string; phaseKey: string; severity: string; action: string; detail: string }[] | null>(null);
+  const [impactCheckSummary, setImpactCheckSummary] = useState<string | null>(null);
 
   // Demo data with enhanced fields
   const [demoAddendaState, setDemoAddendaState] = useState<any[]>([
@@ -137,6 +138,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
       if (!res) return;
       const data = await res.json();
       setImpactCheckResults(data.impacts ?? []);
+      setImpactCheckSummary(data.summary ?? null);
     } catch {
       setImpactCheckResults([]);
     } finally {
@@ -265,12 +267,19 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
                 </button>
                 {impactCheckResults && impactCheckResults.length > 0 && (
                   <div className="mt-2 rounded-lg p-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
-                    <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>Affected bid sections:</p>
-                    <ul className="flex flex-col gap-1">
+                    {impactCheckSummary && (
+                      <p className="text-[11px] mb-2 italic" style={{ color: "var(--bs-text-secondary)" }}>{impactCheckSummary}</p>
+                    )}
+                    <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>Phases requiring re-review:</p>
+                    <ul className="flex flex-col gap-2">
                       {impactCheckResults.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
-                          <span className="shrink-0 mt-0.5" style={{ color: "var(--bs-teal)" }}>•</span>
-                          <span><strong>{item.section}:</strong> {item.action}</span>
+                        <li key={i} className="flex flex-col gap-0.5 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 ${item.severity === "critical" ? "bg-red-900/40 text-red-400" : item.severity === "major" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700 text-slate-300"}`}>{item.severity}</span>
+                            <strong style={{ color: "var(--bs-text-primary)" }}>{item.phase}</strong>
+                          </div>
+                          <span className="pl-1">{item.action}</span>
+                          {item.detail && <span className="pl-1 text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{item.detail}</span>}
                         </li>
                       ))}
                     </ul>

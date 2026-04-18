@@ -130,6 +130,38 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
     "bidDate": "string or null",
     "architect": "string or null",
     "gc": "string or null"
+  },
+  "phase9Flags": {
+    "checklistItems": [
+      { "id": "spec_submittal_requirements", "label": "Submittal Requirements", "status": "flagged", "note": "Shop drawings and product data required for all roofing materials" },
+      { "id": "spec_mock_up", "label": "Mock-Up Required", "status": "ok", "note": "" },
+      { "id": "spec_special_inspection", "label": "Special Inspections", "status": "flagged", "note": "Third-party special inspections required per IBC Section 1705" },
+      { "id": "spec_warranty_tier", "label": "Warranty Tier & Type", "status": "attention", "note": "20-yr NDL warranty required; certified installer mandatory" },
+      { "id": "spec_approved_manufacturers", "label": "Approved Manufacturers", "status": "attention", "note": "Single-source restriction: Carlisle SynTec only" },
+      { "id": "spec_energy_code", "label": "Energy Code / R-Value", "status": "flagged", "note": "ASHRAE 90.1-2019, minimum R-25 required" },
+      { "id": "spec_wind_uplift", "label": "Wind Uplift / FM Rating", "status": "flagged", "note": "FM 1-90 uplift rating required" },
+      { "id": "spec_testing", "label": "Testing Requirements", "status": "flagged", "note": "Flood test and core cuts required" },
+      { "id": "spec_prevailing_wage", "label": "Prevailing Wage / Labor", "status": "flagged", "note": "Prevailing wage and certified payroll required" },
+      { "id": "spec_performance_bond", "label": "Performance Bond", "status": "flagged", "note": "100% performance and payment bond required" },
+      { "id": "spec_certified_installer", "label": "Certified Installer", "status": "flagged", "note": "Manufacturer-certified installer required for warranty" }
+    ],
+    "complianceWarnings": [
+      { "type": "special_inspection", "message": "Special inspections required — coordinate with third-party inspector before work begins", "severity": "critical" },
+      { "type": "prevailing_wage", "message": "Prevailing wage / certified payroll required — include in labor burden", "severity": "critical" },
+      { "type": "single_source", "message": "Single-source manufacturer restriction — no substitutions without architect approval", "severity": "warning" },
+      { "type": "performance_bond", "message": "Performance bond required — verify bonding capacity and include premium in bid", "severity": "warning" },
+      { "type": "mock_up", "message": "Mock-up required before production roofing — schedule and price mock-up separately", "severity": "warning" }
+    ],
+    "presubmissionChecks": [
+      "Confirm certified installer credentials on file for specified manufacturer",
+      "Obtain prevailing wage rates for project location",
+      "Price performance and payment bond premium",
+      "Schedule pre-bid meeting or RFI for any approved-equal substitutions",
+      "Verify FM 1-90 assembly availability with selected manufacturer",
+      "Confirm special inspection agency requirements with GC",
+      "Include mock-up area in scope if required",
+      "Verify R-value compliance across all insulation layers in assembly"
+    ]
   }
 }
 
@@ -159,6 +191,38 @@ EXTRACTION RULES:
 8. SCOPE: Extract key scope items and any noted exclusions or alternates.
 
 9. PROJECT INFO: Extract from cover sheet, title block, or specification header if present.
+
+10. PHASE 9 FLAGS — SPECIFICATION REVIEW CHECKLIST: Populate the "phase9Flags" object based on what you actually find in this document. For each checklist item, evaluate the specification and set the correct status and note:
+
+Checklist item IDs and what to look for:
+- "spec_submittal_requirements": Are submittal requirements clearly listed in the spec? (e.g., product data, shop drawings, installer credentials)
+- "spec_mock_up": Is a mock-up section required? (look for mock-up, sample installation, field sample requirements)
+- "spec_special_inspection": Are special inspections required? (look for IBC 1705, third-party inspector, special inspection program)
+- "spec_warranty_tier": Is warranty tier and type clearly specified? (look for NDL, dollar limit, years, wind speed)
+- "spec_approved_manufacturers": Are approved manufacturers explicitly listed? (look for "approved equal", "basis of design", manufacturer lists)
+- "spec_energy_code": Are energy code or R-value requirements specified? (look for ASHRAE, IECC, minimum R-value)
+- "spec_wind_uplift": Are wind uplift or FM rating requirements specified? (look for FM 1-60/1-90/1-120, ASCE 7, uplift pressure)
+- "spec_testing": Are testing requirements listed? (look for flood test, pull test, core cuts, IR scan, NRCA test protocols)
+- "spec_prevailing_wage": Are prevailing wage or certified payroll requirements noted? (look for Davis-Bacon, state prevailing wage, certified payroll)
+- "spec_performance_bond": Is a performance bond required? (look for performance bond, payment bond, surety bond percentage)
+- "spec_certified_installer": Is a certified installer required? (look for manufacturer certification, factory-trained applicator, approved contractor)
+
+Status assignment rules:
+- "flagged" = the requirement EXISTS in the spec and the estimator MUST take action or include a cost (e.g., special inspection is required, mock-up is required, prevailing wage applies, performance bond is required, certified installer is mandatory)
+- "attention" = the item exists but with nuances or constraints the estimator should be aware of (e.g., warranty requires certified installer AND single-source, approved manufacturers listed but equals are allowed with approval, energy code referenced but R-value not explicit)
+- "ok" = checked and not applicable, or a standard/routine requirement with no special burden (e.g., no mock-up required, no special inspection section found, open-shop labor, no bond required)
+
+For the "note" field: write a concise, estimator-facing note explaining what was found (or not found). If "ok", the note can be blank or brief.
+
+Compliance warnings — include ONLY those that apply based on the actual document:
+- If special inspections are required → { "type": "special_inspection", "message": "...", "severity": "critical" }
+- If prevailing wage / certified payroll is required → { "type": "prevailing_wage", "message": "...", "severity": "critical" }
+- If only one manufacturer is approved (single-source) → { "type": "single_source", "message": "...", "severity": "warning" }
+- If a performance bond is required → { "type": "performance_bond", "message": "Include bond premium in bid — [X]% bond required", "severity": "warning" }
+- If a mock-up is required before production → { "type": "mock_up", "message": "Mock-up required before production roofing — schedule and price separately", "severity": "warning" }
+- Add any other compliance or cost-risk items found in the spec as additional warnings with appropriate severity ("critical" | "warning" | "info").
+
+Pre-submission checks — generate a list of actionable items the estimator should verify before submitting the bid, based on the actual requirements found. Be specific to the document (reference actual manufacturers, bond percentages, R-values, etc. found in the spec).
 
 Only include fields where data is found in the document. Omit fields with no data rather than guessing. If a field is unclear, omit it.`;
 
@@ -205,6 +269,25 @@ Only include fields where data is found in the document. Omit fields with no dat
       );
     }
 
+    const Phase9ChecklistItemSchema = z.object({
+      id: z.string(),
+      label: z.string(),
+      status: z.enum(["flagged", "ok", "attention"]),
+      note: z.string(),
+    }).passthrough();
+
+    const Phase9ComplianceWarningSchema = z.object({
+      type: z.string(),
+      message: z.string(),
+      severity: z.enum(["critical", "warning", "info"]),
+    }).passthrough();
+
+    const Phase9FlagsSchema = z.object({
+      checklistItems: z.array(Phase9ChecklistItemSchema).optional().default([]),
+      complianceWarnings: z.array(Phase9ComplianceWarningSchema).optional().default([]),
+      presubmissionChecks: z.array(z.string()).optional().default([]),
+    }).passthrough();
+
     const SpecResultSchema = z.object({
       specSections: z.array(z.object({ csiNumber: z.string(), title: z.string() }).passthrough()).optional().default([]),
       assemblies: z.array(z.object({ label: z.string(), system: z.string() }).passthrough()).optional().default([]),
@@ -214,6 +297,7 @@ Only include fields where data is found in the document. Omit fields with no dat
       laborRequirements: z.object({}).passthrough().optional(),
       submittals: z.array(z.string()).optional().default([]),
       specialInspections: z.array(z.string()).optional().default([]),
+      phase9Flags: Phase9FlagsSchema.optional(),
     }).passthrough();
     const validated = SpecResultSchema.safeParse(data);
     if (!validated.success) {

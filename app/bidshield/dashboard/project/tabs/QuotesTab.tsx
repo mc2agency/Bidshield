@@ -169,6 +169,61 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     }
   };
 
+  // Scope analysis state (per-quote)
+  const [analyzingQuoteId, setAnalyzingQuoteId] = useState<string | null>(null);
+  const [scopeAnalysis, setScopeAnalysis] = useState<Record<string, any>>({});
+
+  const handleAnalyzeScope = async (quote: any) => {
+    if (!quote._id) return;
+    setAnalyzingQuoteId(quote._id);
+    try {
+      const quoteText = [
+        quote.vendorName ? `Vendor: ${quote.vendorName}` : "",
+        quote.category ? `Category: ${quote.category}` : "",
+        quote.notes ? `Notes: ${quote.notes}` : "",
+      ].filter(Boolean).join("\n");
+
+      const projectExclusions = (project as any)?.exclusions
+        ? JSON.parse((project as any).exclusions)
+        : undefined;
+
+      const res = await guardedFetch("/api/bidshield/analyze-quote-scope", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quoteText: quoteText || undefined,
+          vendorName: quote.vendorName,
+          category: quote.category,
+          projectSystemType: (project as any)?.systemType || undefined,
+          projectExclusions: projectExclusions || undefined,
+        }),
+      });
+      if (!res) return;
+      const data = await res.json();
+      setScopeAnalysis(prev => ({ ...prev, [quote._id]: data }));
+    } catch {
+      // silently fail
+    } finally {
+      setAnalyzingQuoteId(null);
+    }
+  };
+
+  const handleImport = async (quoteId: string) => {
+    if (!userId || !isValidConvexId) return;
+    setImportingId(quoteId);
+    try {
+      await importQuoteMut({
+        userId,
+        quoteId: quoteId as Id<"bidshield_quotes">,
+        projectId: projectId as Id<"bidshield_projects">,
+      });
+      setImportModal(false);
+      notify("Quote imported!");
+    } finally {
+      setImportingId(null);
+    }
+  };
+
   // PDF extraction state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extracting, setExtracting] = useState(false);
@@ -586,17 +641,51 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                     )}
                   </div>
                   {!isDemo && (
-                    <button
-                      onClick={() => handleDelete(quote)}
-                      className="text-[12px] transition-colors px-2 py-1"
-                      style={{ color: "var(--bs-text-muted)" }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleAnalyzeScope(quote)}
+                        disabled={analyzingQuoteId === quote._id}
+                        className="text-[11px] font-medium transition-colors px-2 py-1 rounded disabled:opacity-50"
+                        style={{ color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
+                      >
+                        {analyzingQuoteId === quote._id ? "Analyzing…" : "Analyze Scope"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(quote)}
+                        className="text-[12px] transition-colors px-2 py-1"
+                        style={{ color: "var(--bs-text-muted)" }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
+                {/* Scope analysis result */}
+                {scopeAnalysis[quote._id] && (
+                  <div className="px-5 pb-4">
+                    {scopeAnalysis[quote._id].summary && (
+                      <p className="text-[11px] italic mb-2" style={{ color: "var(--bs-text-muted)" }}>{scopeAnalysis[quote._id].summary}</p>
+                    )}
+                    {(scopeAnalysis[quote._id].scopeGaps ?? []).length > 0 && (
+                      <div className="mb-2">
+                        <p className="text-[11px] font-semibold mb-1" style={{ color: "var(--bs-red)" }}>Scope Gaps</p>
+                        <ul className="flex flex-col gap-1">
+                          {scopeAnalysis[quote._id].scopeGaps.map((g: any, i: number) => (
+                            <li key={i} className="flex items-start gap-2 text-[11px]" style={{ color: "var(--bs-text-secondary)" }}>
+                              <span className={`shrink-0 text-[10px] font-bold px-1 rounded uppercase ${g.risk === "critical" ? "bg-red-900/40 text-red-400" : g.risk === "major" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700 text-slate-300"}`}>{g.risk}</span>
+                              <span>{g.item}: {g.recommendation}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {scopeAnalysis[quote._id].expiryWarning && (
+                      <p className="text-[11px] mt-1" style={{ color: "var(--bs-amber)" }}>⚠ {scopeAnalysis[quote._id].expiryWarning}</p>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

@@ -113,6 +113,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
   const [aiExclusionsLoading, setAiExclusionsLoading] = useState(false);
   const [aiExclusionsText, setAiExclusionsText]       = useState<string | null>(null);
+  const [aiExclusionsSuggestions, setAiExclusionsSuggestions] = useState<{ text: string; reason: string; priority: string }[]>([]);
   const [aiExclusionsError, setAiExclusionsError]     = useState<string | null>(null);
 
   const resolvedClarifications = isDemo ? demoClarifications : (clarifications ?? []);
@@ -236,6 +237,9 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
           excludedItems: excl.map((i: any) => ({ name: i.name, note: i.note })),
           byOthersItems: others.map((i: any) => ({ name: i.name, note: i.note })),
           clarifications: resolvedClarifications.map((c: any) => ({ text: c.text })),
+          systemType: (project as any)?.systemType || undefined,
+          projectType: (project as any)?.projectType || undefined,
+          gcName: (project as any)?.gc || undefined,
         }),
       });
       if (!res) return;
@@ -250,6 +254,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
         return;
       }
       setAiExclusionsText(data.text);
+      setAiExclusionsSuggestions(data.suggestions ?? []);
     } catch {
       setAiExclusionsError("Failed to generate exclusions — check your connection and try again.");
     } finally {
@@ -711,6 +716,25 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
             </button>
           </div>
           <pre className="text-[13px] whitespace-pre-wrap leading-relaxed font-sans" style={{ color: "var(--bs-text-secondary)" }}>{aiExclusionsText}</pre>
+        </div>
+      )}
+
+      {/* AI Exclusions Suggestions */}
+      {aiExclusionsSuggestions.length > 0 && (
+        <div className="rounded-lg p-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-amber)" }}>
+          <p className="text-xs font-semibold mb-3" style={{ color: "var(--bs-amber)" }}>⚠ AI-Suggested Missing Exclusions</p>
+          <p className="text-[11px] mb-3" style={{ color: "var(--bs-text-muted)" }}>Based on your project type and scope, you may be missing these exclusions:</p>
+          <ul className="flex flex-col gap-3">
+            {aiExclusionsSuggestions.map((s, i) => (
+              <li key={i} className="flex flex-col gap-0.5">
+                <div className="flex items-start gap-2">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 mt-0.5 ${s.priority === "high" ? "bg-red-900/40 text-red-400" : s.priority === "medium" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700 text-slate-300"}`}>{s.priority}</span>
+                  <span className="text-xs font-medium" style={{ color: "var(--bs-text-primary)" }}>{s.text}</span>
+                </div>
+                <span className="text-[11px] pl-10" style={{ color: "var(--bs-text-muted)" }}>{s.reason}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
