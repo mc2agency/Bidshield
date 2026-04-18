@@ -9,12 +9,21 @@ const isPublicRoute = createRouteMatcher([
   "/about(.*)",
   "/contact(.*)",
   "/blog(.*)",
+  "/terms(.*)",
+  "/privacy(.*)",
+  "/support(.*)",
+  "/updates(.*)",
+  "/compare(.*)",
+  "/resources(.*)",
+  "/tools(.*)",
   // BidShield marketing pages — must be public (demo = no-auth-required by design)
   "/bidshield/demo(.*)",
   "/bidshield/pricing(.*)",
+  "/bidshield/dashboard/templates(.*)",
   "/api/webhooks(.*)",
   "/api/gumroad(.*)",
   "/api/download(.*)",
+  "/api/demo-email(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
