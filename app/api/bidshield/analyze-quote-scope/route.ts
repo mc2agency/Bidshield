@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
     const parsed = AnalyzeQuoteScopeInputSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.errors[0]?.message ?? "Invalid input" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
         { status: 400 }
       );
     }
@@ -267,7 +267,7 @@ export async function POST(req: NextRequest) {
 // ── Shared response parser & validator ───────────────────────────────────────
 
 function parseAndValidateResponse(
-  message: Awaited<ReturnType<typeof client.messages.create>>,
+  message: any,
   endpoint: string
 ): NextResponse {
   const raw =

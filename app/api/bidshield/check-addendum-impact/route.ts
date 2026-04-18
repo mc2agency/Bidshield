@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
 // ── Shared response parser & validator ───────────────────────────────────────
 
 function parseAndValidateResponse(
-  message: Awaited<ReturnType<typeof client.messages.create>>,
+  message: any,
   endpoint: string
 ): NextResponse {
   const raw =
