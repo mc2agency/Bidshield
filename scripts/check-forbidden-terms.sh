@@ -119,7 +119,7 @@ fi
 
 # Certificate - filter out industry certifications (legitimate) and blog posts
 CERT_MATCHES=$(grep -rniE "[Cc]ertificat(e|ion)[s]?" $SCAN_DIRS $EXCLUDE_PATTERN 2>/dev/null | \
-    grep -viE "LEED|COI|Certificate of Insurance|certificates of insurance|DBE|MBE|WBE|manufacturer|inspection|test report|industry|insurance|FM approval|warranty|fire rating|specialized|required|GAF|Tremco|PPE|OSHA|Missing|Specific" | \
+    grep -viE "LEED|COI|Certificate of Insurance|certificates of insurance|DBE|MBE|WBE|manufacturer|inspection|test report|industry|insurance|FM approval|warranty|fire rating|specialized|required|GAF|Tremco|PPE|OSHA|Missing|Specific|categoryLabels|certificate:" | \
     grep -v "app/blog/" || true)
 if [ -n "$CERT_MATCHES" ]; then
     COUNT=$(echo "$CERT_MATCHES" | wc -l)

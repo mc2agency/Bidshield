@@ -366,7 +366,7 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
               product_data: "Product Data Sheets",
               shop_drawing: "Shop Drawings",
               sample: "Samples",
-              certificate: "Certifications",
+              certificate: "Compliance Docs",
               test_report: "Test Reports",
               warranty: "Warranty Documents",
               inspection: "Special Inspections",
