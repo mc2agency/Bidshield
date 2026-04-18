@@ -76,6 +76,19 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
   const [draftAiContext, setDraftAiContext] = useState("");
   const [draftAiLoading, setDraftAiLoading] = useState(false);
 
+  // RFI Risk Flagger state
+  type RfiQuestion = {
+    question: string; reason: string; riskLevel: "critical" | "high" | "medium";
+    reference?: string; exposureCategory: string;
+  };
+  type RfiRiskResult = { rfiCount: number; urgencyNote: string; questions: RfiQuestion[] };
+  const [riskSpecText, setRiskSpecText]     = useState("");
+  const [riskLoading, setRiskLoading]       = useState(false);
+  const [riskResult, setRiskResult]         = useState<RfiRiskResult | null>(null);
+  const [riskError, setRiskError]           = useState<string | null>(null);
+  const [riskPanelOpen, setRiskPanelOpen]   = useState(false);
+  const [addingIdx, setAddingIdx]           = useState<number | null>(null);
+
   const rfis = isDemo ? demoRFIState : (convexRFIs ?? []);
   const filteredRFIs = filter === "all" ? rfis : rfis.filter((r: { status: string }) => r.status === filter);
 
@@ -105,6 +118,68 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
       // leave textarea as-is
     } finally {
       setDraftAiLoading(false);
+    }
+  };
+
+  const handleFlagRisks = async () => {
+    if (!riskSpecText.trim()) return;
+    setRiskLoading(true);
+    setRiskResult(null);
+    setRiskError(null);
+    try {
+      const bidDate = (project as any)?.bidDate;
+      let daysUntilBid: number | undefined;
+      if (bidDate) {
+        const diff = Math.ceil((new Date(bidDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        if (diff >= 0 && diff <= 365) daysUntilBid = diff;
+      }
+      const res = await guardedFetch("/api/bidshield/flag-rfi-risks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          specText: riskSpecText,
+          systemType: (project as any)?.systemType || undefined,
+          projectType: (project as any)?.projectType || undefined,
+          gcName: (project as any)?.gc || undefined,
+          bidDate: bidDate || undefined,
+          daysUntilBid,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setRiskError(err?.error ?? "Risk flagging failed — please try again.");
+        return;
+      }
+      setRiskResult(await res.json());
+    } catch {
+      setRiskError("Failed to flag risks — check your connection and try again.");
+    } finally {
+      setRiskLoading(false);
+    }
+  };
+
+  const handleAddRfiFromRisk = async (q: RfiQuestion, idx: number) => {
+    setAddingIdx(idx);
+    try {
+      if (isDemo) {
+        setDemoRFIState(p => [...p, {
+          _id: `demo_rfi_${Date.now()}`,
+          number: p.length + 1,
+          question: q.question,
+          status: "draft",
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }]);
+      } else if (isValidConvexId && userId) {
+        await createRFIMut({
+          projectId: projectId as Id<"bidshield_projects">,
+          userId,
+          question: q.question,
+        });
+      }
+    } finally {
+      setAddingIdx(null);
     }
   };
 
@@ -202,6 +277,101 @@ export default function RFIsTab({ projectId, isDemo, isPro, project, userId }: T
           + New RFI
         </button>
       </div>
+
+      {/* ── RFI RISK FLAGGER ───────────────────────────────────────────────────── */}
+      {(isPro || isDemo) && (
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}>
+          <button
+            onClick={() => setRiskPanelOpen(v => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 cursor-pointer"
+            style={{ background: "none", border: "none" }}
+          >
+            <div className="flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bs-amber)" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <span className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>Spec Risk Flagger · AI</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>Pro</span>
+              {riskResult && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
+                  {riskResult.rfiCount} RFIs flagged
+                </span>
+              )}
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={2}
+              style={{ transform: riskPanelOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+
+          {riskPanelOpen && (
+            <div className="px-4 pb-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
+              <p className="text-[11px] pt-3" style={{ color: "var(--bs-text-muted)" }}>
+                Paste spec language, addendum text, or bid notes. AI scans for ambiguities and conflicts that need clarification before bid day — and drafts the RFI questions for you.
+              </p>
+              <textarea
+                value={riskSpecText}
+                onChange={(e) => setRiskSpecText(e.target.value)}
+                placeholder="Paste spec section, drawing note, or addendum text here…"
+                rows={5}
+                className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none resize-y"
+                style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+              />
+              <button
+                onClick={handleFlagRisks}
+                disabled={riskLoading || !riskSpecText.trim()}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold disabled:opacity-60 transition-all"
+                style={{ background: "var(--bs-amber)", color: "#13151a" }}
+              >
+                {riskLoading ? "Scanning for risks…" : "Flag RFI Risks with AI"}
+              </button>
+
+              {riskError && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+                  <span className="flex-1">{riskError}</span>
+                  <button onClick={() => setRiskError(null)} className="font-medium shrink-0">Dismiss</button>
+                </div>
+              )}
+
+              {riskResult && (
+                <div className="flex flex-col gap-2">
+                  {riskResult.urgencyNote && (
+                    <p className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>
+                      ⚡ {riskResult.urgencyNote}
+                    </p>
+                  )}
+                  {riskResult.questions.map((q, i) => (
+                    <div key={i} className="rounded-lg p-3 flex flex-col gap-2" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                      <div className="flex items-start gap-2">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 mt-0.5 ${
+                          q.riskLevel === "critical" ? "bg-red-900/40 text-red-400"
+                          : q.riskLevel === "high" ? "bg-amber-900/40 text-amber-400"
+                          : "bg-slate-700/60 text-slate-400"
+                        }`}>{q.riskLevel}</span>
+                        <p className="text-xs font-medium flex-1" style={{ color: "var(--bs-text-primary)" }}>{q.question}</p>
+                      </div>
+                      {q.reference && (
+                        <p className="text-[11px] pl-10" style={{ color: "var(--bs-text-dim)" }}>Ref: {q.reference}</p>
+                      )}
+                      <p className="text-[11px] pl-10" style={{ color: "var(--bs-text-muted)" }}>{q.reason}</p>
+                      <div className="pl-10">
+                        <button
+                          onClick={() => handleAddRfiFromRisk(q, i)}
+                          disabled={addingIdx === i}
+                          className="text-[11px] font-semibold px-3 py-1.5 rounded-md disabled:opacity-50 transition-all"
+                          style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", color: "var(--bs-teal)" }}
+                        >
+                          {addingIdx === i ? "Adding…" : "+ Add as Draft RFI"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── RFI TABLE ─────────────────────────────────────────────────────────── */}
       {filteredRFIs.length === 0 ? (

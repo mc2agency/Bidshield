@@ -42,6 +42,16 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>("");
 
+  // Submittal Checklist Generator state
+  type SubmittalItem = {
+    item: string; category: string; relatedTo?: string; required: boolean; leadTimeNote?: string;
+  };
+  type ChecklistResult = { totalCount: number; requiredCount: number; items: SubmittalItem[]; operationsNote: string };
+  const [checklistLoading, setChecklistLoading]   = useState(false);
+  const [checklistResult, setChecklistResult]     = useState<ChecklistResult | null>(null);
+  const [checklistError, setChecklistError]       = useState<string | null>(null);
+  const [checklistFilter, setChecklistFilter]     = useState<"all" | "required">("required");
+
   async function handleFind() {
     if (!mergedMaterials || mergedMaterials.length === 0) {
       setStatus("No spec materials found. Upload spec PDFs in the Setup tab first.");
@@ -132,6 +142,41 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
     }
   }
 
+  async function handleGenerateChecklist() {
+    setChecklistLoading(true);
+    setChecklistResult(null);
+    setChecklistError(null);
+    try {
+      const materials = (mergedMaterials ?? []).map((m: any) => ({
+        productName: m.productName ?? m.name ?? "Unknown",
+        manufacturer: m.manufacturer || undefined,
+        category: m.category || undefined,
+      }));
+      const res = await guardedFetch("/api/bidshield/generate-submittal-checklist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          materials,
+          systemType: (project as any)?.systemType || undefined,
+          projectType: (project as any)?.projectType || undefined,
+          gcName: (project as any)?.gc || undefined,
+          warrantyType: (project as any)?.warrantyType || undefined,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setChecklistError(err?.error ?? "Checklist generation failed — please try again.");
+        return;
+      }
+      setChecklistResult(await res.json());
+    } catch {
+      setChecklistError("Failed to generate checklist — check your connection and try again.");
+    } finally {
+      setChecklistLoading(false);
+    }
+  }
+
   return (
     <div style={{ padding: 24 }}>
       {proGateModal}
@@ -142,22 +187,40 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
             Auto-fetched product datasheets from manufacturer sites.
           </p>
         </div>
-        <button
-          onClick={handleFind}
-          disabled={busy}
-          style={{
-            padding: "8px 14px",
-            backgroundColor: busy ? "var(--bs-border)" : "var(--bs-teal)",
-            color: "white",
-            border: "none",
-            borderRadius: 6,
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: busy ? "not-allowed" : "pointer",
-          }}
-        >
-          {busy ? "Searching…" : "Find Datasheets"}
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            onClick={handleGenerateChecklist}
+            disabled={checklistLoading}
+            style={{
+              padding: "8px 14px",
+              backgroundColor: checklistLoading ? "var(--bs-border)" : "var(--bs-bg-elevated)",
+              border: "1px solid var(--bs-amber)",
+              color: "var(--bs-amber)",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: checklistLoading ? "not-allowed" : "pointer",
+            }}
+          >
+            {checklistLoading ? "Generating…" : "Generate Submittal Checklist · AI"}
+          </button>
+          <button
+            onClick={handleFind}
+            disabled={busy}
+            style={{
+              padding: "8px 14px",
+              backgroundColor: busy ? "var(--bs-border)" : "var(--bs-teal)",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: busy ? "not-allowed" : "pointer",
+            }}
+          >
+            {busy ? "Searching…" : "Find Datasheets"}
+          </button>
+        </div>
       </div>
 
       {status && (
@@ -248,6 +311,111 @@ export default function SubmittalsTab({ projectId, project, userId }: TabProps) 
             ))}
           </tbody>
         </table>
+      )}
+
+      {/* Submittal Checklist Generator results */}
+      {checklistError && (
+        <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 8, background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)", fontSize: 13, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>{checklistError}</span>
+          <button onClick={() => setChecklistError(null)} style={{ background: "none", border: "none", color: "var(--bs-red)", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Dismiss</button>
+        </div>
+      )}
+
+      {checklistResult && (
+        <div style={{ marginTop: 20 }}>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--bs-text-primary)", margin: 0 }}>
+                AI Submittal Checklist
+              </h3>
+              <p style={{ fontSize: 12, color: "var(--bs-text-muted)", marginTop: 3 }}>
+                {checklistResult.requiredCount} required · {checklistResult.totalCount - checklistResult.requiredCount} recommended
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {(["required", "all"] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setChecklistFilter(f)}
+                  style={{
+                    padding: "4px 10px", fontSize: 11, fontWeight: 600, borderRadius: 6, cursor: "pointer",
+                    background: checklistFilter === f ? "var(--bs-teal-dim)" : "var(--bs-bg-elevated)",
+                    border: `1px solid ${checklistFilter === f ? "var(--bs-teal-border)" : "var(--bs-border)"}`,
+                    color: checklistFilter === f ? "var(--bs-teal)" : "var(--bs-text-muted)",
+                  }}
+                >
+                  {f === "required" ? "Required only" : "All items"}
+                </button>
+              ))}
+              <button onClick={() => setChecklistResult(null)} style={{ background: "none", border: "none", color: "var(--bs-text-dim)", cursor: "pointer", fontSize: 12 }}>Clear</button>
+            </div>
+          </div>
+
+          {/* Ops note */}
+          {checklistResult.operationsNote && (
+            <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--bs-amber-dim)", border: "1px solid var(--bs-amber)", marginBottom: 12 }}>
+              <p style={{ fontSize: 12, color: "var(--bs-amber)", margin: 0 }}>⚡ {checklistResult.operationsNote}</p>
+            </div>
+          )}
+
+          {/* Category grouping */}
+          {(() => {
+            const visibleItems = checklistResult.items.filter(i => checklistFilter === "all" || i.required);
+            const categoryLabels: Record<string, string> = {
+              product_data: "Product Data Sheets",
+              shop_drawing: "Shop Drawings",
+              sample: "Samples",
+              certificate: "Certifications",
+              test_report: "Test Reports",
+              warranty: "Warranty Documents",
+              inspection: "Special Inspections",
+              other: "Other",
+            };
+            const grouped = visibleItems.reduce((acc: Record<string, typeof visibleItems>, item) => {
+              const g = item.category;
+              if (!acc[g]) acc[g] = [];
+              acc[g].push(item);
+              return acc;
+            }, {});
+            return Object.entries(grouped).map(([cat, catItems]) => (
+              <div key={cat} style={{ marginBottom: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.6px", color: "var(--bs-text-dim)", marginBottom: 6 }}>
+                  {categoryLabels[cat] ?? cat}
+                </p>
+                <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid var(--bs-border)" }}>
+                  {catItems.map((item, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px",
+                        background: "var(--bs-bg-elevated)",
+                        borderTop: i > 0 ? "1px solid var(--bs-border)" : "none",
+                      }}
+                    >
+                      <div style={{ marginTop: 2, flexShrink: 0 }}>
+                        {item.required ? (
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 5px", borderRadius: 4, background: "var(--bs-red-dim)", color: "var(--bs-red)", textTransform: "uppercase" }}>REQ</span>
+                        ) : (
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 5px", borderRadius: 4, background: "var(--bs-bg-card)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)", textTransform: "uppercase" }}>REC</span>
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 13, color: "var(--bs-text-primary)", margin: 0 }}>{item.item}</p>
+                        {item.relatedTo && (
+                          <p style={{ fontSize: 11, color: "var(--bs-text-muted)", marginTop: 2 }}>{item.relatedTo}</p>
+                        )}
+                        {item.leadTimeNote && (
+                          <p style={{ fontSize: 11, color: "var(--bs-amber)", marginTop: 3 }}>⏱ {item.leadTimeNote}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
       )}
     </div>
   );
