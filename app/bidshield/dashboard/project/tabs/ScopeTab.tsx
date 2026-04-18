@@ -124,6 +124,16 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const [validatorError, setValidatorError]       = useState<string | null>(null);
   const [validatorExpanded, setValidatorExpanded] = useState(false);
 
+  // Spec-to-Bid Alignment Scanner state
+  type AlignmentGap = { specRequirement: string; gapType: string; severity: "critical" | "high" | "medium"; specReference?: string; suggestedAction: string };
+  type AlignmentResult = { alignmentScore: number; gapCount: number; criticalGaps: number; gaps: AlignmentGap[]; coveredWell: string[]; executiveSummary: string };
+  const [alignLoading, setAlignLoading]     = useState(false);
+  const [alignResult, setAlignResult]       = useState<AlignmentResult | null>(null);
+  const [alignError, setAlignError]         = useState<string | null>(null);
+  const [alignPanelOpen, setAlignPanelOpen] = useState(false);
+  const [alignExpanded, setAlignExpanded]   = useState(false);
+  const alignFileRef = React.useRef<HTMLInputElement>(null);
+
   const resolvedClarifications = isDemo ? demoClarifications : (clarifications ?? []);
 
   const items = isDemo ? demoState : (scopeItems ?? []);
@@ -304,6 +314,52 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     }
   };
 
+  const handleScanAlignment = async (file: File) => {
+    if (!isPro && !isDemo) return;
+    setAlignLoading(true);
+    setAlignResult(null);
+    setAlignError(null);
+    try {
+      const pdfBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Strip data URL prefix
+          const b64 = result.split(",")[1] ?? result;
+          resolve(b64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await guardedFetch("/api/bidshield/scan-spec-alignment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pdfBase64,
+          scopeItems: items.map((i: any) => ({ item: i.name, status: i.status, cost: i.cost })),
+          systemType: (project as any)?.systemType || undefined,
+          projectType: (project as any)?.projectType || undefined,
+          totalBidAmount: (project as any)?.totalBidAmount || undefined,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setAlignError(err?.error ?? "Scan failed — please try again.");
+        return;
+      }
+      const data = await res.json();
+      setAlignResult(data);
+      setAlignExpanded(true);
+    } catch {
+      setAlignError("Scan failed — check your connection and try again.");
+    } finally {
+      setAlignLoading(false);
+      if (alignFileRef.current) alignFileRef.current.value = "";
+    }
+  };
+
   const handleAddClarification = useCallback(async () => {
     const text = newClarText.trim();
     if (!text) return;
@@ -361,6 +417,139 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   return (
     <div className="flex flex-col gap-4">
       {proGateModal}
+
+      {/* ── SPEC-TO-BID ALIGNMENT SCANNER ─────────────────────────────────────── */}
+      {(isPro || isDemo) && (
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}>
+          <button
+            onClick={() => setAlignPanelOpen(v => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 cursor-pointer"
+            style={{ background: "none", border: "none" }}
+          >
+            <div className="flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bs-blue)" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+              </svg>
+              <span className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>Spec-to-Bid Alignment · AI</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: "var(--bs-blue-dim, var(--bs-bg-elevated))", color: "var(--bs-blue)" }}>Pro · PDF</span>
+              {alignResult && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${alignResult.criticalGaps > 0 ? "bg-red-900/40 text-red-400" : alignResult.gapCount > 0 ? "bg-amber-900/40 text-amber-400" : "bg-teal-900/40 text-teal-400"}`}>
+                  {alignResult.criticalGaps > 0 ? `${alignResult.criticalGaps} critical` : alignResult.gapCount > 0 ? `${alignResult.gapCount} gaps` : "aligned"}
+                </span>
+              )}
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={2}
+              style={{ transform: alignPanelOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+
+          {alignPanelOpen && (
+            <div className="px-4 pb-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
+              <p className="text-[11px] pt-3" style={{ color: "var(--bs-text-muted)" }}>
+                Upload the project spec PDF. AI reads every requirement and cross-references against your bid scope — flags what&apos;s missing, what you excluded that you shouldn&apos;t have, and what the spec assigns to you that&apos;s marked &quot;by others.&quot;
+              </p>
+
+              {/* Hidden file input */}
+              <input
+                ref={alignFileRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleScanAlignment(file);
+                }}
+              />
+
+              <button
+                onClick={() => alignFileRef.current?.click()}
+                disabled={alignLoading}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold disabled:opacity-60 transition-all flex items-center justify-center gap-2"
+                style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-blue)", color: "var(--bs-blue)" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                </svg>
+                {alignLoading ? "Scanning spec…" : "Upload Spec PDF & Scan"}
+              </button>
+
+              {alignError && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+                  <span className="flex-1">{alignError}</span>
+                  <button onClick={() => setAlignError(null)} className="font-medium shrink-0">Dismiss</button>
+                </div>
+              )}
+
+              {alignResult && (
+                <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${alignResult.criticalGaps > 0 ? "var(--bs-red)" : alignResult.gapCount > 0 ? "var(--bs-amber)" : "var(--bs-teal)"}` }}>
+                  {/* Score header */}
+                  <div className="flex items-center gap-3 px-4 py-3" style={{ background: "var(--bs-bg-elevated)" }}>
+                    <div className="flex items-center justify-center rounded-full text-sm font-bold shrink-0"
+                      style={{
+                        width: 44, height: 44,
+                        background: alignResult.alignmentScore >= 80 ? "var(--bs-teal-dim)" : alignResult.alignmentScore >= 50 ? "var(--bs-amber-dim)" : "var(--bs-red-dim)",
+                        border: `2px solid ${alignResult.alignmentScore >= 80 ? "var(--bs-teal)" : alignResult.alignmentScore >= 50 ? "var(--bs-amber)" : "var(--bs-red)"}`,
+                        color: alignResult.alignmentScore >= 80 ? "var(--bs-teal)" : alignResult.alignmentScore >= 50 ? "var(--bs-amber)" : "var(--bs-red)",
+                      }}>
+                      {alignResult.alignmentScore}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>Spec Alignment Score</p>
+                      <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                        {alignResult.gapCount} gaps · {alignResult.criticalGaps} critical
+                      </p>
+                    </div>
+                    <button onClick={() => setAlignExpanded(v => !v)} className="text-xs font-medium shrink-0" style={{ color: "var(--bs-blue)" }}>
+                      {alignExpanded ? "Collapse" : "Show gaps"}
+                    </button>
+                  </div>
+
+                  {/* Summary */}
+                  {alignResult.executiveSummary && (
+                    <div className="px-4 py-2.5" style={{ background: alignResult.criticalGaps > 0 ? "var(--bs-red-dim)" : "var(--bs-amber-dim)", borderTop: `1px solid ${alignResult.criticalGaps > 0 ? "var(--bs-red-border)" : "var(--bs-amber)"}` }}>
+                      <p className="text-xs" style={{ color: "var(--bs-text-secondary)" }}>{alignResult.executiveSummary}</p>
+                    </div>
+                  )}
+
+                  {/* Gap list */}
+                  {alignExpanded && alignResult.gaps.length > 0 && (
+                    <div className="divide-y" style={{ borderTop: "1px solid var(--bs-border)" }}>
+                      {alignResult.gaps.map((gap, i) => (
+                        <div key={i} className="px-4 py-3 flex items-start gap-3" style={{ background: "var(--bs-bg-card)" }}>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 mt-0.5 ${gap.severity === "critical" ? "bg-red-900/40 text-red-400" : gap.severity === "high" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700/60 text-slate-400"}`}>
+                            {gap.severity}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium" style={{ color: "var(--bs-text-primary)" }}>{gap.specRequirement}</p>
+                            {gap.specReference && (
+                              <p className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>Ref: {gap.specReference}</p>
+                            )}
+                            <p className="text-[11px] mt-1" style={{ color: "var(--bs-text-muted)" }}>→ {gap.suggestedAction}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Covered well */}
+                  {alignExpanded && alignResult.coveredWell.length > 0 && (
+                    <div className="px-4 py-3" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-teal-dim)" }}>
+                      <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>✓ Well covered</p>
+                      <div className="flex flex-col gap-1">
+                        {alignResult.coveredWell.map((item, i) => (
+                          <p key={i} className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>• {item}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── STATS BAR ── */}
       <div
         className="flex items-center overflow-hidden"

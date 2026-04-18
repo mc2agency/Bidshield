@@ -179,6 +179,13 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
   const catOrder = ["tearoff", "insulation", "membrane", "flashing", "accessories", "other"];
   const orderedCategories = catOrder.filter(c => tasksByCategory[c]);
 
+  // Labor Sanity Check state
+  type LaborFinding = { task: string; finding: string; severity: "error" | "warning" | "info"; expectedRange?: string; actual?: string };
+  type LaborSanityResult = { passed: boolean; overallVerdict: string; laborPerSf?: number; laborAsPctOfBid?: number; benchmarkLaborPerSf?: string; findings: LaborFinding[]; topRisk: string };
+  const [sanityLoading, setSanityLoading]   = useState(false);
+  const [sanityResult, setSanityResult]     = useState<LaborSanityResult | null>(null);
+  const [sanityError, setSanityError]       = useState<string | null>(null);
+
   // Unverified count
   const unverifiedCount = isDemo
     ? DEMO_TASKS.filter(t => !demoVerified[t._id]).length
@@ -300,6 +307,50 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
     if (!defaultCat) return;
     for (const item of defaultCat) {
       await createRateMut({ userId, category: activeRateCat, task: item.task, rate: item.rate, unit: item.unit, crew: item.crew, notes: item.notes });
+    }
+  };
+
+  const handleLaborSanityCheck = async () => {
+    setSanityLoading(true);
+    setSanityResult(null);
+    setSanityError(null);
+    try {
+      const sqft = (project as any)?.grossRoofArea ?? (project as any)?.sqft ?? undefined;
+      const totalBidAmount = (project as any)?.totalBidAmount ?? undefined;
+      const res = await guardedFetch("/api/bidshield/sanity-check-labor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tasks: resolvedTasks.map((t: any) => ({
+            task: t.task,
+            category: t.category,
+            unit: t.unit,
+            quantity: t.quantity ?? 0,
+            ratePerUnit: t.ratePerUnit ?? 0,
+            totalCost: t.totalCost ?? 0,
+            crewSize: t.crewSize ?? undefined,
+            days: t.days ?? undefined,
+          })),
+          totalLaborCost: liveTotal,
+          sqft,
+          systemType: (project as any)?.systemType || undefined,
+          projectType: (project as any)?.projectType || undefined,
+          laborType: resolvedAnalysis?.laborType ?? laborType,
+          baseWage: resolvedAnalysis?.baseWage ?? baseWage,
+          totalBidAmount,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setSanityError(err?.error ?? "Sanity check failed — please try again.");
+        return;
+      }
+      setSanityResult(await res.json());
+    } catch {
+      setSanityError("Failed to run sanity check — check your connection and try again.");
+    } finally {
+      setSanityLoading(false);
     }
   };
 
@@ -735,6 +786,104 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           </div>
         )}
       </div>
+      {/* ── LABOR RATE SANITY CHECK ─────────────────────────────────────────────── */}
+      {resolvedTasks.length > 0 && (
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}>
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: sanityResult || sanityError ? "1px solid var(--bs-border)" : "none" }}>
+            <div className="flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--bs-blue)" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              <span className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>Labor Rate Sanity Check · AI</span>
+              {sanityResult && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${sanityResult.passed ? "bg-teal-900/40 text-teal-400" : "bg-red-900/40 text-red-400"}`}>
+                  {sanityResult.passed ? "passed" : `${sanityResult.findings.filter(f => f.severity === "error").length} errors`}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleLaborSanityCheck}
+              disabled={sanityLoading}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-60 transition-all"
+              style={{ background: "var(--bs-blue-dim, var(--bs-bg-elevated))", border: "1px solid var(--bs-blue)", color: "var(--bs-blue)" }}
+            >
+              {sanityLoading ? "Checking…" : sanityResult ? "Re-check" : "Check Rates"}
+            </button>
+          </div>
+
+          {sanityError && (
+            <div className="flex items-center gap-2 px-4 py-3 text-xs" style={{ color: "var(--bs-red)" }}>
+              <span className="flex-1">{sanityError}</span>
+              <button onClick={() => setSanityError(null)} className="font-medium shrink-0">Dismiss</button>
+            </div>
+          )}
+
+          {sanityResult && (
+            <div className="flex flex-col">
+              {/* Summary bar */}
+              <div className="flex items-center gap-3 px-4 py-3" style={{ background: "var(--bs-bg-elevated)" }}>
+                <div className="flex items-center justify-center rounded-full text-sm font-bold shrink-0"
+                  style={{
+                    width: 40, height: 40,
+                    background: sanityResult.passed ? "var(--bs-teal-dim)" : "var(--bs-red-dim)",
+                    border: `2px solid ${sanityResult.passed ? "var(--bs-teal)" : "var(--bs-red)"}`,
+                    color: sanityResult.passed ? "var(--bs-teal)" : "var(--bs-red)",
+                  }}>
+                  {sanityResult.passed ? "✓" : "!"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>{sanityResult.overallVerdict}</p>
+                  <div className="flex gap-3 mt-1 flex-wrap">
+                    {sanityResult.laborPerSf != null && (
+                      <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                        Labor: <span style={{ color: "var(--bs-text-secondary)" }}>${sanityResult.laborPerSf.toFixed(2)}/SF</span>
+                        {sanityResult.benchmarkLaborPerSf && <span style={{ color: "var(--bs-text-dim)" }}> (bench: {sanityResult.benchmarkLaborPerSf})</span>}
+                      </span>
+                    )}
+                    {sanityResult.laborAsPctOfBid != null && (
+                      <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                        % of bid: <span style={{ color: "var(--bs-text-secondary)" }}>{sanityResult.laborAsPctOfBid.toFixed(1)}%</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => setSanityResult(null)} className="text-xs shrink-0" style={{ color: "var(--bs-text-dim)" }}>Clear</button>
+              </div>
+
+              {/* Top risk */}
+              {!sanityResult.passed && sanityResult.topRisk && (
+                <div className="px-4 py-2.5" style={{ background: "var(--bs-red-dim)", borderTop: "1px solid var(--bs-red-border)" }}>
+                  <p className="text-[11px] font-semibold" style={{ color: "var(--bs-red)" }}>⚠ Top Risk</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--bs-text-secondary)" }}>{sanityResult.topRisk}</p>
+                </div>
+              )}
+
+              {/* Findings */}
+              {sanityResult.findings.length > 0 && (
+                <div className="divide-y" style={{ borderTop: "1px solid var(--bs-border)" }}>
+                  {sanityResult.findings.map((f, i) => (
+                    <div key={i} className="px-4 py-3 flex items-start gap-3" style={{ background: "var(--bs-bg-card)" }}>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 mt-0.5 ${f.severity === "error" ? "bg-red-900/40 text-red-400" : f.severity === "warning" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700/60 text-slate-400"}`}>
+                        {f.severity}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-semibold mb-0.5" style={{ color: "var(--bs-text-dim)" }}>{f.task}</p>
+                        <p className="text-xs" style={{ color: "var(--bs-text-primary)" }}>{f.finding}</p>
+                        {(f.expectedRange || f.actual) && (
+                          <p className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                            {f.actual && `Actual: ${f.actual}`}{f.actual && f.expectedRange && " · "}{f.expectedRange && `Expected: ${f.expectedRange}`}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {proGateModal}
     </div>
   );
