@@ -385,7 +385,7 @@ function AddendumCard({
 }: {
   add: any;
   isDemo: boolean;
-  isPro: boolean;
+  isPro: boolean | undefined;
   projectId?: string;
   userId?: string;
   onUpdate: (id: Id<"bidshield_addenda">, updates: Record<string, any>) => Promise<void>;
