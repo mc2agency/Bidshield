@@ -119,7 +119,6 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
       notes: newAddendum.notes || undefined,
     });
     setNewAddendum({ title: "", receivedDate: new Date().toISOString().split("T")[0], priority: "normal", notes: "" });
-    setImpactCheckResults(null);
     setShowAdd(false);
   };
 
