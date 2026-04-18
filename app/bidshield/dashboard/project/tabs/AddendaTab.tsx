@@ -336,12 +336,16 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
                           <AddendumCard
                             add={add}
                             isDemo={isDemo}
+                            isPro={isPro}
                             projectId={projectId}
                             userId={userId}
                             onUpdate={handleUpdate}
                             onMarkReviewed={handleMarkReviewed}
                             onDelete={handleDelete}
                             onNavigateTab={onNavigateTab}
+                            onImpactCheck={handleImpactCheck}
+                            impactCheckLoading={impactCheckLoading}
+                            impactCheckResult={impactCheckResults[add._id]}
                           />
                         </td>
                       </tr>
@@ -368,21 +372,29 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
 function AddendumCard({
   add,
   isDemo,
+  isPro,
   projectId,
   userId,
   onUpdate,
   onMarkReviewed,
   onDelete,
   onNavigateTab,
+  onImpactCheck,
+  impactCheckLoading,
+  impactCheckResult,
 }: {
   add: any;
   isDemo: boolean;
+  isPro: boolean;
   projectId?: string;
   userId?: string;
   onUpdate: (id: Id<"bidshield_addenda">, updates: Record<string, any>) => Promise<void>;
   onMarkReviewed: (id: Id<"bidshield_addenda">) => Promise<void>;
   onDelete: (id: Id<"bidshield_addenda">) => Promise<void>;
   onNavigateTab?: (tab: any) => void;
+  onImpactCheck: (add: any) => void;
+  impactCheckLoading: string | null;
+  impactCheckResult?: { impacts: { phase: string; phaseKey: string; severity: string; action: string; detail: string }[]; summary: string | null };
 }) {
   const addProjectSpec = useMutation(api.bidshield.projectSpecs.addProjectSpec);
   const extractInputRef = useRef<HTMLInputElement | null>(null);
@@ -729,23 +741,23 @@ function AddendumCard({
       {(isPro || isDemo) && (
         <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
           <button
-            onClick={() => handleImpactCheck(add)}
+            onClick={() => onImpactCheck(add)}
             disabled={impactCheckLoading === add._id}
             className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
             style={{ background: "var(--bs-teal)", color: "#13151a" }}
           >
             {impactCheckLoading === add._id ? "Analyzing…" : "⚡ Analyze Bid Impact"}
           </button>
-          {impactCheckResults[add._id] && (
+          {impactCheckResult && (
             <div className="mt-2 rounded-lg p-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
-              {impactCheckResults[add._id].summary && (
-                <p className="text-[11px] mb-2 italic" style={{ color: "var(--bs-text-secondary)" }}>{impactCheckResults[add._id].summary}</p>
+              {impactCheckResult.summary && (
+                <p className="text-[11px] mb-2 italic" style={{ color: "var(--bs-text-secondary)" }}>{impactCheckResult.summary}</p>
               )}
-              {impactCheckResults[add._id].impacts.length > 0 ? (
+              {impactCheckResult.impacts.length > 0 ? (
                 <>
                   <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>Phases requiring re-review:</p>
                   <ul className="flex flex-col gap-2">
-                    {impactCheckResults[add._id].impacts.map((item, i) => (
+                    {impactCheckResult.impacts.map((item, i) => (
                       <li key={i} className="flex flex-col gap-0.5 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 ${item.severity === "critical" ? "bg-red-900/40 text-red-400" : item.severity === "major" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700 text-slate-300"}`}>{item.severity}</span>
