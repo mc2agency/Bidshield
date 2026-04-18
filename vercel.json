@@ -29,8 +29,7 @@
     { "source": "/tools/:path*", "destination": "/products", "permanent": true },
     { "source": "/tools", "destination": "/products", "permanent": true },
     { "source": "/quiz", "destination": "/products", "permanent": true },
-    { "source": "/updates", "destination": "/blog", "permanent": true },
-    { "source": "/support", "destination": "/contact", "permanent": false },
+
     { "source": "/dashboard", "destination": "/bidshield/dashboard", "permanent": true }
   ],
   "headers": [

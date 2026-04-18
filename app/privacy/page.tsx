@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       <section className="py-16">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12 border border-gray-200">
-            <div className="prose prose-lg max-w-none">
+            <div className="max-w-none text-gray-700 leading-relaxed">
               <p className="text-lg text-gray-700 mb-8">
                 BidShield (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy.
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information
