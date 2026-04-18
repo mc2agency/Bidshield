@@ -131,7 +131,7 @@ ${manufacturer ? `- Manufacturer: ${manufacturer}` : ""}
 ${specWarrantyRequirement ? `- Spec requirement: "${specWarrantyRequirement}"` : ""}
 
 SYSTEM SPECIFIED IN BID:
-${assemblyBlock ?? [
+${assemblyBlock ?? ([
   systemType && `System: ${systemType.toUpperCase()}`,
   insulationThickness && `Insulation thickness: ${insulationThickness}`,
   rValue && `R-value: R-${rValue}`,
@@ -139,7 +139,7 @@ ${assemblyBlock ?? [
   deckType && `Deck type: ${deckType}`,
   manufacturer && `Manufacturer: ${manufacturer}`,
   laborType && `Labor type: ${laborType.replace("_", " ")}`,
-].filter(Boolean).join("\n") || "(No system details provided)"}
+].filter(Boolean).join("\n") || "(No system details provided)")}
 ${projectType ? `Project type: ${projectType}` : ""}
 ${sqft ? `Roof area: ${sqft.toLocaleString()} SF` : ""}
 ${totalBidAmount ? `Total bid: $${totalBidAmount.toLocaleString()}` : ""}
