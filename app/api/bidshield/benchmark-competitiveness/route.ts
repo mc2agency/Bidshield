@@ -155,6 +155,17 @@ export async function POST(req: NextRequest) {
         ).join("\n")
       : "(No past bids available for comparison)";
 
+    const comparableBidsJson = JSON.stringify(
+      comparable.map(b => ({
+        name: b.name,
+        sqft: b.sqft,
+        dollarPerSf: Number(b.dollarPerSf.toFixed(2)),
+        systemType: b.systemType ?? "",
+        won: b.won ?? null,
+        deltaFromCurrent: Number(b.deltaFromCurrent.toFixed(1)),
+      }))
+    );
+
     const prompt = `You are a commercial roofing bid analyst reviewing whether a bid is competitively priced.
 
 CURRENT BID:
@@ -197,7 +208,7 @@ Respond with valid JSON only — no markdown fences:
   "industryRangeHigh": ${industryRange ? industryRange[1] : null},
   "ownHistoryAvg": ${ownHistoryAvg?.toFixed(2) ?? null},
   "ownHistoryCount": ${comparable.length},
-  "comparableBids": [${comparable.map(b => `{"name":"${b.name.replace(/"/g, "'")}","sqft":${b.sqft},"dollarPerSf":${b.dollarPerSf.toFixed(2)},"systemType":"${b.systemType ?? ""}","won":${b.won ?? null},"deltaFromCurrent":${b.deltaFromCurrent.toFixed(1)}}`).join(",")}],
+  "comparableBids": ${comparableBidsJson},
   "pctFromOwnAvg": ${pctFromOwnAvg?.toFixed(1) ?? null},
   "laborPct": ${laborPct?.toFixed(1) ?? null},
   "materialPct": ${materialPct?.toFixed(1) ?? null},
