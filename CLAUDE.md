@@ -10,7 +10,7 @@ BidShield is a SaaS tool that helps commercial roofing contractors validate thei
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14 (App Router), React, TypeScript, Tailwind CSS, shadcn/ui
+- **Frontend:** Next.js 16 (App Router, `proxy.ts` middleware), React 19, TypeScript, Tailwind CSS 4, shadcn/ui
 - **Backend:** Convex (real-time database, mutations, queries, actions, cron jobs)
 - **Auth:** Clerk (user management, org support)
 - **AI:** Anthropic Claude API (spec extraction, analysis)
