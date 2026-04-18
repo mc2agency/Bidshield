@@ -3,6 +3,8 @@ import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
 
+export const maxDuration = 60;
+
 const BRAVE_ENDPOINT = "https://api.search.brave.com/res/v1/web/search";
 const MIN_PDF_BYTES = 10_000;
 const MAX_PDF_BYTES = 25 * 1024 * 1024;
