@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
+import { api, internal } from "@/convex/_generated/api";
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
@@ -65,6 +65,12 @@ export async function POST(req: NextRequest) {
               currentPeriodEnd: (subscription.items.data[0]?.current_period_end ?? 0) * 1000,
             },
           });
+
+          // Fire Pro welcome email (non-blocking)
+          convex.action(api.users.triggerProWelcomeEmail, {
+            clerkId: userId,
+            plan: planId === "pro_annual" ? "annual" : "monthly",
+          }).catch((err) => console.error("Pro welcome email failed:", err));
         }
         break;
       }
@@ -105,6 +111,12 @@ export async function POST(req: NextRequest) {
               currentPeriodEnd: (subscription.items.data[0]?.current_period_end ?? 0) * 1000,
             },
           });
+
+          // Fire cancellation email (non-blocking)
+          convex.action(api.users.triggerCancellationEmail, {
+            clerkId: userId,
+            periodEnd: (subscription.items.data[0]?.current_period_end ?? 0) * 1000,
+          }).catch((err) => console.error("Cancellation email failed:", err));
         }
         break;
       }

@@ -170,6 +170,127 @@ function getEmailContent(day: number, firstName: string): { subject: string; htm
   }
 }
 
+// ── Transactional emails ───────────────────────────────────────────────────
+
+export const sendProWelcomeEmail = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    plan: v.string(), // "monthly" | "annual"
+  },
+  handler: async (_ctx, { email, name, plan }) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.warn("RESEND_API_KEY not set — skipping Pro welcome email");
+      return;
+    }
+
+    const firstName = name.split(" ")[0] || "there";
+    const planLabel = plan === "annual" ? "Annual" : "Monthly";
+
+    const html = emailWrapper(`
+      <h2>Welcome to BidShield Pro, ${firstName} 🎉</h2>
+      <p>Your ${planLabel} Pro subscription is now active. Here's what just unlocked:</p>
+      <ul style="margin:0 0 16px;padding-left:20px;color:#334155;">
+        <li><strong>Unlimited active projects</strong></li>
+        <li>PDF bid package export</li>
+        <li>AI Addenda Impact Analyzer</li>
+        <li>AI Spec Extraction (auto-populates Phase 9)</li>
+        <li>AI Exclusions Generator</li>
+        <li>AI Quote Scope Analyzer</li>
+        <li>Win/loss analytics &amp; $/SF benchmarks</li>
+        <li>Quote expiration alerts</li>
+        <li>All 8 Excel estimating templates</li>
+      </ul>
+      <a href="${DASHBOARD_URL}" class="cta">Open Dashboard</a>
+      <div class="callout">
+        <p><strong>Need help?</strong> Reply to this email and Carlos will personally walk you through any feature.</p>
+      </div>
+      <p>One prevented scope gap pays for years of Pro. Let's get you to a clean bid.</p>
+      <p style="color:#475569;">— Carlos, BidShield</p>
+    `);
+
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: FROM,
+          to: email,
+          subject: `You're now on BidShield Pro (${planLabel})`,
+          html,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Resend error sending Pro welcome email:", text);
+      }
+    } catch (err) {
+      console.error("Failed to send Pro welcome email:", err);
+    }
+  },
+});
+
+export const sendCancellationEmail = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    periodEnd: v.number(), // Unix ms timestamp
+  },
+  handler: async (_ctx, { email, name, periodEnd }) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.warn("RESEND_API_KEY not set — skipping cancellation email");
+      return;
+    }
+
+    const firstName = name.split(" ")[0] || "there";
+    const endDate = new Date(periodEnd).toLocaleDateString("en-US", {
+      month: "long", day: "numeric", year: "numeric",
+    });
+
+    const html = emailWrapper(`
+      <h2>Your BidShield Pro subscription has been canceled</h2>
+      <p>Hi ${firstName},</p>
+      <p>We've received your cancellation. Your Pro access remains active until <strong>${endDate}</strong>, after which your account reverts to the free plan (1 active project).</p>
+      <div class="callout">
+        <p><strong>Your data is safe.</strong> All your projects, checklists, and bid history are retained — you can still view everything on the free plan.</p>
+      </div>
+      <p>If you canceled by mistake or want to resubscribe, you can do so anytime from your dashboard:</p>
+      <a href="${PRICING_URL}" class="cta">Resubscribe to Pro</a>
+      <p>If there's something we could have done better, please reply to this email — I read every one.</p>
+      <p style="color:#475569;">— Carlos, BidShield</p>
+    `);
+
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: FROM,
+          to: email,
+          subject: "BidShield Pro — Subscription canceled",
+          html,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Resend error sending cancellation email:", text);
+      }
+    } catch (err) {
+      console.error("Failed to send cancellation email:", err);
+    }
+  },
+});
+
 export const sendOnboardingEmail = internalAction({
   args: {
     email: v.string(),

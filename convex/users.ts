@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, action, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 // Get or create user from Clerk authentication
@@ -152,10 +152,19 @@ export const getUserSubscription = query({
 
     if (!user) return null;
 
+    const sub = user.bidshieldSubscription ?? null;
+    // isPro requires BOTH the membershipLevel set AND an active subscription status.
+    // A canceled subscriber may still have membershipLevel="bidshield" if the webhook
+    // was missed — checking status prevents them retaining Pro UI access client-side.
+    const subscriptionActive = sub?.status === "active";
+    const isPro =
+      (user.membershipLevel === "bidshield" || user.membershipLevel === "pro") &&
+      subscriptionActive;
+
     return {
       membershipLevel: user.membershipLevel,
-      subscription: user.bidshieldSubscription ?? null,
-      isPro: user.membershipLevel === "bidshield" || user.membershipLevel === "pro",
+      subscription: sub,
+      isPro,
     };
   },
 });
@@ -285,5 +294,56 @@ export const markUserDeleted = mutation({
     await ctx.db.patch(user._id, {
       membershipLevel: "free",
     });
+  },
+});
+
+// Trigger Pro welcome email (called by Stripe webhook via ConvexHttpClient)
+export const triggerProWelcomeEmail = action({
+  args: {
+    clerkId: v.string(),
+    plan: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.runQuery(internal.users.getUserByClerkId, { clerkId: args.clerkId });
+    if (!user) {
+      console.warn("triggerProWelcomeEmail: user not found", args.clerkId);
+      return;
+    }
+    await ctx.runAction(internal.email.sendProWelcomeEmail, {
+      email: user.email,
+      name: user.name ?? "there",
+      plan: args.plan,
+    });
+  },
+});
+
+// Trigger cancellation email (called by Stripe webhook via ConvexHttpClient)
+export const triggerCancellationEmail = action({
+  args: {
+    clerkId: v.string(),
+    periodEnd: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.runQuery(internal.users.getUserByClerkId, { clerkId: args.clerkId });
+    if (!user) {
+      console.warn("triggerCancellationEmail: user not found", args.clerkId);
+      return;
+    }
+    await ctx.runAction(internal.email.sendCancellationEmail, {
+      email: user.email,
+      name: user.name ?? "there",
+      periodEnd: args.periodEnd,
+    });
+  },
+});
+
+// Internal query: look up user by Clerk ID (used by actions that can't hit ctx.db directly)
+export const getUserByClerkId = internalQuery({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
   },
 });
