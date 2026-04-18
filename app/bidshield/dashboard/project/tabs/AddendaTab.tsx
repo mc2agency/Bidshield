@@ -60,9 +60,8 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
     priority: "normal",
     notes: "",
   });
-  const [impactCheckLoading, setImpactCheckLoading] = useState(false);
-  const [impactCheckResults, setImpactCheckResults] = useState<{ phase: string; phaseKey: string; severity: string; action: string; detail: string }[] | null>(null);
-  const [impactCheckSummary, setImpactCheckSummary] = useState<string | null>(null);
+  const [impactCheckLoading, setImpactCheckLoading] = useState<string | null>(null); // stores addendum _id being checked
+  const [impactCheckResults, setImpactCheckResults] = useState<Record<string, { impacts: { phase: string; phaseKey: string; severity: string; action: string; detail: string }[]; summary: string | null }>>({});
 
   // Demo data with enhanced fields
   const [demoAddendaState, setDemoAddendaState] = useState<any[]>([
@@ -124,11 +123,10 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
     setShowAdd(false);
   };
 
-  const handleImpactCheck = async () => {
-    const desc = [newAddendum.title, newAddendum.notes].filter(Boolean).join(". ");
+  const handleImpactCheck = async (add: any) => {
+    const desc = [add.title, add.notes].filter(Boolean).join(". ");
     if (!desc.trim()) return;
-    setImpactCheckLoading(true);
-    setImpactCheckResults(null);
+    setImpactCheckLoading(add._id);
     try {
       const res = await guardedFetch("/api/bidshield/check-addendum-impact", {
         method: "POST",
@@ -137,12 +135,14 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
       });
       if (!res) return;
       const data = await res.json();
-      setImpactCheckResults(data.impacts ?? []);
-      setImpactCheckSummary(data.summary ?? null);
+      setImpactCheckResults(prev => ({
+        ...prev,
+        [add._id]: { impacts: data.impacts ?? [], summary: data.summary ?? null },
+      }));
     } catch {
-      setImpactCheckResults([]);
+      setImpactCheckResults(prev => ({ ...prev, [add._id]: { impacts: [], summary: null } }));
     } finally {
-      setImpactCheckLoading(false);
+      setImpactCheckLoading(null);
     }
   };
 
@@ -255,41 +255,6 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
               <textarea value={newAddendum.notes} onChange={(e) => setNewAddendum({ ...newAddendum, notes: e.target.value })} placeholder="What does this addendum cover?" rows={2} className="w-full px-3 py-2 text-sm rounded-lg resize-none focus:outline-none" style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }} />
             </div>
 
-            {(isPro || isDemo) && newAddendum.title && (
-              <div>
-                <button
-                  onClick={handleImpactCheck}
-                  disabled={impactCheckLoading}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
-                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
-                >
-                  {impactCheckLoading ? "Checking..." : "Check Addendum Impact"}
-                </button>
-                {impactCheckResults && impactCheckResults.length > 0 && (
-                  <div className="mt-2 rounded-lg p-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
-                    {impactCheckSummary && (
-                      <p className="text-[11px] mb-2 italic" style={{ color: "var(--bs-text-secondary)" }}>{impactCheckSummary}</p>
-                    )}
-                    <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>Phases requiring re-review:</p>
-                    <ul className="flex flex-col gap-2">
-                      {impactCheckResults.map((item, i) => (
-                        <li key={i} className="flex flex-col gap-0.5 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 ${item.severity === "critical" ? "bg-red-900/40 text-red-400" : item.severity === "major" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700 text-slate-300"}`}>{item.severity}</span>
-                            <strong style={{ color: "var(--bs-text-primary)" }}>{item.phase}</strong>
-                          </div>
-                          <span className="pl-1">{item.action}</span>
-                          {item.detail && <span className="pl-1 text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{item.detail}</span>}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {impactCheckResults && impactCheckResults.length === 0 && (
-                  <p className="mt-2 text-xs" style={{ color: "var(--bs-text-muted)" }}>No significant bid sections identified. Review manually.</p>
-                )}
-              </div>
-            )}
             {!isPro && !isDemo && newAddendum.title && (
               <a href="/bidshield/pricing" className="inline-block text-xs transition-colors" style={{ color: "var(--bs-text-dim)" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-teal)"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}>
                 <svg className="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
@@ -760,6 +725,46 @@ function AddendumCard({
           readOnly={isDemo}
         />
       </div>
+
+      {/* AI Impact Analysis */}
+      {(isPro || isDemo) && (
+        <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
+          <button
+            onClick={() => handleImpactCheck(add)}
+            disabled={impactCheckLoading === add._id}
+            className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
+            style={{ background: "var(--bs-teal)", color: "#13151a" }}
+          >
+            {impactCheckLoading === add._id ? "Analyzing…" : "⚡ Analyze Bid Impact"}
+          </button>
+          {impactCheckResults[add._id] && (
+            <div className="mt-2 rounded-lg p-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
+              {impactCheckResults[add._id].summary && (
+                <p className="text-[11px] mb-2 italic" style={{ color: "var(--bs-text-secondary)" }}>{impactCheckResults[add._id].summary}</p>
+              )}
+              {impactCheckResults[add._id].impacts.length > 0 ? (
+                <>
+                  <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>Phases requiring re-review:</p>
+                  <ul className="flex flex-col gap-2">
+                    {impactCheckResults[add._id].impacts.map((item, i) => (
+                      <li key={i} className="flex flex-col gap-0.5 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 ${item.severity === "critical" ? "bg-red-900/40 text-red-400" : item.severity === "major" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700 text-slate-300"}`}>{item.severity}</span>
+                          <strong style={{ color: "var(--bs-text-primary)" }}>{item.phase}</strong>
+                        </div>
+                        <span className="pl-1">{item.action}</span>
+                        {item.detail && <span className="pl-1 text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{item.detail}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>No significant phase impacts identified.</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Status Footer */}
       <div className="mt-3 pt-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--bs-border)" }}>
