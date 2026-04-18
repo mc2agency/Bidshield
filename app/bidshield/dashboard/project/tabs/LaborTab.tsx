@@ -508,7 +508,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
           )}
 
           {/* Task breakdown table by category */}
-          <div className="overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10 }}>
+          <div style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10, overflow: "clip" }}>
             {orderedCategories.map((cat, catIdx) => {
               const tasks = tasksByCategory[cat];
               const catTotal = tasks.reduce((s: number, t: any) => s + (t.totalCost || 0), 0);
@@ -524,7 +524,7 @@ export default function LaborTab({ isDemo, isPro, userId, projectId, project }: 
                     <span className="text-sm font-medium tabular-nums" style={{ color: "var(--bs-text-primary)" }}>{fmtDollar(catTotal)}</span>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm" style={{ minWidth: 480 }}>
                       <thead>
                         <tr className="text-left" style={{ borderBottom: "1px solid var(--bs-border)" }}>
                           <th className="px-5 py-2 text-[10px] font-medium uppercase" style={{ color: "var(--bs-text-dim)", letterSpacing: "0.5px" }}>Task</th>

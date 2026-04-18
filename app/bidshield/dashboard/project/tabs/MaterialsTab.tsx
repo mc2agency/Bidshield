@@ -1337,9 +1337,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         const colCount = isComparing ? 9 : 7;
         const selectedQuote = quotes.find((q: any) => q._id === selectedQuoteId);
         return (
-          <div className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+          <div className="rounded-xl" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", overflow: "clip" }}>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" style={{ minWidth: 520 }}>
                 <thead>
                   <tr className="text-xs" style={{ color: "var(--bs-text-dim)", borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
                     <th className="text-left px-5 py-2.5 font-medium">Material</th>
