@@ -15,3 +15,6 @@ export { default as BidQualsTab } from "./BidQualsTab";
 export { default as DecisionLogTab } from "./DecisionLogTab";
 export { default as EstimateTab } from "./EstimateTab";
 export { default as DocumentsTab } from "./DocumentsTab";
+export { default as PreBidMeetingsTab } from "./PreBidMeetingsTab";
+export { default as SubmissionTab } from "./SubmissionTab";
+export { default as SubmittalsTab } from "./SubmittalsTab";
