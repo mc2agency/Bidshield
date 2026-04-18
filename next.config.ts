@@ -1,10 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Reduce client bundle size by tree-shaking icon libraries at build time
-  // instead of importing the entire package.
+  // Reduce client bundle size by tree-shaking barrel-export packages at build
+  // time instead of importing the entire module graph. Covers icon libraries,
+  // heavy charting (recharts), Clerk (shipped on every authed page), and date
+  // utilities if added later.
   experimental: {
-    optimizePackageImports: ["lucide-react", "@heroicons/react"],
+    optimizePackageImports: [
+      "lucide-react",
+      "@heroicons/react",
+      "recharts",
+      "@clerk/nextjs",
+    ],
   },
 
   images: {
