@@ -116,6 +116,14 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const [aiExclusionsSuggestions, setAiExclusionsSuggestions] = useState<{ text: string; reason: string; priority: string }[]>([]);
   const [aiExclusionsError, setAiExclusionsError]     = useState<string | null>(null);
 
+  // Exclusions Validator state
+  type ValidatorCategory = { category: string; covered: boolean; coveredBy?: string; riskLevel: "critical" | "high" | "medium"; suggestedLanguage?: string };
+  type ValidatorResult = { coverageScore: number; coveredCount: number; missingCount: number; categories: ValidatorCategory[]; topPriority: string };
+  const [validatorLoading, setValidatorLoading]   = useState(false);
+  const [validatorResult, setValidatorResult]     = useState<ValidatorResult | null>(null);
+  const [validatorError, setValidatorError]       = useState<string | null>(null);
+  const [validatorExpanded, setValidatorExpanded] = useState(false);
+
   const resolvedClarifications = isDemo ? demoClarifications : (clarifications ?? []);
 
   const items = isDemo ? demoState : (scopeItems ?? []);
@@ -259,6 +267,40 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
       setAiExclusionsError("Failed to generate exclusions — check your connection and try again.");
     } finally {
       setAiExclusionsLoading(false);
+    }
+  };
+
+  const handleValidateExclusions = async () => {
+    if (!isPro && !isDemo) return;
+    setValidatorLoading(true);
+    setValidatorResult(null);
+    setValidatorError(null);
+    try {
+      const excl = items.filter((i: any) => i.status === "excluded");
+      const res = await guardedFetch("/api/bidshield/validate-exclusions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exclusions: excl.map((i: any) => i.name).filter(Boolean),
+          systemType: (project as any)?.systemType || undefined,
+          projectType: (project as any)?.projectType || undefined,
+          gcName: (project as any)?.gc || undefined,
+          totalBidAmount: (project as any)?.totalBidAmount || undefined,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setValidatorError(err?.error ?? "Validation failed — please try again.");
+        return;
+      }
+      const data = await res.json();
+      setValidatorResult(data);
+      setValidatorExpanded(true);
+    } catch {
+      setValidatorError("Failed to validate exclusions — check your connection and try again.");
+    } finally {
+      setValidatorLoading(false);
     }
   };
 
@@ -672,6 +714,30 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               Generate Exclusions with AI · Pro
             </a>
           )}
+
+          {(isPro || isDemo) ? (
+            <button
+              onClick={handleValidateExclusions}
+              disabled={validatorLoading}
+              className="w-full py-2.5 rounded-lg text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-60"
+              style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-amber)", color: "var(--bs-amber)" }}
+            >
+              {validatorLoading ? "Checking coverage..." : "Validate Exclusions Coverage · AI"}
+            </button>
+          ) : (
+            <a
+              href="/bidshield/pricing"
+              className="w-full py-2.5 rounded-lg text-sm font-medium text-center block transition-all"
+              style={{
+                background: "var(--bs-bg-elevated)",
+                border: "1px solid var(--bs-border)",
+                color: "var(--bs-text-dim)",
+                textDecoration: "none",
+              }}
+            >
+              Validate Exclusions Coverage · Pro
+            </a>
+          )}
         </div>
       )}
 
@@ -735,6 +801,98 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Exclusions Validator error */}
+      {validatorError && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-lg text-sm"
+          style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="shrink-0 mt-0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+          <span className="flex-1">{validatorError}</span>
+          <button onClick={() => setValidatorError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
+        </div>
+      )}
+
+      {/* Exclusions Validator results */}
+      {validatorResult && (
+        <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--bs-amber)" }}>
+          {/* Header / score bar */}
+          <div className="flex items-center justify-between px-4 py-3" style={{ background: "var(--bs-bg-card)" }}>
+            <div className="flex items-center gap-3">
+              <div
+                className="flex items-center justify-center rounded-full text-sm font-bold"
+                style={{
+                  width: 44, height: 44, flexShrink: 0,
+                  background: validatorResult.coverageScore >= 80 ? "var(--bs-teal-dim)" : validatorResult.coverageScore >= 50 ? "var(--bs-amber-dim)" : "var(--bs-red-dim)",
+                  border: `2px solid ${validatorResult.coverageScore >= 80 ? "var(--bs-teal)" : validatorResult.coverageScore >= 50 ? "var(--bs-amber)" : "var(--bs-red)"}`,
+                  color: validatorResult.coverageScore >= 80 ? "var(--bs-teal)" : validatorResult.coverageScore >= 50 ? "var(--bs-amber)" : "var(--bs-red)",
+                }}
+              >
+                {validatorResult.coverageScore}
+              </div>
+              <div>
+                <p className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>Exclusions Coverage Score</p>
+                <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                  {validatorResult.coveredCount}/20 categories covered · {validatorResult.missingCount} missing
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setValidatorExpanded(v => !v)}
+              className="text-xs font-medium"
+              style={{ color: "var(--bs-amber)" }}
+            >
+              {validatorExpanded ? "Collapse" : "Show details"}
+            </button>
+          </div>
+
+          {/* Top priority callout */}
+          {validatorResult.topPriority && (
+            <div className="px-4 py-2.5" style={{ background: "var(--bs-amber-dim)", borderTop: "1px solid var(--bs-amber)" }}>
+              <p className="text-[11px] font-semibold" style={{ color: "var(--bs-amber)" }}>⚠ Top Priority</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--bs-text-secondary)" }}>{validatorResult.topPriority}</p>
+            </div>
+          )}
+
+          {/* Category breakdown */}
+          {validatorExpanded && (
+            <div className="divide-y" style={{ borderTop: "1px solid var(--bs-border)" }}>
+              {validatorResult.categories.map((cat, i) => (
+                <div key={i} className="px-4 py-3 flex items-start gap-3" style={{ background: "var(--bs-bg-elevated)" }}>
+                  <div className="mt-0.5 shrink-0">
+                    {cat.covered ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bs-teal)" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={cat.riskLevel === "critical" ? "var(--bs-red)" : cat.riskLevel === "high" ? "var(--bs-amber)" : "var(--bs-text-dim)"} strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-xs font-medium" style={{ color: cat.covered ? "var(--bs-text-secondary)" : "var(--bs-text-primary)" }}>{cat.category}</p>
+                      {!cat.covered && (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${cat.riskLevel === "critical" ? "bg-red-900/40 text-red-400" : cat.riskLevel === "high" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700/60 text-slate-400"}`}>
+                          {cat.riskLevel}
+                        </span>
+                      )}
+                    </div>
+                    {cat.covered && cat.coveredBy && (
+                      <p className="text-[11px] mt-0.5 italic" style={{ color: "var(--bs-text-muted)" }}>"{cat.coveredBy}"</p>
+                    )}
+                    {!cat.covered && cat.suggestedLanguage && (
+                      <p className="text-[11px] mt-1" style={{ color: "var(--bs-text-muted)" }}>Add: {cat.suggestedLanguage}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

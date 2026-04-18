@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
+import { useProGate } from "@/hooks/useProGate";
 
 const DEMO_ALTERNATES = [
   { _id: "alt_1", label: "Alt 1 — Add 4\" Tapered Polyiso", type: "add" as const, amount: 42500, description: "Full tearoff and re-insulate NE quadrant with tapered system" },
@@ -33,10 +34,18 @@ function varianceBg(pct: number): { background: string; border: string } {
 
 export default function PricingTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
+  const { proGateModal, guardedFetch } = useProGate();
   const updateProject = useMutation(api.bidshield.updateProject);
   const addDecision = useMutation(api.bidshield.addDecision);
   const [editing, setEditing] = useState(false);
   const [editingActuals, setEditingActuals] = useState(false);
+
+  // Arithmetic Audit state
+  type AuditIssue = { type: "error" | "warning" | "info"; description: string; expected?: string; found?: string; delta?: number };
+  type AuditResult = { passed: boolean; issueCount: number; computedSubtotal?: number; computedTotal?: number; issues: AuditIssue[]; summary: string };
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditResult, setAuditResult]   = useState<AuditResult | null>(null);
+  const [auditError, setAuditError]     = useState<string | null>(null);
 
   // P2-3: Warn on unsaved changes when navigating away
   useEffect(() => {
@@ -207,6 +216,46 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
     setEditingActuals(false);
   };
 
+  const handleAuditArithmetic = async () => {
+    if (!isPro && !isDemo) return;
+    setAuditLoading(true);
+    setAuditResult(null);
+    setAuditError(null);
+    try {
+      const gcLine = (gcItems ?? []).filter((i: any) => !i.isMarkup);
+      const gcMarkup = (gcItems ?? []).filter((i: any) => i.isMarkup);
+      const gcLineBaseTotal = gcLine.reduce((s: number, i: any) => s + (i.total ?? 0), 0);
+      const gcMarkupBase = computedMaterialTotal + computedLaborTotal + gcLineBaseTotal;
+      const res = await guardedFetch("/api/bidshield/audit-arithmetic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          materialCost: computedMaterialTotal > 0 ? computedMaterialTotal : pricing.materialCost,
+          laborCost: computedLaborTotal > 0 ? computedLaborTotal : pricing.laborCost,
+          gcLineTotal: gcLineBaseTotal > 0 ? gcLineBaseTotal : undefined,
+          gcMarkupTotal: gcMarkup.reduce((s: number, i: any) => s + gcMarkupBase * ((i.markupPct ?? 0) / 100), 0) || undefined,
+          totalBidAmount: pricing.totalBidAmount,
+          gcLineItems: gcLine.map((i: any) => ({ description: i.description ?? "Line item", amount: i.total ?? 0, isMarkup: false })),
+          gcMarkupItems: gcMarkup.map((i: any) => ({ description: i.description ?? "Markup", amount: gcMarkupBase * ((i.markupPct ?? 0) / 100), isMarkup: true, markupPct: i.markupPct ?? 0 })),
+          addendaPriceImpact: addendaPriceImpact !== 0 ? addendaPriceImpact : undefined,
+          systemType: (project as any)?.systemType || undefined,
+          grossRoofArea: (project as any)?.grossRoofArea || (project as any)?.sqft || undefined,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setAuditError(err?.error ?? "Audit failed — please try again.");
+        return;
+      }
+      setAuditResult(await res.json());
+    } catch {
+      setAuditError("Failed to run audit — check your connection and try again.");
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
   // Auto-compute total bid from components when no manual amount is set
   const autoTotal = computedMaterialTotal + computedLaborTotal + (pricing.otherCost ?? computedGCTotal) + scopeCostTotal + addendaPriceImpact;
   const effectiveTotalBid = pricing.totalBidAmount ?? (autoTotal > 0 ? autoTotal : null);
@@ -318,6 +367,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
 
   return (
     <div className="flex flex-col gap-5">
+      {proGateModal}
 
       {/* Sanity check warning */}
       {componentSumMismatch && (
@@ -351,6 +401,63 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
         </div>
       )}
 
+      {/* Arithmetic Audit error */}
+      {auditError && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-lg text-sm"
+          style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="shrink-0 mt-0.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+          <span className="flex-1">{auditError}</span>
+          <button onClick={() => setAuditError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
+        </div>
+      )}
+
+      {/* Arithmetic Audit results */}
+      {auditResult && (
+        <div className="rounded-[10px] overflow-hidden" style={{ border: `1px solid ${auditResult.passed ? "var(--bs-teal)" : auditResult.issueCount > 0 && auditResult.issues.some(i => i.type === "error") ? "var(--bs-red)" : "var(--bs-amber)"}` }}>
+          <div className="flex items-center justify-between px-4 py-3" style={{ background: "var(--bs-bg-card)" }}>
+            <div className="flex items-center gap-3">
+              <div className="text-sm font-bold shrink-0" style={{
+                width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                background: auditResult.passed ? "var(--bs-teal-dim)" : auditResult.issues.some(i => i.type === "error") ? "var(--bs-red-dim)" : "var(--bs-amber-dim)",
+                border: `2px solid ${auditResult.passed ? "var(--bs-teal)" : auditResult.issues.some(i => i.type === "error") ? "var(--bs-red)" : "var(--bs-amber)"}`,
+                color: auditResult.passed ? "var(--bs-teal)" : auditResult.issues.some(i => i.type === "error") ? "var(--bs-red)" : "var(--bs-amber)",
+              }}>
+                {auditResult.passed ? "✓" : auditResult.issueCount}
+              </div>
+              <div>
+                <p className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>
+                  {auditResult.passed ? "Math checks out" : `${auditResult.issueCount} issue${auditResult.issueCount !== 1 ? "s" : ""} found`}
+                </p>
+                <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{auditResult.summary}</p>
+              </div>
+            </div>
+            <button onClick={() => setAuditResult(null)} className="text-xs font-medium" style={{ color: "var(--bs-text-dim)" }}>Clear</button>
+          </div>
+          {auditResult.issues.length > 0 && (
+            <div className="divide-y" style={{ borderTop: "1px solid var(--bs-border)" }}>
+              {auditResult.issues.map((issue, i) => (
+                <div key={i} className="px-4 py-3 flex items-start gap-3" style={{ background: "var(--bs-bg-elevated)" }}>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 mt-0.5 ${issue.type === "error" ? "bg-red-900/40 text-red-400" : issue.type === "warning" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700/60 text-slate-400"}`}>
+                    {issue.type}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium" style={{ color: "var(--bs-text-primary)" }}>{issue.description}</p>
+                    {(issue.expected || issue.found) && (
+                      <p className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                        {issue.expected && `Expected: ${issue.expected}`}{issue.expected && issue.found && " · "}{issue.found && `Found: ${issue.found}`}
+                        {issue.delta != null && ` · Δ $${Math.abs(issue.delta).toLocaleString()}`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Bid Pricing Card */}
       <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         <div className="flex justify-between items-center px-[18px] py-[14px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
@@ -360,6 +467,16 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             <button onClick={() => onNavigateTab?.("decisions")} className="text-[11px] cursor-pointer transition-colors" style={{ color: "var(--bs-text-muted)", background: "none", border: "none" }}>
               Decision Log
             </button>
+            {(isPro || isDemo) ? (
+              <button
+                onClick={handleAuditArithmetic}
+                disabled={auditLoading}
+                className="bs-btn bs-btn-outline cursor-pointer disabled:opacity-60"
+                style={{ borderColor: "var(--bs-amber)", color: "var(--bs-amber)" }}
+              >
+                {auditLoading ? "Auditing…" : "Audit Math"}
+              </button>
+            ) : null}
             {(isPro || isDemo) ? (
               <button onClick={editing ? handleSave : startEdit} className="bs-btn bs-btn-outline cursor-pointer">
                 {editing ? "Save" : "Edit"}
