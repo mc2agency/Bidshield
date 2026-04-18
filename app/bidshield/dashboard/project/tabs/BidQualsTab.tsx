@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { getChecklistForTrade } from "@/lib/bidshield/checklist-data";
+import { useProGate } from "@/hooks/useProGate";
 
 // ── Demo GC Bid Form fixtures ──────────────────────────────────────────────────
 
@@ -713,8 +714,21 @@ type QualFields = {
 
 export default function BidQualsTab({ projectId, isDemo, isPro, userId, project }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
+  const { proGateModal, guardedFetch } = useProGate();
 
   const [activeSubTab, setActiveSubTab] = useState<"quals" | "forms">("quals");
+
+  // Warranty Validator state
+  type WarrantyIssue = { issue: string; severity: "blocker" | "high" | "medium"; requirement?: string; action: string };
+  type WarrantyResult = { achievable: boolean; confidenceNote: string; issues: WarrantyIssue[]; manufacturerRequirements: string[]; warningCount: number; blockerCount: number; summary: string };
+  const [warrantyYears, setWarrantyYears]     = useState("");
+  const [warrantyType, setWarrantyType]       = useState("");
+  const [windSpeed, setWindSpeed]             = useState("");
+  const [warrantyMfr, setWarrantyMfr]         = useState("");
+  const [warrantyLoading, setWarrantyLoading] = useState(false);
+  const [warrantyResult, setWarrantyResult]   = useState<WarrantyResult | null>(null);
+  const [warrantyError, setWarrantyError]     = useState<string | null>(null);
+  const [warrantyOpen, setWarrantyOpen]       = useState(false);
 
   const qualsData = useQuery(
     api.bidshield.getBidQuals,
@@ -781,6 +795,52 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
     const next = new Set(bondTypesSet);
     if (next.has(type)) next.delete(type); else next.add(type);
     saveField("bondTypes", [...next].join(","), true);
+  };
+
+  const handleValidateWarranty = async () => {
+    setWarrantyLoading(true);
+    setWarrantyResult(null);
+    setWarrantyError(null);
+    try {
+      const assemblies = (project as any)?.roofAssemblies ?? undefined;
+      const res = await guardedFetch("/api/bidshield/validate-warranty", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          warrantyYears: warrantyYears ? parseInt(warrantyYears) : undefined,
+          warrantyType: warrantyType || undefined,
+          windSpeedMph: windSpeed ? parseInt(windSpeed) : undefined,
+          manufacturer: warrantyMfr || (project as any)?.manufacturer || undefined,
+          assemblies: assemblies?.map((a: any) => ({
+            systemType: a.systemType,
+            insulationThickness: a.insulationThickness || undefined,
+            rValue: a.rValue || undefined,
+            attachmentMethod: a.attachmentMethod || undefined,
+            deckType: (project as any)?.deckType || undefined,
+            manufacturer: a.manufacturer || undefined,
+            productName: a.productName || undefined,
+          })) || undefined,
+          systemType: (project as any)?.systemType || undefined,
+          rValue: (project as any)?.rValue || undefined,
+          laborType: data.laborType || undefined,
+          projectType: (project as any)?.projectType || undefined,
+          totalBidAmount: (project as any)?.totalBidAmount || undefined,
+          sqft: (project as any)?.grossRoofArea || (project as any)?.sqft || undefined,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setWarrantyError(err?.error ?? "Validation failed — please try again.");
+        return;
+      }
+      setWarrantyResult(await res.json());
+      setWarrantyOpen(true);
+    } catch {
+      setWarrantyError("Failed to validate warranty — check your connection and try again.");
+    } finally {
+      setWarrantyLoading(false);
+    }
   };
 
   if (!isPro && !isDemo) {
@@ -1200,7 +1260,143 @@ export default function BidQualsTab({ projectId, isDemo, isPro, userId, project 
         </div>
       </SectionCard>
 
-      {/* Section 6: Qualifications & Exceptions */}
+      {/* Section 6 — Warranty Validator */}
+      <SectionCard title="Warranty">
+        {proGateModal}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Warranty years">
+            <input
+              type="number"
+              className={INPUT_CLS}
+              value={warrantyYears}
+              onChange={e => setWarrantyYears(e.target.value)}
+              placeholder="20"
+              min={1} max={30}
+              style={{ maxWidth: 120 }}
+            />
+          </Field>
+          <Field label="Warranty type">
+            <select
+              className={INPUT_CLS}
+              value={warrantyType}
+              onChange={e => setWarrantyType(e.target.value)}
+              style={{ appearance: "none" }}
+            >
+              <option value="">Select…</option>
+              <option value="ndl">NDL (No Dollar Limit)</option>
+              <option value="total_system">Total System</option>
+              <option value="labor_material">Labor & Material</option>
+              <option value="material_only">Material Only</option>
+              <option value="labor_only">Labor Only</option>
+            </select>
+          </Field>
+          <Field label="Wind speed (mph)" hint="If specified by GC">
+            <input
+              type="number"
+              className={INPUT_CLS}
+              value={windSpeed}
+              onChange={e => setWindSpeed(e.target.value)}
+              placeholder="e.g. 90"
+              style={{ maxWidth: 120 }}
+            />
+          </Field>
+          <Field label="Manufacturer">
+            <input
+              type="text"
+              className={INPUT_CLS}
+              value={warrantyMfr}
+              onChange={e => setWarrantyMfr(e.target.value)}
+              placeholder="GAF, Firestone, Carlisle…"
+            />
+          </Field>
+        </div>
+
+        <button
+          onClick={handleValidateWarranty}
+          disabled={warrantyLoading}
+          className="w-full py-2.5 rounded-lg text-sm font-semibold disabled:opacity-60 transition-all mt-2"
+          style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-teal)", color: "var(--bs-teal)" }}
+        >
+          {warrantyLoading ? "Checking…" : warrantyResult ? "Re-validate Warranty" : "Validate Warranty Achievability · AI"}
+        </button>
+
+        {warrantyError && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs mt-2" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+            <span className="flex-1">{warrantyError}</span>
+            <button onClick={() => setWarrantyError(null)} className="font-medium shrink-0">Dismiss</button>
+          </div>
+        )}
+
+        {warrantyResult && (
+          <div className="rounded-lg overflow-hidden mt-2" style={{ border: `1px solid ${warrantyResult.blockerCount > 0 ? "var(--bs-red)" : warrantyResult.warningCount > 0 ? "var(--bs-amber)" : "var(--bs-teal)"}` }}>
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 py-3" style={{ background: "var(--bs-bg-elevated)" }}>
+              <div className="flex items-center justify-center rounded-full text-sm font-bold shrink-0"
+                style={{
+                  width: 40, height: 40,
+                  background: warrantyResult.achievable ? "var(--bs-teal-dim)" : "var(--bs-red-dim)",
+                  border: `2px solid ${warrantyResult.achievable ? "var(--bs-teal)" : "var(--bs-red)"}`,
+                  color: warrantyResult.achievable ? "var(--bs-teal)" : "var(--bs-red)",
+                }}>
+                {warrantyResult.achievable ? "✓" : "✗"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>
+                  {warrantyResult.achievable ? "Warranty achievable" : "Warranty may not be achievable"}
+                </p>
+                <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                  {warrantyResult.blockerCount > 0 && `${warrantyResult.blockerCount} blocker${warrantyResult.blockerCount !== 1 ? "s" : ""} · `}
+                  {warrantyResult.warningCount} warning{warrantyResult.warningCount !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <button
+                onClick={() => setWarrantyOpen(v => !v)}
+                className="text-xs font-medium shrink-0"
+                style={{ color: warrantyResult.blockerCount > 0 ? "var(--bs-red)" : "var(--bs-amber)" }}
+              >
+                {warrantyOpen ? "Collapse" : "Details"}
+              </button>
+            </div>
+
+            {/* Summary */}
+            <div className="px-4 py-2.5" style={{ background: warrantyResult.blockerCount > 0 ? "var(--bs-red-dim)" : "var(--bs-amber-dim)", borderTop: `1px solid ${warrantyResult.blockerCount > 0 ? "var(--bs-red-border)" : "var(--bs-amber)"}` }}>
+              <p className="text-xs" style={{ color: "var(--bs-text-secondary)" }}>{warrantyResult.summary}</p>
+            </div>
+
+            {/* Issues */}
+            {warrantyOpen && warrantyResult.issues.length > 0 && (
+              <div className="divide-y" style={{ borderTop: "1px solid var(--bs-border)" }}>
+                {warrantyResult.issues.map((issue, i) => (
+                  <div key={i} className="px-4 py-3 flex items-start gap-3" style={{ background: "var(--bs-bg-card)" }}>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 mt-0.5 ${issue.severity === "blocker" ? "bg-red-900/40 text-red-400" : issue.severity === "high" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700/60 text-slate-400"}`}>
+                      {issue.severity}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium" style={{ color: "var(--bs-text-primary)" }}>{issue.issue}</p>
+                      {issue.requirement && (
+                        <p className="text-[11px] mt-0.5 italic" style={{ color: "var(--bs-text-muted)" }}>Required: {issue.requirement}</p>
+                      )}
+                      <p className="text-[11px] mt-1" style={{ color: "var(--bs-teal)" }}>→ {issue.action}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Manufacturer requirements summary */}
+            {warrantyOpen && warrantyResult.manufacturerRequirements.length > 0 && (
+              <div className="px-4 py-3" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Key requirements for this warranty</p>
+                {warrantyResult.manufacturerRequirements.map((req, i) => (
+                  <p key={i} className="text-[11px] mb-1" style={{ color: "var(--bs-text-muted)" }}>• {req}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </SectionCard>
+
+      {/* Section 7: Qualifications & Exceptions */}
       <SectionCard title="Qualifications & Exceptions to Bid">
         <Field label="Notes">
           <textarea

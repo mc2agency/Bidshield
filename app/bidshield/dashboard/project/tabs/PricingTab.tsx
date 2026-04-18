@@ -47,6 +47,13 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
   const [auditResult, setAuditResult]   = useState<AuditResult | null>(null);
   const [auditError, setAuditError]     = useState<string | null>(null);
 
+  // Competitiveness Benchmarker state
+  type ComparableBid = { name: string; sqft: number; dollarPerSf: number; systemType?: string; won?: boolean; deltaFromCurrent: number };
+  type BenchmarkResult = { currentDollarPerSf: number; verdict: string; verdictLabel: string; industryRangeLow?: number; industryRangeHigh?: number; ownHistoryAvg?: number; ownHistoryCount?: number; comparableBids: ComparableBid[]; pctFromOwnAvg?: number; laborPct?: number; materialPct?: number; insights: string[]; recommendation: string };
+  const [benchLoading, setBenchLoading] = useState(false);
+  const [benchResult, setBenchResult]   = useState<BenchmarkResult | null>(null);
+  const [benchError, setBenchError]     = useState<string | null>(null);
+
   // P2-3: Warn on unsaved changes when navigating away
   useEffect(() => {
     if (!editing && !editingActuals) return;
@@ -256,6 +263,59 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
     }
   };
 
+  const handleBenchmark = async () => {
+    if (!pricing.totalBidAmount) { setBenchError("Enter a total bid amount first."); return; }
+    const sqft = grossRoofArea;
+    if (!sqft || sqft <= 0) { setBenchError("Add gross roof area in project setup to benchmark $/SF."); return; }
+    setBenchLoading(true);
+    setBenchResult(null);
+    setBenchError(null);
+    try {
+      const pastBids = (allProjects ?? [])
+        .filter((p: any) => p._id !== projectId && p.totalBidAmount > 0 && (p.grossRoofArea || p.sqft) > 0)
+        .map((p: any) => ({
+          name: p.name ?? "Unnamed project",
+          sqft: p.grossRoofArea ?? p.sqft,
+          systemType: p.systemType || undefined,
+          primaryAssembly: p.primaryAssembly || undefined,
+          totalBidAmount: p.totalBidAmount,
+          laborCost: p.laborCost || undefined,
+          materialCost: p.materialCost || undefined,
+          bidDate: p.bidDate || undefined,
+          won: p.postJobStatus === "won" ? true : p.postJobStatus === "lost" ? false : undefined,
+          location: p.location || undefined,
+        }));
+      const res = await guardedFetch("/api/bidshield/benchmark-competitiveness", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentSqft: sqft,
+          currentTotalBid: pricing.totalBidAmount,
+          currentSystemType: (project as any)?.systemType || undefined,
+          currentPrimaryAssembly: pricing.primaryAssembly || undefined,
+          currentLaborCost: computedLaborTotal > 0 ? computedLaborTotal : pricing.laborCost,
+          currentMaterialCost: computedMaterialTotal > 0 ? computedMaterialTotal : pricing.materialCost,
+          currentProjectType: (project as any)?.projectType || undefined,
+          currentGcName: (project as any)?.gc || undefined,
+          currentLocation: (project as any)?.location || undefined,
+          currentBidDate: (project as any)?.bidDate || undefined,
+          pastBids,
+        }),
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setBenchError(err?.error ?? "Benchmark failed — please try again.");
+        return;
+      }
+      setBenchResult(await res.json());
+    } catch {
+      setBenchError("Failed to benchmark — check your connection and try again.");
+    } finally {
+      setBenchLoading(false);
+    }
+  };
+
   // Auto-compute total bid from components when no manual amount is set
   const autoTotal = computedMaterialTotal + computedLaborTotal + (pricing.otherCost ?? computedGCTotal) + scopeCostTotal + addendaPriceImpact;
   const effectiveTotalBid = pricing.totalBidAmount ?? (autoTotal > 0 ? autoTotal : null);
@@ -458,6 +518,95 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
         </div>
       )}
 
+      {/* Competitiveness Benchmark error */}
+      {benchError && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-lg text-sm"
+          style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+          <span className="flex-1">{benchError}</span>
+          <button onClick={() => setBenchError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
+        </div>
+      )}
+
+      {/* Competitiveness Benchmark results */}
+      {benchResult && (
+        <div className="rounded-[10px] overflow-hidden" style={{ border: `1px solid ${benchResult.verdict === "competitive" ? "var(--bs-teal)" : benchResult.verdict.includes("high") ? "var(--bs-red)" : benchResult.verdict.includes("low") ? "var(--bs-amber)" : "var(--bs-border)"}` }}>
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-3" style={{ background: "var(--bs-bg-card)" }}>
+            <div className="text-sm font-bold shrink-0" style={{
+              width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column",
+              background: benchResult.verdict === "competitive" ? "var(--bs-teal-dim)" : benchResult.verdict.includes("high") ? "var(--bs-red-dim)" : "var(--bs-amber-dim)",
+              border: `2px solid ${benchResult.verdict === "competitive" ? "var(--bs-teal)" : benchResult.verdict.includes("high") ? "var(--bs-red)" : "var(--bs-amber)"}`,
+              color: benchResult.verdict === "competitive" ? "var(--bs-teal)" : benchResult.verdict.includes("high") ? "var(--bs-red)" : "var(--bs-amber)",
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 800 }}>${benchResult.currentDollarPerSf.toFixed(0)}</span>
+              <span style={{ fontSize: 9, opacity: 0.7 }}>/SF</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>{benchResult.verdictLabel}</p>
+              <div className="flex flex-wrap gap-3 mt-1">
+                {benchResult.industryRangeLow != null && benchResult.industryRangeHigh != null && (
+                  <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                    Industry: <span style={{ color: "var(--bs-text-secondary)" }}>${benchResult.industryRangeLow.toFixed(2)}–${benchResult.industryRangeHigh.toFixed(2)}/SF</span>
+                  </span>
+                )}
+                {benchResult.ownHistoryAvg != null && (
+                  <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                    Your avg: <span style={{ color: "var(--bs-text-secondary)" }}>${benchResult.ownHistoryAvg.toFixed(2)}/SF</span>
+                    {benchResult.pctFromOwnAvg != null && (
+                      <span style={{ color: benchResult.pctFromOwnAvg > 0 ? "var(--bs-red)" : "var(--bs-teal)", marginLeft: 4 }}>
+                        ({benchResult.pctFromOwnAvg > 0 ? "+" : ""}{benchResult.pctFromOwnAvg.toFixed(1)}%)
+                      </span>
+                    )}
+                  </span>
+                )}
+              </div>
+            </div>
+            <button onClick={() => setBenchResult(null)} className="text-xs shrink-0" style={{ color: "var(--bs-text-dim)" }}>Clear</button>
+          </div>
+
+          {/* Insights */}
+          {benchResult.insights.length > 0 && (
+            <div className="px-4 py-3 flex flex-col gap-2" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+              {benchResult.insights.map((insight, i) => (
+                <p key={i} className="text-xs" style={{ color: "var(--bs-text-secondary)" }}>• {insight}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Recommendation */}
+          {benchResult.recommendation && (
+            <div className="px-4 py-3" style={{ borderTop: "1px solid var(--bs-border)", background: benchResult.verdict === "competitive" ? "var(--bs-teal-dim)" : benchResult.verdict.includes("high") ? "var(--bs-red-dim)" : "var(--bs-amber-dim)" }}>
+              <p className="text-[11px] font-semibold mb-1" style={{ color: "var(--bs-text-dim)" }}>Recommendation</p>
+              <p className="text-xs" style={{ color: "var(--bs-text-secondary)" }}>{benchResult.recommendation}</p>
+            </div>
+          )}
+
+          {/* Comparable bids */}
+          {benchResult.comparableBids.length > 0 && (
+            <div style={{ borderTop: "1px solid var(--bs-border)" }}>
+              <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--bs-text-dim)" }}>Your past bids</p>
+              <div className="divide-y" style={{ borderTop: "1px solid var(--bs-border)" }}>
+                {benchResult.comparableBids.slice(0, 6).map((bid, i) => (
+                  <div key={i} className="px-4 py-2 flex items-center gap-3" style={{ background: "var(--bs-bg-card)" }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs truncate" style={{ color: "var(--bs-text-secondary)" }}>{bid.name}</p>
+                      <p className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>{bid.sqft.toLocaleString()} SF{bid.systemType ? ` · ${bid.systemType.toUpperCase()}` : ""}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-semibold tabular-nums" style={{ color: "var(--bs-text-primary)" }}>${bid.dollarPerSf.toFixed(2)}/SF</p>
+                      <p className="text-[11px]" style={{ color: bid.deltaFromCurrent > 10 ? "var(--bs-red)" : bid.deltaFromCurrent < -10 ? "var(--bs-teal)" : "var(--bs-text-muted)" }}>
+                        {bid.deltaFromCurrent > 0 ? "+" : ""}{bid.deltaFromCurrent.toFixed(1)}% vs current
+                        {bid.won != null && <span style={{ color: bid.won ? "var(--bs-teal)" : "var(--bs-red)", marginLeft: 6 }}>{bid.won ? "won" : "lost"}</span>}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Bid Pricing Card */}
       <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
         <div className="flex justify-between items-center px-[18px] py-[14px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
@@ -475,6 +624,16 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
                 style={{ borderColor: "var(--bs-amber)", color: "var(--bs-amber)" }}
               >
                 {auditLoading ? "Auditing…" : "Audit Math"}
+              </button>
+            ) : null}
+            {(isPro || isDemo) ? (
+              <button
+                onClick={handleBenchmark}
+                disabled={benchLoading}
+                className="bs-btn bs-btn-outline cursor-pointer disabled:opacity-60"
+                style={{ borderColor: "var(--bs-blue)", color: "var(--bs-blue)" }}
+              >
+                {benchLoading ? "Benchmarking…" : "Benchmark $/SF"}
               </button>
             ) : null}
             {(isPro || isDemo) ? (
