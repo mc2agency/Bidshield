@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import { useProGate } from "@/hooks/useProGate";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
