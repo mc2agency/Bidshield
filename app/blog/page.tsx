@@ -1,17 +1,17 @@
-'use client';
-
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '@/convex/_generated/api';
+import { BlogSearch } from './BlogSearch';
+import { NewsletterSignup } from './NewsletterSignup';
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+// Blog index is a pure Server Component: static list + URL-driven filtering
+// via ?q= and ?category=. Keeps the public marketing page SEO-friendly and
+// avoids shipping the Convex SDK to every visitor.
 
 const blogPosts = [
   {
     slug: 'commercial-roofing-scope-of-work-checklist',
     title: 'Commercial Roofing Scope of Work: 40-Item Checklist for Estimators',
-    excerpt: 'A complete scope of work checklist for commercial roofing bids. Learn what to include, what to exclude, and which scope gaps cause the most costly change orders.',
+    excerpt:
+      'A complete scope of work checklist for commercial roofing bids. Learn what to include, what to exclude, and which scope gaps cause the most costly change orders.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'March 5, 2026',
@@ -22,7 +22,8 @@ const blogPosts = [
   {
     slug: 'roofing-takeoff-mistakes',
     title: '7 Roofing Takeoff Mistakes That Cost Estimators Money',
-    excerpt: 'The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent them on every bid.',
+    excerpt:
+      'The most common roofing takeoff mistakes — from ignoring pitch factors to skipping peer review — and exactly how to prevent them on every bid.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'March 4, 2026',
@@ -33,7 +34,8 @@ const blogPosts = [
   {
     slug: 'commercial-roofing-estimate-template',
     title: 'Commercial Roofing Estimate Template: What Every Bid Must Include',
-    excerpt: 'The 8 sections every professional commercial roofing estimate needs — plus formatting tips that help you win more work.',
+    excerpt:
+      'The 8 sections every professional commercial roofing estimate needs — plus formatting tips that help you win more work.',
     category: 'Templates',
     author: 'BidShield',
     date: 'March 3, 2026',
@@ -44,7 +46,8 @@ const blogPosts = [
   {
     slug: 'how-to-win-more-commercial-roofing-bids',
     title: 'How to Win More Commercial Roofing Bids: 6 Strategies That Work',
-    excerpt: 'Practical strategies to improve your bid win rate — from tracking $/SF by GC to the pre-submission review process that catches errors before they cost you.',
+    excerpt:
+      'Practical strategies to improve your bid win rate — from tracking $/SF by GC to the pre-submission review process that catches errors before they cost you.',
     category: 'Business',
     author: 'BidShield',
     date: 'March 2, 2026',
@@ -55,7 +58,8 @@ const blogPosts = [
   {
     slug: 'how-to-calculate-roof-pitch',
     title: 'How to Calculate Roof Pitch in 3 Easy Steps [With Calculator]',
-    excerpt: 'Master roof pitch calculations with our complete guide. Includes pitch multiplier tables, step-by-step instructions, and a free calculator to speed up your estimates.',
+    excerpt:
+      'Master roof pitch calculations with our complete guide. Includes pitch multiplier tables, step-by-step instructions, and a free calculator to speed up your estimates.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'December 10, 2025',
@@ -66,7 +70,8 @@ const blogPosts = [
   {
     slug: 'labor-burden-calculation-guide',
     title: 'Labor Burden Calculation for Contractors [Complete Guide 2025]',
-    excerpt: 'Learn how to accurately calculate labor burden including FICA, Medicare, workers comp, and all hidden costs. Avoid losing money on every job.',
+    excerpt:
+      'Learn how to accurately calculate labor burden including FICA, Medicare, workers comp, and all hidden costs. Avoid losing money on every job.',
     category: 'Business',
     author: 'BidShield',
     date: 'December 8, 2025',
@@ -77,7 +82,8 @@ const blogPosts = [
   {
     slug: 'what-is-a-roof-square',
     title: 'What is a Roof Square? Complete Guide for Estimators',
-    excerpt: 'Understanding roof squares is fundamental to accurate roofing estimates. Learn how to measure, calculate, and use roof squares in your bids.',
+    excerpt:
+      'Understanding roof squares is fundamental to accurate roofing estimates. Learn how to measure, calculate, and use roof squares in your bids.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'November 28, 2025',
@@ -88,7 +94,8 @@ const blogPosts = [
   {
     slug: 'general-conditions-checklist',
     title: 'General Conditions Checklist for Construction Estimators',
-    excerpt: 'Never miss general conditions costs again. Our comprehensive checklist covers every overhead item that should be in your estimate.',
+    excerpt:
+      'Never miss general conditions costs again. Our comprehensive checklist covers every overhead item that should be in your estimate.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'November 25, 2025',
@@ -99,7 +106,8 @@ const blogPosts = [
   {
     slug: 'standing-seam-metal-roofing-guide',
     title: 'Standing Seam Metal Roofing: Complete Estimating Guide',
-    excerpt: 'Everything you need to know about estimating standing seam metal roofing projects — materials, labor, and pricing breakdowns.',
+    excerpt:
+      'Everything you need to know about estimating standing seam metal roofing projects — materials, labor, and pricing breakdowns.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'November 22, 2025',
@@ -110,7 +118,8 @@ const blogPosts = [
   {
     slug: 'tpo-vs-pvc-vs-epdm',
     title: 'TPO vs PVC vs EPDM: Which Single-Ply Membrane is Best?',
-    excerpt: 'Compare the three major single-ply roofing membranes. Cost breakdowns, pros and cons, and which to recommend to your clients.',
+    excerpt:
+      'Compare the three major single-ply roofing membranes. Cost breakdowns, pros and cons, and which to recommend to your clients.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'November 19, 2025',
@@ -121,7 +130,8 @@ const blogPosts = [
   {
     slug: 'spray-foam-roofing-101',
     title: 'Spray Foam Roofing 101: Estimating Guide for Contractors',
-    excerpt: 'A complete introduction to spray polyurethane foam roofing — application methods, costs, and how to estimate SPF projects accurately.',
+    excerpt:
+      'A complete introduction to spray polyurethane foam roofing — application methods, costs, and how to estimate SPF projects accurately.',
     category: 'Estimation',
     author: 'BidShield',
     date: 'November 16, 2025',
@@ -132,7 +142,8 @@ const blogPosts = [
   {
     slug: 'buildingconnected-guide',
     title: 'BuildingConnected Guide: Win More Bids Online',
-    excerpt: 'How to use BuildingConnected to find projects, submit bids, and grow your roofing business through the largest preconstruction platform.',
+    excerpt:
+      'How to use BuildingConnected to find projects, submit bids, and grow your roofing business through the largest preconstruction platform.',
     category: 'Business',
     author: 'BidShield',
     date: 'November 10, 2025',
@@ -144,45 +155,45 @@ const blogPosts = [
 
 const categories = ['All', 'Estimation', 'Business', 'Plans & Specs', 'Technology', 'Templates'];
 
-export default function BlogPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
-  const [newsletterLoading, setNewsletterLoading] = useState(false);
+function categoryIcon(category: string) {
+  if (category === 'Estimation') return '📐';
+  if (category === 'Business') return '💼';
+  if (category === 'Plans & Specs') return '📋';
+  if (category === 'Technology') return '⚡';
+  if (category === 'Templates') return '📄';
+  return '📄';
+}
 
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsletterEmail) return;
-    setNewsletterLoading(true);
-    try {
-      if (convexUrl) {
-        const client = new ConvexHttpClient(convexUrl);
-        await client.mutation(api.leads.subscribeEmail, { email: newsletterEmail, source: 'blog_sidebar' });
-      }
-      setNewsletterSubmitted(true);
-    } catch {
-      setNewsletterSubmitted(true);
-    } finally {
-      setNewsletterLoading(false);
-    }
-  };
+function categoryHref(category: string, query?: string) {
+  const params = new URLSearchParams();
+  if (category && category !== 'All') params.set('category', category);
+  if (query) params.set('q', query);
+  const qs = params.toString();
+  return qs ? `/blog?${qs}` : '/blog';
+}
 
-  const { filteredPosts, featuredPost, regularPosts } = useMemo(() => {
-    const searchLower = searchQuery.toLowerCase();
-    const filtered = blogPosts.filter((post) => {
-      const matchesSearch = searchQuery === '' ||
-                           post.title.toLowerCase().includes(searchLower) ||
-                           post.excerpt.toLowerCase().includes(searchLower);
-      const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; category?: string }>;
+}) {
+  const { q = '', category: categoryParam = 'All' } = await searchParams;
+  const selectedCategory = categoryParam || 'All';
+  const searchQuery = q;
 
-    const featured = blogPosts.find(post => post.featured);
-    const regular = filtered.filter(post => !post.featured || selectedCategory !== 'All' || searchQuery !== '');
+  const searchLower = searchQuery.toLowerCase();
+  const filtered = blogPosts.filter((post) => {
+    const matchesSearch =
+      !searchQuery ||
+      post.title.toLowerCase().includes(searchLower) ||
+      post.excerpt.toLowerCase().includes(searchLower);
+    const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
-    return { filteredPosts: filtered, featuredPost: featured, regularPosts: regular };
-  }, [searchQuery, selectedCategory]);
+  const showFeatured = selectedCategory === 'All' && !searchQuery;
+  const featuredPost = showFeatured ? blogPosts.find((post) => post.featured) : null;
+  const regularPosts = filtered.filter((post) => !(showFeatured && post.featured));
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -203,34 +214,31 @@ export default function BlogPage() {
             {/* Search & Filter */}
             <div className="mb-8">
               <div className="mb-6">
-                <input
-                  type="text"
-                  placeholder="Search articles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                />
+                <BlogSearch initialQuery={searchQuery} />
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      selectedCategory === category
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
+                {categories.map((c) => {
+                  const active = selectedCategory === c;
+                  return (
+                    <Link
+                      key={c}
+                      href={categoryHref(c, searchQuery)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        active
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      {c}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 
             {/* Featured Post */}
-            {featuredPost && selectedCategory === 'All' && searchQuery === '' && (
+            {featuredPost && (
               <div className="mb-12">
                 <div className="text-sm font-semibold text-blue-600 mb-2">FEATURED POST</div>
                 <Link
@@ -271,13 +279,7 @@ export default function BlogPage() {
                   >
                     <div className="md:flex">
                       <div className="md:w-64 md:flex-shrink-0 aspect-video md:aspect-square bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                        <div className="text-white text-5xl">
-                          {post.category === 'Estimation' && '📐'}
-                          {post.category === 'Business' && '💼'}
-                          {post.category === 'Plans & Specs' && '📋'}
-                          {post.category === 'Technology' && '⚡'}
-                          {post.category === 'Templates' && '📄'}
-                        </div>
+                        <div className="text-white text-5xl">{categoryIcon(post.category)}</div>
                       </div>
                       <div className="p-6 flex-1">
                         <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
@@ -304,16 +306,6 @@ export default function BlogPage() {
                 </div>
               )}
             </div>
-
-            {/* Pagination */}
-            <div className="mt-12 flex justify-center">
-              <div className="flex gap-2">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">1</button>
-                <button className="px-4 py-2 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-100 border border-gray-300">2</button>
-                <button className="px-4 py-2 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-100 border border-gray-300">3</button>
-                <button className="px-4 py-2 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-100 border border-gray-300">Next →</button>
-              </div>
-            </div>
           </div>
 
           {/* Sidebar */}
@@ -324,27 +316,7 @@ export default function BlogPage() {
               <p className="text-blue-100 mb-4">
                 Get practical estimating tips delivered to your inbox every Tuesday.
               </p>
-              {newsletterSubmitted ? (
-                <p className="text-white font-semibold text-center py-2">✅ You&apos;re subscribed!</p>
-              ) : (
-                <form onSubmit={handleNewsletterSubmit}>
-                  <input
-                    type="email"
-                    placeholder="Your email"
-                    value={newsletterEmail}
-                    onChange={(e) => setNewsletterEmail(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 rounded-lg mb-3 text-gray-900"
-                  />
-                  <button
-                    type="submit"
-                    disabled={newsletterLoading}
-                    className="w-full px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors disabled:opacity-60"
-                  >
-                    {newsletterLoading ? 'Subscribing...' : 'Subscribe'}
-                  </button>
-                </form>
-              )}
+              <NewsletterSignup />
               <p className="text-xs text-blue-200 mt-2">No spam. Unsubscribe anytime.</p>
             </div>
 
@@ -353,11 +325,7 @@ export default function BlogPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-4">Popular Posts</h3>
               <div className="space-y-4">
                 {blogPosts.slice(0, 4).map((post, index) => (
-                  <Link
-                    key={post.slug}
-                    href={`/blog/${post.slug}`}
-                    className="block group"
-                  >
+                  <Link key={post.slug} href={`/blog/${post.slug}`} className="block group">
                     <div className="flex gap-3">
                       <div className="text-2xl font-bold text-gray-300">{index + 1}</div>
                       <div className="flex-1">
@@ -376,18 +344,20 @@ export default function BlogPage() {
             <div className="bg-white rounded-xl p-6 shadow-md mb-8">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Categories</h3>
               <div className="space-y-2">
-                {categories.filter(cat => cat !== 'All').map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className="block w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <span className="text-gray-700 font-medium">{category}</span>
-                    <span className="text-gray-400 text-sm float-right">
-                      {blogPosts.filter(post => post.category === category).length}
-                    </span>
-                  </button>
-                ))}
+                {categories
+                  .filter((c) => c !== 'All')
+                  .map((c) => (
+                    <Link
+                      key={c}
+                      href={categoryHref(c, searchQuery)}
+                      className="block w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="text-gray-700 font-medium">{c}</span>
+                      <span className="text-gray-400 text-sm float-right">
+                        {blogPosts.filter((post) => post.category === c).length}
+                      </span>
+                    </Link>
+                  ))}
               </div>
             </div>
 
