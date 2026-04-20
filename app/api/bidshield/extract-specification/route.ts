@@ -298,14 +298,15 @@ Only include fields where data is found in the document. Omit fields with no dat
     }).passthrough();
     const validated = SpecResultSchema.safeParse(data);
     if (!validated.success) {
+      // Log the issue but don't fail — schema is permissive, return raw data so the UI still works
       console.error("[ai-shape-error]", { endpoint: "extract-specification", issues: validated.error.issues });
-      return NextResponse.json({ error: "AI returned an unexpected response shape — please try again." }, { status: 422 });
     }
-    if (Object.keys(validated.data).length === 0) {
+    const result = validated.success ? validated.data : data;
+    if (!result || Object.keys(result).length === 0) {
       return NextResponse.json({ error: "AI returned an empty specification — please try again." }, { status: 422 });
     }
 
-    return NextResponse.json(validated.data);
+    return NextResponse.json(result);
   } catch (err: any) {
     console.error("extract-specification error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
