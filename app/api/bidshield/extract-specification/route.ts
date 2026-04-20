@@ -5,6 +5,8 @@ import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
 
+export const maxDuration = 120;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
@@ -227,7 +229,7 @@ Pre-submission checks — generate a list of actionable items the estimator shou
 Only include fields where data is found in the document. Omit fields with no data rather than guessing. If a field is unclear, omit it.`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60_000);
+    const timeout = setTimeout(() => controller.abort(), 110_000);
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
@@ -247,11 +249,17 @@ Only include fields where data is found in the document. Omit fields with no dat
         },
         { signal: controller.signal },
       );
+    } catch (apiErr: any) {
+      clearTimeout(timeout);
+      if (apiErr?.name === "AbortError" || apiErr?.message?.includes("abort")) {
+        return NextResponse.json({ error: "Analysis timed out — the PDF may be too large. Try a smaller file or just the roofing division." }, { status: 504 });
+      }
+      throw apiErr;
     } finally {
       clearTimeout(timeout);
     }
 
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    const text = message!.content[0].type === "text" ? message!.content[0].text : "";
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
 
     let data: any;
