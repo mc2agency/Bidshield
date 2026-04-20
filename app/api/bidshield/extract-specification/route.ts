@@ -135,35 +135,13 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
   },
   "phase9Flags": {
     "checklistItems": [
-      { "id": "spec_submittal_requirements", "label": "Submittal Requirements", "status": "flagged", "note": "Shop drawings and product data required for all roofing materials" },
-      { "id": "spec_mock_up", "label": "Mock-Up Required", "status": "ok", "note": "" },
-      { "id": "spec_special_inspection", "label": "Special Inspections", "status": "flagged", "note": "Third-party special inspections required per IBC Section 1705" },
-      { "id": "spec_warranty_tier", "label": "Warranty Tier & Type", "status": "attention", "note": "20-yr NDL warranty required; certified installer mandatory" },
-      { "id": "spec_approved_manufacturers", "label": "Approved Manufacturers", "status": "attention", "note": "Single-source restriction: Carlisle SynTec only" },
-      { "id": "spec_energy_code", "label": "Energy Code / R-Value", "status": "flagged", "note": "ASHRAE 90.1-2019, minimum R-25 required" },
-      { "id": "spec_wind_uplift", "label": "Wind Uplift / FM Rating", "status": "flagged", "note": "FM 1-90 uplift rating required" },
-      { "id": "spec_testing", "label": "Testing Requirements", "status": "flagged", "note": "Flood test and core cuts required" },
-      { "id": "spec_prevailing_wage", "label": "Prevailing Wage / Labor", "status": "flagged", "note": "Prevailing wage and certified payroll required" },
-      { "id": "spec_performance_bond", "label": "Performance Bond", "status": "flagged", "note": "100% performance and payment bond required" },
-      { "id": "spec_certified_installer", "label": "Certified Installer", "status": "flagged", "note": "Manufacturer-certified installer required for warranty" }
+      { "id": "spec_submittal_requirements", "label": "Submittal Requirements", "status": "flagged", "note": "..." },
+      { "id": "spec_mock_up", "label": "Mock-Up Required", "status": "ok", "note": "" }
     ],
     "complianceWarnings": [
-      { "type": "special_inspection", "message": "Special inspections required — coordinate with third-party inspector before work begins", "severity": "critical" },
-      { "type": "prevailing_wage", "message": "Prevailing wage / certified payroll required — include in labor burden", "severity": "critical" },
-      { "type": "single_source", "message": "Single-source manufacturer restriction — no substitutions without architect approval", "severity": "warning" },
-      { "type": "performance_bond", "message": "Performance bond required — verify bonding capacity and include premium in bid", "severity": "warning" },
-      { "type": "mock_up", "message": "Mock-up required before production roofing — schedule and price mock-up separately", "severity": "warning" }
+      { "type": "special_inspection", "message": "...", "severity": "critical" }
     ],
-    "presubmissionChecks": [
-      "Confirm certified installer credentials on file for specified manufacturer",
-      "Obtain prevailing wage rates for project location",
-      "Price performance and payment bond premium",
-      "Schedule pre-bid meeting or RFI for any approved-equal substitutions",
-      "Verify FM 1-90 assembly availability with selected manufacturer",
-      "Confirm special inspection agency requirements with GC",
-      "Include mock-up area in scope if required",
-      "Verify R-value compliance across all insulation layers in assembly"
-    ]
+    "presubmissionChecks": ["..."]
   }
 }
 
