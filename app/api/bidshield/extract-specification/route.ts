@@ -234,8 +234,8 @@ Only include fields where data is found in the document. Omit fields with no dat
     try {
       message = await client.messages.create(
         {
-          model: "claude-sonnet-4-6",
-          max_tokens: 8192,
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 4096,
           system: systemPrompt,
           messages: [
             {
