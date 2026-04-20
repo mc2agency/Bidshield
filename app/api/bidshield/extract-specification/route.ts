@@ -235,7 +235,7 @@ Only include fields where data is found in the document. Omit fields with no dat
       message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 4096,
+          max_tokens: 8192,
           system: systemPrompt,
           messages: [
             {
@@ -259,7 +259,17 @@ Only include fields where data is found in the document. Omit fields with no dat
       clearTimeout(timeout);
     }
 
+    const stopReason = message!.stop_reason;
     const text = message!.content[0].type === "text" ? message!.content[0].text : "";
+
+    if (stopReason === "max_tokens") {
+      console.error("[extract-specification-truncated]", { userId, textLength: text.length });
+      return NextResponse.json(
+        { error: "The specification is too long to fully analyze. Try uploading just Division 07 (roofing) rather than the full project spec." },
+        { status: 422 },
+      );
+    }
+
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
 
     let data: any;
@@ -267,6 +277,7 @@ Only include fields where data is found in the document. Omit fields with no dat
       data = JSON.parse(cleaned);
     } catch (parseErr: any) {
       console.error("[extract-specification-parse-error]", {
+        stopReason,
         rawResponse: cleaned?.substring(0, 500),
         parseError: parseErr?.message,
         userId,
