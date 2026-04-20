@@ -221,14 +221,18 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
     setPdfError("");
     try {
       const buf = await file.arrayBuffer();
-      // Chunk-based base64 conversion to avoid call stack overflow on large files
       const bytes = new Uint8Array(buf);
-      let binary = "";
-      const chunkSize = 8192;
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-      }
-      const base64 = btoa(binary);
+      // FileReader-based base64 — avoids btoa/spread stack overflow on large PDFs
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const comma = result.indexOf(",");
+          resolve(comma >= 0 ? result.slice(comma + 1) : result);
+        };
+        reader.onerror = () => reject(new Error("FileReader failed"));
+        reader.readAsDataURL(new Blob([bytes], { type: "application/pdf" }));
+      });
       const res = await fetch("/api/bidshield/extract-assemblies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -271,12 +275,17 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
     try {
       const buf = await file.arrayBuffer();
       const bytes = new Uint8Array(buf);
-      let binary = "";
-      const chunkSize = 8192;
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-      }
-      const base64 = btoa(binary);
+      // FileReader-based base64 — avoids btoa/spread stack overflow on large PDFs
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const comma = result.indexOf(",");
+          resolve(comma >= 0 ? result.slice(comma + 1) : result);
+        };
+        reader.onerror = () => reject(new Error("FileReader failed"));
+        reader.readAsDataURL(new Blob([bytes], { type: "application/pdf" }));
+      });
       const res = await fetch("/api/bidshield/extract-assemblies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
