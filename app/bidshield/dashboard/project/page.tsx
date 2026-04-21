@@ -382,6 +382,14 @@ function ProjectDetail() {
 
   const readinessColor = readinessScore >= 75 ? "var(--bs-teal)" : readinessScore >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
 
+  const phaseScore: Record<string, number | null> = {
+    setup:     scores.checklist > 0 || scores.takeoff > 0 || scores.materials > 0 ? 100 : null,
+    checklist: scores.checklist,
+    estimate:  Math.round((scores.takeoff + scores.materials + (scores.pricing ?? 0) + (scores as any).labor) / 4),
+    documents: Math.round((scores.scope + scores.quotes + scores.addenda + scores.rfis) / 4),
+    validate:  readinessScore,
+  };
+
   return (
     <>
     <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
@@ -429,7 +437,14 @@ function ProjectDetail() {
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 5 }}>
               <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Bid readiness</span>
-              {projectData?.location && <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>{projectData.location}</span>}
+              <span style={{ fontSize: 11, color: "var(--bs-text-dim)", display: "flex", alignItems: "center", gap: 6 }}>
+                {projectData?.location && <span>{projectData.location}</span>}
+                {daysUntilBid !== null && (
+                  <span style={{ fontWeight: 600, color: daysUntilBid <= 1 ? "var(--bs-red)" : daysUntilBid <= 3 ? "var(--bs-amber)" : "var(--bs-text-dim)" }}>
+                    {daysUntilBid}d
+                  </span>
+                )}
+              </span>
             </div>
           </div>
         </div>
@@ -450,6 +465,17 @@ function ProjectDetail() {
               >
                 <NavIcon paths={NAV_ICONS[id]} />
                 <span style={{ flex: 1 }}>{label}</span>
+                {(() => {
+                  const s = phaseScore[id];
+                  if (s === null || s === undefined) return null;
+                  const color = s === 100 ? 'var(--bs-teal)' : s >= 60 ? 'var(--bs-amber)' : 'var(--bs-red)';
+                  const bg = s === 100 ? 'var(--bs-teal-dim)' : s >= 60 ? 'var(--bs-amber-dim)' : 'var(--bs-red-dim)';
+                  return (
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: bg, color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.2px' }}>
+                      {s}%
+                    </span>
+                  );
+                })()}
               </button>
             );
           })}
