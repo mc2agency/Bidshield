@@ -171,27 +171,14 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const deleteLineItem = useMutation(api.bidshield.deleteTakeoffLineItem);
   const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
 
-  // E-13: Sync state
-  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "done" | "error">("idle");
-  const [syncResult, setSyncResult] = useState<{ updated: number; totalSF: number; warnings: string[] } | null>(null);
-
-  const handleSyncToMaterials = useCallback(async () => {
-    if (isDemo || !userId || !isValidConvexId) return;
-    setSyncStatus("syncing");
+  const silentSyncToMaterials = useCallback(async () => {
+    if (isDemo || !isValidConvexId || !userId) return;
     try {
-      const result = await syncTakeoffToMaterials({
-        projectId: projectId as Id<"bidshield_projects">,
-        userId,
-      });
-      setSyncResult(result);
-      setSyncStatus("done");
-      setTimeout(() => setSyncStatus("idle"), 4000);
-    } catch (e) {
-      console.error("Sync failed:", e);
-      setSyncStatus("error");
-      setTimeout(() => setSyncStatus("idle"), 4000);
+      await syncTakeoffToMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
+    } catch {
+      // Silent — quantities will sync next time takeoff is saved
     }
-  }, [isDemo, userId, isValidConvexId, projectId, syncTakeoffToMaterials]);
+  }, [isDemo, isValidConvexId, userId, projectId, syncTakeoffToMaterials]);
 
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
@@ -271,9 +258,10 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
     const val = parseFloat(controlInput);
     if (!isNaN(val) && val > 0 && isValidConvexId) {
       await updateProject({ projectId: projectId as Id<"bidshield_projects">, grossRoofArea: val });
+      await silentSyncToMaterials();
     }
     setEditingControl(false);
-  }, [controlInput, isDemo, isValidConvexId, projectId, updateProject]);
+  }, [controlInput, isDemo, isValidConvexId, projectId, updateProject, silentSyncToMaterials]);
 
   const handleAddSection = useCallback(async () => {
     if (isDemo) { const sf = parseFloat(newSection.squareFeet); if (newSection.name.trim() && !isNaN(sf) && sf > 0) setDemoSections(p => [...p, { _id: `ts_${Date.now()}`, name: newSection.name.trim(), assemblyType: newSection.assemblyType, squareFeet: sf, completed: false, sortOrder: p.length }]); setNewSection({ name: "", assemblyType: ASSEMBLY_TYPES[0], squareFeet: "", notes: "" }); setShowAddForm(false); return; }
@@ -301,8 +289,9 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
     const sf = parseFloat(editData.squareFeet);
     if (!editData.name.trim() || isNaN(sf) || sf <= 0) return;
     await updateSection({ sectionId: editingId as Id<"bidshield_takeoff_sections">, name: editData.name.trim(), assemblyType: editData.assemblyType, squareFeet: sf, notes: editData.notes.trim() || undefined });
+    await silentSyncToMaterials();
     setEditingId(null);
-  }, [isDemo, editingId, editData, updateSection]);
+  }, [isDemo, editingId, editData, updateSection, silentSyncToMaterials]);
 
   const handleDeleteSection = useCallback(async (sectionId: string) => {
     if (isDemo) { setDemoSections(p => p.filter(s => s._id !== sectionId)); return; }
@@ -312,7 +301,8 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const handleUpdateLineItem = useCallback(async (id: string, updates: { quantity?: number; verified?: boolean; notes?: string }) => {
     if (isDemo) { setDemoLineItems(p => p.map(i => i._id === id ? { ...i, ...updates } : i)); return; }
     await updateLineItem({ itemId: id as Id<"bidshield_takeoff_line_items">, ...updates });
-  }, [isDemo, updateLineItem]);
+    silentSyncToMaterials();
+  }, [isDemo, updateLineItem, silentSyncToMaterials]);
 
   const handleDeleteLineItem = useCallback(async (id: string) => {
     if (isDemo) { setDemoLineItems(p => p.filter(i => i._id !== id)); return; }
@@ -453,6 +443,32 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
       </div>
 
       <div className="rounded-b-lg p-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", borderTop: "none" }}>
+        {/* Status bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '10px 0', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--bs-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>Sections</span>
+            <span className="bs-num" style={{ fontSize: 14, fontWeight: 700, color: 'var(--bs-text-primary)' }}>{displaySections.length}</span>
+          </div>
+          <span style={{ color: 'var(--bs-border)', fontSize: 14 }}>·</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--bs-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>Total SF</span>
+            <span className="bs-num" style={{ fontSize: 14, fontWeight: 700, color: takenOff > 0 ? 'var(--bs-text-primary)' : 'var(--bs-text-dim)' }}>
+              {takenOff > 0 ? takenOff.toLocaleString() : '—'}
+            </span>
+          </div>
+          {takenOff === 0 && displaySections.length > 0 && (
+            <>
+              <span style={{ color: 'var(--bs-border)', fontSize: 14 }}>·</span>
+              <span style={{ fontSize: 11, color: 'var(--bs-text-dim)', fontStyle: 'italic' }}>Enter SF to calculate material quantities</span>
+            </>
+          )}
+          {takenOff > 0 && (
+            <>
+              <span style={{ color: 'var(--bs-border)', fontSize: 14 }}>·</span>
+              <span style={{ fontSize: 11, color: 'var(--bs-teal)', fontWeight: 500 }}>Quantities update on save ✓</span>
+            </>
+          )}
+        </div>
         {activeTab === "areas" && (
           <div>
             {displaySections.length > 0 && (
@@ -535,30 +551,6 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
         {activeTab === "counts" && <LineItemTable title="Count Items" unit="EA" items={countItems} isDemo={isDemo} onUpdateItem={handleUpdateLineItem} onDeleteItem={handleDeleteLineItem} onAddItem={handleAddCountItem} />}
       </div>
 
-      {/* E-13: Sync to Materials button */}
-      {!isDemo && isValidConvexId && (
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            onClick={handleSyncToMaterials}
-            disabled={syncStatus === "syncing"}
-            className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            style={{
-              background: syncStatus === "done" ? "var(--bs-teal-dim)" : "var(--bs-teal)",
-              color: syncStatus === "done" ? "var(--bs-teal)" : "#13151a",
-              opacity: syncStatus === "syncing" ? 0.6 : 1,
-              cursor: syncStatus === "syncing" ? "wait" : "pointer",
-              border: "none",
-            }}
-          >
-            {syncStatus === "syncing" ? "Syncing..." : syncStatus === "done" ? `Updated ${syncResult?.updated ?? 0} materials` : syncStatus === "error" ? "Sync failed — retry" : "Sync to Materials"}
-          </button>
-          {syncResult && syncResult.warnings.length > 0 && syncStatus === "done" && (
-            <span className="text-xs" style={{ color: "var(--bs-amber)" }}>
-              {syncResult.warnings.length} warning{syncResult.warnings.length !== 1 ? "s" : ""} — hover for details
-            </span>
-          )}
-        </div>
-      )}
 
       <div className="mt-3 p-3 rounded-lg" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
         {allGood ? (

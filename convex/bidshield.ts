@@ -87,6 +87,7 @@ export {
   getUserMaterialPrices,
   upsertUserMaterialPrice,
   syncTakeoffToMaterials,
+  mergeSpecMaterials,
 } from "./bidshield/materials";
 
 // Scope

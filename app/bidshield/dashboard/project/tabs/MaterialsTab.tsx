@@ -351,6 +351,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [editWaste, setEditWaste] = useState("");
   const [editQuoteId, setEditQuoteId] = useState<string>("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showOverflow, setShowOverflow] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [checkRowId, setCheckRowId] = useState<string | null>(null);
   const [coverageLookups, setCoverageLookups] = useState<Record<string, { coverageRate: string | null; confidence: string; loading?: boolean }>>({});
@@ -707,9 +708,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [isResyncing, setIsResyncing] = useState(false);
   const handleResyncFromSpecs = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
-    console.log("[Re-sync DEBUG] mergedSpecMaterials =", mergedSpecMaterials);
-    console.log("[Re-sync DEBUG] project.specSummary (parsed) =",
-      (() => { try { return JSON.parse((project as any)?.specSummary ?? "null"); } catch { return "PARSE ERROR"; } })());
     if (!mergedSpecMaterials || mergedSpecMaterials.length === 0) {
       alert("No spec materials found. Upload spec PDFs in the Setup tab first.");
       return;
@@ -749,9 +747,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       // Walk merged materials (deduped across base spec + addenda + related divisions).
       // The server-side merge already normalized productName and deduped by productName+manufacturer.
-      console.log("[Re-sync DEBUG] Walking", mergedSpecMaterials.length, "merged materials:");
-      mergedSpecMaterials.forEach((m, i) =>
-        console.log(`  [${i}] productName="${m.productName}" manufacturer="${m.manufacturer ?? ""}" category="${m.category}" coverageRate="${m.coverageRate ?? ""}" sources=${m.sources.map(s => s.label).join(",")}`));
       const usedTemplateKeys = new Set<string>();
       for (const mat of mergedSpecMaterials) {
         if (skipFasteners && mat.category === "fasteners") continue;
@@ -783,18 +778,13 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       // Users can add extras via "+ Add Material".
 
       // Clear old → insert new → sync quantities
-      console.log(`[Re-sync] Spec has ${specData.materials?.length ?? 0} materials. Building ${allMaterials.length} items (spec-only, no templates). skipFasteners=${skipFasteners}, deckTypes=${deckTypes}, attachMethods=${attachMethods}`);
-      allMaterials.forEach((m, i) => console.log(`  [${i}] ${m.category}: ${m.name} — $${m.unitPrice ?? "no price"}`));
 
       const cleared = await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
-      console.log("[Re-sync] Cleared old materials:", cleared);
 
       if (allMaterials.length > 0) {
         const result = await initMaterials({ projectId: projectId as Id<"bidshield_projects">, userId, materials: allMaterials });
-        console.log("[Re-sync] Inserted materials:", result);
         try {
           const syncResult = await syncTakeoffMutation({ projectId: projectId as Id<"bidshield_projects">, userId });
-          console.log("[Re-sync] Takeoff sync:", syncResult);
         } catch { /* takeoff data may not exist yet */ }
       }
       alert(`Re-sync complete: ${allMaterials.length} spec materials loaded (no templates).`);
@@ -966,35 +956,40 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     }
   };
 
-  // If no materials and not demo, show setup screen
+  // If no materials and not demo, show smart empty state
   if (!isDemo && materials.length === 0 && projectMaterials !== undefined) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "var(--bs-bg-elevated)" }}>
-          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bs-text-dim)"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
-        </div>
-        <h3 className="text-lg font-semibold" style={{ color: "var(--bs-text-primary)" }}>No materials yet</h3>
-        <p className="text-sm text-center max-w-md" style={{ color: "var(--bs-text-muted)" }}>
-          Upload your estimating report PDF to auto-populate, or generate a material list from your project&apos;s system type ({project?.systemType?.toUpperCase() || "TPO"}).
-        </p>
-        <div className="flex gap-3">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm"
-            style={{ background: "var(--bs-teal)", color: "#13151a" }}
-          >
-            Upload Report PDF
-          </button>
-          <button
-            onClick={handleInitialize}
-            disabled={isInitializing}
-            className="px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
-            style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)", border: "1px solid var(--bs-border)" }}
-          >
-            {isInitializing ? "Generating..." : "Generate from Template"}
-          </button>
-        </div>
-        <p className="text-xs" style={{ color: "var(--bs-text-dim)" }}>You can add or remove items after either option</p>
+      <div style={{ textAlign: "center", padding: "48px 24px" }}>
+        {mergedSpecMaterials !== undefined && mergedSpecMaterials !== null && mergedSpecMaterials.length > 0 ? (
+          // Spec exists but materials not yet loaded
+          <>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>📋</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--bs-text-primary)", marginBottom: 6 }}>Spec found — materials not loaded</div>
+            <div style={{ fontSize: 13, color: "var(--bs-text-muted)", marginBottom: 20 }}>Your spec PDF has been extracted. Build the materials list from it.</div>
+            <button
+              onClick={handleResyncFromSpecs}
+              disabled={isResyncing}
+              style={{ padding: "8px 20px", borderRadius: 8, background: "var(--bs-teal)", border: "none", color: "#13151a", fontWeight: 600, fontSize: 13, cursor: "pointer", opacity: isResyncing ? 0.6 : 1 }}
+            >
+              {isResyncing ? "Building…" : "Build from Spec"}
+            </button>
+          </>
+        ) : (
+          // No spec uploaded yet
+          <>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>📂</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--bs-text-primary)", marginBottom: 6 }}>No materials yet</div>
+            <div style={{ fontSize: 13, color: "var(--bs-text-muted)", marginBottom: 20 }}>Upload your spec PDF in Setup to auto-populate the materials list.</div>
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab("setup")}
+                style={{ padding: "8px 20px", borderRadius: 8, background: "var(--bs-teal)", border: "none", color: "#13151a", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+              >
+                Go to Setup →
+              </button>
+            )}
+          </>
+        )}
         <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePdfUpload(f); }} />
       </div>
     );
@@ -1101,7 +1096,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
             ))
           : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)" }}>{project?.primaryAssembly || project?.systemType?.toUpperCase() || "TPO"}</span>
         }
-        <span className="text-xs ml-auto" style={{ color: "var(--bs-text-dim)" }}>{totalSF.toLocaleString()} SF</span>
+        <span className="text-xs ml-auto bs-num" style={{ color: "var(--bs-text-dim)" }}>{totalSF.toLocaleString()} SF</span>
       </div>
 
       {/* Summary Cards */}
@@ -1118,7 +1113,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         ].map(({ label, value, valueColor }) => (
           <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: 10, padding: "14px 16px", border: "1px solid var(--bs-border)" }}>
             <div style={{ fontSize: 11, fontWeight: 500, color: "var(--bs-text-dim)", textTransform: "uppercase" as const, letterSpacing: "0.5px", marginBottom: 6 }}>{label}</div>
-            <div style={{ fontSize: 22, fontWeight: 500, color: valueColor, letterSpacing: "-0.3px", lineHeight: 1 }}>{value}</div>
+            <div style={{ fontSize: 22, fontWeight: 500, color: valueColor, letterSpacing: "-0.3px", lineHeight: 1 }} className="bs-num">{value}</div>
           </div>
         ))}
       </div>
@@ -1223,24 +1218,35 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           )}
           {!isDemo && (
             <>
-              <button
-                onClick={handleResyncFromSpecs}
-                disabled={isResyncing || !isValidConvexId || !(project as any)?.specSummary}
-                title={!(project as any)?.specSummary ? "Upload specs in Setup first" : "Clear all materials and rebuild from spec data"}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }}
-              >
-                {isResyncing ? "Syncing..." : "Re-sync from Specs"}
-              </button>
-              <button
-                onClick={handleFixCategories}
-                disabled={isFixingCategories || !isValidConvexId}
-                title="Auto-correct miscategorized materials (edge metal → Sheet Metal, lumber out of Accessories, etc.)"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
-              >
-                {isFixingCategories ? "Fixing..." : "Fix Categories"}
-              </button>
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowOverflow(v => !v)}
+                  style={{ fontSize: 18, lineHeight: 1, background: "none", border: "1px solid var(--bs-border)", borderRadius: 8, padding: "4px 10px", color: "var(--bs-text-muted)", cursor: "pointer" }}
+                  title="More actions"
+                >⋯</button>
+                {showOverflow && (
+                  <div
+                    style={{ position: "absolute", right: 0, top: "110%", zIndex: 50, background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", borderRadius: 10, padding: "6px 0", minWidth: 180, boxShadow: "0 4px 16px rgba(0,0,0,0.4)" }}
+                  >
+                    <button
+                      onClick={() => { setShowOverflow(false); handleResyncFromSpecs(); }}
+                      disabled={isResyncing || !isValidConvexId || !(project as any)?.specSummary}
+                      style={{ width: "100%", textAlign: "left", padding: "7px 14px", fontSize: 12, color: "var(--bs-text-secondary)", background: "none", border: "none", cursor: "pointer", opacity: (isResyncing || !(project as any)?.specSummary) ? 0.4 : 1 }}
+                      title={!(project as any)?.specSummary ? "Upload specs in Setup first" : "Clears all materials and rebuilds from uploaded spec PDFs"}
+                    >
+                      {isResyncing ? "Rebuilding…" : "Rebuild from Spec"}
+                    </button>
+                    <button
+                      onClick={() => { setShowOverflow(false); handleFixCategories(); }}
+                      disabled={isFixingCategories || !isValidConvexId}
+                      style={{ width: "100%", textAlign: "left", padding: "7px 14px", fontSize: 12, color: "var(--bs-text-secondary)", background: "none", border: "none", cursor: "pointer", opacity: isFixingCategories ? 0.4 : 1 }}
+                      title="Auto-correct miscategorized materials (edge metal → Sheet Metal, lumber out of Accessories, etc.)"
+                    >
+                      {isFixingCategories ? "Fixing…" : "Fix Categories"}
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={handleRecalculate}
                 disabled={totalSF === 0}
@@ -1380,7 +1386,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                               <h3 className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{catInfo?.label}</h3>
                               <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>({(items as any[]).length} items)</span>
                             </div>
-                            <span className="text-sm font-medium" style={{ color: "var(--bs-teal)" }}>${catTotal.toLocaleString()}</span>
+                            <span className="text-sm font-medium bs-num" style={{ color: "var(--bs-teal)" }}>${catTotal.toLocaleString()}</span>
                           </div>
                         </td>
                       </tr>
@@ -1467,7 +1473,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-end gap-0.5">
-                                  <span className="text-xs" style={{ color: m.unitPrice ? "var(--bs-text-secondary)" : "var(--bs-amber)" }}>
+                                  <span className="text-xs bs-num" style={{ color: m.unitPrice ? "var(--bs-text-secondary)" : "var(--bs-amber)" }}>
                                     {m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}
                                   </span>
                                   {!isDemo && m.quoteId && (() => {
@@ -1510,7 +1516,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                     const sourceName = isBestMatch ? (quoteMatch as any).quoteName : null;
                                     return (
                                       <div>
-                                        <span className="font-medium" style={{ color: diffPct < 3 ? "var(--bs-teal)" : "var(--bs-amber)" }}>
+                                        <span className="font-medium bs-num" style={{ color: diffPct < 3 ? "var(--bs-teal)" : "var(--bs-amber)" }}>
                                           ${quoteMatch.item.p.toFixed(2)}
                                         </span>
                                         {sourceName && <div className="text-[10px] leading-tight" style={{ color: "var(--bs-text-dim)" }}>{sourceName}</div>}
@@ -1531,7 +1537,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                     const diffPct = quoteMatch.item.p > 0 ? Math.abs(diff / quoteMatch.item.p * 100) : 0;
                                     if (diffPct < 3) return <span style={{ color: "var(--bs-text-dim)" }}>—</span>;
                                     return (
-                                      <span className="font-medium" style={{ color: diff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
+                                      <span className="font-medium bs-num" style={{ color: diff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
                                         {diff > 0 ? "+" : ""}${diff.toFixed(2)}
                                       </span>
                                     );
@@ -1543,7 +1549,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             )}
                             {/* Total */}
                             <td className="text-right px-5 py-2.5 text-xs font-medium">
-                              <span style={{ color: m.totalCost ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
+                              <span className="bs-num" style={{ color: m.totalCost ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
                                 {m.totalCost ? `$${m.totalCost.toLocaleString()}` : "—"}
                               </span>
                             </td>
@@ -1622,9 +1628,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                   </div>
                                   <div>
                                     <div className="mb-0.5" style={{ color: "var(--bs-text-dim)" }}>Quote price</div>
-                                    <div className="font-medium" style={{ color: "var(--bs-teal)" }}>${match.item.p.toFixed(2)} / {match.item.u}</div>
+                                    <div className="font-medium bs-num" style={{ color: "var(--bs-teal)" }}>${match.item.p.toFixed(2)} / {match.item.u}</div>
                                     {priceDiffPct >= 3 && (
-                                      <div className="mt-0.5 font-medium" style={{ color: priceDiff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
+                                      <div className="mt-0.5 font-medium bs-num" style={{ color: priceDiff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
                                         Estimate is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
                                       </div>
                                     )}

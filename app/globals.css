@@ -9,7 +9,7 @@
   /* Backgrounds */
   --bs-bg-primary:    #1a1d23;
   --bs-bg-secondary:  #13151a;
-  --bs-bg-card:       #22252d;
+  --bs-bg-card:       #21242c;
   --bs-bg-elevated:   #2a2d36;
   --bs-bg-input:      #1e2128;
   --bs-bg-page:       #1a1d23;
@@ -27,10 +27,10 @@
   --bs-text-label:     #9ca0ab;
 
   /* Brand / Accent */
-  --bs-teal:        #2dd4a8;
-  --bs-teal-hover:  #3de0b6;
-  --bs-teal-dim:    rgba(45, 212, 168, 0.12);
-  --bs-teal-border: rgba(45, 212, 168, 0.2);
+  --bs-teal:        #00b896;
+  --bs-teal-hover:  #00cca8;
+  --bs-teal-dim:    rgba(0,184,150,0.12);
+  --bs-teal-border: rgba(0,184,150,0.2);
 
   /* Status Colors */
   --bs-red:         #f06060;
@@ -45,8 +45,8 @@
   --bs-blue-dim:    rgba(90, 156, 245, 0.12);
   --bs-blue-border: rgba(90, 156, 245, 0.2);
 
-  --bs-green:       #2dd4a8;
-  --bs-green-dim:   rgba(45, 212, 168, 0.12);
+  --bs-green:       #00b896;
+  --bs-green-dim:   rgba(0,184,150,0.12);
 
   /* Spacing */
   --bs-space-xs:  4px;
@@ -78,8 +78,10 @@
   --bs-letter-spacing-tight: -0.3px;
   --bs-letter-spacing-caps:   0.8px;
 
+  --bs-font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace;
+
   /* Shadows (minimal for dark theme) */
-  --bs-shadow-card:     none;
+  --bs-shadow-card:     0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
   --bs-shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.4);
 
   /* Card tokens */
@@ -135,6 +137,7 @@
   border-radius: var(--bs-card-radius);
   padding: var(--bs-card-padding);
   border: var(--bs-card-border);
+  box-shadow: var(--bs-shadow-card);
 }
 .bs-metric-label {
   font-size: var(--bs-font-size-xs);
@@ -228,6 +231,12 @@
 .bs-link { color: var(--bs-teal); text-decoration: none; font-size: var(--bs-font-size-sm); cursor: pointer; }
 .bs-link:hover { color: var(--bs-teal-hover); }
 
+.bs-num {
+  font-family: var(--bs-font-mono);
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -250,7 +259,7 @@ body {
 
 /* Selection color */
 ::selection {
-  background-color: rgba(16, 185, 129, 0.2);
+  background-color: rgba(0, 184, 150, 0.2);
   color: inherit;
 }
 

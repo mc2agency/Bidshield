@@ -626,3 +626,70 @@ export const upsertUserMaterialPrice = mutation({
     });
   },
 });
+
+export const mergeSpecMaterials = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    specId: v.string(), // bidshield_project_specs _id
+  },
+  handler: async (ctx, args) => {
+    await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
+
+    // Load the spec row
+    const spec = await ctx.db
+      .query("bidshield_project_specs")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .filter((q) => q.eq(q.field("_id"), args.specId as any))
+      .first();
+    if (!spec) return { added: 0, skipped: 0 };
+
+    let parsed: any;
+    try { parsed = JSON.parse(spec.extractionJson); } catch { return { added: 0, skipped: 0 }; }
+
+    const newMats: Array<{ name: string; category?: string }> = parsed?.materials ?? [];
+    if (newMats.length === 0) return { added: 0, skipped: 0 };
+
+    // Load existing materials for this project
+    const existing = await ctx.db
+      .query("bidshield_project_materials")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    const existingNames = new Set(
+      existing.map((m) => (m.name ?? "").toLowerCase().trim())
+    );
+
+    let added = 0;
+    let skipped = 0;
+    const now = Date.now();
+
+    for (const mat of newMats) {
+      const name = (mat.name ?? "").trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (existingNames.has(key)) { skipped++; continue; }
+
+      await ctx.db.insert("bidshield_project_materials", {
+        projectId: args.projectId,
+        userId: args.userId,
+        name,
+        category: (mat.category ?? "miscellaneous") as any,
+        unit: "EA",
+        quantity: 0,
+        unitPrice: 0,
+        totalCost: 0,
+        calcType: "fixed",
+        wasteFactor: 1.0,
+        sortOrder: existing.length + added,
+        createdAt: now,
+        updatedAt: now,
+      });
+      existingNames.add(key);
+      added++;
+    }
+
+    return { added, skipped };
+  },
+});
