@@ -332,6 +332,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const [specError, setSpecError] = useState("");
   const [specData, setSpecData] = useState<any>(null);
   const [specApplying, setSpecApplying] = useState(false);
+  const [appliedMaterialCount, setAppliedMaterialCount] = useState(0);
+  const [appliedSectionCount, setAppliedSectionCount] = useState(0);
   // Multi-spec support: track all uploaded specs for this project
   const projectSpecs = useQuery(
     api.bidshield.projectSpecs.listByProject,
@@ -356,6 +358,210 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       } catch { /* ignore parse errors */ }
     }
   }, [project]);
+
+  // Shared helper: apply spec data (accepts data param so it works before setState is flushed)
+  const runApplySpec = useCallback(async (data: any) => {
+    if (!data || isDemo) return;
+    setSpecApplying(true);
+    try {
+      const updates: Record<string, any> = { projectId: projectId as any };
+
+      // Apply project info
+      if (data.projectInfo) {
+        const pi = data.projectInfo;
+        if (pi.projectName && !info.name) { setInfo(prev => ({ ...prev, name: pi.projectName })); updates.name = pi.projectName; }
+        if (pi.location && !info.location) { setInfo(prev => ({ ...prev, location: pi.location })); updates.location = pi.location; }
+        if (pi.gc && !info.gc) { setInfo(prev => ({ ...prev, gc: pi.gc })); updates.gc = pi.gc; }
+        if (pi.bidDate && !info.bidDate) { setInfo(prev => ({ ...prev, bidDate: pi.bidDate })); updates.bidDate = pi.bidDate; }
+      }
+
+      // Apply assemblies from spec (overwrite if current assemblies are just auto-generated placeholders)
+      const hasRealAssemblies = assemblies.some(a => a.insulationType || a.name || a.rValue != null);
+      const specAssemblies = Array.isArray(data.assemblies) ? data.assemblies : [];
+      if (specAssemblies.length > 0 && (!hasRealAssemblies || assemblies.length === 0)) {
+        const mapped = specAssemblies.map((a: any, i: number) => {
+          // AI can return rValue as string — coerce to number, reject NaN
+          const rawR = a.insulation?.rValue;
+          const parsedR = typeof rawR === "number" ? rawR : typeof rawR === "string" ? parseFloat(rawR) : null;
+          return {
+            label: a.label || `RT-${String(i + 1).padStart(2, "0")}`,
+            name: a.name || undefined,
+            systemType: a.system || a.membrane?.type || "",
+            insulationType: a.insulation?.type || "",
+            insulationThickness: a.insulation?.thickness?.replace(/"/g, "").replace(/in$/, "") || "",
+            rValue: (parsedR != null && !isNaN(parsedR)) ? parsedR : null,
+            surfaceType: a.surfaceType || "",
+            area: null as number | null,
+            uValue: null as number | null,
+          };
+        });
+        // Auto-compute R-values where missing
+        mapped.forEach((m: any) => {
+          if (!m.rValue && m.insulationType && m.insulationThickness) {
+            m.rValue = computeInsulationRValue(m.insulationType, parseFloat(m.insulationThickness));
+          }
+        });
+        setAssemblies(mapped);
+        setAssembliesDirty(true);
+
+        // Clean nulls for Convex — filter out assemblies with no system type
+        const cleanAssemblies = mapped
+          .filter((a: any) => a.systemType)
+          .map((a: any) => {
+            const obj: Record<string, any> = { label: a.label, systemType: a.systemType };
+            if (a.name) obj.name = a.name;
+            if (a.insulationType) obj.insulationType = a.insulationType;
+            if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
+            if (a.rValue != null && typeof a.rValue === "number") obj.rValue = a.rValue;
+            if (a.surfaceType) obj.surfaceType = a.surfaceType;
+            return obj;
+          });
+        if (cleanAssemblies.length > 0) updates.roofAssemblies = cleanAssemblies;
+
+        // Set deck type from first assembly
+        const deckType = specAssemblies.find((a: any) => a.deckType)?.deckType;
+        if (deckType && !info.deckType) { setInfo(prev => ({ ...prev, deckType })); updates.deckType = deckType; }
+      }
+
+      // Apply performance/compliance flags
+      if (data.performance) {
+        if (data.performance.rValueRequired) updates.energyCode = true;
+        if (data.performance.climateZone) updates.climateZone = data.performance.climateZone;
+      }
+      if (data.warranty?.type === "NDL" || data.performance?.windUplift?.includes("FM")) {
+        updates.fmGlobal = true;
+      }
+
+      // Also ensure specSummary is saved (retry if auto-save after extraction failed)
+      const specSummaryStr = JSON.stringify(data);
+      updates.specSummary = specSummaryStr.length > 500_000 ? specSummaryStr.slice(0, 500_000) : specSummaryStr;
+
+      // Save all updates at once
+      if (Object.keys(updates).length > 1) {
+        await updateProject(updates as any);
+      }
+
+      // Auto-create takeoff sections from assemblies
+      const sectionCount = data.assemblies?.length ?? 0;
+      if (sectionCount > 0 && userId) {
+        try {
+          for (const a of data.assemblies) {
+            await createTakeoffSection({
+              projectId: projectId as any,
+              userId,
+              name: a.name || a.label || "Roof Section",
+              assemblyType: (a.system || a.membrane?.type || "").toUpperCase(),
+              squareFeet: 0,
+            });
+          }
+        } catch { /* takeoff sections may already exist */ }
+      }
+
+      // Initialize materials: spec-extracted materials are PRIMARY, templates fill gaps
+      if (userId) {
+        try {
+          const { getTemplatesForSystem } = await import("@/lib/bidshield/material-templates");
+          const systemTypes = data.assemblies?.length > 0
+            ? [...new Set(data.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))] as string[]
+            : [];
+          const templates = getTemplatesForSystem(systemTypes);
+
+          const unitMap: Record<string, string> = {
+            membrane: "RL", insulation: "BD", fasteners: "BX",
+            adhesive: "GL", sheet_metal: "LF", lumber: "LF",
+            accessories: "EA", miscellaneous: "EA",
+          };
+          const allMaterials: Array<{
+            templateKey?: string; category: string; name: string; unit: string;
+            calcType: string; wasteFactor: number; coverage?: number;
+            qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
+          }> = [];
+
+          // Determine if project uses mechanical fastening (skip fasteners for adhered/concrete)
+          const attachMethods = (data.assemblies ?? []).map((a: any) => a.attachmentMethod).filter(Boolean);
+          const deckTypes = (data.assemblies ?? []).map((a: any) => a.deckType).filter(Boolean);
+          const isMechanicallyAttached = attachMethods.some((m: string) => m.includes("mechanic"));
+          const hasConcreteDeck = deckTypes.some((d: string) => d.toLowerCase().includes("concrete"));
+          const skipFasteners = !isMechanicallyAttached || hasConcreteDeck;
+
+          // 1. Add spec-extracted materials FIRST — these are what the actual project requires
+          const usedTemplateKeys = new Set<string>();
+          if (data.materials?.length > 0) {
+            for (const mat of data.materials) {
+              if (!mat.name) continue;
+              // Skip fastener materials for adhered/concrete systems
+              if (skipFasteners && mat.category === "fasteners") continue;
+              // Use actual product name from spec field if available (e.g. "Paradene 20TG, 80mil..." → "Paradene 20TG")
+              const productName = mat.spec?.match(/^([A-Z][A-Za-z0-9\-]+(?:\s+[A-Za-z0-9\-\.]+){0,3})/)?.[1];
+              const baseName = productName && !productName.startsWith("ASTM") ? productName : mat.name;
+              const specName = mat.manufacturer && mat.manufacturer !== "as specified"
+                ? `${baseName} — ${mat.manufacturer}`
+                : baseName;
+              const cat = mat.category || "miscellaneous";
+              // Fuzzy-match against template catalog to inherit pricing + calc logic
+              const nameWords = mat.name.toLowerCase().split(/\s+/);
+              const matchedTemplate = templates.find(t =>
+                t.category === cat &&
+                nameWords.some((w: string) => w.length > 3 && t.name.toLowerCase().includes(w))
+              );
+              if (matchedTemplate) usedTemplateKeys.add(matchedTemplate.key);
+              allMaterials.push({
+                templateKey: matchedTemplate?.key,
+                category: cat,
+                name: specName,
+                unit: matchedTemplate?.unit || unitMap[cat] || "EA",
+                calcType: matchedTemplate?.calcType || "fixed",
+                wasteFactor: matchedTemplate?.wasteFactor || 1.0,
+                coverage: matchedTemplate?.defaultCoverage,
+                qtyPerSf: matchedTemplate?.defaultQtyPerSf,
+                takeoffItemType: matchedTemplate?.takeoffItemType,
+                unitPrice: matchedTemplate?.defaultUnitPrice,
+              });
+            }
+          }
+
+          // No template gap-fill — only spec-extracted materials are added.
+          // Users can add additional items manually via "+ Add Material".
+
+          if (allMaterials.length > 0) {
+            // Clear old materials before re-initializing from spec
+            try {
+              await clearProjectMaterials({ projectId: projectId as any, userId });
+            } catch { /* may not have any to clear */ }
+            await initProjectMaterials({
+              projectId: projectId as any,
+              userId,
+              materials: allMaterials,
+            });
+            // Auto-calculate quantities from takeoff data (coverage, qty/SF, linear, count)
+            // This computes quantity × unitPrice = totalCost for all materials
+            try {
+              await syncTakeoffToMaterials({
+                projectId: projectId as any,
+                userId,
+              });
+            } catch { /* takeoff data may not exist yet — quantities will sync when takeoff is filled in */ }
+          }
+
+          // Update applied counts for confirmation banner
+          setAppliedMaterialCount(allMaterials.length);
+          setAppliedSectionCount(sectionCount);
+        } catch { /* materials may already exist */ }
+      }
+    } catch (e: any) {
+      console.error("Failed to apply spec data:", e);
+      const detail = e?.message || e?.data || "Unknown error";
+      setSpecError(`Failed to apply spec data: ${detail}`);
+    } finally {
+      setSpecApplying(false);
+    }
+  }, [isDemo, projectId, info, assemblies, userId, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, computeInsulationRValue]);
+
+  // Apply spec data to assemblies and project info (thin wrapper for manual re-apply)
+  const handleApplySpec = async () => {
+    if (!specData || isDemo) return;
+    await runApplySpec(specData);
+  };
 
   const handleSpecFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") { setSpecError("Please select a PDF file."); setSpecMode("error"); return; }
@@ -420,201 +626,14 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           }
         }
       }
+      // Auto-apply spec to project immediately (non-fatal — spec data is already saved)
+      try {
+        await runApplySpec(data);
+      } catch (e) {
+        console.error('Auto-apply failed:', e);
+      }
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
-  }, [isDemo, projectId, updateProject, userId, projectSpecs, pendingLabel, pendingSourceType, addProjectSpecMut]);
-
-  // Apply spec data to assemblies and project info
-  const handleApplySpec = async () => {
-    if (!specData || isDemo) return;
-    setSpecApplying(true);
-    try {
-      const updates: Record<string, any> = { projectId: projectId as any };
-
-      // Apply project info
-      if (specData.projectInfo) {
-        const pi = specData.projectInfo;
-        if (pi.projectName && !info.name) { setInfo(prev => ({ ...prev, name: pi.projectName })); updates.name = pi.projectName; }
-        if (pi.location && !info.location) { setInfo(prev => ({ ...prev, location: pi.location })); updates.location = pi.location; }
-        if (pi.gc && !info.gc) { setInfo(prev => ({ ...prev, gc: pi.gc })); updates.gc = pi.gc; }
-        if (pi.bidDate && !info.bidDate) { setInfo(prev => ({ ...prev, bidDate: pi.bidDate })); updates.bidDate = pi.bidDate; }
-      }
-
-      // Apply assemblies from spec (overwrite if current assemblies are just auto-generated placeholders)
-      const hasRealAssemblies = assemblies.some(a => a.insulationType || a.name || a.rValue != null);
-      const specAssemblies = Array.isArray(specData.assemblies) ? specData.assemblies : [];
-      if (specAssemblies.length > 0 && (!hasRealAssemblies || assemblies.length === 0)) {
-        const mapped = specAssemblies.map((a: any, i: number) => {
-          // AI can return rValue as string — coerce to number, reject NaN
-          const rawR = a.insulation?.rValue;
-          const parsedR = typeof rawR === "number" ? rawR : typeof rawR === "string" ? parseFloat(rawR) : null;
-          return {
-            label: a.label || `RT-${String(i + 1).padStart(2, "0")}`,
-            name: a.name || undefined,
-            systemType: a.system || a.membrane?.type || "",
-            insulationType: a.insulation?.type || "",
-            insulationThickness: a.insulation?.thickness?.replace(/"/g, "").replace(/in$/, "") || "",
-            rValue: (parsedR != null && !isNaN(parsedR)) ? parsedR : null,
-            surfaceType: a.surfaceType || "",
-            area: null as number | null,
-            uValue: null as number | null,
-          };
-        });
-        // Auto-compute R-values where missing
-        mapped.forEach((m: any) => {
-          if (!m.rValue && m.insulationType && m.insulationThickness) {
-            m.rValue = computeInsulationRValue(m.insulationType, parseFloat(m.insulationThickness));
-          }
-        });
-        setAssemblies(mapped);
-        setAssembliesDirty(true);
-
-        // Clean nulls for Convex — filter out assemblies with no system type
-        const cleanAssemblies = mapped
-          .filter((a: any) => a.systemType)
-          .map((a: any) => {
-            const obj: Record<string, any> = { label: a.label, systemType: a.systemType };
-            if (a.name) obj.name = a.name;
-            if (a.insulationType) obj.insulationType = a.insulationType;
-            if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
-            if (a.rValue != null && typeof a.rValue === "number") obj.rValue = a.rValue;
-            if (a.surfaceType) obj.surfaceType = a.surfaceType;
-            return obj;
-          });
-        if (cleanAssemblies.length > 0) updates.roofAssemblies = cleanAssemblies;
-
-        // Set deck type from first assembly
-        const deckType = specAssemblies.find((a: any) => a.deckType)?.deckType;
-        if (deckType && !info.deckType) { setInfo(prev => ({ ...prev, deckType })); updates.deckType = deckType; }
-      }
-
-      // Apply performance/compliance flags
-      if (specData.performance) {
-        if (specData.performance.rValueRequired) updates.energyCode = true;
-        if (specData.performance.climateZone) updates.climateZone = specData.performance.climateZone;
-      }
-      if (specData.warranty?.type === "NDL" || specData.performance?.windUplift?.includes("FM")) {
-        updates.fmGlobal = true;
-      }
-
-      // Also ensure specSummary is saved (retry if auto-save after extraction failed)
-      const specSummaryStr = JSON.stringify(specData);
-      updates.specSummary = specSummaryStr.length > 500_000 ? specSummaryStr.slice(0, 500_000) : specSummaryStr;
-
-      // Save all updates at once
-      if (Object.keys(updates).length > 1) {
-        await updateProject(updates as any);
-      }
-
-      // Auto-create takeoff sections from assemblies
-      if (specData.assemblies?.length > 0 && userId) {
-        try {
-          for (const a of specData.assemblies) {
-            await createTakeoffSection({
-              projectId: projectId as any,
-              userId,
-              name: a.name || a.label || "Roof Section",
-              assemblyType: (a.system || a.membrane?.type || "").toUpperCase(),
-              squareFeet: 0,
-            });
-          }
-        } catch { /* takeoff sections may already exist */ }
-      }
-
-      // Initialize materials: spec-extracted materials are PRIMARY, templates fill gaps
-      if (userId) {
-        try {
-          const { getTemplatesForSystem, MATERIAL_TEMPLATES } = await import("@/lib/bidshield/material-templates");
-          const systemTypes = specData.assemblies?.length > 0
-            ? [...new Set(specData.assemblies.map((a: any) => a.system || a.membrane?.type || "").filter(Boolean))] as string[]
-            : [];
-          const templates = getTemplatesForSystem(systemTypes);
-
-          const unitMap: Record<string, string> = {
-            membrane: "RL", insulation: "BD", fasteners: "BX",
-            adhesive: "GL", sheet_metal: "LF", lumber: "LF",
-            accessories: "EA", miscellaneous: "EA",
-          };
-          const allMaterials: Array<{
-            templateKey?: string; category: string; name: string; unit: string;
-            calcType: string; wasteFactor: number; coverage?: number;
-            qtyPerSf?: number; takeoffItemType?: string; unitPrice?: number;
-          }> = [];
-
-          // Determine if project uses mechanical fastening (skip fasteners for adhered/concrete)
-          const attachMethods = (specData.assemblies ?? []).map((a: any) => a.attachmentMethod).filter(Boolean);
-          const deckTypes = (specData.assemblies ?? []).map((a: any) => a.deckType).filter(Boolean);
-          const isMechanicallyAttached = attachMethods.some((m: string) => m.includes("mechanic"));
-          const hasConcreteDeck = deckTypes.some((d: string) => d.toLowerCase().includes("concrete"));
-          const skipFasteners = !isMechanicallyAttached || hasConcreteDeck;
-
-          // 1. Add spec-extracted materials FIRST — these are what the actual project requires
-          const usedTemplateKeys = new Set<string>();
-          if (specData.materials?.length > 0) {
-            for (const mat of specData.materials) {
-              if (!mat.name) continue;
-              // Skip fastener materials for adhered/concrete systems
-              if (skipFasteners && mat.category === "fasteners") continue;
-              // Use actual product name from spec field if available (e.g. "Paradene 20TG, 80mil..." → "Paradene 20TG")
-              const productName = mat.spec?.match(/^([A-Z][A-Za-z0-9\-]+(?:\s+[A-Za-z0-9\-\.]+){0,3})/)?.[1];
-              const baseName = productName && !productName.startsWith("ASTM") ? productName : mat.name;
-              const specName = mat.manufacturer && mat.manufacturer !== "as specified"
-                ? `${baseName} — ${mat.manufacturer}`
-                : baseName;
-              const cat = mat.category || "miscellaneous";
-              // Fuzzy-match against template catalog to inherit pricing + calc logic
-              const nameWords = mat.name.toLowerCase().split(/\s+/);
-              const matchedTemplate = templates.find(t =>
-                t.category === cat &&
-                nameWords.some((w: string) => w.length > 3 && t.name.toLowerCase().includes(w))
-              );
-              if (matchedTemplate) usedTemplateKeys.add(matchedTemplate.key);
-              allMaterials.push({
-                templateKey: matchedTemplate?.key,
-                category: cat,
-                name: specName,
-                unit: matchedTemplate?.unit || unitMap[cat] || "EA",
-                calcType: matchedTemplate?.calcType || "fixed",
-                wasteFactor: matchedTemplate?.wasteFactor || 1.0,
-                coverage: matchedTemplate?.defaultCoverage,
-                qtyPerSf: matchedTemplate?.defaultQtyPerSf,
-                takeoffItemType: matchedTemplate?.takeoffItemType,
-                unitPrice: matchedTemplate?.defaultUnitPrice,
-              });
-            }
-          }
-
-          // No template gap-fill — only spec-extracted materials are added.
-          // Users can add additional items manually via "+ Add Material".
-
-          if (allMaterials.length > 0) {
-            // Clear old materials before re-initializing from spec
-            try {
-              await clearProjectMaterials({ projectId: projectId as any, userId });
-            } catch { /* may not have any to clear */ }
-            await initProjectMaterials({
-              projectId: projectId as any,
-              userId,
-              materials: allMaterials,
-            });
-            // Auto-calculate quantities from takeoff data (coverage, qty/SF, linear, count)
-            // This computes quantity × unitPrice = totalCost for all materials
-            try {
-              await syncTakeoffToMaterials({
-                projectId: projectId as any,
-                userId,
-              });
-            } catch { /* takeoff data may not exist yet — quantities will sync when takeoff is filled in */ }
-          }
-        } catch { /* materials may already exist */ }
-      }
-    } catch (e: any) {
-      console.error("Failed to apply spec data:", e);
-      const detail = e?.message || e?.data || "Unknown error";
-      setSpecError(`Failed to apply spec data: ${detail}`);
-    } finally {
-      setSpecApplying(false);
-    }
-  };
+  }, [isDemo, projectId, updateProject, userId, projectSpecs, pendingLabel, pendingSourceType, addProjectSpecMut, runApplySpec]);
 
   // ── Section 4: AI System Description ──
   const [description, setDescription] = useState("");
@@ -998,13 +1017,15 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           </div>
           <div className="flex items-center gap-2">
             {specMode === "done" && specData && (
-              <button
-                onClick={handleApplySpec}
-                disabled={specApplying || isDemo}
-                style={{ ...btnPrimary, opacity: specApplying ? 0.5 : 1 }}
-              >
-                {specApplying ? "Applying..." : "Apply to Project"}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: 'var(--bs-teal-dim)', border: '1px solid var(--bs-teal-border)', marginTop: 8 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bs-teal)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                <span style={{ fontSize: 12, color: 'var(--bs-teal)', fontWeight: 500 }}>
+                  Spec applied — {appliedMaterialCount} materials loaded{appliedSectionCount > 0 ? `, ${appliedSectionCount} roof sections created` : ''}
+                </span>
+                {!isDemo && (
+                  <button onClick={handleApplySpec} style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--bs-text-dim)', background: 'none', border: 'none', cursor: 'pointer' }}>Re-apply</button>
+                )}
+              </div>
             )}
             <button
               onClick={() => setSpecMode("upload")}
