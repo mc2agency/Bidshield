@@ -105,8 +105,13 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const initProjectMaterials = useMutation(api.bidshield.initProjectMaterials);
   const clearProjectMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
+  const updateChecklistItem = useMutation(api.bidshield.updateChecklistItem);
   const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
+  const checklistItems = useQuery(
+    api.bidshield.getChecklist,
+    isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   // ── Section 1: Project Info ──
   const [info, setInfo] = useState({
@@ -441,7 +446,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         await updateProject(updates as any);
       }
 
-      // Auto-create takeoff sections from assemblies
+      // Auto-create takeoff sections from ALL spec assemblies (dedup handled server-side)
       const sectionCount = data.assemblies?.length ?? 0;
       if (sectionCount > 0 && userId) {
         try {
@@ -454,7 +459,9 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               squareFeet: 0,
             });
           }
-        } catch { /* takeoff sections may already exist */ }
+        } catch (e) {
+          console.error('createTakeoffSection failed:', e);
+        }
       }
 
       // Initialize materials: spec-extracted materials are PRIMARY, templates fill gaps
@@ -548,6 +555,38 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           setAppliedSectionCount(sectionCount);
         } catch { /* materials may already exist */ }
       }
+
+      // Apply phase9Flags from spec to matching checklist items
+      if (data.phase9Flags?.checklistItems?.length > 0 && userId && isValidConvexId) {
+        try {
+          const currentChecklist = checklistItems ?? [];
+          for (const flagItem of data.phase9Flags.checklistItems) {
+            // Map AI status to valid checklist status values
+            const statusMap: Record<string, string> = {
+              'flagged': 'warning',
+              'attention': 'warning',
+              'ok': 'done',
+            };
+            const newStatus = statusMap[flagItem.status] ?? 'pending';
+            // Try to find existing checklist item by itemId match
+            const match = currentChecklist.find((c: any) =>
+              (c.phaseKey === 'phase9') && (c.itemId === flagItem.id)
+            );
+            // Only update if not already manually set to done/na
+            if (!match || (match.status !== 'done' && match.status !== 'na')) {
+              await updateChecklistItem({
+                projectId: projectId as Id<'bidshield_projects'>,
+                phaseKey: 'phase9',
+                itemId: flagItem.id,
+                status: newStatus as any,
+                notes: flagItem.note || undefined,
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Failed to apply phase9 checklist flags:', e);
+        }
+      }
     } catch (e: any) {
       console.error("Failed to apply spec data:", e);
       const detail = e?.message || e?.data || "Unknown error";
@@ -555,7 +594,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     } finally {
       setSpecApplying(false);
     }
-  }, [isDemo, projectId, info, assemblies, userId, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, computeInsulationRValue]);
+  }, [isDemo, projectId, info, assemblies, userId, isValidConvexId, checklistItems, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, updateChecklistItem, computeInsulationRValue]);
 
   // Apply spec data to assemblies and project info (thin wrapper for manual re-apply)
   const handleApplySpec = async () => {
@@ -627,10 +666,13 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         }
       }
       // Auto-apply spec to project immediately (non-fatal — spec data is already saved)
-      try {
-        await runApplySpec(data);
-      } catch (e) {
-        console.error('Auto-apply failed:', e);
+      // Only auto-apply if this is the first/base spec — addenda merge via mergeSpecMaterials
+      if (pendingSourceType === 'base_spec' || (projectSpecs?.length ?? 0) === 0) {
+        try {
+          await runApplySpec(data);
+        } catch (e) {
+          console.error('Auto-apply failed:', e);
+        }
       }
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
   }, [isDemo, projectId, updateProject, userId, projectSpecs, pendingLabel, pendingSourceType, addProjectSpecMut, runApplySpec]);
@@ -1027,12 +1069,37 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                 )}
               </div>
             )}
-            <button
-              onClick={() => setSpecMode("upload")}
-              style={btnSecondary}
-            >
-              {specMode === "done" ? "Re-upload Spec" : "Upload Spec PDF"}
-            </button>
+            {specMode === 'done' && projectSpecs && projectSpecs.length > 0 ? (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    setPendingSourceType('addendum');
+                    setPendingLabel('');
+                    setSpecMode('upload');
+                  }}
+                  style={{ fontSize: 12, padding: '6px 14px', borderRadius: 8, background: 'var(--bs-teal)', border: 'none', color: '#13151a', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  + Add Another Spec
+                </button>
+                <button
+                  onClick={() => {
+                    setPendingSourceType('base_spec');
+                    setPendingLabel('');
+                    setSpecMode('upload');
+                  }}
+                  style={{ fontSize: 12, padding: '6px 14px', borderRadius: 8, background: 'none', border: '1px solid var(--bs-border)', color: 'var(--bs-text-muted)', cursor: 'pointer' }}
+                >
+                  Re-upload Base Spec
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSpecMode('upload')}
+                style={btnSecondary}
+              >
+                {specMode === 'done' ? 'Re-upload Spec' : 'Upload Spec PDF'}
+              </button>
+            )}
           </div>
         </div>
 

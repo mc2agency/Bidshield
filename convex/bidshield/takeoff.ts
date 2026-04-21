@@ -32,6 +32,9 @@ export const createTakeoffSection = mutation({
       .query("bidshield_takeoff_sections")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .collect();
+    // Deduplicate by name — don't create if already exists
+    const duplicate = existing.find(s => s.name.toLowerCase().trim() === args.name.toLowerCase().trim());
+    if (duplicate) return duplicate._id;
     const maxSort = existing.length > 0
       ? Math.max(...existing.map((s) => s.sortOrder))
       : -1;
