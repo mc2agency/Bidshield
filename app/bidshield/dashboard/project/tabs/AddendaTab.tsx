@@ -397,6 +397,7 @@ function AddendumCard({
   impactCheckResult?: { impacts: { phase: string; phaseKey: string; severity: string; action: string; detail: string }[]; summary: string | null };
 }) {
   const addProjectSpec = useMutation(api.bidshield.projectSpecs.addProjectSpec);
+  const mergeSpecMats = useMutation(api.bidshield.mergeSpecMaterials);
   const extractInputRef = useRef<HTMLInputElement | null>(null);
   const [extractStatus, setExtractStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [extractMessage, setExtractMessage] = useState<string>("");
@@ -435,7 +436,7 @@ function AddendumCard({
         setExtractMessage(data.error || "Extraction failed");
         return;
       }
-      await addProjectSpec({
+      const newSpecId = await addProjectSpec({
         projectId: projectId as Id<"bidshield_projects">,
         userId,
         label: `Addendum ${add.number} — ${add.title}`,
@@ -445,7 +446,21 @@ function AddendumCard({
         extractionJson: JSON.stringify(data),
       });
       setExtractStatus("done");
-      setExtractMessage(`Extracted ${data.materials?.length ?? 0} materials. Review in Materials tab.`);
+      // Merge new materials from this addendum into the project materials list
+      if (!isDemo && userId && newSpecId) {
+        try {
+          const mergeResult = await mergeSpecMats({
+            projectId: projectId as Id<"bidshield_projects">,
+            userId,
+            specId: newSpecId as string,
+          });
+          setExtractMessage(`Extracted ${data.materials?.length ?? 0} materials — ${mergeResult.added} new items added to Materials tab.`);
+        } catch {
+          setExtractMessage(`Extracted ${data.materials?.length ?? 0} materials. Review in Materials tab.`);
+        }
+      } else {
+        setExtractMessage(`Extracted ${data.materials?.length ?? 0} materials. Review in Materials tab.`);
+      }
     } catch (e: any) {
       setExtractStatus("error");
       setExtractMessage(e?.message ?? "Extraction failed");
