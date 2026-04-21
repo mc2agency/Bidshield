@@ -100,22 +100,38 @@ export default function EstimateTab({
           border: "1px solid var(--bs-border)",
         }}
       >
-        {summaryCards.map(({ label, value, format }) => (
-          <div key={label} className="flex flex-col gap-1">
-            <p
-              className="text-[10px] font-bold uppercase tracking-widest"
-              style={{ color: "var(--bs-text-muted)" }}
-            >
-              {label}
-            </p>
-            <p
-              className="text-lg font-bold bs-num"
-              style={{ color: "var(--bs-text-primary)" }}
-            >
-              {format ? format(value) : formatDollar(value)}
-            </p>
-          </div>
-        ))}
+        {summaryCards.map(({ label, value, format }) => {
+          const isTotalBid = label === "Total Bid";
+          return (
+            <div key={label} className="flex flex-col gap-1">
+              <p
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: isTotalBid ? "var(--bs-teal)" : "var(--bs-text-muted)" }}
+              >
+                {label}
+              </p>
+              <p
+                className="bs-num font-bold"
+                style={{
+                  fontSize: isTotalBid ? 22 : undefined,
+                  color: isTotalBid ? "var(--bs-teal)" : "var(--bs-text-primary)",
+                  lineHeight: 1.1,
+                }}
+              >
+                {format ? format(value) : formatDollar(value)}
+              </p>
+              {isTotalBid && (
+                <button
+                  onClick={() => setActiveSubTab("pricing")}
+                  className="text-[11px] font-medium mt-0.5 text-left transition-opacity hover:opacity-70"
+                  style={{ color: "var(--bs-teal)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                >
+                  → Recap
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Sub-Tab Bar */}
