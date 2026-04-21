@@ -443,6 +443,32 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
       </div>
 
       <div className="rounded-b-lg p-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", borderTop: "none" }}>
+        {/* Status bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '10px 0', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--bs-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>Sections</span>
+            <span className="bs-num" style={{ fontSize: 14, fontWeight: 700, color: 'var(--bs-text-primary)' }}>{displaySections.length}</span>
+          </div>
+          <span style={{ color: 'var(--bs-border)', fontSize: 14 }}>·</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--bs-text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>Total SF</span>
+            <span className="bs-num" style={{ fontSize: 14, fontWeight: 700, color: takenOff > 0 ? 'var(--bs-text-primary)' : 'var(--bs-text-dim)' }}>
+              {takenOff > 0 ? takenOff.toLocaleString() : '—'}
+            </span>
+          </div>
+          {takenOff === 0 && displaySections.length > 0 && (
+            <>
+              <span style={{ color: 'var(--bs-border)', fontSize: 14 }}>·</span>
+              <span style={{ fontSize: 11, color: 'var(--bs-text-dim)', fontStyle: 'italic' }}>Enter SF to calculate material quantities</span>
+            </>
+          )}
+          {takenOff > 0 && (
+            <>
+              <span style={{ color: 'var(--bs-border)', fontSize: 14 }}>·</span>
+              <span style={{ fontSize: 11, color: 'var(--bs-teal)', fontWeight: 500 }}>Quantities update on save ✓</span>
+            </>
+          )}
+        </div>
         {activeTab === "areas" && (
           <div>
             {displaySections.length > 0 && (

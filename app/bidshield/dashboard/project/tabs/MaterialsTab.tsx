@@ -708,9 +708,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [isResyncing, setIsResyncing] = useState(false);
   const handleResyncFromSpecs = useCallback(async () => {
     if (isDemo || !isValidConvexId || !userId) return;
-    console.log("[Re-sync DEBUG] mergedSpecMaterials =", mergedSpecMaterials);
-    console.log("[Re-sync DEBUG] project.specSummary (parsed) =",
-      (() => { try { return JSON.parse((project as any)?.specSummary ?? "null"); } catch { return "PARSE ERROR"; } })());
     if (!mergedSpecMaterials || mergedSpecMaterials.length === 0) {
       alert("No spec materials found. Upload spec PDFs in the Setup tab first.");
       return;
@@ -750,9 +747,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       // Walk merged materials (deduped across base spec + addenda + related divisions).
       // The server-side merge already normalized productName and deduped by productName+manufacturer.
-      console.log("[Re-sync DEBUG] Walking", mergedSpecMaterials.length, "merged materials:");
-      mergedSpecMaterials.forEach((m, i) =>
-        console.log(`  [${i}] productName="${m.productName}" manufacturer="${m.manufacturer ?? ""}" category="${m.category}" coverageRate="${m.coverageRate ?? ""}" sources=${m.sources.map(s => s.label).join(",")}`));
       const usedTemplateKeys = new Set<string>();
       for (const mat of mergedSpecMaterials) {
         if (skipFasteners && mat.category === "fasteners") continue;
@@ -784,18 +778,13 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       // Users can add extras via "+ Add Material".
 
       // Clear old → insert new → sync quantities
-      console.log(`[Re-sync] Spec has ${specData.materials?.length ?? 0} materials. Building ${allMaterials.length} items (spec-only, no templates). skipFasteners=${skipFasteners}, deckTypes=${deckTypes}, attachMethods=${attachMethods}`);
-      allMaterials.forEach((m, i) => console.log(`  [${i}] ${m.category}: ${m.name} — $${m.unitPrice ?? "no price"}`));
 
       const cleared = await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
-      console.log("[Re-sync] Cleared old materials:", cleared);
 
       if (allMaterials.length > 0) {
         const result = await initMaterials({ projectId: projectId as Id<"bidshield_projects">, userId, materials: allMaterials });
-        console.log("[Re-sync] Inserted materials:", result);
         try {
           const syncResult = await syncTakeoffMutation({ projectId: projectId as Id<"bidshield_projects">, userId });
-          console.log("[Re-sync] Takeoff sync:", syncResult);
         } catch { /* takeoff data may not exist yet */ }
       }
       alert(`Re-sync complete: ${allMaterials.length} spec materials loaded (no templates).`);
