@@ -1101,7 +1101,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
             ))
           : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-primary)", border: "1px solid var(--bs-border)" }}>{project?.primaryAssembly || project?.systemType?.toUpperCase() || "TPO"}</span>
         }
-        <span className="text-xs ml-auto" style={{ color: "var(--bs-text-dim)" }}>{totalSF.toLocaleString()} SF</span>
+        <span className="text-xs ml-auto bs-num" style={{ color: "var(--bs-text-dim)" }}>{totalSF.toLocaleString()} SF</span>
       </div>
 
       {/* Summary Cards */}
@@ -1118,7 +1118,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         ].map(({ label, value, valueColor }) => (
           <div key={label} style={{ background: "var(--bs-bg-card)", borderRadius: 10, padding: "14px 16px", border: "1px solid var(--bs-border)" }}>
             <div style={{ fontSize: 11, fontWeight: 500, color: "var(--bs-text-dim)", textTransform: "uppercase" as const, letterSpacing: "0.5px", marginBottom: 6 }}>{label}</div>
-            <div style={{ fontSize: 22, fontWeight: 500, color: valueColor, letterSpacing: "-0.3px", lineHeight: 1 }}>{value}</div>
+            <div style={{ fontSize: 22, fontWeight: 500, color: valueColor, letterSpacing: "-0.3px", lineHeight: 1 }} className="bs-num">{value}</div>
           </div>
         ))}
       </div>
@@ -1380,7 +1380,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                               <h3 className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{catInfo?.label}</h3>
                               <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>({(items as any[]).length} items)</span>
                             </div>
-                            <span className="text-sm font-medium" style={{ color: "var(--bs-teal)" }}>${catTotal.toLocaleString()}</span>
+                            <span className="text-sm font-medium bs-num" style={{ color: "var(--bs-teal)" }}>${catTotal.toLocaleString()}</span>
                           </div>
                         </td>
                       </tr>
@@ -1467,7 +1467,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-end gap-0.5">
-                                  <span className="text-xs" style={{ color: m.unitPrice ? "var(--bs-text-secondary)" : "var(--bs-amber)" }}>
+                                  <span className="text-xs bs-num" style={{ color: m.unitPrice ? "var(--bs-text-secondary)" : "var(--bs-amber)" }}>
                                     {m.unitPrice ? `$${m.unitPrice.toFixed(2)}` : "No price"}
                                   </span>
                                   {!isDemo && m.quoteId && (() => {
@@ -1510,7 +1510,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                     const sourceName = isBestMatch ? (quoteMatch as any).quoteName : null;
                                     return (
                                       <div>
-                                        <span className="font-medium" style={{ color: diffPct < 3 ? "var(--bs-teal)" : "var(--bs-amber)" }}>
+                                        <span className="font-medium bs-num" style={{ color: diffPct < 3 ? "var(--bs-teal)" : "var(--bs-amber)" }}>
                                           ${quoteMatch.item.p.toFixed(2)}
                                         </span>
                                         {sourceName && <div className="text-[10px] leading-tight" style={{ color: "var(--bs-text-dim)" }}>{sourceName}</div>}
@@ -1531,7 +1531,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                     const diffPct = quoteMatch.item.p > 0 ? Math.abs(diff / quoteMatch.item.p * 100) : 0;
                                     if (diffPct < 3) return <span style={{ color: "var(--bs-text-dim)" }}>—</span>;
                                     return (
-                                      <span className="font-medium" style={{ color: diff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
+                                      <span className="font-medium bs-num" style={{ color: diff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
                                         {diff > 0 ? "+" : ""}${diff.toFixed(2)}
                                       </span>
                                     );
@@ -1543,7 +1543,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             )}
                             {/* Total */}
                             <td className="text-right px-5 py-2.5 text-xs font-medium">
-                              <span style={{ color: m.totalCost ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
+                              <span className="bs-num" style={{ color: m.totalCost ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
                                 {m.totalCost ? `$${m.totalCost.toLocaleString()}` : "—"}
                               </span>
                             </td>
@@ -1622,9 +1622,9 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                                   </div>
                                   <div>
                                     <div className="mb-0.5" style={{ color: "var(--bs-text-dim)" }}>Quote price</div>
-                                    <div className="font-medium" style={{ color: "var(--bs-teal)" }}>${match.item.p.toFixed(2)} / {match.item.u}</div>
+                                    <div className="font-medium bs-num" style={{ color: "var(--bs-teal)" }}>${match.item.p.toFixed(2)} / {match.item.u}</div>
                                     {priceDiffPct >= 3 && (
-                                      <div className="mt-0.5 font-medium" style={{ color: priceDiff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
+                                      <div className="mt-0.5 font-medium bs-num" style={{ color: priceDiff > 0 ? "var(--bs-amber)" : "var(--bs-teal)" }}>
                                         Estimate is {priceDiff > 0 ? "+" : ""}${Math.abs(priceDiff).toFixed(2)} ({priceDiffPct.toFixed(0)}% {priceDiff > 0 ? "higher" : "lower"})
                                       </div>
                                     )}

@@ -654,13 +654,13 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             {editing ? (
               <input type="number" value={form.totalBidAmount} onChange={(e) => setForm({ ...form, totalBidAmount: e.target.value })} placeholder="0" style={inputStyle} />
             ) : (
-              <div className="text-[24px] font-medium tabular-nums" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.5px" }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>
+              <div className="text-[24px] font-medium tabular-nums bs-num" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.5px" }}>{pricing.totalBidAmount ? fmtDollar(pricing.totalBidAmount) : "—"}</div>
             )}
           </div>
           {/* Material */}
           <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
             <div className="bs-metric-label">Material</div>
-            <div className="text-[24px] font-medium tabular-nums" style={{ color: computedMaterialTotal > 0 ? "var(--bs-text-primary)" : "var(--bs-text-dim)", letterSpacing: "-0.5px" }}>
+            <div className="text-[24px] font-medium tabular-nums bs-num" style={{ color: computedMaterialTotal > 0 ? "var(--bs-text-primary)" : "var(--bs-text-dim)", letterSpacing: "-0.5px" }}>
               {computedMaterialTotal > 0 ? fmtDollar(computedMaterialTotal) : "--"}
             </div>
             <button type="button" onClick={() => onNavigateTab?.("materials")} className="text-[11px] mt-2 cursor-pointer transition-colors bs-link">
@@ -670,7 +670,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           {/* Labor */}
           <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
             <div className="bs-metric-label">Labor</div>
-            <div className="text-[24px] font-medium tabular-nums" style={{ color: computedLaborTotal > 0 ? "var(--bs-text-primary)" : "var(--bs-text-dim)", letterSpacing: "-0.5px" }}>
+            <div className="text-[24px] font-medium tabular-nums bs-num" style={{ color: computedLaborTotal > 0 ? "var(--bs-text-primary)" : "var(--bs-text-dim)", letterSpacing: "-0.5px" }}>
               {computedLaborTotal > 0 ? fmtDollar(computedLaborTotal) : "--"}
             </div>
             <button type="button" onClick={() => onNavigateTab?.("labor")} className="text-[11px] mt-2 cursor-pointer transition-colors" style={{ color: "var(--bs-blue)", background: "none", border: "none" }}>
@@ -690,7 +690,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
                 )}
               </div>
             ) : (
-              <div className="text-[24px] font-medium tabular-nums" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.5px" }}>
+              <div className="text-[24px] font-medium tabular-nums bs-num" style={{ color: "var(--bs-text-primary)", letterSpacing: "-0.5px" }}>
                 {pricing.otherCost ? fmtDollar(pricing.otherCost) : computedGCTotal > 0 ? fmtDollar(computedGCTotal) : "—"}
               </div>
             )}
@@ -698,7 +698,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
           {/* Cost/SF */}
           <div className="rounded-[10px] p-[18px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-teal)" }}>
             <div className="bs-metric-label">Cost / SF</div>
-            <div className="text-[24px] font-medium tabular-nums" style={{ color: "var(--bs-teal)", letterSpacing: "-0.5px" }}>
+            <div className="text-[24px] font-medium tabular-nums bs-num" style={{ color: "var(--bs-teal)", letterSpacing: "-0.5px" }}>
               {dollarPerSf ? `$${dollarPerSf.toFixed(2)}` : "—"}
             </div>
           </div>
@@ -710,7 +710,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             {scopeCostTotal > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
                 <span style={{ color: "var(--bs-text-dim)" }}>Scope inclusions:</span>
-                <span className="font-medium tabular-nums" style={{ color: "var(--bs-text-primary)" }}>{fmtDollar(scopeCostTotal)}</span>
+                <span className="font-medium tabular-nums bs-num" style={{ color: "var(--bs-text-primary)" }}>{fmtDollar(scopeCostTotal)}</span>
                 <span style={{ color: "var(--bs-text-dim)" }}>({includedScopeWithCost.length} item{includedScopeWithCost.length !== 1 ? "s" : ""})</span>
                 <button type="button" onClick={() => onNavigateTab?.("scope")} className="bs-link cursor-pointer text-[11px]" style={{ background: "none", border: "none" }}>View</button>
               </div>
@@ -718,7 +718,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
             {addendaPriceImpact !== 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px]" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
                 <span style={{ color: "var(--bs-text-dim)" }}>Addenda impact:</span>
-                <span className="font-medium tabular-nums" style={{ color: addendaPriceImpact > 0 ? "var(--bs-red)" : "var(--bs-teal)" }}>
+                <span className="font-medium tabular-nums bs-num" style={{ color: addendaPriceImpact > 0 ? "var(--bs-red)" : "var(--bs-teal)" }}>
                   {addendaPriceImpact > 0 ? "+" : ""}{fmtDollar(addendaPriceImpact)}
                 </span>
                 <span style={{ color: "var(--bs-text-dim)" }}>({addendaWithImpact.length} addend{addendaWithImpact.length !== 1 ? "a" : "um"})</span>
@@ -840,7 +840,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
                   { label: "Actual Other", value: pricing.actualOtherCost, color: "var(--bs-text-muted)" },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="rounded-[10px] p-3 text-center" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
-                    <div className="text-[18px] font-medium tabular-nums" style={{ color }}>{value ? fmtDollar(value) : "—"}</div>
+                    <div className="text-[18px] font-medium tabular-nums bs-num" style={{ color }}>{value ? fmtDollar(value) : "—"}</div>
                     <div className="text-[10px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>{label}</div>
                   </div>
                 ))}
@@ -878,9 +878,9 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
                   {dollarPerSf && actualDpsf && (
                     <tr style={{ borderTop: "1px solid var(--bs-border)" }}>
                       <td className="py-2 px-3" style={{ color: "var(--bs-text-muted)" }}>$/SF</td>
-                      <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--bs-text-muted)" }}>${dollarPerSf.toFixed(2)}</td>
-                      <td className="py-2 px-3 text-right tabular-nums" style={{ color: "var(--bs-text-muted)" }}>${actualDpsf.toFixed(2)}</td>
-                      <td className="py-2 px-3 text-right tabular-nums" style={{ color: dpsfVariancePct !== null ? varianceColor(dpsfVariancePct) : "var(--bs-text-dim)" }}>
+                      <td className="py-2 px-3 text-right tabular-nums bs-num" style={{ color: "var(--bs-text-muted)" }}>${dollarPerSf.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right tabular-nums bs-num" style={{ color: "var(--bs-text-muted)" }}>${actualDpsf.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right tabular-nums bs-num" style={{ color: dpsfVariancePct !== null ? varianceColor(dpsfVariancePct) : "var(--bs-text-dim)" }}>
                         {dpsfVariance !== null ? `${dpsfVariance > 0 ? "+" : ""}$${dpsfVariance.toFixed(2)} (${dpsfVariancePct!.toFixed(1)}%)` : "—"}
                       </td>
                     </tr>
@@ -945,7 +945,7 @@ export default function PricingTab({ projectId, isDemo, isPro, project, userId, 
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums">
                           {a.amount != null ? (
-                            <span className="text-[13px] font-medium" style={{ color: a.type === "add" ? "var(--bs-teal)" : "var(--bs-red)" }}>
+                            <span className="text-[13px] font-medium bs-num" style={{ color: a.type === "add" ? "var(--bs-teal)" : "var(--bs-red)" }}>
                               {a.type === "add" ? "+" : "-"}{fmtDollar(a.amount)}
                             </span>
                           ) : <span style={{ color: "var(--bs-text-dim)" }}>—</span>}
@@ -1078,9 +1078,9 @@ function ComparisonRow({ label, estimated, actual, varianceAmt, variancePct, bol
   return (
     <tr style={{ borderBottom: "1px solid var(--bs-border)" }}>
       <td className={`py-2 px-3 text-[13px] ${bold ? "font-medium" : ""}`} style={{ color: bold ? "var(--bs-text-primary)" : "var(--bs-text-secondary)" }}>{label}</td>
-      <td className="py-2 px-3 text-right text-[13px] tabular-nums" style={{ color: "var(--bs-text-secondary)" }}>{fmt(estimated)}</td>
-      <td className="py-2 px-3 text-right text-[13px] tabular-nums" style={{ color: "var(--bs-text-secondary)" }}>{fmt(actual)}</td>
-      <td className="py-2 px-3 text-right text-[13px] tabular-nums" style={{ color: variancePct !== null ? varianceColor(variancePct) : "var(--bs-text-muted)" }}>
+      <td className="py-2 px-3 text-right text-[13px] tabular-nums bs-num" style={{ color: "var(--bs-text-secondary)" }}>{fmt(estimated)}</td>
+      <td className="py-2 px-3 text-right text-[13px] tabular-nums bs-num" style={{ color: "var(--bs-text-secondary)" }}>{fmt(actual)}</td>
+      <td className="py-2 px-3 text-right text-[13px] tabular-nums bs-num" style={{ color: variancePct !== null ? varianceColor(variancePct) : "var(--bs-text-muted)" }}>
         {varianceAmt !== null ? `${varianceAmt > 0 ? "+" : ""}$${varianceAmt.toLocaleString()} (${variancePct!.toFixed(1)}%)` : "—"}
       </td>
     </tr>

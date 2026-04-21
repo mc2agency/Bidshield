@@ -109,7 +109,7 @@ export default function EstimateTab({
               {label}
             </p>
             <p
-              className="text-lg font-bold"
+              className="text-lg font-bold bs-num"
               style={{ color: "var(--bs-text-primary)" }}
             >
               {format ? format(value) : formatDollar(value)}
