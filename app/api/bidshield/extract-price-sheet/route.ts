@@ -5,6 +5,8 @@ import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
 
+export const maxDuration = 120;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // M-3/L-3: Shape validation for price sheet items
@@ -85,18 +87,24 @@ Return only the JSON array. If a field cannot be determined, use null.`;
     ];
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60_000) // P1-4: 60s for PDF extraction;
+    const timeout = setTimeout(() => controller.abort(), 110_000);
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
         { model: "claude-haiku-4-5-20251001", max_tokens: 4096, system: systemPrompt, messages: [{ role: "user", content: userContent }] },
         { signal: controller.signal }
       );
+    } catch (apiErr: any) {
+      clearTimeout(timeout);
+      if (apiErr?.name === "AbortError" || apiErr?.message?.includes("abort")) {
+        return NextResponse.json({ error: "Analysis timed out — the price sheet PDF may be too large. Try a smaller file." }, { status: 504 });
+      }
+      throw apiErr;
     } finally {
       clearTimeout(timeout);
     }
 
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    const text = message!.content[0]?.type === "text" ? message!.content[0].text : "";
 
     // Strip any markdown code fences if present
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
@@ -135,7 +143,21 @@ Return only the JSON array. If a field cannot be determined, use null.`;
 
     return NextResponse.json({ items: validItems });
   } catch (err: any) {
-    console.error("extract-price-sheet error:", err);
+    console.error("extract-price-sheet error:", {
+      name: err?.name,
+      message: err?.message,
+      status: err?.status,
+      type: err?.type ?? err?.error?.error?.type,
+    });
+    if (err?.status === 401) {
+      return NextResponse.json({ error: "AI service authentication failed. Please contact support." }, { status: 500 });
+    }
+    if (err?.status === 429) {
+      return NextResponse.json({ error: "AI service is rate-limited right now. Please try again in a moment." }, { status: 429 });
+    }
+    if (err?.status === 529 || err?.status === 503) {
+      return NextResponse.json({ error: "AI service is temporarily overloaded. Please try again in a moment." }, { status: 503 });
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
