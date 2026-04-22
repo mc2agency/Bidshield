@@ -763,6 +763,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                 const isExpanded  = expandedId === item._id;
                 const dotOpt      = PILL_OPTIONS.find(o => o.value === status);
                 const dotColor    = dotOpt ? dotOpt.color : "var(--bs-text-dim)";
+                // Row accent: 3px inset left bar, color-coded by status.
+                // "Bloomberg alert bar" — lets you scan a long list and
+                // instantly see which rows are decided / need attention.
+                const accentColor = status === "unaddressed"
+                  ? "var(--bs-amber)"  // undecided = needs attention
+                  : dotColor;
 
                 return (
                   <div key={item._id}>
@@ -773,14 +779,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                         minHeight: 44,
                         padding: "0 16px",
                         borderTop: idx > 0 ? "1px solid var(--bs-border)" : undefined,
+                        boxShadow: `inset 3px 0 0 ${accentColor}`,
                       }}
                       onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "")}
                       onClick={() => setExpandedId(isExpanded ? null : item._id)}
                     >
-                      {/* Status dot */}
-                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
-
                       {/* Item name */}
                       <span className="flex-1 min-w-0 text-[13px] select-none" style={{ color: "var(--bs-text-secondary)" }}>
                         {item.name}

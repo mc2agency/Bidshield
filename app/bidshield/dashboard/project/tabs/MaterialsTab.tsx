@@ -465,6 +465,17 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
   const totalIssues = verificationIssues.pricingGaps.length + verificationIssues.coverageIssues.length + verificationIssues.wasteIssues.length + verificationIssues.unsyncedMaterials.length;
 
+  // Materials with any verification issue — used for per-row left accent so
+  // rows needing attention stand out when scanning a long table.
+  const rowIssueNames = useMemo(() => {
+    const s = new Set<string>();
+    for (const n of verificationIssues.pricingGaps) s.add(n);
+    for (const n of verificationIssues.coverageIssues) s.add(n);
+    for (const n of verificationIssues.wasteIssues) s.add(n);
+    for (const n of verificationIssues.unsyncedMaterials) s.add(n);
+    return s;
+  }, [verificationIssues]);
+
   // ── Category-level quote coverage ─────────────────────────────────────────
   const categoryHasQuote = useMemo(() => {
     const covered: Record<string, boolean> = {};
@@ -1397,6 +1408,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                         const quoteMatch = !isComparing ? null
                           : isBestMatch ? findBestMatchAcrossAllQuotes(m.name, quotes)
                           : findBestQuoteMatch(m.name, selectedQuoteLineItems);
+                        const hasIssue = rowIssueNames.has(m.name);
                         return (
                           <tr
                             key={m._id}
@@ -1404,8 +1416,16 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                             onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
                             onMouseLeave={e => (e.currentTarget.style.background = "")}
                           >
-                            {/* Material name + coverage */}
-                            <td className="px-5 py-2.5">
+                            {/* Material name + coverage.
+                                Left-accent bar marks rows with any verification
+                                issue (pricing gap, missing coverage, 0% waste,
+                                unsynced from takeoff). box-shadow inset avoids
+                                the layout shift that border-left would cause in
+                                a table cell. */}
+                            <td
+                              className="px-5 py-2.5"
+                              style={hasIssue ? { boxShadow: "inset 3px 0 0 var(--bs-amber)" } : undefined}
+                            >
                               <div style={{ color: "var(--bs-text-secondary)" }}>{m.name}</div>
                               <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                                 {m.calcType === "linear_from_takeoff" && (() => {
