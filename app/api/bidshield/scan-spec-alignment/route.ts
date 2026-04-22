@@ -19,17 +19,35 @@ const BidLineItemSchema = z.object({
   cost: z.number().optional(),
 });
 
-const ScanSpecAlignmentSchema = z.object({
-  pdfBase64: z.string().min(100),
-  // Bid scope items (from ScopeTab)
-  scopeItems: z.array(BidLineItemSchema).max(200).optional(),
-  // Checklist completion (which phases are done)
-  checklistPhases: z.array(z.string().max(100).trim()).max(30).optional(),
-  // Project context
-  systemType: z.enum(["tpo", "epdm", "sbs", "pvc", "metal", "bur", "spf"]).optional(),
-  projectType: z.enum(["reroof", "new-construction", "recover"]).optional(),
-  totalBidAmount: z.number().positive().optional(),
+const SavedSpecSchema = z.object({
+  label: z.string().max(120).optional(),
+  sourceType: z.string().max(40).optional(),
+  extractionJson: z.string().min(2).max(500_000),
 });
+
+const ScanSpecAlignmentSchema = z
+  .object({
+    // Either raw PDF (legacy / first-time upload) ...
+    pdfBase64: z.string().min(100).optional(),
+    // ... or already-extracted spec data saved on the project
+    specSummary: z.string().min(2).max(500_000).optional(),
+    specs: z.array(SavedSpecSchema).max(12).optional(),
+    // Bid scope items (from ScopeTab)
+    scopeItems: z.array(BidLineItemSchema).max(200).optional(),
+    // Checklist completion (which phases are done)
+    checklistPhases: z.array(z.string().max(100).trim()).max(30).optional(),
+    // Project context
+    systemType: z.enum(["tpo", "epdm", "sbs", "pvc", "metal", "bur", "spf"]).optional(),
+    projectType: z.enum(["reroof", "new-construction", "recover"]).optional(),
+    totalBidAmount: z.number().positive().optional(),
+  })
+  .refine(
+    (v) =>
+      Boolean(v.pdfBase64) ||
+      Boolean(v.specSummary) ||
+      (v.specs && v.specs.length > 0),
+    { message: "Provide pdfBase64, specSummary, or specs[]" },
+  );
 
 // ---------------------------------------------------------------------------
 // Output schema
@@ -92,7 +110,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { pdfBase64, scopeItems, checklistPhases, systemType, projectType, totalBidAmount } = parsed.data;
+    const { pdfBase64, specSummary, specs, scopeItems, checklistPhases, systemType, projectType, totalBidAmount } = parsed.data;
 
     const scopeBlock = scopeItems && scopeItems.length > 0
       ? `\nEstimator's current bid scope items:\n${scopeItems.map(s =>
@@ -110,10 +128,34 @@ export async function POST(req: NextRequest) {
       totalBidAmount && `Total bid: $${totalBidAmount.toLocaleString()}`,
     ].filter(Boolean).join("\n");
 
+    // Build structured spec block from saved extractions if PDF wasn't provided.
+    // Each saved spec is an AI extraction (materials, assemblies, warranty, submittals, etc.).
+    const MAX_SPEC_CHARS = 60_000;
+    let savedSpecBlock = "";
+    if (!pdfBase64) {
+      const parts: string[] = [];
+      if (specs && specs.length > 0) {
+        for (const s of specs) {
+          const label = s.label ?? "Spec";
+          const sourceType = s.sourceType ?? "base_spec";
+          parts.push(`### ${label} (${sourceType})\n${s.extractionJson}`);
+        }
+      } else if (specSummary) {
+        parts.push(`### Base Spec\n${specSummary}`);
+      }
+      let joined = parts.join("\n\n");
+      if (joined.length > MAX_SPEC_CHARS) joined = joined.slice(0, MAX_SPEC_CHARS) + "\n…[truncated]";
+      savedSpecBlock = `\nSpec extraction (JSON, already parsed from the uploaded PDFs):\n${joined}\n`;
+    }
+
+    const sourceDirective = pdfBase64
+      ? "Your job: read the attached spec PDF and cross-reference every requirement against the estimator's bid scope. Identify gaps — things the spec requires that are NOT properly covered in the bid."
+      : "Your job: use the spec extraction JSON below — it's the authoritative parse of the uploaded spec PDFs — and cross-reference every requirement against the estimator's bid scope. Identify gaps — things the spec requires that are NOT properly covered in the bid. If a required item isn't present in the extraction, don't invent it; focus on what the extraction actually says.";
+
     const userPrompt = `You are a commercial roofing contract specialist performing a spec-to-bid alignment scan.
 
-Your job: read the attached spec PDF and cross-reference every requirement against the estimator's bid scope. Identify gaps — things the spec requires that are NOT properly covered in the bid.
-${contextBlock ? `\nProject context:\n${contextBlock}` : ""}${scopeBlock}${checklistBlock}
+${sourceDirective}
+${contextBlock ? `\nProject context:\n${contextBlock}` : ""}${savedSpecBlock}${scopeBlock}${checklistBlock}
 
 Focus on:
 1. Scope items the spec mandates that are NOT in the bid (tear-off, drain lowering, mock-ups, testing, etc.)
@@ -161,22 +203,21 @@ Respond with valid JSON only — no markdown fences:
     const timeout = setTimeout(() => controller.abort(), 60_000);
     let message: any;
     try {
+      const content: any[] = pdfBase64
+        ? [
+            {
+              type: "document",
+              source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
+            },
+            { type: "text", text: userPrompt },
+          ]
+        : [{ type: "text", text: userPrompt }];
+
       message = await client.messages.create(
         {
           model: "claude-sonnet-4-6",
           max_tokens: 3000,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "document",
-                  source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
-                } as any,
-                { type: "text", text: userPrompt },
-              ],
-            },
-          ],
+          messages: [{ role: "user", content }],
         },
         { signal: controller.signal }
       );

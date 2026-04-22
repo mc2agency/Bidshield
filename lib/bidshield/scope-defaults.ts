@@ -21,15 +21,18 @@ export const SCOPE_CATEGORIES: Record<ScopeCategory, { label: string; icon: stri
 };
 
 // ── Dynamic scope generation based on project data ──
-
-interface SpecSummary {
-  scopeNotes?: string[];
-  testingRequirements?: string[];
-  laborRequirements?: { laborType?: string; certifiedInstaller?: boolean };
-  generalConditions?: string[];
-  submittals?: string[];
-  warranty?: { type?: string; windSpeed?: string };
-}
+//
+// IMPORTANT: scope defaults stay general. The spec is additive — surfaced
+// via the Spec-to-Bid Alignment scan in the Scope tab, NOT generated as
+// new line items here. Seeding items directly from spec text makes the
+// checklist noisy and blurs the review: estimators should confirm/modify
+// a predictable list, then let the alignment scan flag what the spec
+// says about those items (missing, excluded-but-required, unusual).
+//
+// Items below are derived from structured project fields (systemType,
+// projectType, fmGlobal, etc.). Those fields may be populated from the
+// spec extraction in Setup, which is fine — the project record is the
+// source of truth, not the raw spec text.
 
 export function getDynamicScopeItems(project: any): DefaultScopeItem[] {
   const items: DefaultScopeItem[] = [...DEFAULT_SCOPE_ITEMS];
@@ -118,61 +121,10 @@ export function getDynamicScopeItems(project: any): DefaultScopeItem[] {
     add("general", "Recover board installation");
   }
 
-  // ── Spec-extracted items ──
-  if (project?.specSummary) {
-    let spec: SpecSummary | null = null;
-    try {
-      spec = typeof project.specSummary === "string" ? JSON.parse(project.specSummary) : project.specSummary;
-    } catch { /* ignore parse errors */ }
-
-    if (spec) {
-      if (spec.scopeNotes && Array.isArray(spec.scopeNotes)) {
-        for (const note of spec.scopeNotes) {
-          if (typeof note === "string" && note.length > 5 && note.length < 120) {
-            add("general", note);
-          }
-        }
-      }
-      if (spec.testingRequirements && Array.isArray(spec.testingRequirements)) {
-        for (const req of spec.testingRequirements) {
-          if (typeof req === "string" && req.length > 5 && req.length < 120) {
-            add("warranty", req);
-          }
-        }
-      }
-      if (spec.generalConditions && Array.isArray(spec.generalConditions)) {
-        for (const cond of spec.generalConditions) {
-          if (typeof cond === "string" && cond.length > 5 && cond.length < 120) {
-            add("general", cond);
-          }
-        }
-      }
-      if (spec.submittals && Array.isArray(spec.submittals)) {
-        for (const sub of spec.submittals) {
-          if (typeof sub === "string" && sub.length > 5 && sub.length < 120) {
-            add("warranty", sub);
-          }
-        }
-      }
-      if (spec.laborRequirements) {
-        if (spec.laborRequirements.laborType === "prevailing_wage") {
-          add("general", "Prevailing wage compliance");
-        }
-        if (spec.laborRequirements.laborType === "union") {
-          add("general", "Union labor requirements");
-        }
-        if (spec.laborRequirements.certifiedInstaller) {
-          add("general", "Manufacturer-certified installer required");
-        }
-      }
-      if (spec.warranty?.type === "NDL") {
-        add("warranty", "NDL warranty inspection & documentation");
-      }
-      if (spec.warranty?.windSpeed) {
-        add("warranty", `Wind uplift testing to ${spec.warranty.windSpeed}`);
-      }
-    }
-  }
+  // Spec text intentionally does NOT seed items here. Spec coverage is
+  // surfaced via the alignment scan in the Scope tab (gaps, coveredWell,
+  // unusual requirements), which is the correct mental model: general
+  // defaults + project context seed the scope; spec reviews it.
 
   return items;
 }
