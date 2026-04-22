@@ -5,6 +5,8 @@ import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
 
+export const maxDuration = 120;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // 20 MB limit — base64 adds ~33% overhead so we check against 27.3 MB of chars
@@ -82,7 +84,7 @@ For coverageRate: extract as a string like "100 SF/RL" or "32 SF/BD". Use null i
 Return only the JSON array. No explanation, no markdown fences.`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60_000) // P1-4: 60s for PDF extraction;
+    const timeout = setTimeout(() => controller.abort(), 110_000);
     let message: Awaited<ReturnType<typeof client.messages.create>>;
     try {
       message = await client.messages.create(
@@ -102,11 +104,17 @@ Return only the JSON array. No explanation, no markdown fences.`;
         },
         { signal: controller.signal }
       );
+    } catch (apiErr: any) {
+      clearTimeout(timeout);
+      if (apiErr?.name === "AbortError" || apiErr?.message?.includes("abort")) {
+        return NextResponse.json({ error: "Analysis timed out — the estimating report may be too large. Try a smaller export." }, { status: 504 });
+      }
+      throw apiErr;
     } finally {
       clearTimeout(timeout);
     }
 
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    const text = message!.content[0]?.type === "text" ? message!.content[0].text : "";
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
 
     let items: any[];
@@ -140,7 +148,21 @@ Return only the JSON array. No explanation, no markdown fences.`;
 
     return NextResponse.json({ items: validItems });
   } catch (err: any) {
-    console.error("extract-estimating-report error:", err);
+    console.error("extract-estimating-report error:", {
+      name: err?.name,
+      message: err?.message,
+      status: err?.status,
+      type: err?.type ?? err?.error?.error?.type,
+    });
+    if (err?.status === 401) {
+      return NextResponse.json({ error: "AI service authentication failed. Please contact support." }, { status: 500 });
+    }
+    if (err?.status === 429) {
+      return NextResponse.json({ error: "AI service is rate-limited right now. Please try again in a moment." }, { status: 429 });
+    }
+    if (err?.status === 529 || err?.status === 503) {
+      return NextResponse.json({ error: "AI service is temporarily overloaded. Please try again in a moment." }, { status: 503 });
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
