@@ -139,6 +139,8 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const [alignResult, setAlignResult]       = useState<AlignmentResult | null>(null);
   const [alignError, setAlignError]         = useState<string | null>(null);
   const [alignPanelOpen, setAlignPanelOpen] = useState(false);
+  // "all" = send every saved spec; a number = index into projectSpecs array
+  const [selectedSpecIdx, setSelectedSpecIdx] = useState<"all" | number>("all");
   const [alignExpanded, setAlignExpanded]   = useState(false);
   const alignFileRef = React.useRef<HTMLInputElement>(null);
 
@@ -331,7 +333,10 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   const MAX_SPEC_JSON_CHARS = 40_000;
   const savedSpecsPayload = useMemo(() => {
     if (projectSpecs && projectSpecs.length > 0) {
-      return projectSpecs.map((s: any) => ({
+      const specsToUse = selectedSpecIdx === "all"
+        ? projectSpecs
+        : [projectSpecs[selectedSpecIdx as number]].filter(Boolean);
+      return specsToUse.map((s: any) => ({
         label: s.label,
         sourceType: s.sourceType,
         extractionJson: typeof s.extractionJson === "string" && s.extractionJson.length > MAX_SPEC_JSON_CHARS
@@ -344,7 +349,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
       return [{ label: "Base Spec", sourceType: "base_spec", extractionJson: summary }];
     }
     return null;
-  }, [projectSpecs, project]);
+  }, [projectSpecs, project, selectedSpecIdx]);
 
   const hasSavedSpec = !!savedSpecsPayload && savedSpecsPayload.length > 0;
 
@@ -521,6 +526,44 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
 
           {alignPanelOpen && (
             <div className="px-4 pb-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
+
+              {/* ── SPEC SELECTOR — only shown when multiple specs are on the project */}
+              {projectSpecs && projectSpecs.length > 1 && (
+                <div className="pt-3 flex flex-col gap-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--bs-text-dim)" }}>
+                    Scan against
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      onClick={() => setSelectedSpecIdx("all")}
+                      className="text-[11px] px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer"
+                      style={{
+                        background: selectedSpecIdx === "all" ? "var(--bs-blue)" : "var(--bs-bg-elevated)",
+                        color: selectedSpecIdx === "all" ? "#13151a" : "var(--bs-text-secondary)",
+                        border: `1px solid ${selectedSpecIdx === "all" ? "var(--bs-blue)" : "var(--bs-border)"}`,
+                      }}
+                    >
+                      All specs
+                    </button>
+                    {(projectSpecs as any[]).map((s: any, i: number) => (
+                      <button
+                        key={s._id ?? i}
+                        onClick={() => setSelectedSpecIdx(i)}
+                        className="text-[11px] px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer max-w-[180px] truncate"
+                        style={{
+                          background: selectedSpecIdx === i ? "var(--bs-blue)" : "var(--bs-bg-elevated)",
+                          color: selectedSpecIdx === i ? "#13151a" : "var(--bs-text-secondary)",
+                          border: `1px solid ${selectedSpecIdx === i ? "var(--bs-blue)" : "var(--bs-border)"}`,
+                        }}
+                        title={s.label ?? `Spec ${i + 1}`}
+                      >
+                        {s.label ?? `Spec ${i + 1}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <p className="text-[11px] pt-3" style={{ color: "var(--bs-text-muted)" }}>
                 {hasSavedSpec
                   ? "Using the spec you uploaded in Setup. AI cross-references every requirement against your bid scope — flags what's missing, what you excluded that you shouldn't have, and what the spec assigns to you that's marked \"by others.\""
