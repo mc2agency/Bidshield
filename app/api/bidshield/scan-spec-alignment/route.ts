@@ -22,7 +22,8 @@ const BidLineItemSchema = z.object({
 const SavedSpecSchema = z.object({
   label: z.string().max(120).optional(),
   sourceType: z.string().max(40).optional(),
-  extractionJson: z.string().min(2).max(500_000),
+  // 50K per spec — client trims to 40K but give a small buffer
+  extractionJson: z.string().min(2).max(50_000),
 });
 
 const ScanSpecAlignmentSchema = z

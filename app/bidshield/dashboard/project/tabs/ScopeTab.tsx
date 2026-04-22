@@ -325,12 +325,18 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
   // Saved spec detection — spec PDFs are uploaded + extracted in the Setup tab.
   // When a spec is already on the project, we reuse that extraction so the
   // estimator doesn't have to re-upload the same PDF in the Scope tab.
+  // Cap each spec's extractionJson before sending — full extractions can be
+  // 200-500K chars and sending 2+ specs untruncated will exceed the API body
+  // limit or Claude's context. 40K chars per spec is enough for alignment.
+  const MAX_SPEC_JSON_CHARS = 40_000;
   const savedSpecsPayload = useMemo(() => {
     if (projectSpecs && projectSpecs.length > 0) {
       return projectSpecs.map((s: any) => ({
         label: s.label,
         sourceType: s.sourceType,
-        extractionJson: s.extractionJson,
+        extractionJson: typeof s.extractionJson === "string" && s.extractionJson.length > MAX_SPEC_JSON_CHARS
+          ? s.extractionJson.slice(0, MAX_SPEC_JSON_CHARS) + "\n…[truncated for alignment scan]"
+          : s.extractionJson,
       }));
     }
     const summary = (project as any)?.specSummary;
