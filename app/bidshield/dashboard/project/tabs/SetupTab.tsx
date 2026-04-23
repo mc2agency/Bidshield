@@ -162,6 +162,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         sqft: info.sqft ? parseInt(info.sqft) : undefined,
         grossRoofArea: info.sqft ? parseInt(info.sqft) : undefined,
         deckType: info.deckType || undefined,
+        projectType: info.projectType || undefined,
         drawingDate: info.drawingDate || undefined,
         drawingRevision: info.drawingRevision || undefined,
       });
@@ -851,11 +852,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               <option value="reroof">Re-Roof (Tear-off)</option>
               <option value="recover">Recover (Overlay)</option>
               <option value="repair">Repair</option>
-          </select>
-         </div>
-       </div>
-     </div>
-        <div className="grid grid-cols-2 gap-4" style={{ marginTop: 16 }}>
+            </select>
+          </div>
           <div>
             <label style={labelStyle}>Drawing Date</label>
             <input
@@ -875,6 +873,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             />
           </div>
         </div>
+      </div>
 
       {/* ── Roof Assemblies ── */}
       <div style={cardStyle}>
@@ -1557,5 +1556,6 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         )}
       </div>
     </div>
+  </div>
   );
 }
