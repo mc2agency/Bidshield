@@ -76,7 +76,9 @@ Key distinction — conventional vs inverted:
 
 insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'vacuum' | 'none'
 
-thickness: '1.5' | '2' | '2.5' | '3' | '4' | '6' | '8'
+thickness: total insulation thickness in inches as a number string — read directly from the drawing (e.g. "7", "3.5", "4", "2"). For multiple layers add them (e.g. two 3.5" layers = "7"). Omit if not shown.
+
+rValue: insulation R-value as a number if explicitly stated in the drawing (e.g. "R-39.2" → 39.2, "R-33 Min." → 33). Do NOT calculate — only extract if the drawing states it. Omit if not shown.
 
 surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating'
 
@@ -144,6 +146,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       system: z.string().default("tpo"),
       insulation: z.string().nullable().optional(),
       thickness: z.string().nullable().optional(),
+      rValue: z.number().nullable().optional(),
       surface: z.string().nullable().optional(),
       area: z.number().nullable().optional(),
       name: z.string().nullable().optional(),

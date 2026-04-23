@@ -242,17 +242,25 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       });
       const data = await res.json();
       if (!res.ok || data.error) { setPdfError(data.error || "Extraction failed"); setPdfMode("error"); return; }
-      const mapped: AssemblyInput[] = (data.assemblies || []).map((a: any) => ({
-        label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "0")}`,
-        name: a.name || undefined,
-        systemType: a.system || a.systemType || "",
-        insulationType: a.insulation || a.insulationType || "",
-        insulationThickness: a.thickness?.replace(/"/g, "") || "",
-        rValue: a.rValue ?? undefined,
-        surfaceType: a.surface || a.surfaceType || "",
-        area: typeof a.area === "number" ? a.area : undefined,
-        uValue: typeof a.uValue === "number" ? a.uValue : undefined,
-      }));
+      const mapped: AssemblyInput[] = (data.assemblies || []).map((a: any) => {
+        const insulationType = a.insulation || a.insulationType || "";
+        const insulationThickness = a.thickness?.replace(/"/g, "") || "";
+        const extractedRValue = typeof a.rValue === "number" ? a.rValue : undefined;
+        const computedRValue = !extractedRValue && insulationType && insulationThickness
+          ? computeInsulationRValue(insulationType, parseFloat(insulationThickness))
+          : undefined;
+        return {
+          label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "00")}`,
+          name: a.name || undefined,
+          systemType: a.system || a.systemType || "",
+          insulationType,
+          insulationThickness,
+          rValue: extractedRValue ?? computedRValue,
+          surfaceType: a.surface || a.surfaceType || "",
+          area: typeof a.area === "number" ? a.area : undefined,
+          uValue: typeof a.uValue === "number" ? a.uValue : undefined,
+        };
+      });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
       setPdfResults(mapped);
       // Extract metadata (deck type, project name, location)
