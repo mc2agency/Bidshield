@@ -123,6 +123,8 @@ interface AssemblyInput {
 
 interface WizardData {
   name: string; location: string; bidDate: string; trade: string;
+  drawingDate?: string;
+  drawingRevision?: string;
   projectType: string; systemType: string; deckType: string;
   gc: string; sqft: string; totalBidAmount: string; assemblies: string;
   roofAssemblies?: AssemblyInput[];
@@ -136,6 +138,8 @@ export interface EditProjectData {
   name?: string;
   location?: string;
   bidDate?: string;
+  drawingDate?: string;
+  drawingRevision?: string;
   gc?: string;
   sqft?: number;
   totalBidAmount?: number;
@@ -189,7 +193,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [pdfMode, setPdfMode] = useState<"link" | "upload" | "loading" | "preview" | "error">("link");
   const [pdfError, setPdfError] = useState("");
   const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
-  const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string }>({});
+  const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string; drawingDate?: string; drawingRevision?: string }>({});
   // Takeoff schedule upload state
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
   const [takeoffError, setTakeoffError] = useState("");
@@ -197,6 +201,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [name, setName] = useState(editProject?.name || "");
   const [location, setLocation] = useState(editProject?.location || "");
   const [bidDate, setBidDate] = useState(editProject?.bidDate || "");
+  const [drawingDate, setDrawingDate] = useState(editProject?.drawingDate || "");
+  const [drawingRevision, setDrawingRevision] = useState(editProject?.drawingRevision || "");
   const [gc, setGc] = useState(editProject?.gc || "");
   const [sqft, setSqft] = useState(editProject?.sqft ? String(editProject.sqft) : "");
   const [totalBidAmount, setTotalBidAmount] = useState(editProject?.totalBidAmount ? String(editProject.totalBidAmount) : "");
@@ -268,6 +274,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       if (data.deckType) meta.deckType = data.deckType;
       if (data.projectName) meta.projectName = data.projectName;
       if (data.location) meta.location = data.location;
+      if (data.drawingDate) meta.drawingDate = data.drawingDate;
+      if (data.drawingRevision) meta.drawingRevision = data.drawingRevision;
       setPdfMeta(meta);
       // Auto-select systems from extracted assemblies
       const extractedSystems = [...new Set(mapped.map(a => a.systemType).filter(Boolean))];
@@ -528,6 +536,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         setAssemblies(pdfResults);
                         if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
                         if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+                        if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
+                        if (pdfMeta.drawingRevision && !drawingRevision) setDrawingRevision(pdfMeta.drawingRevision);
                         const totalArea = pdfResults.reduce((sum, a) => sum + (a.area || 0), 0);
                         if (totalArea > 0 && !sqft) setSqft(String(Math.round(totalArea)));
                         setPdfMode("link");
@@ -818,6 +828,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Drawing date</label>
+                    <input type="text" value={drawingDate} onChange={(e) => setDrawingDate(e.target.value)} placeholder="e.g. 2026-03-15" className={inputCls} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Drawing revision</label>
+                    <input type="text" value={drawingRevision} onChange={(e) => setDrawingRevision(e.target.value)} placeholder="e.g. 95% CD, Rev 3" className={inputCls} style={inputStyle} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
                     <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>General contractor</label>
                     <input type="text" value={gc} onChange={(e) => setGc(e.target.value)} placeholder="Skanska USA" className={inputCls} style={inputStyle} />
                   </div>
@@ -872,6 +892,18 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                   <span style={{ color: "var(--bs-text-muted)" }}>Bid date</span>
                   <span style={{ color: "var(--bs-text-secondary)" }}>{bidDate}</span>
                 </div>
+                {drawingDate && (
+                  <div className="flex justify-between text-sm">
+                    <span style={{ color: "var(--bs-text-muted)" }}>Drawing date</span>
+                    <span style={{ color: "var(--bs-text-secondary)" }}>{drawingDate}</span>
+                  </div>
+                )}
+                {drawingRevision && (
+                  <div className="flex justify-between text-sm">
+                    <span style={{ color: "var(--bs-text-muted)" }}>Revision</span>
+                    <span style={{ color: "var(--bs-text-secondary)" }}>{drawingRevision}</span>
+                  </div>
+                )}
                 {gc && (
                   <div className="flex justify-between text-sm">
                     <span style={{ color: "var(--bs-text-muted)" }}>GC</span>
@@ -966,7 +998,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                   return totalArea > 0 ? String(Math.round(totalArea)) : "";
                 })();
                 onCreate({
-                name, location, bidDate, trade: "roofing",
+                name, location, bidDate, drawingDate: drawingDate || undefined, drawingRevision: drawingRevision || undefined, trade: "roofing",
                 projectType, systemType: systems[0] || "", deckType: deck,
                 gc, sqft: effectiveSqft, totalBidAmount,
                 assemblies: systems.map(s => s.toUpperCase()).join(","),

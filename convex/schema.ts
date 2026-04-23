@@ -69,6 +69,8 @@ export default defineSchema({
     name: v.string(),
     location: v.string(),
     bidDate: v.string(), // YYYY-MM-DD
+    drawingDate: v.optional(v.string()),     // date on drawing set (YYYY-MM-DD or free text)
+    drawingRevision: v.optional(v.string()), // revision label e.g. "Rev 3", "95% CD"
     bidTime: v.optional(v.string()),
     status: v.union(
       v.literal("setup"),

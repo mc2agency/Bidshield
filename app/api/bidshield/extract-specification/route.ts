@@ -131,7 +131,9 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
     "location": "string or null",
     "bidDate": "string or null",
     "architect": "string or null",
-    "gc": "string or null"
+    "gc": "string or null",
+    "drawingDate": "string or null — date shown on drawing title block (YYYY-MM-DD if parseable, otherwise as-is)",
+    "drawingRevision": "string or null — revision label from title block (e.g. '95% CD', 'Rev 3', '100% DD')"
   },
   "phase9Flags": {
     "checklistItems": [
@@ -171,6 +173,8 @@ EXTRACTION RULES:
 8. SCOPE: Extract key scope items and any noted exclusions or alternates.
 
 9. PROJECT INFO: Extract from cover sheet, title block, or specification header if present.
+   drawingDate: Extract the drawing issue date or revision date from the title block if present. Format as YYYY-MM-DD if parseable, otherwise as-is. Omit if not found.
+   drawingRevision: Extract the revision label or phase designation from the title block (e.g. "95% CD", "100% DD", "Rev 3", "Issued for Construction"). Omit if not found.
 
 10. PHASE 9 FLAGS — SPECIFICATION REVIEW CHECKLIST: Populate the "phase9Flags" object based on what you actually find in this document. For each checklist item, evaluate the specification and set the correct status and note:
 
@@ -295,6 +299,8 @@ Only include fields where data is found in the document. Omit fields with no dat
       submittals: z.array(z.string()).optional().default([]),
       specialInspections: z.array(z.string()).optional().default([]),
       phase9Flags: Phase9FlagsSchema.optional(),
+      drawingDate: z.string().nullable().optional(),
+      drawingRevision: z.string().nullable().optional(),
     }).passthrough();
     const validated = SpecResultSchema.safeParse(data);
     if (!validated.success) {

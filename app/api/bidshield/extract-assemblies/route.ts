@@ -49,7 +49,9 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
   "assemblies": [ ... ],
   "deckType": "steel" | "concrete" | "wood" | "lightweight" | "gypsum" | "tectum" | null,
   "projectName": "string or null if not found",
-  "location": "string or null if not found"
+  "location": "string or null if not found",
+  "drawingDate": "string or null — date shown on drawing title block (YYYY-MM-DD if parseable, otherwise as-is)",
+  "drawingRevision": "string or null — revision label from title block (e.g. '95% CD', 'Rev 3', '100% DD')"
 }
 
 Each assembly object must use ONLY these exact values:
@@ -95,6 +97,10 @@ deckType: Look for deck type info in detail drawings — concrete slab, steel de
 projectName: If a title block shows a building/project name, extract it. Set to null if not found.
 
 location: If a title block shows an address or location, extract it. Set to null if not found.
+
+drawingDate: If a title block, stamp, or revision block shows a drawing date or issue date, extract it. Format as YYYY-MM-DD if the date is parseable, otherwise return as-is (e.g. "03/15/2026"). Set to null if not found.
+
+drawingRevision: If a title block or revision block shows a revision label or phase designation, extract it (e.g. "95% CD", "100% DD", "Rev 3", "Issued for Construction"). Set to null if not found.
 
 IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.`;
 
@@ -157,6 +163,8 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       deckType: z.string().nullable().optional(),
       projectName: z.string().nullable().optional(),
       location: z.string().nullable().optional(),
+      drawingDate: z.string().nullable().optional(),
+      drawingRevision: z.string().nullable().optional(),
     });
 
     // Normalise array format to object format before validating
