@@ -110,10 +110,11 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
   const updateChecklistItem = useMutation(api.bidshield.updateChecklistItem);
   const { user } = useUser();
-  const systemSubstitutions = useQuery(
+  const systemSubstitutionsRaw = useQuery(
     api.users.getSystemSubstitutions,
     user?.id ? { clerkId: user.id } : "skip"
-  ) ?? [];
+  );
+  const systemSubstitutions: { from: string; to: string }[] = Array.isArray(systemSubstitutionsRaw) ? systemSubstitutionsRaw : [];
   const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const checklistItems = useQuery(
