@@ -575,6 +575,7 @@ function DashboardContent() {
         projectId = await createProjectMut(baseArgs as Parameters<typeof createProjectMut>[0]);
       } catch (err2) {
         console.error("createProject fallback also failed:", err2);
+        alert("Failed to create project: " + (err2 as any)?.message);
         return;
       }
     }
