@@ -534,7 +534,7 @@ function DashboardContent() {
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
     if (!userId) return;
     const isFirst = (convexProjects?.length ?? 0) === 0;
-    const baseArgs = {
+    const { drawingDate: dd, drawingRevision: dr, ...baseArgsCore } = {
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
       drawingDate: np.drawingDate || undefined,
       drawingRevision: np.drawingRevision || undefined,
@@ -549,6 +549,8 @@ function DashboardContent() {
         ? (Array.isArray(np.assemblies) ? np.assemblies : np.assemblies.split(",").map((a: string) => a.trim()).filter(Boolean))
         : [],
     };
+    const baseArgs = { ...baseArgsCore, drawingDate: dd, drawingRevision: dr };
+    const baseArgsFallback = baseArgsCore; // without drawing fields for older schema
     // Clean roofAssemblies: Convex v.optional(v.number()) rejects null — convert nulls to undefined
     const cleanedAssemblies = np.roofAssemblies?.map((a: any) => ({
       label: a.label,
@@ -572,7 +574,7 @@ function DashboardContent() {
       // Fallback: backend may not support newer fields yet
       console.warn("createProject failed, retrying with base args only:", err);
       try {
-        projectId = await createProjectMut(baseArgs as Parameters<typeof createProjectMut>[0]);
+        projectId = await createProjectMut(baseArgsFallback as Parameters<typeof createProjectMut>[0]);
       } catch (err2) {
         console.error("createProject fallback also failed:", err2);
         alert("Failed to create project: " + (err2 as any)?.message);
