@@ -24,6 +24,10 @@ export default defineSchema({
     role: v.optional(v.union(v.literal("admin"), v.literal("user"))),
     createdAt: v.number(),
     lastLoginAt: v.optional(v.number()),
+    systemSubstitutions: v.optional(v.array(v.object({
+      from: v.string(), // e.g. "lam"
+      to: v.string(),   // e.g. "hydrotech"
+    }))),
   })
     .index("by_email", ["email"])
     .index("by_clerk_id", ["clerkId"]),

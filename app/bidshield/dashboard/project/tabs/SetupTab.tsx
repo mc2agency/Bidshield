@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useProGate } from "@/hooks/useProGate";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import {
@@ -108,6 +109,11 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const clearProjectMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
   const updateChecklistItem = useMutation(api.bidshield.updateChecklistItem);
+  const { user } = useUser();
+  const systemSubstitutions = useQuery(
+    api.users.getSystemSubstitutions,
+    user?.id ? { clerkId: user.id } : "skip"
+  ) ?? [];
   const isValidConvexId = !isDemo && !!projectId && !projectId.startsWith("demo_");
   const takeoffSections = useQuery(api.bidshield.getTakeoffSections, isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip");
   const checklistItems = useQuery(
@@ -923,6 +929,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                   className="font-bold"
                   style={{ ...inputStyle, padding: "4px 6px", fontWeight: 700, fontSize: 13, width: "100%", border: "none", background: "transparent" }}
                 />
+                <div className="flex flex-col">
                 {a.systemType && !SYSTEMS.find(s => s.id === a.systemType) ? (
                   <div className="flex items-center gap-1">
                     <input
@@ -955,6 +962,30 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                     ))}
                   </select>
                 )}
+                {(() => {
+                  const sub = systemSubstitutions.find((s: any) => s.from === a.systemType);
+                  if (!sub) return null;
+                  const toLabel = SYSTEMS.find(s => s.id === sub.to)?.label ?? sub.to;
+                  return (
+                    <button
+                      onClick={() => updateAssembly(idx, "systemType", sub.to)}
+                      className="text-[10px] font-medium mt-0.5"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--bs-teal)",
+                        padding: 0,
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={`Switch to your preferred system: ${toLabel}`}
+                    >
+                      Use {toLabel} instead?
+                    </button>
+                  );
+                })()}
+                </div>
                 <select
                   value={a.insulationType}
                   onChange={(e) => updateAssembly(idx, "insulationType", e.target.value)}

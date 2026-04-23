@@ -347,3 +347,32 @@ export const getUserByClerkId = internalQuery({
       .first();
   },
 });
+
+export const getSystemSubstitutions = query({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+    return user?.systemSubstitutions ?? [];
+  },
+});
+
+export const saveSystemSubstitutions = mutation({
+  args: {
+    clerkId: v.string(),
+    substitutions: v.array(v.object({
+      from: v.string(),
+      to: v.string(),
+    })),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+    if (!user) return;
+    await ctx.db.patch(user._id, { systemSubstitutions: args.substitutions });
+  },
+});
