@@ -77,6 +77,14 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     api.bidshield.getScopeClarifications,
     !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  // All specs saved in Setup (base spec + addenda). Used so the alignment scan
+  // can reuse the already-extracted spec data instead of asking for a re-upload.
+  const projectSpecs = useQuery(
+    api.bidshield.projectSpecs.listByProject,
+    !isDemo && isValidConvexId && userId
+      ? { projectId: projectId as Id<"bidshield_projects">, userId }
+      : "skip"
+  );
   const initScope        = useMutation(api.bidshield.initScopeItems);
   const updateItem       = useMutation(api.bidshield.updateScopeItem);
   const addClarification = useMutation(api.bidshield.addScopeClarification);
@@ -314,34 +322,51 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     }
   };
 
-  const handleScanAlignment = async (file: File) => {
+  // Saved spec detection — spec PDFs are uploaded + extracted in the Setup tab.
+  // When a spec is already on the project, we reuse that extraction so the
+  // estimator doesn't have to re-upload the same PDF in the Scope tab.
+  const savedSpecsPayload = useMemo(() => {
+    if (projectSpecs && projectSpecs.length > 0) {
+      return projectSpecs.map((s: any) => ({
+        label: s.label,
+        sourceType: s.sourceType,
+        extractionJson: s.extractionJson,
+      }));
+    }
+    const summary = (project as any)?.specSummary;
+    if (typeof summary === "string" && summary.length > 2) {
+      return [{ label: "Base Spec", sourceType: "base_spec", extractionJson: summary }];
+    }
+    return null;
+  }, [projectSpecs, project]);
+
+  const hasSavedSpec = !!savedSpecsPayload && savedSpecsPayload.length > 0;
+
+  const runAlignmentScan = useCallback(async (opts: { pdfBase64?: string } = {}) => {
     if (!isPro && !isDemo) return;
     setAlignLoading(true);
     setAlignResult(null);
     setAlignError(null);
     try {
-      const pdfBase64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          // Strip data URL prefix
-          const b64 = result.split(",")[1] ?? result;
-          resolve(b64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const body: Record<string, any> = {
+        scopeItems: items.map((i: any) => ({ item: i.name, status: i.status, cost: i.cost })),
+        systemType: (project as any)?.systemType || undefined,
+        projectType: (project as any)?.projectType || undefined,
+        totalBidAmount: (project as any)?.totalBidAmount || undefined,
+      };
+      if (opts.pdfBase64) {
+        body.pdfBase64 = opts.pdfBase64;
+      } else if (savedSpecsPayload) {
+        body.specs = savedSpecsPayload;
+      } else {
+        setAlignError("No spec found. Upload the project spec in Setup first.");
+        return;
+      }
 
       const res = await guardedFetch("/api/bidshield/scan-spec-alignment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pdfBase64,
-          scopeItems: items.map((i: any) => ({ item: i.name, status: i.status, cost: i.cost })),
-          systemType: (project as any)?.systemType || undefined,
-          projectType: (project as any)?.projectType || undefined,
-          totalBidAmount: (project as any)?.totalBidAmount || undefined,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res) return;
       if (!res.ok) {
@@ -356,6 +381,23 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
       setAlignError("Scan failed — check your connection and try again.");
     } finally {
       setAlignLoading(false);
+    }
+  }, [isPro, isDemo, items, project, savedSpecsPayload, guardedFetch]);
+
+  const handleScanAlignment = async (file: File) => {
+    const pdfBase64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const b64 = result.split(",")[1] ?? result;
+        resolve(b64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    try {
+      await runAlignmentScan({ pdfBase64 });
+    } finally {
       if (alignFileRef.current) alignFileRef.current.value = "";
     }
   };
@@ -418,6 +460,31 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     <div className="flex flex-col gap-4">
       {proGateModal}
 
+      {/* ── SPEC-UPLOADED INLINE BANNER ───────────────────────────────────────
+           Contextual nudge when Setup already has a spec but the estimator
+           hasn't run the alignment scan yet. Loss-aversion framing ("find gaps
+           before you bid") — not accusatory, not "generate", just a CTA. */}
+      {(isPro || isDemo) && hasSavedSpec && !alignResult && !alignLoading && !alignPanelOpen && (
+        <div
+          className="flex items-center gap-3 px-4 py-2.5 rounded-lg"
+          style={{ background: "var(--bs-blue-dim, var(--bs-bg-elevated))", border: "1px solid var(--bs-blue)" }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bs-blue)" strokeWidth={2} className="shrink-0">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+          </svg>
+          <span className="flex-1 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
+            Spec uploaded — find scope gaps before you bid
+          </span>
+          <button
+            onClick={() => { setAlignPanelOpen(true); runAlignmentScan(); }}
+            className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+            style={{ background: "var(--bs-blue)", color: "#13151a", border: "none" }}
+          >
+            Run Scope Analysis →
+          </button>
+        </div>
+      )}
+
       {/* ── SPEC-TO-BID ALIGNMENT SCANNER ─────────────────────────────────────── */}
       {(isPro || isDemo) && (
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}>
@@ -431,7 +498,9 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
               </svg>
               <span className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>Spec-to-Bid Alignment · AI</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: "var(--bs-blue-dim, var(--bs-bg-elevated))", color: "var(--bs-blue)" }}>Pro · PDF</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: "var(--bs-blue-dim, var(--bs-bg-elevated))", color: "var(--bs-blue)" }}>
+                {hasSavedSpec ? "Pro · Spec ready" : "Pro · PDF"}
+              </span>
               {alignResult && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${alignResult.criticalGaps > 0 ? "bg-red-900/40 text-red-400" : alignResult.gapCount > 0 ? "bg-amber-900/40 text-amber-400" : "bg-teal-900/40 text-teal-400"}`}>
                   {alignResult.criticalGaps > 0 ? `${alignResult.criticalGaps} critical` : alignResult.gapCount > 0 ? `${alignResult.gapCount} gaps` : "aligned"}
@@ -447,10 +516,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
           {alignPanelOpen && (
             <div className="px-4 pb-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
               <p className="text-[11px] pt-3" style={{ color: "var(--bs-text-muted)" }}>
-                Upload the project spec PDF. AI reads every requirement and cross-references against your bid scope — flags what&apos;s missing, what you excluded that you shouldn&apos;t have, and what the spec assigns to you that&apos;s marked &quot;by others.&quot;
+                {hasSavedSpec
+                  ? "Using the spec you uploaded in Setup. AI cross-references every requirement against your bid scope — flags what's missing, what you excluded that you shouldn't have, and what the spec assigns to you that's marked \"by others.\""
+                  : "Upload the project spec PDF. AI reads every requirement and cross-references against your bid scope — flags what's missing, what you excluded that you shouldn't have, and what the spec assigns to you that's marked \"by others.\""}
               </p>
 
-              {/* Hidden file input */}
+              {/* Hidden file input — only used when no spec is saved yet */}
               <input
                 ref={alignFileRef}
                 type="file"
@@ -463,16 +534,32 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               />
 
               <button
-                onClick={() => alignFileRef.current?.click()}
+                onClick={() => hasSavedSpec ? runAlignmentScan() : alignFileRef.current?.click()}
                 disabled={alignLoading}
                 className="w-full py-2.5 rounded-lg text-sm font-semibold disabled:opacity-60 transition-all flex items-center justify-center gap-2"
                 style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-blue)", color: "var(--bs-blue)" }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                </svg>
-                {alignLoading ? "Scanning spec…" : "Upload Spec PDF & Scan"}
+                {hasSavedSpec ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                  </svg>
+                )}
+                {alignLoading
+                  ? "Scanning spec…"
+                  : hasSavedSpec
+                    ? "Run Scope Analysis"
+                    : "Upload Spec PDF & Scan"}
               </button>
+
+              {hasSavedSpec && (
+                <p className="text-[10px] text-center" style={{ color: "var(--bs-text-dim)" }}>
+                  Uses the spec from Setup — no re-upload needed.
+                </p>
+              )}
 
               {alignError && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
@@ -676,6 +763,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                 const isExpanded  = expandedId === item._id;
                 const dotOpt      = PILL_OPTIONS.find(o => o.value === status);
                 const dotColor    = dotOpt ? dotOpt.color : "var(--bs-text-dim)";
+                // Row accent: 3px inset left bar, color-coded by status.
+                // "Bloomberg alert bar" — lets you scan a long list and
+                // instantly see which rows are decided / need attention.
+                const accentColor = status === "unaddressed"
+                  ? "var(--bs-amber)"  // undecided = needs attention
+                  : dotColor;
 
                 return (
                   <div key={item._id}>
@@ -686,14 +779,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                         minHeight: 44,
                         padding: "0 16px",
                         borderTop: idx > 0 ? "1px solid var(--bs-border)" : undefined,
+                        boxShadow: `inset 3px 0 0 ${accentColor}`,
                       }}
                       onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "")}
                       onClick={() => setExpandedId(isExpanded ? null : item._id)}
                     >
-                      {/* Status dot */}
-                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
-
                       {/* Item name */}
                       <span className="flex-1 min-w-0 text-[13px] select-none" style={{ color: "var(--bs-text-secondary)" }}>
                         {item.name}
