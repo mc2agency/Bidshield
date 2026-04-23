@@ -355,7 +355,10 @@ export const getSystemSubstitutions = query({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .first();
-    return user?.systemSubstitutions ?? [];
+    // Return empty array if field doesn't exist yet on older documents
+    const subs = user?.systemSubstitutions;
+    if (!subs || !Array.isArray(subs)) return [];
+    return subs;
   },
 });
 
