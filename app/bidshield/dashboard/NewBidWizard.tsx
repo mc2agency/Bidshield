@@ -26,7 +26,9 @@ const SYSTEMS = [
   { id: "bur", label: "Built-Up (BUR)", popular: false },
   { id: "metal", label: "Standing Seam Metal", popular: false },
   { id: "spf", label: "Spray Foam (SPF)", popular: false },
-  { id: "hydrotech", label: "IRMA / Inverted Roof", popular: false },
+  { id: "lam", label: "Liquid Applied Membrane (IRMA)", popular: false },
+  { id: "hydrotech", label: "Hydrotech (IRMA)", popular: false },
+  { id: "custom", label: "Custom / Other", popular: false },
 ];
 
 const DECKS = [

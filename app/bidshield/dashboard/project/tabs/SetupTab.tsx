@@ -22,7 +22,9 @@ const SYSTEMS = [
   { id: "bur", label: "Built-Up (BUR)" },
   { id: "metal", label: "Standing Seam Metal" },
   { id: "spf", label: "Spray Foam (SPF)" },
-  { id: "hydrotech", label: "IRMA / Inverted Roof" },
+  { id: "lam", label: "Liquid Applied Membrane (IRMA)" },
+  { id: "hydrotech", label: "Hydrotech (IRMA)" },
+  { id: "custom", label: "Custom / Other" },
 ];
 
 const DECKS = [
@@ -921,16 +923,38 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                   className="font-bold"
                   style={{ ...inputStyle, padding: "4px 6px", fontWeight: 700, fontSize: 13, width: "100%", border: "none", background: "transparent" }}
                 />
-                <select
-                  value={a.systemType}
-                  onChange={(e) => updateAssembly(idx, "systemType", e.target.value)}
-                  style={{ ...selectStyle, padding: "4px 6px", fontSize: 12 }}
-                >
-                  <option value="">Select...</option>
-                  {SYSTEMS.map((s) => (
-                    <option key={s.id} value={s.id}>{s.label}</option>
-                  ))}
-                </select>
+                {a.systemType && !SYSTEMS.find(s => s.id === a.systemType) ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      value={a.systemType}
+                      onChange={(e) => updateAssembly(idx, "systemType", e.target.value)}
+                      placeholder="System name..."
+                      style={{ ...selectStyle, padding: "4px 6px", fontSize: 12, minWidth: 0, flex: 1 }}
+                    />
+                    <button
+                      onClick={() => updateAssembly(idx, "systemType", "")}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--bs-text-dim)", fontSize: 11, padding: "0 2px", flexShrink: 0 }}
+                      title="Pick from list"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <select
+                    value={a.systemType}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        updateAssembly(idx, "systemType", "");
+                      } else {
+                        updateAssembly(idx, "systemType", e.target.value);
+                      }
+                    }}
+                    style={{ ...selectStyle, padding: "4px 6px", fontSize: 12 }}
+                  >
+                    <option value="">Select...</option>
+                    {SYSTEMS.map((s) => (
+                      <option key={s.id} value={s.id}>{s.label}</option>
+                    ))}
+                  </select>
+                )}
                 <select
                   value={a.insulationType}
                   onChange={(e) => updateAssembly(idx, "insulationType", e.target.value)}

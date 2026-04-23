@@ -23,7 +23,9 @@ const SYSTEMS: Record<string, { id: string; label: string }[]> = {
     { id: "bur", label: "Built-Up Roofing (BUR)" },
     { id: "metal", label: "Metal (Standing Seam)" },
     { id: "spf", label: "Spray Foam (SPF)" },
-    { id: "hydrotech", label: "IRMA / Inverted Roof" },
+    { id: "lam", label: "Liquid Applied Membrane (IRMA)" },
+    { id: "hydrotech", label: "Hydrotech (IRMA)" },
+    { id: "custom", label: "Custom / Other" },
   ],
 };
 

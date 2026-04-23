@@ -54,8 +54,9 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
 
 Each assembly object must use ONLY these exact values:
 
-system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'hydrotech'
-- Use 'hydrotech' for ANY inverted roof membrane assembly (IRMA) — this includes drawings labeled "IRMA", "Inverted Roof Membrane Assembly", "Protected Roof Membrane", or any cold-applied/hot-applied waterproofing membrane with insulation placed above the membrane (inverted/PRMA configuration). Do NOT assume a specific manufacturer — use 'hydrotech' as the generic IRMA type regardless of whether Hydrotech, Soprema, or another brand is specified.
+system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'lam' | 'hydrotech'
+- Use 'lam' for ANY liquid applied membrane or inverted roof membrane assembly (IRMA/PRMA) where no specific manufacturer is named — drawings labeled "Liquid Membrane Cold-Applied", "Liquid Membrane Hot-Applied", "IRMA", "Inverted Roof Membrane Assembly", or "Protected Roof Membrane".
+- Use 'hydrotech' ONLY when the drawing or spec explicitly names Hydrotech as the manufacturer.
 
 insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'vacuum' | 'none'
 

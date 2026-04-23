@@ -147,7 +147,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
 
 EXTRACTION RULES:
 
-1. ASSEMBLIES: Extract every distinct roof assembly/system described. Use standardized system IDs: tpo | pvc | epdm | sbs | app | bur | metal | spf | hydrotech. Extract the complete layer stack from deck up.
+1. ASSEMBLIES: Extract every distinct roof assembly/system described. Use standardized system IDs: tpo | pvc | epdm | sbs | app | bur | metal | spf | lam | hydrotech. Use 'lam' for liquid applied membrane / IRMA / PRMA assemblies where no specific manufacturer is named. Use 'hydrotech' only when Hydrotech is explicitly named. Extract the complete layer stack from deck up.
 
 2. WARRANTY: Look for warranty sections — extract tier (10-yr, 15-yr, 20-yr, 25-yr, 30-yr), type (standard, NDL = No Dollar Limit), wind speed coverage, and any special requirements.
 
