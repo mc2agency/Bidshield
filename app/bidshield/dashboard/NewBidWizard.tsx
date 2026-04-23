@@ -881,7 +881,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       <div key={i} className="flex items-center justify-between text-xs" style={{ color: "var(--bs-text-secondary)" }}>
                         <span className="font-medium" style={{ color: "var(--bs-text-primary)" }}>{a.label}</span>
                         <div className="flex items-center gap-2">
-                          <span className="uppercase">{a.systemType}</span>
+                          <span className="uppercase">{SYSTEMS.find(s => s.id === a.systemType)?.label ?? a.systemType}</span>
                           {a.rValue != null && <span style={{ color: "var(--bs-teal)" }}>R-{a.rValue.toFixed(1)}</span>}
                           {a.surfaceType && <span>{SURFACE_TYPES.find(s => s.id === a.surfaceType)?.label}</span>}
                         </div>
