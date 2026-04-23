@@ -40,7 +40,7 @@ export const R_VALUE_PRESETS = [
 ];
 
 // Common thickness presets in inches
-export const THICKNESS_PRESETS = ["1.5", "2", "2.5", "3", "4", "6", "8"];
+export const THICKNESS_PRESETS = ["1.5", "2", "2.5", "3", "3.5", "4", "5", "6", "7", "8", "9"];
 
 /**
  * Compute the insulation R-value for a given type and thickness.
