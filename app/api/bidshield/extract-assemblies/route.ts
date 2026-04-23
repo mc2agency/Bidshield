@@ -4,6 +4,11 @@ import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
+import {
+  classifyAssembly,
+  consolidateTakeoffRows,
+  isRoofRow,
+} from "@/lib/bidshield/assembly-classifier";
 
 export const maxDuration = 120;
 
@@ -32,7 +37,9 @@ export async function POST(req: NextRequest) {
   if (proGuard) return proGuard;
 
   try {
-    const { pdfBase64 } = await req.json();
+    const body = await req.json();
+    const { pdfBase64 } = body;
+    const mode: "detail" | "takeoff" = body.mode === "takeoff" ? "takeoff" : "detail";
 
     if (!pdfBase64) {
       return NextResponse.json({ error: "No PDF data provided" }, { status: 400 });
@@ -78,7 +85,17 @@ projectName: If a title block shows a building/project name, extract it. Set to 
 
 location: If a title block shows an address or location, extract it. Set to null if not found.
 
-IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.`;
+IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.
+
+INCLUDE NON-ROOF ITEMS YOU ENCOUNTER: if the page also lists slab-on-grade waterproofing, soffits, canopies, or other non-roof wall/facade assemblies, INCLUDE them in the output. Use their actual tag (e.g. ST-01, RT-06). The server-side filter will classify them — your job is to report everything visible. Do NOT skip items because they aren't roofs.
+
+For each assembly, also populate when possible:
+  "facadeLocation": one of "ROOF" | "WALL" | "FACADE" | "SOFFIT" | "OTHER" (from the sheet's section header, e.g. on envelope takeoff schedules — ROOF section rows go here)
+  "name": the descriptive title exactly as shown ("IRMA ROOF W/ PAVERS AT OCCUPIED TERRACES", "SLAB ON GRADE AT OCCUPIED", "FIBER CEMENT SOFFIT"). This is the single most important field for classification — never omit it.
+  "uValue": thermal U-value if the schedule lists one.
+  "rValue": assembly R-value if the schedule lists one (e.g. R-41.73).
+
+Do NOT truncate or reword the name. The downstream classifier uses keyword matching on the full title (SOFFIT, SLAB ON GRADE, IRMA, EPDM, etc.).`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 110_000);
@@ -131,13 +148,16 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
 
     const AssemblyItemSchema = z.object({
       label: z.string().default(""),
-      system: z.string().default("tpo"),
+      system: z.string().nullable().optional(),
       insulation: z.string().nullable().optional(),
       thickness: z.string().nullable().optional(),
       surface: z.string().nullable().optional(),
       area: z.number().nullable().optional(),
       name: z.string().nullable().optional(),
       deckType: z.string().nullable().optional(),
+      uValue: z.number().nullable().optional(),
+      rValue: z.number().nullable().optional(),
+      facadeLocation: z.string().nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
       assemblies: z.array(AssemblyItemSchema).default([]),
@@ -154,7 +174,28 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       return NextResponse.json({ error: "AI returned an unexpected response shape — please try again." }, { status: 422 });
     }
 
-    return NextResponse.json(validated.data);
+    const raw = validated.data.assemblies;
+
+    if (mode === "takeoff") {
+      // Takeoff/EN-sheet: drop non-ROOF rows, consolidate duplicate base tags
+      // (RT-01 + RT-01 N collapse to a single row with subAreas preserved).
+      const roofRows = raw.filter(isRoofRow);
+      const consolidated = consolidateTakeoffRows(roofRows);
+      return NextResponse.json({
+        ...validated.data,
+        mode,
+        assemblies: consolidated,
+      });
+    }
+
+    // Detail mode: classify each assembly, keep dropped items in the array
+    // with category === "dropped" so the diff modal can show them.
+    const classified = raw.map(classifyAssembly);
+    return NextResponse.json({
+      ...validated.data,
+      mode,
+      assemblies: classified,
+    });
   } catch (err: any) {
     console.error("extract-assemblies error:", {
       name: err?.name,

@@ -149,7 +149,7 @@ EXTRACTION RULES:
 
 1. ASSEMBLIES: Extract every distinct roof assembly/system described. Use standardized system IDs: tpo | pvc | epdm | sbs | app | bur | metal | spf | hydrotech. Extract the complete layer stack from deck up.
 
-2. WARRANTY: Look for warranty sections — extract tier (10-yr, 15-yr, 20-yr, 25-yr, 30-yr), type (standard, NDL = No Dollar Limit), wind speed coverage, and any special requirements.
+2. WARRANTY: Look for warranty sections — extract tier (10-yr, 15-yr, 20-yr, 25-yr, 30-yr), type (standard, NDL = No Dollar Limit), wind speed coverage, and any special requirements. Populate "years" ONLY when a specific number of years is stated in the document (e.g. "20-year NDL warranty"). If the type is stated but no specific year count is given, return "years": null and still populate "type". Never guess a year value. If the tier field is populated, ensure it is a complete human-readable string like "20-yr NDL" — never include the literal token "undefined".
 
 3. PERFORMANCE: Extract wind uplift ratings (FM 1-60, 1-90, 1-120, etc.), fire ratings (Class A/B/C), R-value requirements, energy code references (ASHRAE, IECC), climate zone.
 

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { INSULATION_TYPES, SURFACE_TYPES, THICKNESS_PRESETS, computeInsulationRValue } from "@/lib/bidshield/insulation-data";
+import { INSULATION_TYPES, SURFACE_TYPES, computeInsulationRValue } from "@/lib/bidshield/insulation-data";
+import { ThicknessInput } from "@/components/bidshield/ThicknessInput";
 
 // ── Project types that determine what BidShield pre-configures ──
 const PROJECT_TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -289,48 +290,38 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       const res = await fetch("/api/bidshield/extract-assemblies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdfBase64: base64 }),
+        body: JSON.stringify({ pdfBase64: base64, mode: "takeoff" }),
       });
       const data = await res.json();
       if (!res.ok || data.error) { setTakeoffError(data.error || "Extraction failed"); setTakeoffMode("error"); return; }
+      // In takeoff mode the server consolidates duplicate base tags (RT-01 + RT-01 N
+      // → RT-01 with subAreas[]) and filters to ROOF rows only. Each row already
+      // carries the summed area, so we just match base tags and set/add.
       const extracted: any[] = data.assemblies || [];
       if (extracted.length === 0) { setTakeoffError("No area data found in this PDF."); setTakeoffMode("error"); return; }
 
-      // Merge area data into existing assemblies by matching labels
       setAssemblies(prev => {
         const updated = [...prev];
         for (const ext of extracted) {
-          const extLabel = (ext.label || "").replace(/-/g, "-").toUpperCase().trim();
-          // Try exact match first, then prefix match (RT-01 matches RT-01 N)
-          let match = updated.findIndex(a => a.label.toUpperCase().trim() === extLabel);
-          if (match === -1) {
-            // Try matching base label (e.g. extracted "RT-01" matches existing "RT-01")
-            const baseLabel = extLabel.replace(/\s*N$/, "").trim();
-            match = updated.findIndex(a => a.label.toUpperCase().trim() === baseLabel);
-          }
-
+          const baseTag = (ext.tag || ext.label || "").toUpperCase().trim();
           const area = typeof ext.area === "number" ? ext.area : undefined;
           const uValue = typeof ext.uValue === "number" ? ext.uValue : undefined;
-          const name = ext.name || undefined;
+          const match = updated.findIndex(a => a.label.toUpperCase().trim() === baseTag);
 
           if (match !== -1) {
-            // Merge into existing assembly
             updated[match] = {
               ...updated[match],
-              area: (updated[match].area || 0) + (area || 0),
+              area: area ?? updated[match].area,
               uValue: uValue ?? updated[match].uValue,
-              name: name || updated[match].name,
             };
           } else if (area) {
-            // Add as new assembly if it has area data
             updated.push({
-              label: ext.label || `RT-${String(updated.length + 1).padStart(2, "0")}`,
-              name,
-              systemType: ext.system || ext.systemType || "",
-              insulationType: ext.insulation || ext.insulationType || "",
-              insulationThickness: ext.thickness?.replace(/"/g, "") || "",
+              label: baseTag || `RT-${String(updated.length + 1).padStart(2, "0")}`,
+              systemType: "",
+              insulationType: "",
+              insulationThickness: "",
               rValue: undefined,
-              surfaceType: ext.surface || ext.surfaceType || "",
+              surfaceType: "",
               area,
               uValue,
             });
@@ -623,9 +614,17 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                           className="w-16 text-sm font-bold bg-transparent outline-none"
                           style={{ color: "var(--bs-text-primary)" }}
                         />
-                        <span className="text-xs px-2 py-0.5 rounded uppercase font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
-                          {SYSTEMS.find(s => s.id === a.systemType)?.label || a.systemType}
-                        </span>
+                        <select
+                          value={a.systemType || ""}
+                          onChange={(e) => { const next = [...assemblies]; next[idx] = { ...a, systemType: e.target.value }; setAssemblies(next); }}
+                          className="text-xs px-2 py-0.5 rounded font-semibold outline-none"
+                          style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
+                        >
+                          <option value="">Select system…</option>
+                          {SYSTEMS.map((s) => (
+                            <option key={s.id} value={s.id}>{s.label}</option>
+                          ))}
+                        </select>
                         {a.area && (
                           <span className="text-xs font-medium" style={{ color: "var(--bs-text-muted)" }}>
                             {a.area.toLocaleString()} SF
@@ -673,25 +672,15 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                     {a.insulationType && (
                       <div className="mt-3">
                         <label className="text-[11px] block mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Thickness</label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {THICKNESS_PRESETS.map(t => (
-                            <button
-                              key={t}
-                              onClick={() => {
-                                const next = [...assemblies];
-                                const thick = parseFloat(t);
-                                next[idx] = { ...a, insulationThickness: t, rValue: computeInsulationRValue(a.insulationType, thick) };
-                                setAssemblies(next);
-                              }}
-                              className="py-1 px-2.5 rounded text-xs transition-all"
-                              style={a.insulationThickness === t
-                                ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500 }
-                                : { border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
-                            >
-                              {t}&quot;
-                            </button>
-                          ))}
-                        </div>
+                        <ThicknessInput
+                          value={a.insulationThickness || ""}
+                          onChange={(v) => {
+                            const next = [...assemblies];
+                            const thick = parseFloat(v);
+                            next[idx] = { ...a, insulationThickness: v, rValue: a.insulationType && Number.isFinite(thick) ? computeInsulationRValue(a.insulationType, thick) : undefined };
+                            setAssemblies(next);
+                          }}
+                        />
                         {a.rValue != null && (
                           <div className="mt-2 text-xs font-medium" style={{ color: "var(--bs-teal)" }}>
                             R-{a.rValue.toFixed(1)}

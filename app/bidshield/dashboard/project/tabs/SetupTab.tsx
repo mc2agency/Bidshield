@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useProGate } from "@/hooks/useProGate";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -9,9 +9,19 @@ import type { TabProps } from "../tab-types";
 import {
   INSULATION_TYPES,
   SURFACE_TYPES,
-  THICKNESS_PRESETS,
   computeInsulationRValue,
 } from "@/lib/bidshield/insulation-data";
+import { ThicknessInput } from "@/components/bidshield/ThicknessInput";
+import { PlanDiffModal, TakeoffDiffModal } from "@/components/bidshield/AssemblyDiffModal";
+import {
+  computePlanDiff,
+  computeTakeoffDiff,
+  applyPlanDiff,
+  applyTakeoffDiff,
+  type PlanDiff,
+  type TakeoffDiff,
+  type SetupAssembly,
+} from "@/lib/bidshield/assembly-diff";
 
 const SYSTEMS = [
   { id: "tpo", label: "TPO" },
@@ -49,6 +59,33 @@ interface AssemblyRow {
 
 function systemLabel(id: string) {
   return SYSTEMS.find((s) => s.id === id)?.label || id.toUpperCase();
+}
+
+// Extractor layer fields can arrive as plain strings OR as structured objects
+// ({product, manufacturer, ...}) depending on which spec shape the model
+// chose. Collapse to a display string; objects expose `product`/`name`/`label`
+// most of the time. Booleans (e.g. vaporRetarder: true) become "Vapor Retarder".
+function renderLayerField(v: unknown): string {
+  if (v == null || v === false) return "";
+  if (v === true) return "Vapor Retarder";
+  if (typeof v === "string" || typeof v === "number") return String(v);
+  if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    return String(o.product ?? o.name ?? o.label ?? o.type ?? "");
+  }
+  return "";
+}
+
+// Avoids the "undefined-yr ..." bug when the extractor can't parse a specific
+// warranty year but still knows the type (e.g. "No Dollar Limit"). Prefer
+// `tier` (e.g. "30-yr NDL"), then years+type, then type alone.
+function formatWarrantyHeadline(w: { tier?: string | null; years?: number | null; type?: string | null }): string {
+  if (w.tier) return w.tier;
+  const hasYears = typeof w.years === "number" && w.years > 0;
+  const type = w.type || "";
+  if (hasYears && type) return `${w.years}-yr ${type}`;
+  if (hasYears) return `${w.years}-yr`;
+  return type || "—";
 }
 
 // ── Styles ──
@@ -349,15 +386,38 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     "base_spec" | "addendum" | "related_division" | "other"
   >("base_spec");
 
-  // Load saved spec summary from project
+  // When the project has multiple specs (base + related division, addenda, etc.)
+  // the Specification Review card drives its detail block off whichever tab
+  // is active. Default to the base_spec, fall back to first uploaded.
+  const [activeSpecId, setActiveSpecId] = useState<Id<"bidshield_project_specs"> | null>(null);
+
   useEffect(() => {
-    if (project?.specSummary) {
-      try {
-        setSpecData(JSON.parse(project.specSummary));
-        setSpecMode("done");
-      } catch { /* ignore parse errors */ }
+    if (!projectSpecs || projectSpecs.length === 0) return;
+    if (activeSpecId && projectSpecs.some((s) => s._id === activeSpecId)) return;
+    const base = projectSpecs.find((s) => s.sourceType === "base_spec");
+    setActiveSpecId((base ?? projectSpecs[0])._id);
+  }, [projectSpecs, activeSpecId]);
+
+  // Re-parse the active spec's extractionJson into specData whenever the tab
+  // changes. Leaves single-spec flow (no tab row) unaffected because the
+  // uploaded-spec auto-parse on line 1 of this effect also handles that case.
+  useEffect(() => {
+    if (!projectSpecs || projectSpecs.length === 0) {
+      if (project?.specSummary) {
+        try {
+          setSpecData(JSON.parse(project.specSummary));
+          setSpecMode("done");
+        } catch { /* ignore parse errors */ }
+      }
+      return;
     }
-  }, [project]);
+    const active = projectSpecs.find((s) => s._id === activeSpecId) ?? projectSpecs[0];
+    if (!active) return;
+    try {
+      setSpecData(JSON.parse(active.extractionJson));
+      setSpecMode("done");
+    } catch { /* ignore parse errors */ }
+  }, [projectSpecs, activeSpecId, project?.specSummary]);
 
   // Shared helper: apply spec data (accepts data param so it works before setState is flushed)
   const runApplySpec = useCallback(async (data: any) => {
@@ -635,6 +695,211 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
   }, [isDemo, projectId, updateProject, userId, projectSpecs, pendingLabel, pendingSourceType, addProjectSpecMut, runApplySpec]);
 
+  // ── Section 2b: Re-ingest roof assemblies (Change 3a / 3b / 3c) ──
+  const addDecision = useMutation(api.bidshield.addDecision);
+  const [planDiff, setPlanDiff] = useState<PlanDiff | null>(null);
+  const [planDiffFilename, setPlanDiffFilename] = useState("");
+  const [planIngestLoading, setPlanIngestLoading] = useState(false);
+  const [planIngestApplying, setPlanIngestApplying] = useState(false);
+  const [takeoffDiff, setTakeoffDiff] = useState<TakeoffDiff | null>(null);
+  const [takeoffDiffFilename, setTakeoffDiffFilename] = useState("");
+  const [takeoffIngestLoading, setTakeoffIngestLoading] = useState(false);
+  const [takeoffIngestApplying, setTakeoffIngestApplying] = useState(false);
+  const [takeoffAddUnmatched, setTakeoffAddUnmatched] = useState<Set<string>>(new Set());
+  const [reingestError, setReingestError] = useState<string | null>(null);
+  const [reingestToast, setReingestToast] = useState<string | null>(null);
+
+  const pdfToBase64 = useCallback(async (file: File) => {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const comma = result.indexOf(",");
+        resolve(comma >= 0 ? result.slice(comma + 1) : result);
+      };
+      reader.onerror = () => reject(new Error("FileReader failed"));
+      reader.readAsDataURL(new Blob([bytes], { type: "application/pdf" }));
+    });
+  }, []);
+
+  const handleExtractFromPlan = useCallback(async (file: File) => {
+    if (isDemo) return;
+    if (file.type !== "application/pdf") { setReingestError("Please select a PDF file."); return; }
+    if (file.size > 20 * 1024 * 1024) { setReingestError("File too large (max 20 MB)."); return; }
+    setReingestError(null);
+    setPlanIngestLoading(true);
+    try {
+      const base64 = await pdfToBase64(file);
+      const res = await guardedFetch("/api/bidshield/extract-assemblies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64, mode: "detail" }),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok || data.error) { setReingestError(data.error || "Extraction failed"); return; }
+      const extracted = Array.isArray(data.assemblies) ? data.assemblies : [];
+      const currentSetup: SetupAssembly[] = assemblies.map((a) => ({
+        label: a.label,
+        name: a.name,
+        systemType: a.systemType,
+        insulationType: a.insulationType,
+        insulationThickness: a.insulationThickness,
+        rValue: a.rValue,
+        surfaceType: a.surfaceType,
+        area: a.area,
+        uValue: a.uValue,
+      }));
+      setPlanDiff(computePlanDiff(currentSetup, extracted));
+      setPlanDiffFilename(file.name);
+    } catch (e: any) {
+      setReingestError(e?.message || "Failed to read PDF.");
+    } finally {
+      setPlanIngestLoading(false);
+    }
+  }, [assemblies, guardedFetch, isDemo, pdfToBase64]);
+
+  const handleMergeTakeoff = useCallback(async (file: File) => {
+    if (isDemo) return;
+    if (file.type !== "application/pdf") { setReingestError("Please select a PDF file."); return; }
+    if (file.size > 20 * 1024 * 1024) { setReingestError("File too large (max 20 MB)."); return; }
+    setReingestError(null);
+    setTakeoffIngestLoading(true);
+    try {
+      const base64 = await pdfToBase64(file);
+      const res = await guardedFetch("/api/bidshield/extract-assemblies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64, mode: "takeoff" }),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok || data.error) { setReingestError(data.error || "Extraction failed"); return; }
+      const consolidated = Array.isArray(data.assemblies) ? data.assemblies : [];
+      const currentSetup: SetupAssembly[] = assemblies.map((a) => ({
+        label: a.label,
+        name: a.name,
+        systemType: a.systemType,
+        insulationType: a.insulationType,
+        insulationThickness: a.insulationThickness,
+        rValue: a.rValue,
+        surfaceType: a.surfaceType,
+        area: a.area,
+        uValue: a.uValue,
+      }));
+      setTakeoffDiff(computeTakeoffDiff(currentSetup, consolidated));
+      setTakeoffDiffFilename(file.name);
+      setTakeoffAddUnmatched(new Set());
+    } catch (e: any) {
+      setReingestError(e?.message || "Failed to read PDF.");
+    } finally {
+      setTakeoffIngestLoading(false);
+    }
+  }, [assemblies, guardedFetch, isDemo, pdfToBase64]);
+
+  const persistAssembliesAndLog = useCallback(async (
+    next: SetupAssembly[],
+    decisionText: string,
+  ) => {
+    const payload = next
+      .filter((a) => a.systemType || a.name)
+      .map((a) => ({
+        label: a.label,
+        name: a.name || undefined,
+        systemType: a.systemType || "",
+        insulationType: a.insulationType || undefined,
+        insulationThickness: a.insulationThickness || undefined,
+        rValue: a.rValue ?? undefined,
+        surfaceType: a.surfaceType || undefined,
+        area: a.area ?? undefined,
+        uValue: a.uValue ?? undefined,
+      }));
+    await updateProject({ projectId: projectId as any, roofAssemblies: payload } as any);
+    setAssemblies(next.map((a) => ({
+      label: a.label,
+      name: a.name,
+      systemType: a.systemType || "",
+      insulationType: a.insulationType || "",
+      insulationThickness: a.insulationThickness || "",
+      rValue: a.rValue ?? null,
+      surfaceType: a.surfaceType || "",
+      area: a.area ?? null,
+      uValue: a.uValue ?? null,
+    })));
+    setAssembliesDirty(false);
+    if (userId) {
+      try {
+        await addDecision({
+          projectId: projectId as any,
+          userId,
+          text: decisionText,
+          section: "Setup",
+        });
+      } catch (e) {
+        console.error("Failed to write decision log:", e);
+      }
+    }
+  }, [updateProject, projectId, userId, addDecision]);
+
+  const applyPlanDiffNow = useCallback(async () => {
+    if (!planDiff) return;
+    setPlanIngestApplying(true);
+    try {
+      const currentSetup: SetupAssembly[] = assemblies.map((a) => ({ ...a } as SetupAssembly));
+      const next = applyPlanDiff(currentSetup, planDiff);
+      const newCount = planDiff.rows.filter((r) => r.op === "new").length;
+      const changedCount = planDiff.rows.filter((r) => r.op === "changed").length;
+      const summary = planDiff.applyCount === 0
+        ? `Re-extracted roof assemblies from ${planDiffFilename} — no changes (plan matches current Setup)`
+        : `Re-extracted roof assemblies from ${planDiffFilename} — ${newCount} added, ${changedCount} changed`;
+      await persistAssembliesAndLog(next, summary);
+      setReingestToast(planDiff.applyCount === 0 ? "No changes — Setup already matches the plan" : `${planDiff.applyCount} assemblies updated from ${planDiffFilename}`);
+      setTimeout(() => setReingestToast(null), 4000);
+      setPlanDiff(null);
+    } catch (e: any) {
+      setReingestError(e?.message || "Failed to apply changes.");
+    } finally {
+      setPlanIngestApplying(false);
+    }
+  }, [planDiff, planDiffFilename, assemblies, persistAssembliesAndLog]);
+
+  const applyTakeoffDiffNow = useCallback(async () => {
+    if (!takeoffDiff) return;
+    setTakeoffIngestApplying(true);
+    try {
+      const currentSetup: SetupAssembly[] = assemblies.map((a) => ({ ...a } as SetupAssembly));
+      const next = applyTakeoffDiff(currentSetup, takeoffDiff, takeoffAddUnmatched);
+      const changedCount = takeoffDiff.applyCount;
+      const addedCount = takeoffAddUnmatched.size;
+      const summary = (changedCount === 0 && addedCount === 0)
+        ? `Merged takeoff from ${takeoffDiffFilename} — no changes (areas already match)`
+        : `Merged takeoff from ${takeoffDiffFilename} — ${changedCount} area${changedCount === 1 ? "" : "s"} updated${addedCount > 0 ? `, ${addedCount} added` : ""} — total ${Math.round(takeoffDiff.totalArea).toLocaleString()} SF`;
+      await persistAssembliesAndLog(next, summary);
+      setReingestToast(summary);
+      setTimeout(() => setReingestToast(null), 4000);
+      setTakeoffDiff(null);
+      setTakeoffAddUnmatched(new Set());
+    } catch (e: any) {
+      setReingestError(e?.message || "Failed to apply changes.");
+    } finally {
+      setTakeoffIngestApplying(false);
+    }
+  }, [takeoffDiff, takeoffDiffFilename, assemblies, takeoffAddUnmatched, persistAssembliesAndLog]);
+
+  const toggleUnmatched = useCallback((tag: string) => {
+    setTakeoffAddUnmatched((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag); else next.add(tag);
+      return next;
+    });
+  }, []);
+
+  // File input refs for the two re-ingest buttons
+  const planInputRef = useRef<HTMLInputElement>(null);
+  const takeoffInputRef = useRef<HTMLInputElement>(null);
+
   // ── Section 4: AI System Description ──
   const [description, setDescription] = useState("");
   const [descLoading, setDescLoading] = useState(false);
@@ -707,6 +972,26 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   return (
     <div className="flex flex-col gap-5">
       {proGateModal}
+      {planDiff && (
+        <PlanDiffModal
+          filename={planDiffFilename}
+          diff={planDiff}
+          applying={planIngestApplying}
+          onCancel={() => setPlanDiff(null)}
+          onApply={applyPlanDiffNow}
+        />
+      )}
+      {takeoffDiff && (
+        <TakeoffDiffModal
+          filename={takeoffDiffFilename}
+          diff={takeoffDiff}
+          addUnmatched={takeoffAddUnmatched}
+          onToggleUnmatched={toggleUnmatched}
+          applying={takeoffIngestApplying}
+          onCancel={() => { setTakeoffDiff(null); setTakeoffAddUnmatched(new Set()); }}
+          onApply={applyTakeoffDiffNow}
+        />
+      )}
       {/* ── Project Info ── */}
       <div style={cardStyle}>
         <div className="flex items-center justify-between mb-5">
@@ -804,7 +1089,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
 
       {/* ── Roof Assemblies ── */}
       <div style={cardStyle}>
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-5 gap-2 flex-wrap">
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--bs-text-primary)", margin: 0 }}>
               Roof Assemblies
@@ -813,9 +1098,25 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               Define each roof area with its system, insulation, and surface type.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {asmSaved && <span style={{ fontSize: 12, color: "var(--bs-teal)" }}>Saved</span>}
             {asmError && <span style={{ fontSize: 12, color: "var(--bs-red, #ef4444)" }}>{asmError}</span>}
+            <button
+              onClick={() => planInputRef.current?.click()}
+              disabled={planIngestLoading || isDemo}
+              style={{ ...btnSecondary, fontSize: 12, padding: "6px 12px", opacity: planIngestLoading ? 0.5 : 1 }}
+              title="Extract assemblies from an architectural detail sheet PDF"
+            >
+              {planIngestLoading ? "Reading plan…" : "Extract from plan PDF"}
+            </button>
+            <button
+              onClick={() => takeoffInputRef.current?.click()}
+              disabled={takeoffIngestLoading || isDemo}
+              style={{ ...btnSecondary, fontSize: 12, padding: "6px 12px", opacity: takeoffIngestLoading ? 0.5 : 1 }}
+              title="Merge areas from an envelope takeoff schedule PDF"
+            >
+              {takeoffIngestLoading ? "Reading takeoff…" : "Merge takeoff PDF"}
+            </button>
             {assembliesDirty && (
               <button
                 onClick={handleAssembliesSave}
@@ -827,6 +1128,33 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             )}
           </div>
         </div>
+
+        {/* Hidden file inputs for the re-ingest buttons */}
+        <input
+          ref={planInputRef}
+          type="file"
+          accept=".pdf,application/pdf"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleExtractFromPlan(f); if (planInputRef.current) planInputRef.current.value = ""; }}
+        />
+        <input
+          ref={takeoffInputRef}
+          type="file"
+          accept=".pdf,application/pdf"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleMergeTakeoff(f); if (takeoffInputRef.current) takeoffInputRef.current.value = ""; }}
+        />
+
+        {reingestError && (
+          <div className="rounded-lg p-2.5 mb-3" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
+            <span className="text-xs" style={{ color: "var(--bs-red)" }}>{reingestError}</span>
+          </div>
+        )}
+        {reingestToast && (
+          <div className="rounded-lg p-2.5 mb-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
+            <span className="text-xs" style={{ color: "var(--bs-teal)" }}>{reingestToast}</span>
+          </div>
+        )}
 
         {assemblies.length === 0 ? (
           <div
@@ -899,16 +1227,11 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                     <option key={t.id} value={t.id}>{t.label}</option>
                   ))}
                 </select>
-                <select
-                  value={a.insulationThickness}
-                  onChange={(e) => updateAssembly(idx, "insulationThickness", e.target.value)}
-                  style={{ ...selectStyle, padding: "4px 6px", fontSize: 12 }}
-                >
-                  <option value="">—</option>
-                  {THICKNESS_PRESETS.map((t) => (
-                    <option key={t} value={t}>{t}&quot;</option>
-                  ))}
-                </select>
+                <ThicknessInput
+                  value={a.insulationThickness || ""}
+                  onChange={(v) => updateAssembly(idx, "insulationThickness", v)}
+                  compact
+                />
                 <span
                   className="text-center font-semibold"
                   style={{
@@ -1020,7 +1343,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: 'var(--bs-teal-dim)', border: '1px solid var(--bs-teal-border)', marginTop: 8 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bs-teal)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                 <span style={{ fontSize: 12, color: 'var(--bs-teal)', fontWeight: 500 }}>
-                  Spec applied — {appliedMaterialCount} materials loaded{appliedSectionCount > 0 ? `, ${appliedSectionCount} roof sections created` : ''}
+                  Spec applied — {projectSpecs && projectSpecs.length > 1 ? (specData.materials?.length ?? 0) : appliedMaterialCount} materials loaded{projectSpecs && projectSpecs.length > 1 ? '' : (appliedSectionCount > 0 ? `, ${appliedSectionCount} roof sections created` : '')}
                 </span>
                 {!isDemo && (
                   <button onClick={handleApplySpec} style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--bs-text-dim)', background: 'none', border: 'none', cursor: 'pointer' }}>Re-apply</button>
@@ -1151,6 +1474,38 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
 
         {specMode === "done" && specData && (
           <div className="space-y-4">
+            {/* Spec switcher: one tab per uploaded spec PDF. Each tab parses
+                its own extractionJson on click, so the detail block below
+                re-renders with that spec's warranty / materials / assemblies
+                / approved manufacturers. Hidden when only one spec exists. */}
+            {!isDemo && projectSpecs && projectSpecs.length > 1 && (
+              <div className="flex flex-wrap gap-1.5">
+                {projectSpecs.map((s) => {
+                  const active = s._id === activeSpecId;
+                  let tabLabel = s.label;
+                  try {
+                    const parsed = JSON.parse(s.extractionJson);
+                    const first = parsed?.specSections?.[0];
+                    if (first?.csiNumber || first?.title) {
+                      tabLabel = [first.csiNumber, first.title].filter(Boolean).join(" — ");
+                    }
+                  } catch { /* keep fallback label */ }
+                  return (
+                    <button
+                      key={s._id}
+                      onClick={() => setActiveSpecId(s._id)}
+                      className="text-xs px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer"
+                      style={active
+                        ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }
+                        : { background: "var(--bs-bg-card)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
+                    >
+                      {tabLabel}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Spec Sections */}
             {specData.specSections?.length > 0 && (
               <div className="flex flex-wrap gap-2">
@@ -1168,7 +1523,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               {specData.warranty && (
                 <div className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
                   <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Warranty</div>
-                  <div className="text-sm font-bold" style={{ color: "var(--bs-teal)" }}>{specData.warranty.tier || `${specData.warranty.years}-yr ${specData.warranty.type}`}</div>
+                  <div className="text-sm font-bold" style={{ color: "var(--bs-teal)" }}>{formatWarrantyHeadline(specData.warranty)}</div>
                   {specData.warranty.manufacturer && <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{specData.warranty.manufacturer}</div>}
                   {specData.warranty.windSpeed && <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{specData.warranty.windSpeed} wind</div>}
                 </div>
@@ -1219,11 +1574,11 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                         <div className="font-semibold" style={{ color: "var(--bs-text-primary)" }}>{a.name || (a.system || a.membrane?.type || "").toUpperCase()}</div>
                         <div className="mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
                           {[
-                            a.membrane && `${(a.membrane.type || "").toUpperCase()} ${a.membrane.thickness || ""}${a.membrane.manufacturer ? ` (${a.membrane.manufacturer})` : ""}`,
-                            a.insulation && `${(a.insulation.type || "").replace("_", " ")} ${a.insulation.thickness || ""}${a.insulation.rValue ? ` R-${a.insulation.rValue}` : ""}`,
-                            a.coverBoard,
-                            a.vaporRetarder && `VR: ${a.vaporRetarder}`,
-                            a.attachmentMethod && a.attachmentMethod.replace(/_/g, " "),
+                            a.membrane && `${(renderLayerField(a.membrane.type) || "").toUpperCase()} ${renderLayerField(a.membrane.thickness)}${renderLayerField(a.membrane.manufacturer) ? ` (${renderLayerField(a.membrane.manufacturer)})` : ""}`.trim(),
+                            a.insulation && `${(renderLayerField(a.insulation.type) || "").replace("_", " ")} ${renderLayerField(a.insulation.thickness)}${a.insulation.rValue ? ` R-${a.insulation.rValue}` : ""}`.trim(),
+                            renderLayerField(a.coverBoard),
+                            renderLayerField(a.vaporRetarder) && `VR: ${renderLayerField(a.vaporRetarder)}`,
+                            renderLayerField(a.attachmentMethod).replace(/_/g, " "),
                           ].filter(Boolean).join(" · ")}
                         </div>
                       </div>
