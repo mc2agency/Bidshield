@@ -55,8 +55,24 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
 Each assembly object must use ONLY these exact values:
 
 system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'lam' | 'hydrotech'
-- Use 'lam' for ANY liquid applied membrane or inverted roof membrane assembly (IRMA/PRMA) where no specific manufacturer is named — drawings labeled "Liquid Membrane Cold-Applied", "Liquid Membrane Hot-Applied", "IRMA", "Inverted Roof Membrane Assembly", or "Protected Roof Membrane".
-- Use 'hydrotech' ONLY when the drawing or spec explicitly names Hydrotech as the manufacturer.
+
+Classify each assembly independently based on its OWN layer stack and drawing label — do NOT assume all assemblies use the same system.
+
+System selection guide:
+- 'tpo': TPO membrane (thermoplastic polyolefin), typically white/gray single-ply
+- 'pvc': PVC membrane, typically white single-ply
+- 'epdm': EPDM rubber membrane, typically black single-ply
+- 'sbs': SBS modified bitumen — sheet membrane, torch-applied or cold-applied, with polyiso or other insulation BELOW the membrane (conventional assembly). Labels like "Sheet Membrane Roofing System", "Modified Bitumen", "SBS".
+- 'app': APP modified bitumen — similar to SBS but torch-applied
+- 'bur': Built-Up Roofing — multiple plies of felt/bitumen
+- 'metal': Standing seam or metal panel roof
+- 'spf': Spray polyurethane foam
+- 'lam': Liquid Applied Membrane — IRMA/PRMA/inverted configuration where insulation is ABOVE the membrane. Labels like "Liquid Membrane Cold-Applied", "IRMA", "Inverted Roof Membrane Assembly", "Protected Roof Membrane". The insulation (XPS) sits ON TOP of the waterproofing membrane.
+- 'hydrotech': Use ONLY when drawing or spec explicitly names Hydrotech as the manufacturer.
+
+Key distinction — conventional vs inverted:
+- CONVENTIONAL (sbs/tpo/pvc/epdm/bur): insulation is BELOW the membrane, membrane is on top
+- INVERTED/IRMA (lam): membrane is on the deck, insulation (usually XPS) is ABOVE the membrane
 
 insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'vacuum' | 'none'
 
