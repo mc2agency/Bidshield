@@ -761,14 +761,10 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               {catItems.map((item: any, idx: number) => {
                 const status      = item.status as ScopeStatus;
                 const isExpanded  = expandedId === item._id;
-                const dotOpt      = PILL_OPTIONS.find(o => o.value === status);
-                const dotColor    = dotOpt ? dotOpt.color : "var(--bs-text-dim)";
-                // Row accent: 3px inset left bar, color-coded by status.
-                // "Bloomberg alert bar" — lets you scan a long list and
-                // instantly see which rows are decided / need attention.
-                const accentColor = status === "unaddressed"
-                  ? "var(--bs-amber)"  // undecided = needs attention
-                  : dotColor;
+                // Row accent: amber bar only on undecided rows — the PILL
+                // inside the row already shows included/excluded/by-others
+                // status, so coloring every row washes out the amber signal.
+                const showAccent = status === "unaddressed";
 
                 return (
                   <div key={item._id}>
@@ -779,7 +775,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
                         minHeight: 44,
                         padding: "0 16px",
                         borderTop: idx > 0 ? "1px solid var(--bs-border)" : undefined,
-                        boxShadow: `inset 3px 0 0 ${accentColor}`,
+                        boxShadow: showAccent ? "inset 3px 0 0 var(--bs-amber)" : undefined,
                       }}
                       onMouseEnter={e => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
                       onMouseLeave={e => (e.currentTarget.style.background = "")}
