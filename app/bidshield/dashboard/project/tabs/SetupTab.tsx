@@ -130,6 +130,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     sqft: "",
     deckType: "",
     projectType: "",
+    drawingDate: "",
+    drawingRevision: "",
   });
   const [infoSaving, setInfoSaving] = useState(false);
   const [infoSaved, setInfoSaved] = useState(false);
@@ -144,6 +146,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       sqft: project.sqft ? String(project.sqft) : project.grossRoofArea ? String(project.grossRoofArea) : "",
       deckType: project.deckType || "",
       projectType: project.projectType || "",
+      drawingDate: (project as any).drawingDate || "",
+      drawingRevision: (project as any).drawingRevision || "",
     });
   }, [project]);
 
@@ -160,6 +164,8 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         sqft: info.sqft ? parseInt(info.sqft) : undefined,
         grossRoofArea: info.sqft ? parseInt(info.sqft) : undefined,
         deckType: info.deckType || undefined,
+        drawingDate: info.drawingDate || undefined,
+        drawingRevision: info.drawingRevision || undefined,
       });
       setInfoSaved(true);
       setTimeout(() => setInfoSaved(false), 2000);
@@ -847,10 +853,30 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               <option value="reroof">Re-Roof (Tear-off)</option>
               <option value="recover">Recover (Overlay)</option>
               <option value="repair">Repair</option>
-            </select>
+          </select>
+         </div>
+       </div>
+     </div>
+        <div className="grid grid-cols-2 gap-4" style={{ marginTop: 16 }}>
+          <div>
+            <label style={labelStyle}>Drawing Date</label>
+            <input
+              value={info.drawingDate}
+              onChange={(e) => setInfo({ ...info, drawingDate: e.target.value })}
+              style={inputStyle}
+              placeholder="e.g. 2026-03-15"
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>Drawing Revision</label>
+            <input
+              value={info.drawingRevision}
+              onChange={(e) => setInfo({ ...info, drawingRevision: e.target.value })}
+              style={inputStyle}
+              placeholder="e.g. 95% CD, Rev 3"
+            />
           </div>
         </div>
-      </div>
 
       {/* ── Roof Assemblies ── */}
       <div style={cardStyle}>
