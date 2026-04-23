@@ -22,7 +22,7 @@ const SYSTEMS = [
   { id: "bur", label: "Built-Up (BUR)" },
   { id: "metal", label: "Standing Seam Metal" },
   { id: "spf", label: "Spray Foam (SPF)" },
-  { id: "hydrotech", label: "Hydrotech (IRMA)" },
+  { id: "hydrotech", label: "IRMA / Inverted Roof" },
 ];
 
 const DECKS = [
