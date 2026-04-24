@@ -609,7 +609,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     } finally {
       setSpecApplying(false);
     }
-  }, [isDemo, projectId, info, assemblies, userId, isValidConvexId, checklistItems, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, updateChecklistItem, computeInsulationRValue]);
+  }, [isDemo, project, projectId, info, assemblies, userId, isValidConvexId, checklistItems, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, updateChecklistItem, computeInsulationRValue]);
 
   // Apply spec data to assemblies and project info (thin wrapper for manual re-apply)
   const handleApplySpec = async () => {
