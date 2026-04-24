@@ -378,7 +378,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   }, [project]);
 
   // Shared helper: apply spec data (accepts data param so it works before setState is flushed)
-  const runApplySpec = useCallback(async (data: any) => {
+  const runApplySpec = useCallback(async (data: any, forceAssemblies = false) => {
     if (!data || isDemo) return;
     setSpecApplying(true);
     try {
@@ -393,10 +393,12 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         if (pi.bidDate && !info.bidDate) { setInfo(prev => ({ ...prev, bidDate: pi.bidDate })); updates.bidDate = pi.bidDate; }
       }
 
-      // Apply assemblies from spec (overwrite if current assemblies are just auto-generated placeholders)
-      const hasRealAssemblies = assemblies.some(a => a.insulationType || a.name || a.rValue != null);
+      // Apply assemblies from spec.
+      // Only skip if the project already has *saved* roofAssemblies (user manually entered/confirmed them).
+      // Auto-generated placeholder assemblies (from systemType fallback) should always be overwritten by spec data.
+      const hasSavedAssemblies = !forceAssemblies && Array.isArray(project?.roofAssemblies) && project.roofAssemblies.length > 0;
       const specAssemblies = Array.isArray(data.assemblies) ? data.assemblies : [];
-      if (specAssemblies.length > 0 && (!hasRealAssemblies || assemblies.length === 0)) {
+      if (specAssemblies.length > 0 && !hasSavedAssemblies) {
         const mapped = specAssemblies.map((a: any, i: number) => {
           // AI can return rValue as string — coerce to number, reject NaN
           const rawR = a.insulation?.rValue;
@@ -612,7 +614,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   // Apply spec data to assemblies and project info (thin wrapper for manual re-apply)
   const handleApplySpec = async () => {
     if (!specData || isDemo) return;
-    await runApplySpec(specData);
+    await runApplySpec(specData, true); // force=true so Re-apply always overwrites saved assemblies
   };
 
   const handleSpecFile = useCallback(async (file: File) => {
