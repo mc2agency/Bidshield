@@ -290,14 +290,14 @@ function ProjectDetail() {
     const scores = {
       checklist: clPct,
       scope: scPct,
-      takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : (controlSF > 0 ? 0 : 50)),
+      takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : 0),
       pricing: pricingDone ? 100 : (bidAmt ? 50 : 0),
       materials: mats.length > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
-      quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 100,
+      quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 0,
       addenda: adCount > 0 ? (adNotRepriced === 0 && adNotReviewed === 0 ? 100 : 40) : 100,
       rfis: rCount > 0 ? (rPending === 0 ? 100 : 60) : 100,
     };
-    const w = { checklist: 0.25, scope: 0.20, takeoff: 0.15, pricing: 0.15, materials: 0.10, quotes: 0.05, addenda: 0.05, rfis: 0.05 };
+    const w = { checklist: 0.25, scope: 0.20, takeoff: 0.15, pricing: 0.15, materials: 0.10, quotes: 0.05, addenda: 0.02, rfis: 0.03, labor: 0.05 };
     const readiness = Math.round(Object.entries(w).reduce((s, [k, v]) => s + (scores[k as keyof typeof scores] ?? 0) * v, 0));
     const passes = [scPct >= 100, adCount === 0 || (adNotRepriced === 0 && adNotReviewed === 0), expired === 0 && expiring === 0, rPending === 0, clPct >= 80, mats.length > 0 && matUnpriced === 0, pricingDone].filter(Boolean).length;
 
@@ -317,7 +317,7 @@ function ProjectDetail() {
     const taskList = isDemo ? Array.from({ length: demoLaborTotal }, (_, i) => ({ verified: i < demoLaborVerified })) : (laborTasks ?? []);
     const ltTotal = taskList.length;
     const ltVerified = taskList.filter((t: any) => t.verified).length;
-    const laborScore = ltTotal === 0 ? 0 : ltVerified === 0 ? 25 : ltVerified === ltTotal ? 100 : Math.round((ltVerified / ltTotal) * 100);
+    const laborScore = ltTotal === 0 ? 0 : ltVerified === 0 ? 0 : ltVerified === ltTotal ? 100 : Math.round((ltVerified / ltTotal) * 100);
     (scores as any).labor = laborScore;
 
     // Scope-Pricing conflict count (for sidebar badge)
@@ -383,7 +383,13 @@ function ProjectDetail() {
   const readinessColor = readinessScore >= 75 ? "var(--bs-teal)" : readinessScore >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
 
   const phaseScore: Record<string, number | null> = {
-    setup:     scores.checklist > 0 || scores.takeoff > 0 || scores.materials > 0 ? 100 : null,
+    setup:     (() => {
+      const hasAssemblies = Array.isArray((projectData as any)?.roofAssemblies) && (projectData as any).roofAssemblies.length > 0;
+      const hasArea = ((projectData as any)?.grossRoofArea ?? 0) > 0;
+      const hasSpec = !!(projectData as any)?.specSummary;
+      const filled = [hasAssemblies, hasArea, hasSpec, scores.checklist > 0].filter(Boolean).length;
+      return filled === 0 ? null : Math.round((filled / 4) * 100);
+    })(),
     checklist: scores.checklist,
     estimate:  Math.round((scores.takeoff + scores.materials + (scores.pricing ?? 0) + (scores as any).labor) / 4),
     documents: Math.round((scores.scope + scores.quotes + scores.addenda + scores.rfis) / 4),

@@ -288,6 +288,11 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     setAsmSaving(true);
     setAsmError("");
     try {
+      if (assemblies.some((a) => !a.systemType)) {
+        setAsmError('All assemblies must have a system type selected.');
+        setAsmSaving(false);
+        return;
+      }
       const cleanAssemblies = assemblies
         .filter((a) => a.systemType)
         .map((a) => {
@@ -328,7 +333,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           }
         } catch (err) {
           // Takeoff sections may already exist or other error — log but don't fail the save
-          console.warn("Warning: could not auto-create takeoff sections:", err);
+          console.error("Warning: could not auto-create takeoff sections:", err);
         }
       }
 
@@ -568,7 +573,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           // Update applied counts for confirmation banner
           setAppliedMaterialCount(allMaterials.length);
           setAppliedSectionCount(sectionCount);
-        } catch { /* materials may already exist */ }
+        } catch (e: any) { console.error('Material init failed:', e); setSpecError('Spec applied but failed to initialize materials: ' + (e?.message || 'Unknown error')); }
       }
 
       // Apply phase9Flags from spec to matching checklist items
@@ -609,7 +614,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     } finally {
       setSpecApplying(false);
     }
-  }, [isDemo, project, projectId, info, assemblies, userId, isValidConvexId, checklistItems, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, updateChecklistItem, computeInsulationRValue]);
+  }, [isDemo, project, projectId, info, assemblies, userId, isValidConvexId, checklistItems, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, updateChecklistItem]);
 
   // Apply spec data to assemblies and project info (thin wrapper for manual re-apply)
   const handleApplySpec = async () => {
@@ -618,6 +623,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   };
 
   const handleSpecFile = useCallback(async (file: File) => {
+    const sourceType = pendingSourceType;
     if (file.type !== "application/pdf") { setSpecError("Please select a PDF file."); setSpecMode("error"); return; }
     if (file.size > 20 * 1024 * 1024) { setSpecError("File too large (max 20 MB)."); setSpecMode("error"); return; }
     setSpecMode("loading");
@@ -669,7 +675,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               projectId: projectId as Id<"bidshield_projects">,
               userId,
               label: defaultLabel,
-              sourceType: existingCount === 0 ? "base_spec" : pendingSourceType,
+              sourceType: existingCount === 0 ? "base_spec" : sourceType,
               filename: file.name,
               extractionJson: JSON.stringify(data),
             });
@@ -682,11 +688,12 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       }
       // Auto-apply spec to project immediately (non-fatal — spec data is already saved)
       // Only auto-apply if this is the first/base spec — addenda merge via mergeSpecMaterials
-      if (pendingSourceType === 'base_spec' || (projectSpecs?.length ?? 0) === 0) {
+      if (sourceType === 'base_spec' || (projectSpecs?.length ?? 0) === 0) {
         try {
           await runApplySpec(data, true);
         } catch (e) {
           console.error('Auto-apply failed:', e);
+          setSpecError('Spec saved but auto-apply failed. Click "Apply Spec" to retry.');
         }
       }
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }

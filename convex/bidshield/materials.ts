@@ -215,7 +215,7 @@ export const initProjectMaterials = mutation({
         }
         if (!existingMaterial.qtyPerSf && m.qtyPerSf) patches.qtyPerSf = m.qtyPerSf;
         if (!existingMaterial.takeoffItemType && m.takeoffItemType) patches.takeoffItemType = m.takeoffItemType;
-        if (!existingMaterial.wasteFactor && m.wasteFactor) patches.wasteFactor = m.wasteFactor;
+        if (existingMaterial.wasteFactor == null && m.wasteFactor) patches.wasteFactor = m.wasteFactor;
         if (Object.keys(patches).length > 0) {
           patches.updatedAt = now;
           await ctx.db.patch(existingMaterial._id, patches);

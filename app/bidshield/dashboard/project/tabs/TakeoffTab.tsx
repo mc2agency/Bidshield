@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
-import { DEMO_TAKEOFF_SECTIONS as IMPORTED_SECTIONS, DEMO_LINEAR_ITEMS as IMPORTED_LINEAR, DEMO_COUNT_ITEMS as IMPORTED_COUNT } from "@/lib/bidshield/demo-data";
 import { ASSEMBLY_TYPES } from "@/lib/bidshield/constants";
 
 type TakeoffSection = {
@@ -301,7 +300,7 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
   const handleUpdateLineItem = useCallback(async (id: string, updates: { quantity?: number; verified?: boolean; notes?: string }) => {
     if (isDemo) { setDemoLineItems(p => p.map(i => i._id === id ? { ...i, ...updates } : i)); return; }
     await updateLineItem({ itemId: id as Id<"bidshield_takeoff_line_items">, ...updates });
-    silentSyncToMaterials();
+    await silentSyncToMaterials();
   }, [isDemo, updateLineItem, silentSyncToMaterials]);
 
   const handleDeleteLineItem = useCallback(async (id: string) => {

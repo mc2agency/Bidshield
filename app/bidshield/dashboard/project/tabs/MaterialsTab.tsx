@@ -366,6 +366,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [isFixingCategories, setIsFixingCategories] = useState(false);
   const [csvImporting, setCsvImporting] = useState(false);
   const [csvError, setCsvError] = useState<string | null>(null);
+  const [resyncStatus, setResyncStatus] = useState<string | null>(null);
+  const [resyncError, setResyncError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
@@ -790,18 +792,20 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
 
       // Clear old → insert new → sync quantities
 
-      const cleared = await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
+      await clearMaterials({ projectId: projectId as Id<"bidshield_projects">, userId });
 
       if (allMaterials.length > 0) {
-        const result = await initMaterials({ projectId: projectId as Id<"bidshield_projects">, userId, materials: allMaterials });
+        await initMaterials({ projectId: projectId as Id<"bidshield_projects">, userId, materials: allMaterials });
         try {
-          const syncResult = await syncTakeoffMutation({ projectId: projectId as Id<"bidshield_projects">, userId });
-        } catch { /* takeoff data may not exist yet */ }
+          await syncTakeoffMutation({ projectId: projectId as Id<"bidshield_projects">, userId });
+        } catch (syncErr) { console.error('Sync after resync failed:', syncErr); }
       }
-      alert(`Re-sync complete: ${allMaterials.length} spec materials loaded (no templates).`);
+      setResyncError(null);
+      setResyncStatus(`Re-sync complete: ${allMaterials.length} spec materials loaded (no templates).`);
     } catch (e) {
       console.error("Re-sync from specs failed:", e);
-      alert("Failed to re-sync: " + (e as Error).message);
+      setResyncStatus(null);
+      setResyncError("Failed to re-sync: " + (e as Error).message);
     } finally {
       setIsResyncing(false);
     }
@@ -1338,6 +1342,22 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
           <span className="flex-1">{csvError}</span>
           <button onClick={() => setCsvError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
+        </div>
+      )}
+
+      {resyncError && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
+          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+          <span className="flex-1">{resyncError}</span>
+          <button onClick={() => setResyncError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
+        </div>
+      )}
+
+      {resyncStatus && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border, var(--bs-teal))", color: "var(--bs-teal)" }}>
+          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+          <span className="flex-1">{resyncStatus}</span>
+          <button onClick={() => setResyncStatus(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-teal)" }}>Dismiss</button>
         </div>
       )}
 
