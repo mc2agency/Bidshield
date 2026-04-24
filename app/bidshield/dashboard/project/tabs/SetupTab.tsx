@@ -684,7 +684,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
       // Only auto-apply if this is the first/base spec — addenda merge via mergeSpecMaterials
       if (pendingSourceType === 'base_spec' || (projectSpecs?.length ?? 0) === 0) {
         try {
-          await runApplySpec(data);
+          await runApplySpec(data, true);
         } catch (e) {
           console.error('Auto-apply failed:', e);
         }
