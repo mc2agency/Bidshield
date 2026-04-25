@@ -49,3 +49,4 @@ BidShield-Audit-Report.docx
 # Editor / tool configs
 .cursor/
 .claude/
+.hermes/
