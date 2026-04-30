@@ -556,10 +556,10 @@ function DashboardContent() {
       label: a.label,
       systemType: a.systemType,
       ...(a.name ? { name: a.name } : {}),
-      ...(a.insulationType ? { insulationType: a.insulationType } : {}),
-      ...(a.insulationThickness ? { insulationThickness: a.insulationThickness } : {}),
+      ...(a.insulationType !== undefined ? { insulationType: a.insulationType } : {}),
+      ...(a.insulationThickness !== undefined ? { insulationThickness: a.insulationThickness } : {}),
       ...(a.rValue != null ? { rValue: a.rValue } : {}),
-      ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
+      ...(a.surfaceType !== undefined ? { surfaceType: a.surfaceType } : {}),
       ...(a.area != null ? { area: a.area } : {}),
       ...(a.uValue != null ? { uValue: a.uValue } : {}),
     }));
