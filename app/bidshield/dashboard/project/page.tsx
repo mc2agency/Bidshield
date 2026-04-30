@@ -293,7 +293,7 @@ function ProjectDetail() {
       takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : 0),
       pricing: pricingDone ? 100 : (bidAmt ? 50 : 0),
       materials: mats.length > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
-      quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 0,
+      quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 100,
       addenda: adCount > 0 ? (adNotRepriced === 0 && adNotReviewed === 0 ? 100 : 40) : 100,
       rfis: rCount > 0 ? (rPending === 0 ? 100 : 60) : 100,
     };

@@ -1565,6 +1565,5 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         )}
       </div>
     </div>
-  </div>
   );
 }

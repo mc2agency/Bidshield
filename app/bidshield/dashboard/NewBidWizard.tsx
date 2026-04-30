@@ -126,7 +126,7 @@ interface WizardData {
   drawingDate?: string;
   drawingRevision?: string;
   projectType: string; systemType: string; deckType: string;
-  gc: string; sqft: string; totalBidAmount: string; assemblies: string;
+  gc: string; sqft: string; totalBidAmount: string; assemblies: string[];
   roofAssemblies?: AssemblyInput[];
   systemDescription?: string;
 }
@@ -1001,7 +1001,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                 name, location, bidDate, drawingDate: drawingDate || undefined, drawingRevision: drawingRevision || undefined, trade: "roofing",
                 projectType, systemType: systems[0] || "", deckType: deck,
                 gc, sqft: effectiveSqft, totalBidAmount,
-                assemblies: systems.map(s => s.toUpperCase()).join(","),
+                assemblies: systems.map(s => s.toUpperCase()),
                 roofAssemblies: assemblies.length > 0
                   ? assemblies.map(a => ({
                       label: a.label,

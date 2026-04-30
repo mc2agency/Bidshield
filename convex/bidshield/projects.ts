@@ -117,7 +117,7 @@ export const createProject = mutation({
     // Initialize checklist items from trade-specific template
     // When roofAssemblies exist, union checklist items across all unique systems
     const systemTypes = args.roofAssemblies
-      ? [...new Set(args.roofAssemblies.map(a => a.systemType))]
+      ? Array.from(new Set(args.roofAssemblies.map(a => a.systemType)))
       : args.systemType ? [args.systemType] : [];
     const checklist = getChecklistForTrade(trade, systemTypes.length > 0 ? systemTypes : undefined, args.deckType);
     for (const [phaseKey, phase] of Object.entries(checklist)) {
@@ -160,6 +160,7 @@ export const updateProject = mutation({
     assemblies: v.optional(v.array(v.string())),
     grossRoofArea: v.optional(v.number()),
     deckType: v.optional(v.string()),
+    projectType: v.optional(v.string()),
     notes: v.optional(v.string()),
     totalBidAmount: v.optional(v.number()),
     materialCost: v.optional(v.number()),
