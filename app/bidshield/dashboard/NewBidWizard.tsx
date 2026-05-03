@@ -251,20 +251,22 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       const mapped: AssemblyInput[] = (data.assemblies || []).map((a: any) => {
         const insulationType = a.insulation || a.insulationType || "";
         const insulationThickness = a.thickness?.replace(/"/g, "") || "";
-        const extractedRValue = typeof a.rValue === "number" ? a.rValue : undefined;
-        const computedRValue = !extractedRValue && insulationType && insulationThickness
-          ? computeInsulationRValue(insulationType, parseFloat(insulationThickness))
+        const rawRValue = typeof a.rValue === "number" && !isNaN(a.rValue) ? a.rValue : undefined;
+        const thickness = parseFloat(insulationThickness);
+        const computedRValue = !rawRValue && insulationType && insulationThickness && !isNaN(thickness)
+          ? computeInsulationRValue(insulationType, thickness)
           : undefined;
+        const safeR = rawRValue ?? computedRValue;
         return {
-          label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "00")}`,
+          label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "0")}`,
           name: a.name || undefined,
           systemType: a.system || a.systemType || "",
           insulationType,
           insulationThickness,
-          rValue: extractedRValue ?? computedRValue,
+          rValue: safeR != null && !isNaN(safeR) ? safeR : undefined,
           surfaceType: a.surface || a.surfaceType || "",
-          area: typeof a.area === "number" ? a.area : undefined,
-          uValue: typeof a.uValue === "number" ? a.uValue : undefined,
+          area: typeof a.area === "number" && !isNaN(a.area) ? a.area : undefined,
+          uValue: typeof a.uValue === "number" && !isNaN(a.uValue) ? a.uValue : undefined,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }

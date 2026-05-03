@@ -551,17 +551,17 @@ function DashboardContent() {
     };
     const baseArgs = { ...baseArgsCore, drawingDate: dd, drawingRevision: dr };
     const baseArgsFallback = baseArgsCore; // without drawing fields for older schema
-    // Clean roofAssemblies: Convex v.optional(v.number()) rejects null — convert nulls to undefined
+    // Clean roofAssemblies: Convex rejects null and NaN for number fields — strip both
     const cleanedAssemblies = np.roofAssemblies?.map((a: any) => ({
       label: a.label,
       systemType: a.systemType,
       ...(a.name ? { name: a.name } : {}),
       ...(a.insulationType ? { insulationType: a.insulationType } : {}),
       ...(a.insulationThickness ? { insulationThickness: a.insulationThickness } : {}),
-      ...(a.rValue != null ? { rValue: a.rValue } : {}),
+      ...(a.rValue != null && !isNaN(a.rValue) ? { rValue: a.rValue } : {}),
       ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
-      ...(a.area != null ? { area: a.area } : {}),
-      ...(a.uValue != null ? { uValue: a.uValue } : {}),
+      ...(a.area != null && !isNaN(a.area) ? { area: a.area } : {}),
+      ...(a.uValue != null && !isNaN(a.uValue) ? { uValue: a.uValue } : {}),
     }));
     let projectId: string;
     try {
@@ -601,10 +601,10 @@ function DashboardContent() {
       if (a.name) obj.name = a.name;
       if (a.insulationType) obj.insulationType = a.insulationType;
       if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
-      if (a.rValue != null) obj.rValue = a.rValue;
+      if (a.rValue != null && !isNaN(a.rValue)) obj.rValue = a.rValue;
       if (a.surfaceType) obj.surfaceType = a.surfaceType;
-      if (a.area != null) obj.area = a.area;
-      if (a.uValue != null) obj.uValue = a.uValue;
+      if (a.area != null && !isNaN(a.area)) obj.area = a.area;
+      if (a.uValue != null && !isNaN(a.uValue)) obj.uValue = a.uValue;
       return obj;
     });
     try {
