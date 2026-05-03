@@ -367,21 +367,39 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
     } catch { setTakeoffError("Failed to read PDF."); setTakeoffMode("error"); }
   };
 
-  // Auto-generate assemblies from selected systems when entering step 2
+  // Auto-generate assemblies from selected systems when entering step 2.
+  // Uses functional setAssemblies so we can read prev without adding assemblies to deps.
   useEffect(() => {
-    if (step === 2 && assemblies.length === 0 && systems.length > 0) {
-      setAssemblies(systems.map((s, i) => ({
-        label: `RT-0${i + 1}`,
-        systemType: s,
-        insulationType: "",
-        insulationThickness: "",
-        rValue: undefined,
-        surfaceType: "",
-      })));
-    }
+    if (step !== 2 || systems.length === 0) return;
+    setAssemblies(prev => {
+      if (prev.length === 0) {
+        return systems.map((s, i) => ({
+          label: `RT-${String(i + 1).padStart(2, "0")}`,
+          systemType: s,
+          insulationType: "",
+          insulationThickness: "",
+          rValue: undefined,
+          surfaceType: "",
+        }));
+      }
+      // Add an assembly for every system that doesn't have one yet
+      const existingTypes = new Set(prev.map(a => a.systemType));
+      const missing = systems.filter(s => !existingTypes.has(s));
+      if (missing.length === 0) return prev;
+      return [
+        ...prev,
+        ...missing.map((s, i) => ({
+          label: `RT-${String(prev.length + i + 1).padStart(2, "0")}`,
+          systemType: s,
+          insulationType: "",
+          insulationThickness: "",
+          rValue: undefined,
+          surfaceType: "",
+        })),
+      ];
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, systems]);
-  // Note: assemblies is intentionally not in the dep array to avoid re-seeding
 
   // Fire AI description when entering step 4
   useEffect(() => {
