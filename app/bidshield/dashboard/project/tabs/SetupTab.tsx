@@ -298,10 +298,10 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           if (a.name) obj.name = a.name;
           if (a.insulationType) obj.insulationType = a.insulationType;
           if (a.insulationThickness) obj.insulationThickness = a.insulationThickness;
-          if (a.rValue != null) obj.rValue = a.rValue;
+          if (a.rValue != null && !isNaN(a.rValue)) obj.rValue = a.rValue;
           if (a.surfaceType) obj.surfaceType = a.surfaceType;
-          if (a.area != null) obj.area = a.area;
-          if (a.uValue != null) obj.uValue = a.uValue;
+          if (a.area != null && !isNaN(a.area)) obj.area = a.area;
+          if (a.uValue != null && !isNaN(a.uValue)) obj.uValue = a.uValue;
           return obj;
         });
       await updateProject({
@@ -1558,6 +1558,5 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         )}
       </div>
     </div>
-  </div>
   );
 }

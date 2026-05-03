@@ -251,20 +251,22 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       const mapped: AssemblyInput[] = (data.assemblies || []).map((a: any) => {
         const insulationType = a.insulation || a.insulationType || "";
         const insulationThickness = a.thickness?.replace(/"/g, "") || "";
-        const extractedRValue = typeof a.rValue === "number" ? a.rValue : undefined;
-        const computedRValue = !extractedRValue && insulationType && insulationThickness
-          ? computeInsulationRValue(insulationType, parseFloat(insulationThickness))
+        const rawRValue = typeof a.rValue === "number" && !isNaN(a.rValue) ? a.rValue : undefined;
+        const thickness = parseFloat(insulationThickness);
+        const computedRValue = !rawRValue && insulationType && insulationThickness && !isNaN(thickness)
+          ? computeInsulationRValue(insulationType, thickness)
           : undefined;
+        const safeR = rawRValue ?? computedRValue;
         return {
-          label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "00")}`,
+          label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "0")}`,
           name: a.name || undefined,
           systemType: a.system || a.systemType || "",
           insulationType,
           insulationThickness,
-          rValue: extractedRValue ?? computedRValue,
+          rValue: safeR != null && !isNaN(safeR) ? safeR : undefined,
           surfaceType: a.surface || a.surfaceType || "",
-          area: typeof a.area === "number" ? a.area : undefined,
-          uValue: typeof a.uValue === "number" ? a.uValue : undefined,
+          area: typeof a.area === "number" && !isNaN(a.area) ? a.area : undefined,
+          uValue: typeof a.uValue === "number" && !isNaN(a.uValue) ? a.uValue : undefined,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
@@ -367,21 +369,39 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
     } catch { setTakeoffError("Failed to read PDF."); setTakeoffMode("error"); }
   };
 
-  // Auto-generate assemblies from selected systems when entering step 2
+  // Auto-generate assemblies from selected systems when entering step 2.
+  // Uses functional setAssemblies so we can read prev without adding assemblies to deps.
   useEffect(() => {
-    if (step === 2 && assemblies.length === 0 && systems.length > 0) {
-      setAssemblies(systems.map((s, i) => ({
-        label: `RT-0${i + 1}`,
-        systemType: s,
-        insulationType: "",
-        insulationThickness: "",
-        rValue: undefined,
-        surfaceType: "",
-      })));
-    }
+    if (step !== 2 || systems.length === 0) return;
+    setAssemblies(prev => {
+      if (prev.length === 0) {
+        return systems.map((s, i) => ({
+          label: `RT-${String(i + 1).padStart(2, "0")}`,
+          systemType: s,
+          insulationType: "",
+          insulationThickness: "",
+          rValue: undefined,
+          surfaceType: "",
+        }));
+      }
+      // Add an assembly for every system that doesn't have one yet
+      const existingTypes = new Set(prev.map(a => a.systemType));
+      const missing = systems.filter(s => !existingTypes.has(s));
+      if (missing.length === 0) return prev;
+      return [
+        ...prev,
+        ...missing.map((s, i) => ({
+          label: `RT-${String(prev.length + i + 1).padStart(2, "0")}`,
+          systemType: s,
+          insulationType: "",
+          insulationThickness: "",
+          rValue: undefined,
+          surfaceType: "",
+        })),
+      ];
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, systems]);
-  // Note: assemblies is intentionally not in the dep array to avoid re-seeding
 
   // Fire AI description when entering step 4
   useEffect(() => {
