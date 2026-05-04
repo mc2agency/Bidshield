@@ -238,7 +238,7 @@ function ProjectDetail() {
     const sc = isDemo ? Array.from({ length: 40 }, (_, i) => ({ status: i < 14 ? "included" : i < 16 ? "excluded" : i < 18 ? "by_others" : i < 21 ? "na" : "unaddressed" })) : (scopeItems ?? []);
     const scTotal = sc.length;
     const scUnaddressed = sc.filter((s: any) => s.status === "unaddressed").length;
-    const scPct = scTotal > 0 ? Math.round(((scTotal - scUnaddressed) / scTotal) * 100) : 100;
+    const scPct = scTotal > 0 ? Math.round(((scTotal - scUnaddressed) / scTotal) * 100) : 0;
 
     const demoSections = [{ squareFeet: 28500 }, { squareFeet: 24800 }, { squareFeet: 8200 }, { squareFeet: 3400 }];
     const sections = isDemo ? demoSections : (takeoffSections ?? []);
@@ -293,9 +293,9 @@ function ProjectDetail() {
       takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : (controlSF > 0 ? 0 : 50)),
       pricing: pricingDone ? 100 : (bidAmt ? 50 : 0),
       materials: mats.length > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
-      quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 100,
-      addenda: adCount > 0 ? (adNotRepriced === 0 && adNotReviewed === 0 ? 100 : 40) : 100,
-      rfis: rCount > 0 ? (rPending === 0 ? 100 : 60) : 100,
+      quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 0,
+      addenda: adCount > 0 ? (adNotRepriced === 0 && adNotReviewed === 0 ? 100 : 40) : 0,
+      rfis: rCount > 0 ? (rPending === 0 ? 100 : 60) : 0,
     };
     const w = { checklist: 0.25, scope: 0.20, takeoff: 0.15, pricing: 0.15, materials: 0.10, quotes: 0.05, addenda: 0.05, rfis: 0.05 };
     const readiness = Math.round(Object.entries(w).reduce((s, [k, v]) => s + (scores[k as keyof typeof scores] ?? 0) * v, 0));
