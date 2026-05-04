@@ -571,10 +571,15 @@ function DashboardContent() {
         systemDescription: np.systemDescription || undefined,
       });
     } catch (err) {
-      // Fallback: backend may not support newer fields yet
-      console.warn("createProject failed, retrying with base args only:", err);
+      // Fallback: backend may not support newer fields yet (e.g. drawingDate/drawingRevision)
+      console.warn("createProject failed, retrying without drawing fields:", err);
+      console.log("Failed payload:", { ...baseArgs, roofAssemblies: cleanedAssemblies, systemDescription: np.systemDescription });
       try {
-        projectId = await createProjectMut(baseArgsFallback as Parameters<typeof createProjectMut>[0]);
+        projectId = await createProjectMut({
+          ...baseArgsFallback,
+          roofAssemblies: cleanedAssemblies && cleanedAssemblies.length > 0 ? cleanedAssemblies : undefined,
+          systemDescription: np.systemDescription || undefined,
+        } as Parameters<typeof createProjectMut>[0]);
       } catch (err2) {
         console.error("createProject fallback also failed:", err2);
         alert("Failed to create project: " + (err2 as any)?.message);
