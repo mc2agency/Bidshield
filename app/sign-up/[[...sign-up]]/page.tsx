@@ -23,7 +23,7 @@ export default function SignUpPage() {
         </div>
         {isClient ? (
           <SignUp
-            fallbackRedirectUrl="/bidshield/dashboard?signup=1"
+            signUpFallbackRedirectUrl="/bidshield/dashboard?signup=1"
             appearance={{
               elements: {
                 rootBox: "mx-auto",
