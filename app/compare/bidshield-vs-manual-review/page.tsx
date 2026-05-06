@@ -107,10 +107,10 @@ const faqSchema = {
     },
     {
       '@type': 'Question',
-      name: 'What if I've been estimating for 15 years and never use checklists?',
+      name: 'What if I\'ve been estimating for 15 years and never use checklists?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'You're exactly who this is for. BidShield systematizes what you already do in your head — the mental checklist you run before submission. The difference: it catches the one item you forgot to check when you were juggling three bids at once on a Friday afternoon.',
+        text: 'You\'re exactly who this is for. BidShield systematizes what you already do in your head — the mental checklist you run before submission. The difference: it catches the one item you forgot to check when you were juggling three bids at once on a Friday afternoon.',
       },
     },
   ],
