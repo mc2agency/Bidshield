@@ -16,6 +16,9 @@ export default function BidInvitesPage() {
   const allInvites = useQuery(api.bidInvites.list, statusFilter === "all" ? {} : { status: statusFilter });
   const upcomingInvites = useQuery(api.bidInvites.upcoming);
 
+  // Show loading state while queries are undefined
+  const isLoading = allInvites === undefined;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -89,7 +92,7 @@ export default function BidInvitesPage() {
       </div>
 
       {/* Bid invites list */}
-      {allInvites === undefined ? (
+      {isLoading ? (
         <div className="text-center py-12 text-slate-500">Loading...</div>
       ) : allInvites.length === 0 ? (
         <div className="text-center py-12">
