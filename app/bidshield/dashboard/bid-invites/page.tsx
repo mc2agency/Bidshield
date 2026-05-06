@@ -3,19 +3,24 @@
 import { Suspense, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { Plus, Mail } from "lucide-react";
 import BidInvitesList from "./BidInvitesList";
 import ManualBidInviteForm from "./ManualBidInviteForm";
 import EmailImportDialog from "./EmailImportDialog";
 
 function BidInvitesContent() {
+  const { user } = useUser();
   const [showManualForm, setShowManualForm] = useState(false);
   const [showEmailImport, setShowEmailImport] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "new" | "pursuing" | "pass" | "converted">("all");
 
-  const allInvites = useQuery(api.bidInvites.list, statusFilter === "all" ? {} : { status: statusFilter });
-  const upcomingInvites = useQuery(api.bidInvites.upcoming);
+  const queryArgs = user?.id 
+    ? (statusFilter === "all" ? {} : { status: statusFilter })
+    : "skip";
+  
+  const allInvites = useQuery(api.bidInvites.list, queryArgs as any);
+  const upcomingInvites = useQuery(api.bidInvites.upcoming, user?.id ? {} : "skip");
 
   // Show loading state while queries are undefined
   const isLoading = allInvites === undefined;
