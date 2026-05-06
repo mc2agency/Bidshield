@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@clerk/nextjs";
 import { Plus, Mail } from "lucide-react";
 import BidInvitesList from "./BidInvitesList";
 import ManualBidInviteForm from "./ManualBidInviteForm";
 import EmailImportDialog from "./EmailImportDialog";
 
-export default function BidInvitesPage() {
+function BidInvitesContent() {
   const [showManualForm, setShowManualForm] = useState(false);
   const [showEmailImport, setShowEmailImport] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "new" | "pursuing" | "pass" | "converted">("all");
@@ -123,5 +124,29 @@ export default function BidInvitesPage() {
         <EmailImportDialog onClose={() => setShowEmailImport(false)} />
       )}
     </div>
+  );
+}
+
+export default function BidInvitesPage() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  // Wait for auth to load
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-slate-500">Loading...</div>
+      </div>
+    );
+  }
+
+  // Auth handled by layout redirect, but double-check
+  if (!isSignedIn) {
+    return null;
+  }
+
+  return (
+    <Suspense fallback={<div className="text-slate-500">Loading...</div>}>
+      <BidInvitesContent />
+    </Suspense>
   );
 }
