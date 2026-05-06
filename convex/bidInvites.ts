@@ -19,16 +19,17 @@ export const list = query({
     if (!identity) return []; // Return empty array instead of throwing
 
     try {
-      let invitesQuery = ctx.db
+      const allInvites = await ctx.db
         .query("bidInvites")
-        .withIndex("by_user_id", (q) => q.eq("userId", identity.subject));
+        .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+        .collect();
 
+      // Filter by status if provided
       if (args.status) {
-        invitesQuery = invitesQuery.filter((q) => q.eq(q.field("status"), args.status));
+        return allInvites.filter((invite) => invite.status === args.status);
       }
 
-      const invites = await invitesQuery.order("desc").collect();
-      return invites;
+      return allInvites;
     } catch (error) {
       console.error("Error fetching bid invites:", error);
       return []; // Return empty array on error instead of crashing
