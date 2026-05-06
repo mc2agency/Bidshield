@@ -108,9 +108,6 @@ function NavAuthDesktop({ isDashboard, pathname }: { isDashboard: boolean; pathn
   // Unauthenticated
   return (
     <>
-      <Link href="/sign-in" className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
-        Sign In
-      </Link>
       {NAV_LINKS.map(({ href, label }) => (
         <Link
           key={href}
@@ -122,11 +119,14 @@ function NavAuthDesktop({ isDashboard, pathname }: { isDashboard: boolean; pathn
           {label}
         </Link>
       ))}
+      <Link href="/sign-in" className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+        Sign In
+      </Link>
       <Link
         href="/sign-up"
         className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300"
       >
-        Get Started →
+        Start Free Trial
       </Link>
     </>
   );
@@ -179,9 +179,6 @@ function NavAuthMobileMenu({ pathname, isDashboard, onClose }: { pathname: strin
 
   return (
     <>
-      <Link href="/sign-in" className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" onClick={onClose}>
-        Sign In
-      </Link>
       {NAV_LINKS.map(({ href, label }) => (
         <Link
           key={href}
@@ -194,12 +191,15 @@ function NavAuthMobileMenu({ pathname, isDashboard, onClose }: { pathname: strin
           {label}
         </Link>
       ))}
+      <Link href="/sign-in" className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" onClick={onClose}>
+        Sign In
+      </Link>
       <Link
         href="/sign-up"
         className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg text-center font-semibold text-sm shadow-lg shadow-emerald-500/20"
         onClick={onClose}
       >
-        Get Started →
+        Start Free Trial
       </Link>
     </>
   );
@@ -212,9 +212,6 @@ function StaticDesktopNav({ pathname }: { pathname: string }) {
   const checkActive = (href: string) => pathname.startsWith(href);
   return (
     <>
-      <Link href="/sign-in" className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
-        Sign In
-      </Link>
       {NAV_LINKS.map(({ href, label }) => (
         <Link
           key={href}
@@ -226,8 +223,11 @@ function StaticDesktopNav({ pathname }: { pathname: string }) {
           {label}
         </Link>
       ))}
-      <Link href="/sign-up" className="px-3.5 py-2 text-sm text-slate-300 hover:text-white font-medium transition-colors">
-        Get Started →
+      <Link href="/sign-in" className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+        Sign In
+      </Link>
+      <Link href="/sign-up" className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300">
+        Start Free Trial
       </Link>
     </>
   );
@@ -237,9 +237,6 @@ function StaticMobileMenu({ pathname, onClose }: { pathname: string; onClose: ()
   const checkActive = (href: string) => pathname.startsWith(href);
   return (
     <>
-      <Link href="/sign-in" className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" onClick={onClose}>
-        Sign In
-      </Link>
       {NAV_LINKS.map(({ href, label }) => (
         <Link
           key={href}
@@ -252,12 +249,15 @@ function StaticMobileMenu({ pathname, onClose }: { pathname: string; onClose: ()
           {label}
         </Link>
       ))}
+      <Link href="/sign-in" className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" onClick={onClose}>
+        Sign In
+      </Link>
       <Link
         href="/sign-up"
         className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg text-center font-semibold text-sm shadow-lg shadow-emerald-500/20"
         onClick={onClose}
       >
-        Get Started →
+        Start Free Trial
       </Link>
     </>
   );
