@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About BidShield',
-  description: 'BidShield is the pre-submission bid review platform built for commercial roofing estimators. Built by a 12-year estimator to catch what The EDGE, STACK, and Excel miss.',
-  keywords: 'about BidShield, commercial roofing estimating, bid QA, pre-submission review, BidShield',
+  title: 'About BidShield — Systematic Bid QA for Commercial Roofing',
+  description: 'BidShield is a pre-submission bid review platform for commercial roofing estimators. 18 phases, 100+ check items, AI-powered scope gap detection, and takeoff reconciliation — built by a 12-year estimator.',
+  keywords: 'BidShield features, commercial roofing QA, bid review platform, estimating workflow, scope gap detection, takeoff reconciliation',
   alternates: { canonical: 'https://www.bidshield.co/about' },
 };
 
@@ -20,96 +20,162 @@ export default function AboutPage() {
               About BidShield
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
-              Built by an estimator
+              Your last line of defense
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">for estimators</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">before you submit</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 max-w-3xl mx-auto">
-              BidShield is the pre-submission review platform that catches what The EDGE, STACK, and Excel can&apos;t — built after 12 years of commercial roofing estimation.
+              BidShield is a pre-submission bid review platform that systematically checks every commercial roofing bid for scope gaps, addenda, mechanical items, and spec compliance — before it leaves your desk.
             </p>
           </div>
         </div>
       </section>
 
-      {/* The Problem */}
+      {/* What You Actually Do */}
       <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Why BidShield exists</h2>
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 md:p-12">
-            <p className="text-xl text-slate-800 leading-relaxed mb-6">
-              Estimating software tells you what&apos;s in your bid. Nobody tells you what&apos;s missing from it.
-            </p>
-            <p className="text-lg text-slate-600 mb-6">
-              A missed mechanical curb section on a $3M job costs $47,000. A missed addendum costs $31,000.
-              Wrong submittal requirements: $22,000. These aren&apos;t edge cases — they happen every week,
-              on bids that looked complete before submission.
-            </p>
-            <p className="text-lg text-slate-600">
-              BidShield is the last line of defense before you submit. It runs every bid through 18 phases
-              and 100+ check items — the same review a veteran estimator runs in their head, systematized
-              so nothing gets missed when you&apos;re busy.
-            </p>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">What you actually do in BidShield</h2>
+          <p className="text-lg text-slate-500 text-center mb-12 max-w-2xl mx-auto">
+            The workflow from project setup through bid submission.
+          </p>
+          
+          <div className="space-y-6">
+            {[
+              {
+                step: '1',
+                title: 'Create a project',
+                description: 'Enter project name, GC, bid date. Upload your bid documents — plans, specs, addenda, RFIs. BidShield extracts key info automatically.',
+              },
+              {
+                step: '2',
+                title: 'Set up roof assemblies',
+                description: 'Define the roof systems you\'re bidding (TPO, PVC, EPDM, etc.). BidShield analyzes specs and suggests assemblies based on project requirements.',
+              },
+              {
+                step: '3',
+                title: 'Run document review phases',
+                description: 'Work through 18 phases as you build your bid: Architectural Review (parapets, access), Structural (deck, slopes), Mechanical (curbs, drains), Plumbing, Electrical, Civil/Site, Specifications, Addenda.',
+              },
+              {
+                step: '4',
+                title: 'Input your takeoff quantities',
+                description: 'Enter SF, linear footage, and counts from your takeoff. BidShield cross-references against drawings and flags discrepancies.',
+              },
+              {
+                step: '5',
+                title: 'Run scope gap check',
+                description: 'AI scans your documents and bid against 40 common scope gaps: mechanical curbs, edge metal systems, drain compatibility, expansion joints, warranty scope, liquidated damages.',
+              },
+              {
+                step: '6',
+                title: 'Review your readiness score',
+                description: 'See your 0–100 bid readiness score. Know exactly what\'s complete and what still needs attention before submission.',
+              },
+              {
+                step: '7',
+                title: 'Export and submit',
+                description: 'Generate a PDF summary of your review checklist. Submit your bid with confidence.',
+              },
+            ].map((item) => (
+              <div key={item.step} className="flex gap-6 items-start bg-slate-50 border border-slate-200 rounded-xl p-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-emerald-500 text-white font-bold text-xl flex items-center justify-center">
+                  {item.step}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{item.title}</h3>
+                  <p className="text-slate-600 leading-relaxed">{item.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
+      {/* Core Features */}
       <section className="py-20 bg-slate-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">What BidShield does</h2>
+          <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">Core features</h2>
           <p className="text-lg text-slate-500 text-center mb-12 max-w-2xl mx-auto">
-            Works alongside your existing estimating software — not instead of it.
+            What makes BidShield different from a spreadsheet checklist.
           </p>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white rounded-xl p-8 border border-slate-200">
-              <div className="text-3xl mb-4">🛡️</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">18-Phase Pre-Submission Review</h3>
-              <p className="text-slate-600">
-                Every bid runs through 18 phases covering scope verification, mechanical systems, addenda,
-                submittal requirements, takeoff reconciliation, and bid form completeness. Each phase has
-                5–8 specific check items.
+              <div className="text-3xl mb-4">🤖</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">AI-Powered Scope Gap Detection</h3>
+              <p className="text-slate-600 mb-4">
+                Upload your plans and specs. AI scans for 40 common scope gaps — mechanical curbs, edge metal, drain compatibility, expansion joints, warranty scope language, liquidated damages clauses.
               </p>
-            </div>
-            <div className="bg-white rounded-xl p-8 border border-slate-200">
-              <div className="text-3xl mb-4">📊</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Bid Readiness Score</h3>
-              <p className="text-slate-600">
-                Each bid gets a 0–100 readiness score that updates as you complete phases. Know exactly
-                where you stand before you submit — not after you win and discover what was missing.
+              <p className="text-sm text-slate-500">
+                Uses Claude Sonnet 4 to analyze PDFs and cross-reference against your bid setup.
               </p>
             </div>
             <div className="bg-white rounded-xl p-8 border border-slate-200">
               <div className="text-3xl mb-4">📐</div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Takeoff Reconciliation</h3>
-              <p className="text-slate-600">
-                Cross-reference your SF quantities against drawings automatically. Flags area discrepancies
-                before your bid goes out — not during a GC back-charge conversation.
+              <p className="text-slate-600 mb-4">
+                Enter your SF quantities. BidShield extracts area callouts from drawings and flags discrepancies. Catches transposition errors and missed sections before submission.
+              </p>
+              <p className="text-sm text-slate-500">
+                Vision AI reads plan callouts and compares against your entered takeoff.
               </p>
             </div>
             <div className="bg-white rounded-xl p-8 border border-slate-200">
-              <div className="text-3xl mb-4">🔍</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">40-Item Scope Gap Checker</h3>
-              <p className="text-slate-600">
-                Runs 40 common scope gap items against your bid — mechanical curbs, edge metal systems,
-                drain compatibility, expansion joints, warranty scope, liquidated damages clauses.
+              <div className="text-3xl mb-4">📋</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Addenda Cross-Reference</h3>
+              <p className="text-slate-600 mb-4">
+                Upload addenda as they arrive. BidShield tracks what changed and prompts you to update affected phases. Never miss an addendum item buried on page 6.
+              </p>
+              <p className="text-sm text-slate-500">
+                Extracts changes and maps them to relevant bid phases automatically.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="text-3xl mb-4">🛡️</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">18-Phase Review Checklist</h3>
+              <p className="text-slate-600 mb-4">
+                Systematic review from project setup through bid submission. Each phase has 5–8 specific check items. Track completion in real-time with a 0–100 readiness score.
+              </p>
+              <p className="text-sm text-slate-500">
+                Based on 12 years of commercial roofing estimation experience.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="text-3xl mb-4">📊</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Spec Analysis</h3>
+              <p className="text-slate-600 mb-4">
+                AI extracts submittal requirements, warranty scope, and liquidated damages clauses from Division 07 specs. Flags non-standard requirements before you price.
+              </p>
+              <p className="text-sm text-slate-500">
+                Parses CSI format specs and highlights deviations from standard scope.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-slate-200">
+              <div className="text-3xl mb-4">🔄</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">System Substitution Preferences</h3>
+              <p className="text-slate-600 mb-4">
+                Set your preferred roof system substitutions once. BidShield auto-suggests when spec assemblies match your substitution rules (e.g., always sub Hydrotech for generic IRMA).
+              </p>
+              <p className="text-sm text-slate-500">
+                Learns your business preferences and applies them across all projects.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Positioning */}
+      {/* Who Built This */}
       <section className="py-20 bg-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8">
-            <p className="text-lg font-semibold text-emerald-900 mb-2">
-              The EDGE tells you what&apos;s in your bid.
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Built by an estimator, for estimators</h2>
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 md:p-12">
+            <p className="text-lg text-slate-700 leading-relaxed mb-6">
+              BidShield was built by Carlos M., a 12-year commercial roofing estimator who got tired of catching scope gaps after bids were already submitted.
             </p>
-            <p className="text-2xl font-bold text-slate-900">
-              BidShield tells you what&apos;s missing from it.
+            <p className="text-lg text-slate-700 leading-relaxed mb-6">
+              The platform systematizes the mental checklist that veteran estimators run before submission — but most of the time that checklist is inconsistent, depends on who\'s busy, and falls apart when you\'re juggling three bids due the same day.
             </p>
-            <p className="text-slate-600 mt-4">
-              No replacement required. Use it on any bid, with any estimating software you already use today.
+            <p className="text-lg text-slate-700 leading-relaxed">
+              BidShield makes that checklist systematic, repeatable, and accessible to every estimator — not just the veterans who\'ve already made every mistake once.
             </p>
           </div>
         </div>
@@ -122,19 +188,55 @@ export default function AboutPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="bg-white rounded-xl p-6 border border-slate-200">
               <div className="text-4xl font-bold text-emerald-600 mb-2">18</div>
-              <p className="text-slate-600 font-medium text-sm">Bid phases covered</p>
+              <p className="text-slate-600 font-medium text-sm">Review phases</p>
             </div>
             <div className="bg-white rounded-xl p-6 border border-slate-200">
               <div className="text-4xl font-bold text-emerald-600 mb-2">100+</div>
-              <p className="text-slate-600 font-medium text-sm">Checklist items</p>
+              <p className="text-slate-600 font-medium text-sm">Check items</p>
             </div>
             <div className="bg-white rounded-xl p-6 border border-slate-200">
               <div className="text-4xl font-bold text-emerald-600 mb-2">40</div>
-              <p className="text-slate-600 font-medium text-sm">Scope gap checks</p>
+              <p className="text-slate-600 font-medium text-sm">AI scope gap checks</p>
             </div>
             <div className="bg-white rounded-xl p-6 border border-slate-200">
-              <div className="text-4xl font-bold text-emerald-600 mb-2">12yr</div>
-              <p className="text-slate-600 font-medium text-sm">Estimating experience</p>
+              <div className="text-4xl font-bold text-emerald-600 mb-2">20-30m</div>
+              <p className="text-slate-600 font-medium text-sm">Review time per bid</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* When to Use It */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">When to use BidShield</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+              <h3 className="font-bold text-emerald-900 mb-3 flex items-center gap-2">
+                <span className="text-emerald-600">✓</span> Use BidShield for:
+              </h3>
+              <ul className="space-y-2 text-slate-700">
+                <li>• Public bids (schools, municipalities, government)</li>
+                <li>• Large commercial projects ($500K+)</li>
+                <li>• Multi-building or phased work</li>
+                <li>• Projects with 3+ addenda</li>
+                <li>• Junior estimators learning the ropes</li>
+                <li>• Any bid where missing scope = back-charge risk</li>
+              </ul>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
+              <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <span className="text-slate-400">○</span> Maybe skip for:
+              </h3>
+              <ul className="space-y-2 text-slate-600">
+                <li>• Emergency repairs (same-day turnaround)</li>
+                <li>• Tiny service work (&lt;$10K)</li>
+                <li>• Repeat clients with standard scope</li>
+                <li>• Bids you\'re not serious about winning</li>
+              </ul>
+              <p className="text-sm text-slate-500 mt-4 italic">
+                That said, even a 5-minute scope gap check on a small bid can save you from a costly miss.
+              </p>
             </div>
           </div>
         </div>
@@ -144,17 +246,17 @@ export default function AboutPage() {
       <section className="py-20 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-6">
-            Run your next bid through BidShield
+            Try it on your next bid
           </h2>
           <p className="text-xl text-slate-300 mb-8">
-            Free to start. One prevented scope gap pays for years of Pro.
+            14-day free trial. No card required. One prevented scope gap pays for months.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/sign-up"
               className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-lg hover:shadow-lg transition-all"
             >
-              Start 14-Day Free Trial — No Card Required
+              Start Free Trial
             </Link>
             <Link
               href="/bidshield/demo"
