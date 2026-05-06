@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const comparisonRows = [
   {
     feature: 'Consistency',
-    manual: 'Depends on who's doing it and how busy they are',
+    manual: 'Depends on who\'s doing it and how busy they are',
     bidshield: 'Same 100+ item checklist every time, regardless of deadline pressure',
   },
   {
