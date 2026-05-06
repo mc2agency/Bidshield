@@ -10,7 +10,6 @@ const CLERK_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 const NAV_LINKS = [
   { href: '/about', label: 'About' },
-  { href: '/compare/bidshield-vs-the-edge', label: 'Compare' },
   { href: '/bidshield/demo', label: 'Demo' },
   { href: '/bidshield/pricing', label: 'Pricing' },
   { href: '/blog', label: 'Blog' },

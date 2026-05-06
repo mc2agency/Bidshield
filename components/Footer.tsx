@@ -12,13 +12,6 @@ export default function Footer() {
       ],
     },
     {
-      title: 'Compare',
-      links: [
-        { href: '/compare/bidshield-vs-the-edge', label: 'BidShield vs The EDGE' },
-        { href: '/compare/bidshield-vs-stack', label: 'BidShield vs STACK' },
-      ],
-    },
-    {
       title: 'Resources',
       links: [
         { href: '/bidshield/dashboard/templates', label: 'Templates' },
