@@ -36,17 +36,17 @@ const comparisonRows = [
   },
   {
     feature: 'Junior estimator support',
-    manual: 'They don't know what they don't know yet',
+    manual: 'They don\'t know what they don\'t know yet',
     bidshield: 'Levels the playing field — systematized veteran knowledge',
   },
   {
     feature: 'Multiple concurrent bids',
     manual: 'Quality drops when juggling 3+ bids due the same day',
-    bidshield: 'Review quality doesn't degrade under volume',
+    bidshield: 'Review quality doesn\'t degrade under volume',
   },
   {
     feature: 'Bid readiness visibility',
-    manual: 'Gut feel about whether you're done',
+    manual: 'Gut feel about whether you\'re done',
     bidshield: '0–100 score updates in real-time as phases complete',
   },
   {
@@ -61,7 +61,7 @@ const costScenarios = [
     icon: '🔩',
     title: 'Missed Mechanical Curbs',
     cost: '$47,000',
-    description: 'The curbs were on sheet M-3, not the roof plan. You were focused on the TPO takeoff. Manual review missed them because you didn't flip to mechanical that day.',
+    description: 'The curbs were on sheet M-3, not the roof plan. You were focused on the TPO takeoff. Manual review missed them because you didn\'t flip to mechanical that day.',
   },
   {
     icon: '📋',
@@ -86,7 +86,7 @@ const faqSchema = {
       name: 'I already check my bids before I submit them. Why do I need BidShield?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Manual reviews are inconsistent — what you check depends on what you remember that day, how busy you are, and whether you've had coffee yet. BidShield gives you the same systematic 18-phase, 100+ item review every single time, regardless of deadline pressure or concurrent bid volume.',
+        text: 'Manual reviews are inconsistent — what you check depends on what you remember that day, how busy you are, and whether you\'ve had coffee yet. BidShield gives you the same systematic 18-phase, 100+ item review every single time, regardless of deadline pressure or concurrent bid volume.',
       },
     },
     {
@@ -94,7 +94,7 @@ const faqSchema = {
       name: 'Does BidShield replace my takeoff tool?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'No. BidShield works after your takeoff is done. Keep using STACK, The EDGE, Excel, or whatever you use for quantities and pricing. BidShield reviews the completed bid for scope gaps, addenda, mechanical items, and spec compliance that your takeoff tool can't catch.',
+        text: 'No. BidShield works after your takeoff is done. Keep using STACK, The EDGE, Excel, or whatever you use for quantities and pricing. BidShield reviews the completed bid for scope gaps, addenda, mechanical items, and spec compliance that your takeoff tool can\'t catch.',
       },
     },
     {
@@ -149,24 +149,24 @@ export default function BidShieldVsManualReviewPage() {
             The problem with manual review
           </h2>
           <p className="text-xl text-slate-500 text-center mb-12 max-w-2xl mx-auto">
-            It works great — until it doesn't.
+            It works great — until it doesn&apos;t.
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 icon: '🧠',
                 title: 'Memory-Dependent',
-                description: 'What you check depends on what you remember. Miss one mental checklist item and it doesn't get reviewed.',
+                description: 'What you check depends on what you remember. Miss one mental checklist item and it doesn&apos;t get reviewed.',
               },
               {
                 icon: '⏰',
                 title: 'Degrades Under Pressure',
-                description: 'When you're juggling 3 bids due Friday at 2pm, your review gets shorter and sloppier.',
+                description: 'When you&apos;re juggling 3 bids due Friday at 2pm, your review gets shorter and sloppier.',
               },
               {
                 icon: '👤',
                 title: 'Experience Gap',
-                description: 'Junior estimators don't have the 10+ years of scar tissue to know what to look for.',
+                description: 'Junior estimators don&apos;t have the 10+ years of scar tissue to know what to look for.',
               },
             ].map((item) => (
               <div key={item.title} className="bg-slate-50 border border-slate-200 rounded-xl p-6">
@@ -314,7 +314,7 @@ export default function BidShieldVsManualReviewPage() {
             Turn your mental checklist into a system
           </h2>
           <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-            BidShield doesn't replace your judgment — it systematizes it. The same review you'd run if you had unlimited time and zero deadline pressure, every single bid.
+            BidShield doesn&apos;t replace your judgment — it systematizes it. The same review you&apos;d run if you had unlimited time and zero deadline pressure, every single bid.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -341,19 +341,19 @@ export default function BidShieldVsManualReviewPage() {
             {[
               {
                 q: 'I already check my bids before I submit them. Why do I need BidShield?',
-                a: 'Manual reviews are inconsistent — what you check depends on what you remember that day, how busy you are, and whether you've had coffee yet. BidShield gives you the same systematic 18-phase, 100+ item review every single time, regardless of deadline pressure or concurrent bid volume.',
+                a: 'Manual reviews are inconsistent — what you check depends on what you remember that day, how busy you are, and whether you\'ve had coffee yet. BidShield gives you the same systematic 18-phase, 100+ item review every single time, regardless of deadline pressure or concurrent bid volume.',
               },
               {
                 q: 'Does BidShield replace my takeoff tool?',
-                a: 'No. BidShield works after your takeoff is done. Keep using STACK, The EDGE, Excel, or whatever you use for quantities and pricing. BidShield reviews the completed bid for scope gaps, addenda, mechanical items, and spec compliance that your takeoff tool can't catch.',
+                a: 'No. BidShield works after your takeoff is done. Keep using STACK, The EDGE, Excel, or whatever you use for quantities and pricing. BidShield reviews the completed bid for scope gaps, addenda, mechanical items, and spec compliance that your takeoff tool can\'t catch.',
               },
               {
                 q: 'How long does a BidShield review take?',
                 a: '20–30 minutes for a typical commercial roofing bid. You can do it in phases as you work (run Document Review after receiving plans, Mechanical Review after takeoff, etc.) or all at once before submission.',
               },
               {
-                q: 'What if I've been estimating for 15 years and never use checklists?',
-                a: 'You're exactly who this is for. BidShield systematizes what you already do in your head — the mental checklist you run before submission. The difference: it catches the one item you forgot to check when you were juggling three bids at once on a Friday afternoon.',
+                q: 'What if I\'ve been estimating for 15 years and never use checklists?',
+                a: 'You\'re exactly who this is for. BidShield systematizes what you already do in your head — the mental checklist you run before submission. The difference: it catches the one item you forgot to check when you were juggling three bids at once on a Friday afternoon.',
               },
             ].map((faq) => (
               <div key={faq.q} className="border-b border-slate-200 pb-8 last:border-b-0">
