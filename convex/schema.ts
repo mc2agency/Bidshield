@@ -58,6 +58,58 @@ export default defineSchema({
 
   // ===== BIDSHIELD TABLES =====
 
+  // Bid Invites - track incoming bid opportunities before creating projects
+  bidInvites: defineTable({
+    userId: v.string(), // Clerk user ID (matches bidshield_projects pattern)
+    convexUserId: v.optional(v.id("users")),
+    
+    // Core fields
+    projectName: v.string(),
+    gc: v.string(), // General Contractor
+    bidDateTime: v.number(), // Unix timestamp of bid deadline
+    
+    // Contact info
+    contactName: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    contactPhone: v.optional(v.string()),
+    
+    // Additional details
+    prebidMeeting: v.optional(v.object({
+      dateTime: v.number(), // Unix timestamp
+      location: v.string(),
+    })),
+    plansLink: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    
+    // Source tracking
+    source: v.union(
+      v.literal("manual"),
+      v.literal("ai-extraction"),
+      v.literal("email-forward")
+    ),
+    rawEmailBody: v.optional(v.string()), // Original email if extracted
+    extractedData: v.optional(v.any()), // Full AI response for debugging
+    
+    // Status workflow
+    status: v.union(
+      v.literal("new"),        // Just received
+      v.literal("pursuing"),   // Decided to bid
+      v.literal("pass"),       // Decided not to bid
+      v.literal("converted")   // Created a project from this invite
+    ),
+    
+    // Link to created project
+    projectId: v.optional(v.id("bidshield_projects")),
+    
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_convex_user_id", ["convexUserId"])
+    .index("by_status", ["status"])
+    .index("by_bid_date", ["bidDateTime"])
+    .index("by_user_and_status", ["userId", "status"]),
+
   // Projects (bids being worked on)
   bidshield_projects: defineTable({
     // TODO (M9): userId is stored as a plain Clerk ID string rather than a typed
