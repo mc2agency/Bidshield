@@ -163,24 +163,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Who Built This */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Built by an estimator, for estimators</h2>
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 md:p-12">
-            <p className="text-lg text-slate-700 leading-relaxed mb-6">
-              BidShield was built by Carlos M., a 12-year commercial roofing estimator who got tired of catching scope gaps after bids were already submitted.
-            </p>
-            <p className="text-lg text-slate-700 leading-relaxed mb-6">
-              The platform systematizes the mental checklist that veteran estimators run before submission — but most of the time that checklist is inconsistent, depends on who\'s busy, and falls apart when you\'re juggling three bids due the same day.
-            </p>
-            <p className="text-lg text-slate-700 leading-relaxed">
-              BidShield makes that checklist systematic, repeatable, and accessible to every estimator — not just the veterans who\'ve already made every mistake once.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* By the numbers */}
       <section className="py-20 bg-slate-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
