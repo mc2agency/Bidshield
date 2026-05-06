@@ -16,18 +16,23 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) return []; // Return empty array instead of throwing
 
-    let invitesQuery = ctx.db
-      .query("bidInvites")
-      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject));
+    try {
+      let invitesQuery = ctx.db
+        .query("bidInvites")
+        .withIndex("by_user_id", (q) => q.eq("userId", identity.subject));
 
-    if (args.status) {
-      invitesQuery = invitesQuery.filter((q) => q.eq(q.field("status"), args.status));
+      if (args.status) {
+        invitesQuery = invitesQuery.filter((q) => q.eq(q.field("status"), args.status));
+      }
+
+      const invites = await invitesQuery.order("desc").collect();
+      return invites;
+    } catch (error) {
+      console.error("Error fetching bid invites:", error);
+      return []; // Return empty array on error instead of crashing
     }
-
-    const invites = await invitesQuery.order("desc").collect();
-    return invites;
   },
 });
 
@@ -51,28 +56,33 @@ export const upcoming = query({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) return []; // Return empty array instead of throwing
 
-    const now = Date.now();
-    const sevenDaysFromNow = now + 7 * 24 * 60 * 60 * 1000;
+    try {
+      const now = Date.now();
+      const sevenDaysFromNow = now + 7 * 24 * 60 * 60 * 1000;
 
-    const invites = await ctx.db
-      .query("bidInvites")
-      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
-      .filter((q) => 
-        q.and(
-          q.or(
-            q.eq(q.field("status"), "new"),
-            q.eq(q.field("status"), "pursuing")
-          ),
-          q.gte(q.field("bidDateTime"), now),
-          q.lte(q.field("bidDateTime"), sevenDaysFromNow)
+      const invites = await ctx.db
+        .query("bidInvites")
+        .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+        .filter((q) => 
+          q.and(
+            q.or(
+              q.eq(q.field("status"), "new"),
+              q.eq(q.field("status"), "pursuing")
+            ),
+            q.gte(q.field("bidDateTime"), now),
+            q.lte(q.field("bidDateTime"), sevenDaysFromNow)
+          )
         )
-      )
-      .order("asc")
-      .collect();
+        .order("asc")
+        .collect();
 
-    return invites;
+      return invites;
+    } catch (error) {
+      console.error("Error fetching upcoming invites:", error);
+      return [];
+    }
   },
 });
 
