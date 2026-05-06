@@ -335,7 +335,7 @@ export default function HomepageContent() {
                 </h1>
 
                 <p className="text-lg text-slate-300 mb-8 max-w-lg leading-relaxed">
-                  BidShield is the bid quality assurance platform commercial roofing estimators run from first plan review to final submission — built by a 12-year estimator who needed it.
+                  BidShield is the pre-submission bid review platform for commercial roofing estimators. 18 phases, AI scope gap detection, and systematic QA from first plan review to final submission.
                 </p>
 
                 {/* CTAs */}
@@ -416,32 +416,6 @@ export default function HomepageContent() {
         </section>
 
         {/* ─────────────────────────────────────────────────────────── */}
-        {/*  FOUNDER PULL-QUOTE                                        */}
-        {/* ─────────────────────────────────────────────────────────── */}
-        <section className="py-20 bg-slate-950 border-t border-slate-800">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Reveal>
-              <div className="relative pl-8 border-l-[3px] border-emerald-500">
-                {/* Dot on border */}
-                <div className="absolute -left-[7px] top-1 w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-                <p className="text-xl sm:text-2xl text-slate-200 leading-relaxed italic">
-                  "After 12 years estimating commercial roofing, I built the workflow I always ran on paper — finally in one place. Every phase, every discipline, every item that needs to be verified before you submit. Material reconciliation, scope verification, addenda review — the bid quality assurance process every estimator needs but few have systematized."
-                </p>
-                <footer className="mt-8 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm bs-mono shrink-0">
-                    CM
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-white">Carlos M.</div>
-                    <div className="text-xs text-slate-500">Founder, BidShield · 12-year commercial roofing estimator</div>
-                  </div>
-                </footer>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────────────────────────────── */}
         {/*  18-PHASE CHECKLIST — Interactive accordion                */}
         {/* ─────────────────────────────────────────────────────────── */}
         <section className="py-24 bg-slate-900 border-t border-slate-800">
@@ -487,10 +461,9 @@ export default function HomepageContent() {
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <Reveal className="mb-12">
               <h2 className="bs-display text-5xl sm:text-6xl font-bold text-white uppercase mb-4">
-                Built by Estimators.{' '}
-                <span className="text-emerald-400">Used by Estimators.</span>
+                Real Estimators. <span className="text-emerald-400">Real Results.</span>
               </h2>
-              <p className="text-lg text-slate-400">Real feedback from commercial roofing estimators running BidShield on live bids.</p>
+              <p className="text-lg text-slate-400">Commercial roofing estimators running BidShield on live bids.</p>
             </Reveal>
 
             <div className="grid md:grid-cols-3 gap-5">
