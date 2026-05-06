@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as bidInvites from "../bidInvites.js";
 import type * as bidshield from "../bidshield.js";
 import type * as bidshield__helpers from "../bidshield/_helpers.js";
 import type * as bidshield_addenda from "../bidshield/addenda.js";
@@ -55,6 +56,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  bidInvites: typeof bidInvites;
   bidshield: typeof bidshield;
   "bidshield/_helpers": typeof bidshield__helpers;
   "bidshield/addenda": typeof bidshield_addenda;
