@@ -94,7 +94,7 @@ export default function EmailImportDialog({ onClose }: { onClose: () => void }) 
                 value={emailBody}
                 onChange={(e) => setEmailBody(e.target.value)}
                 rows={12}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none font-mono text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none font-mono text-sm text-slate-900 bg-white placeholder:text-slate-400"
                 placeholder="Paste the full email content here...
 
 Example:
@@ -163,7 +163,7 @@ Plans: https://..."
                 type="text"
                 value={editedData.projectName}
                 onChange={(e) => setEditedData({ ...editedData, projectName: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
               />
             </div>
 
@@ -174,7 +174,7 @@ Plans: https://..."
                 type="text"
                 value={editedData.gc}
                 onChange={(e) => setEditedData({ ...editedData, gc: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
               />
             </div>
 
@@ -192,7 +192,7 @@ Plans: https://..."
                       bidDateTime: new Date(`${e.target.value}T${time}`).getTime(),
                     });
                   }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
               <div>
@@ -207,7 +207,7 @@ Plans: https://..."
                       bidDateTime: new Date(`${date}T${e.target.value}`).getTime(),
                     });
                   }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -220,7 +220,7 @@ Plans: https://..."
                   type="text"
                   value={editedData.contactName || ""}
                   onChange={(e) => setEditedData({ ...editedData, contactName: e.target.value || undefined })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
               <div>
@@ -229,7 +229,7 @@ Plans: https://..."
                   type="email"
                   value={editedData.contactEmail || ""}
                   onChange={(e) => setEditedData({ ...editedData, contactEmail: e.target.value || undefined })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
               <div>
@@ -238,7 +238,7 @@ Plans: https://..."
                   type="tel"
                   value={editedData.contactPhone || ""}
                   onChange={(e) => setEditedData({ ...editedData, contactPhone: e.target.value || undefined })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -251,7 +251,7 @@ Plans: https://..."
                   type="url"
                   value={editedData.plansLink}
                   onChange={(e) => setEditedData({ ...editedData, plansLink: e.target.value || undefined })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
             )}

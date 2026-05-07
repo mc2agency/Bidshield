@@ -66,7 +66,7 @@ export const upcoming = query({
       const invites = await ctx.db
         .query("bidInvites")
         .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
-        .filter((q) => 
+        .filter((q) =>
           q.and(
             q.or(
               q.eq(q.field("status"), "new"),
@@ -76,10 +76,9 @@ export const upcoming = query({
             q.lte(q.field("bidDateTime"), sevenDaysFromNow)
           )
         )
-        .order("asc")
         .collect();
 
-      return invites;
+      return invites.sort((a, b) => a.bidDateTime - b.bidDateTime);
     } catch (error) {
       console.error("Error fetching upcoming invites:", error);
       return [];

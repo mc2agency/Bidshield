@@ -135,11 +135,15 @@ function StatCard({ value, label, dimmed, icon, accent = "var(--bs-teal)" }: {
   return (
     <div
       className="rounded-xl hover:-translate-y-0.5 transition-all duration-200 p-5"
-      style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}
+      style={{
+        background: "var(--bs-bg-card)",
+        border: "1px solid var(--bs-border)",
+        borderTop: dimmed ? "2px solid var(--bs-border)" : `2px solid ${accent}`,
+      }}
     >
       <div className="flex items-start justify-between gap-2 mb-3">
         <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>{label}</span>
-        {icon && <span style={{ color: dimmed ? "var(--bs-text-dim)" : accent, opacity: 0.6 }}>{icon}</span>}
+        {icon && <span style={{ color: dimmed ? "var(--bs-text-dim)" : accent, opacity: dimmed ? 0.3 : 0.8 }}>{icon}</span>}
       </div>
       <div className="text-3xl font-extrabold tracking-tight leading-none" style={{ color: dimmed ? "var(--bs-text-dim)" : "var(--bs-text-primary)" }}>
         {dimmed ? "—" : value}
@@ -183,7 +187,7 @@ function WelcomeCard({ onNewBid, onDismiss }: { onNewBid: () => void; onDismiss:
 // ============================================================
 // PROJECT TABLE (desktop pipeline view)
 // ============================================================
-function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router }: {
+function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, isSelected, onSelect, isNearBottom }: {
   project: BidProject;
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
@@ -191,6 +195,9 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
   onEdit: (id: Id<"bidshield_projects">) => void;
   onEditSetup: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
+  isSelected: boolean;
+  onSelect: (id: Id<"bidshield_projects">, checked: boolean) => void;
+  isNearBottom: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const progress = useQuery(
@@ -209,12 +216,21 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
 
   return (
     <tr
-      onClick={() => router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
+      onClick={() => !isSelected && router.push(`/bidshield/dashboard/project?id=${project._id}${isDemo ? "&demo=true" : ""}`)}
       className="cursor-pointer transition-colors group"
       style={{ borderBottom: "1px solid var(--bs-border)" }}
       onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"}
       onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ""}
     >
+      <td className="pl-4 pr-2 py-3.5" onClick={e => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={e => onSelect(project._id, e.target.checked)}
+          className="w-4 h-4 rounded accent-emerald-500 cursor-pointer"
+          aria-label={`Select ${project.name}`}
+        />
+      </td>
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-2.5">
           <div>
@@ -275,7 +291,7 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
-                  <div className="absolute right-0 top-full mt-1 w-36 rounded-lg py-1 z-20" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className={`absolute right-0 w-36 rounded-lg py-1 z-20 ${isNearBottom ? "bottom-full mb-1" : "top-full mt-1"}`} style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
                     <button
                       onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(project._id); }}
                       className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors"
@@ -318,7 +334,7 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
   );
 }
 
-function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, onNewBid }: {
+function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, onNewBid, selectedIds, onSelect, onSelectAll, onBulkDelete }: {
   projects: BidProject[];
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
@@ -327,12 +343,45 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEd
   onEditSetup: (id: Id<"bidshield_projects">) => void;
   router: ReturnType<typeof useRouter>;
   onNewBid: () => void;
+  selectedIds: Set<string>;
+  onSelect: (id: Id<"bidshield_projects">, checked: boolean) => void;
+  onSelectAll: (checked: boolean) => void;
+  onBulkDelete: () => void;
 }) {
+  const allSelected = projects.length > 0 && projects.every(p => selectedIds.has(p._id));
+  const someSelected = selectedIds.size > 0;
+
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+    <div>
+      {/* Bulk action bar */}
+      {someSelected && (
+        <div className="flex items-center justify-between px-4 py-2.5 mb-2 rounded-lg" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)" }}>
+          <span className="text-sm font-medium" style={{ color: "var(--bs-red)" }}>
+            {selectedIds.size} project{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <button
+            onClick={onBulkDelete}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md transition-colors"
+            style={{ background: "var(--bs-red)", color: "#fff", border: "none", cursor: "pointer" }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+            Delete Selected
+          </button>
+        </div>
+      )}
+      <div className="rounded-xl" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", overflow: "visible" }}>
       <table className="w-full text-sm">
         <thead className="sticky top-0 z-10">
           <tr style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+            <th className="pl-4 pr-2 py-3 w-8" onClick={e => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={e => onSelectAll(e.target.checked)}
+                className="w-4 h-4 rounded accent-emerald-500 cursor-pointer"
+                aria-label="Select all"
+              />
+            </th>
             <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Project</th>
             <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>GC</th>
             <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Bid Date</th>
@@ -343,11 +392,11 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEd
           </tr>
         </thead>
         <tbody>
-          {projects.map((project) => (
-            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} onEditSetup={onEditSetup} router={router} />
+          {projects.map((project, i) => (
+            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} onEditSetup={onEditSetup} router={router} isSelected={selectedIds.has(project._id)} onSelect={onSelect} isNearBottom={i >= projects.length - 2} />
           ))}
           <tr>
-            <td colSpan={7} className="px-4 py-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
+            <td colSpan={8} className="px-4 py-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
               <button onClick={onNewBid} className="flex items-center gap-2 text-sm font-medium transition-colors cursor-pointer" style={{ color: "var(--bs-teal)", background: "none", border: "none" }}>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 {projects.length === 0 ? "Create your first bid" : "New Bid"}
@@ -356,7 +405,6 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEd
           </tr>
         </tbody>
       </table>
-      {/* Empty state — shown when pipeline is sparse */}
       {projects.length < 3 && (
         <div className="flex flex-col items-center justify-center py-12" style={{ borderTop: "1px solid var(--bs-border)" }}>
           <svg className="w-10 h-10 mb-3" style={{ color: "rgba(255,255,255,0.1)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
@@ -365,6 +413,7 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEd
           <p className="text-sm" style={{ color: "var(--bs-text-dim)" }}>Start a new bid to build your pipeline</p>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -501,6 +550,7 @@ function DashboardContent() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
   const [deleteTarget, setDeleteTarget] = useState<{ id: Id<"bidshield_projects">; name: string } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("bidshield_welcome_dismissed") === "1";
@@ -650,8 +700,31 @@ function DashboardContent() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    await deleteProjectMut({ projectId: deleteTarget.id });
+    if (deleteTarget.id === "bulk" as any) {
+      await Promise.all([...selectedIds].map(id => deleteProjectMut({ projectId: id as Id<"bidshield_projects"> })));
+      setSelectedIds(new Set());
+    } else {
+      await deleteProjectMut({ projectId: deleteTarget.id });
+    }
     setDeleteTarget(null);
+  };
+
+  const handleSelect = (id: Id<"bidshield_projects">, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(id); else next.delete(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedIds(checked ? new Set(activeProjects.map(p => p._id)) : new Set());
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    const names = activeProjects.filter(p => selectedIds.has(p._id)).map(p => p.name);
+    setDeleteTarget({ id: "bulk" as any, name: `${selectedIds.size} project${selectedIds.size !== 1 ? "s" : ""} (${names.slice(0, 2).join(", ")}${names.length > 2 ? "…" : ""})` });
   };
 
   const handleEdit = (id: Id<"bidshield_projects">) => {
@@ -822,7 +895,7 @@ function DashboardContent() {
 
         {/* Desktop: pipeline table */}
         <div className="hidden md:block">
-          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} onEditSetup={handleEditSetup} router={router} onNewBid={handleNewBidClick} />
+          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} onEditSetup={handleEditSetup} router={router} onNewBid={handleNewBidClick} selectedIds={selectedIds} onSelect={handleSelect} onSelectAll={handleSelectAll} onBulkDelete={handleBulkDelete} />
         </div>
 
         {/* Mobile: card grid */}
