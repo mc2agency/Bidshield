@@ -80,7 +80,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
               required
               value={formData.projectName}
               onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
               placeholder="Roosevelt High School Reroof"
             />
           </div>
@@ -95,7 +95,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
               required
               value={formData.gc}
               onChange={(e) => setFormData({ ...formData, gc: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
               placeholder="Turner Construction"
             />
           </div>
@@ -111,7 +111,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                 required
                 value={formData.bidDate}
                 onChange={(e) => setFormData({ ...formData, bidDate: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
               />
             </div>
             <div>
@@ -123,7 +123,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                 required
                 value={formData.bidTime}
                 onChange={(e) => setFormData({ ...formData, bidTime: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -138,7 +138,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                 type="text"
                 value={formData.contactName}
                 onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 placeholder="John Smith"
               />
             </div>
@@ -150,7 +150,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                 type="email"
                 value={formData.contactEmail}
                 onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 placeholder="john@example.com"
               />
             </div>
@@ -162,7 +162,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                 type="tel"
                 value={formData.contactPhone}
                 onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 placeholder="555-1234"
               />
             </div>
@@ -178,7 +178,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                   type="date"
                   value={formData.prebidDate}
                   onChange={(e) => setFormData({ ...formData, prebidDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
               <div>
@@ -187,7 +187,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                   type="time"
                   value={formData.prebidTime}
                   onChange={(e) => setFormData({ ...formData, prebidTime: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                 />
               </div>
               <div>
@@ -196,7 +196,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
                   type="text"
                   value={formData.prebidLocation}
                   onChange={(e) => setFormData({ ...formData, prebidLocation: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
                   placeholder="Job site"
                 />
               </div>
@@ -212,7 +212,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
               type="url"
               value={formData.plansLink}
               onChange={(e) => setFormData({ ...formData, plansLink: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 bg-white placeholder:text-slate-400"
               placeholder="https://..."
             />
           </div>
@@ -226,7 +226,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none text-slate-900 bg-white placeholder:text-slate-400"
               placeholder="Additional details..."
             />
           </div>
