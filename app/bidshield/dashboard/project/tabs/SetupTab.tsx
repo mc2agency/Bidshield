@@ -692,6 +692,32 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     } catch { setSpecError("Failed to read PDF."); setSpecMode("error"); }
   }, [isDemo, projectId, updateProject, userId, projectSpecs, pendingLabel, pendingSourceType, addProjectSpecMut, runApplySpec]);
 
+  // ── Section 3b: Spec Assistant Chat ──
+  const [chatHistory, setChatHistory] = useState<{ q: string; a: string }[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+
+  const handleChatSend = useCallback(async (question: string) => {
+    if (!question.trim() || !specData || chatLoading) return;
+    const q = question.trim();
+    setChatInput("");
+    setChatLoading(true);
+    try {
+      const res = await fetch("/api/bidshield/spec-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q, specContext: JSON.stringify(specData) }),
+      });
+      const data = await res.json();
+      const answer = data.answer || data.error || "No response.";
+      setChatHistory(prev => [...prev, { q, a: answer }]);
+    } catch {
+      setChatHistory(prev => [...prev, { q, a: "Failed to reach the spec assistant. Check your connection." }]);
+    } finally {
+      setChatLoading(false);
+    }
+  }, [specData, chatLoading]);
+
   // ── Section 4: AI System Description ──
   const [description, setDescription] = useState("");
   const [descLoading, setDescLoading] = useState(false);
@@ -1485,6 +1511,82 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           </div>
         )}
       </div>
+
+      {/* ── Spec Assistant Chat ── */}
+      {specMode === "done" && specData && (
+        <div style={cardStyle}>
+          <div className="flex items-center gap-2 mb-4">
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--bs-text-primary)", margin: 0 }}>Ask Your Spec</h3>
+          </div>
+
+          {/* Suggested chips */}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {["What's the warranty?", "What membrane thickness?", "Any certified installer required?", "What's the fire rating?", "Approved manufacturers?"].map(q => (
+              <button
+                key={q}
+                onClick={() => handleChatSend(q)}
+                disabled={chatLoading}
+                className="text-[11px] px-2.5 py-1 rounded-full transition-colors disabled:opacity-40"
+                style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)", cursor: "pointer" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--bs-teal)"; (e.currentTarget as HTMLElement).style.color = "var(--bs-teal)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--bs-border)"; (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"; }}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+
+          {/* Chat history */}
+          {chatHistory.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {chatHistory.map((item, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-end">
+                    <div className="text-xs px-3 py-2 rounded-xl rounded-br-sm max-w-[80%]" style={{ background: "var(--bs-teal)", color: "#13151a", fontWeight: 500 }}>
+                      {item.q}
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="text-xs px-3 py-2 rounded-xl rounded-bl-sm max-w-[90%]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", lineHeight: 1.6 }}>
+                      {item.a}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="flex justify-start">
+                  <div className="text-xs px-3 py-2 rounded-xl" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-dim)" }}>
+                    <span className="inline-flex items-center gap-1.5">
+                      <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                      Thinking...
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Input */}
+          <div className="flex gap-2">
+            <input
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleChatSend(chatInput); } }}
+              placeholder="Ask anything about your spec..."
+              disabled={chatLoading}
+              style={{ ...inputStyle, flex: 1, fontSize: 13 }}
+            />
+            <button
+              onClick={() => handleChatSend(chatInput)}
+              disabled={chatLoading || !chatInput.trim()}
+              style={{ ...btnPrimary, opacity: chatLoading || !chatInput.trim() ? 0.4 : 1, padding: "8px 16px", flexShrink: 0 }}
+            >
+              Ask
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── AI System Description ── */}
       <div style={cardStyle}>

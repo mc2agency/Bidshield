@@ -1006,12 +1006,73 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     );
   }
 
+  // ── Assembly cost breakdown ──────────────────────────────────────────────
+  const roofAssemblies = (project as any)?.roofAssemblies as Array<{ label: string; systemType: string; name?: string; area?: number }> | undefined;
+  const assembliesWithArea = (roofAssemblies || []).filter(a => typeof a.area === "number" && a.area > 0);
+  const assemblyAreaTotal = assembliesWithArea.reduce((s, a) => s + (a.area || 0), 0);
+  const denominatorSF = Math.max(totalSF, assemblyAreaTotal) || 1;
+
   return (
     <div className="flex flex-col gap-5">
       {/* Section subtitle */}
       <p className="text-sm -mb-1" style={{ color: "var(--bs-text-muted)" }}>
         Reconcile your estimating report against vendor quotes — verify pricing, coverage, and waste factors before submission.
       </p>
+
+      {/* ── Assembly cost breakdown ── */}
+      {assembliesWithArea.length > 1 && totalCost > 0 && (
+        <div className="rounded-xl p-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Material Cost by Assembly
+            </div>
+            <div style={{ fontSize: 10, color: "var(--bs-text-dim)" }}>Pro-rated by area</div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {assembliesWithArea.map((a, i) => {
+              const fraction = (a.area || 0) / denominatorSF;
+              const assemblyCost = totalCost * fraction;
+              const costPerSf = a.area ? assemblyCost / a.area : 0;
+              const systemColors: Record<string, string> = {
+                tpo: "var(--bs-teal)", pvc: "#60a5fa", epdm: "#a78bfa",
+                sbs: "var(--bs-amber)", app: "#f97316", bur: "#94a3b8",
+                metal: "#64748b", spf: "#34d399", lam: "#818cf8", hydrotech: "#10b981",
+              };
+              const color = systemColors[a.systemType] || "var(--bs-text-muted)";
+              return (
+                <div key={i} className="rounded-lg p-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold" style={{ color: "var(--bs-text-primary)" }}>{a.label}</span>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)", color }}>
+                      {a.systemType.toUpperCase()}
+                    </span>
+                  </div>
+                  {a.name && <div className="text-[10px] mb-2 truncate" style={{ color: "var(--bs-text-muted)" }}>{a.name}</div>}
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>
+                        ${assemblyCost >= 1000 ? `${(assemblyCost / 1000).toFixed(0)}k` : assemblyCost.toFixed(0)}
+                      </div>
+                      <div style={{ fontSize: 10, color: "var(--bs-text-dim)" }}>
+                        {(a.area || 0).toLocaleString()} SF · ${costPerSf.toFixed(2)}/SF
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 10, color: "var(--bs-text-dim)", textAlign: "right" }}>
+                      {(fraction * 100).toFixed(0)}% of total
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-between items-center mt-2 pt-2" style={{ borderTop: "1px solid var(--bs-border)" }}>
+            <span style={{ fontSize: 10, color: "var(--bs-text-dim)" }}>{assembliesWithArea.length} assemblies · {assemblyAreaTotal.toLocaleString()} SF total</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-text-primary)" }}>
+              ${totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })} total materials
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Extracted from badge */}
       {extractedFrom && (
