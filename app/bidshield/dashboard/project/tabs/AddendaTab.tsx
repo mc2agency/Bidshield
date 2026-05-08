@@ -62,6 +62,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
   });
   const [impactCheckLoading, setImpactCheckLoading] = useState<string | null>(null); // stores addendum _id being checked
   const [impactCheckResults, setImpactCheckResults] = useState<Record<string, { impacts: { phase: string; phaseKey: string; severity: string; action: string; detail: string }[]; summary: string | null }>>({});
+  const updateChecklistItem = useMutation(api.bidshield.updateChecklistItem);
 
   // Demo data with enhanced fields
   const [demoAddendaState, setDemoAddendaState] = useState<any[]>([
@@ -122,28 +123,46 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
     setShowAdd(false);
   };
 
-  const handleImpactCheck = async (add: any) => {
-    const desc = [add.title, add.notes].filter(Boolean).join(". ");
-    if (!desc.trim()) return;
+  const handleImpactCheck = async (add: any, pdfBase64?: string) => {
     setImpactCheckLoading(add._id);
     try {
+      const body = pdfBase64
+        ? JSON.stringify({ pdfBase64 })
+        : JSON.stringify({ description: [add.title, add.notes].filter(Boolean).join(". ") });
       const res = await guardedFetch("/api/bidshield/check-addendum-impact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: desc }),
+        body,
       });
       if (!res) return;
       const data = await res.json();
-      setImpactCheckResults(prev => ({
-        ...prev,
-        [add._id]: { impacts: data.impacts ?? [], summary: data.summary ?? null },
-      }));
+      const result = { impacts: data.impacts ?? [], summary: data.summary ?? null };
+      setImpactCheckResults(prev => ({ ...prev, [add._id]: result }));
+      // Persist to DB so results survive navigation
+      if (!isDemo && add._id && !add._id.startsWith("demo_")) {
+        await updateAddendumMut({ addendumId: add._id, aiImpacts: JSON.stringify(result) }).catch(() => {});
+      }
     } catch {
       setImpactCheckResults(prev => ({ ...prev, [add._id]: { impacts: [], summary: null } }));
     } finally {
       setImpactCheckLoading(null);
     }
   };
+
+  // Load persisted AI impacts from DB on first render
+  const [persistedImpactsLoaded, setPersistedImpactsLoaded] = useState(false);
+  if (!persistedImpactsLoaded && resolvedAddenda.length > 0) {
+    setPersistedImpactsLoaded(true);
+    const loaded: typeof impactCheckResults = {};
+    for (const add of resolvedAddenda) {
+      if (add.aiImpacts && !impactCheckResults[add._id]) {
+        try { loaded[add._id] = JSON.parse(add.aiImpacts); } catch {}
+      }
+    }
+    if (Object.keys(loaded).length > 0) {
+      setImpactCheckResults(prev => ({ ...loaded, ...prev }));
+    }
+  }
 
   const handleUpdate = useCallback(async (addendumId: Id<"bidshield_addenda">, updates: Record<string, any>) => {
     if (isDemo) {
@@ -346,6 +365,18 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
                             onImpactCheck={handleImpactCheck}
                             impactCheckLoading={impactCheckLoading}
                             impactCheckResult={impactCheckResults[add._id]}
+                            onFlagChecklist={async (phaseKeys) => {
+                              if (isDemo || !isValidConvexId) return;
+                              for (const phaseKey of phaseKeys) {
+                                await updateChecklistItem({
+                                  projectId: projectId as Id<"bidshield_projects">,
+                                  phaseKey,
+                                  itemId: "addendum_impact",
+                                  status: "warning",
+                                  notes: `Flagged by Addendum #${add.number}: ${add.title}`,
+                                }).catch(() => {});
+                              }
+                            }}
                           />
                         </td>
                       </tr>
@@ -382,6 +413,7 @@ function AddendumCard({
   onImpactCheck,
   impactCheckLoading,
   impactCheckResult,
+  onFlagChecklist,
 }: {
   add: any;
   isDemo: boolean;
@@ -392,9 +424,10 @@ function AddendumCard({
   onMarkReviewed: (id: Id<"bidshield_addenda">) => Promise<void>;
   onDelete: (id: Id<"bidshield_addenda">) => Promise<void>;
   onNavigateTab?: (tab: any) => void;
-  onImpactCheck: (add: any) => void;
+  onImpactCheck: (add: any, pdfBase64?: string) => void;
   impactCheckLoading: string | null;
   impactCheckResult?: { impacts: { phase: string; phaseKey: string; severity: string; action: string; detail: string }[]; summary: string | null };
+  onFlagChecklist?: (phaseKeys: string[]) => Promise<void>;
 }) {
   const addProjectSpec = useMutation(api.bidshield.projectSpecs.addProjectSpec);
   const mergeSpecMats = useMutation(api.bidshield.mergeSpecMaterials);
@@ -755,38 +788,105 @@ function AddendumCard({
       {/* AI Impact Analysis */}
       {(isPro || isDemo) && (
         <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
-          <button
-            onClick={() => onImpactCheck(add)}
-            disabled={impactCheckLoading === add._id}
-            className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
-            style={{ background: "var(--bs-teal)", color: "#13151a" }}
-          >
-            {impactCheckLoading === add._id ? "Analyzing…" : "⚡ Analyze Bid Impact"}
-          </button>
-          {impactCheckResult && (
-            <div className="mt-2 rounded-lg p-3" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
-              {impactCheckResult.summary && (
-                <p className="text-[11px] mb-2 italic" style={{ color: "var(--bs-text-secondary)" }}>{impactCheckResult.summary}</p>
-              )}
-              {impactCheckResult.impacts.length > 0 ? (
-                <>
-                  <p className="text-[11px] font-semibold mb-2" style={{ color: "var(--bs-teal)" }}>Phases requiring re-review:</p>
-                  <ul className="flex flex-col gap-2">
-                    {impactCheckResult.impacts.map((item, i) => (
-                      <li key={i} className="flex flex-col gap-0.5 text-xs" style={{ color: "var(--bs-text-secondary)" }}>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0 ${item.severity === "critical" ? "bg-red-900/40 text-red-400" : item.severity === "major" ? "bg-amber-900/40 text-amber-400" : "bg-slate-700 text-slate-300"}`}>{item.severity}</span>
-                          <strong style={{ color: "var(--bs-text-primary)" }}>{item.phase}</strong>
-                        </div>
-                        <span className="pl-1">{item.action}</span>
-                        {item.detail && <span className="pl-1 text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{item.detail}</span>}
-                      </li>
-                    ))}
-                  </ul>
-                </>
+          {/* Action bar */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => onImpactCheck(add)}
+              disabled={impactCheckLoading === add._id}
+              className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
+            >
+              {impactCheckLoading === add._id ? (
+                <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Analyzing…</>
               ) : (
-                <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>No significant phase impacts identified.</p>
+                <><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>{impactCheckResult ? "Re-analyze" : "Analyze Bid Impact"}</>
               )}
+            </button>
+            {/* PDF upload for richer analysis */}
+            {!isDemo && (
+              <label className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = "var(--bs-teal)"; (e.currentTarget as HTMLLabelElement).style.color = "var(--bs-teal)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = "var(--bs-border)"; (e.currentTarget as HTMLLabelElement).style.color = "var(--bs-text-muted)"; }}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                Analyze PDF
+                <input type="file" accept="application/pdf" className="hidden" disabled={impactCheckLoading === add._id}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    e.target.value = "";
+                    const buf = await file.arrayBuffer();
+                    const bytes = new Uint8Array(buf);
+                    let binary = "";
+                    const chunk = 8192;
+                    for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+                    onImpactCheck(add, btoa(binary));
+                  }}
+                />
+              </label>
+            )}
+          </div>
+
+          {/* Results */}
+          {impactCheckResult && (
+            <div className="mt-3 rounded-xl overflow-hidden" style={{ border: "1px solid var(--bs-border)" }}>
+              {/* Summary bar */}
+              {impactCheckResult.summary && (
+                <div className="px-4 py-3" style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+                  <div className="flex items-start gap-2">
+                    <svg className="w-3.5 h-3.5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
+                    <p className="text-xs" style={{ color: "var(--bs-text-secondary)", lineHeight: 1.5 }}>{impactCheckResult.summary}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Impact cards */}
+              {impactCheckResult.impacts.length > 0 ? (
+                <div className="divide-y" style={{ borderColor: "var(--bs-border)" }}>
+                  {impactCheckResult.impacts.map((item, i) => {
+                    const sevColor = item.severity === "critical" ? "var(--bs-red)" : item.severity === "major" ? "var(--bs-amber)" : "var(--bs-text-dim)";
+                    const sevBg = item.severity === "critical" ? "var(--bs-red-dim)" : item.severity === "major" ? "var(--bs-amber-dim)" : "var(--bs-bg-elevated)";
+                    const sevBorder = item.severity === "critical" ? "var(--bs-red-border)" : item.severity === "major" ? "var(--bs-amber-border)" : "var(--bs-border)";
+                    return (
+                      <div key={i} className="px-4 py-3" style={{ background: i % 2 === 0 ? "var(--bs-bg-card)" : "var(--bs-bg-elevated)" }}>
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide shrink-0"
+                            style={{ background: sevBg, color: sevColor, border: `1px solid ${sevBorder}` }}>
+                            {item.severity}
+                          </span>
+                          <span className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>{item.phase}</span>
+                        </div>
+                        <p className="text-xs mb-1" style={{ color: "var(--bs-text-secondary)" }}>{item.action}</p>
+                        {item.detail && <p className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{item.detail}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="px-4 py-3 text-xs" style={{ color: "var(--bs-text-muted)" }}>No significant phase impacts identified.</div>
+              )}
+
+              {/* Footer: severity summary + flag checklist button */}
+              <div className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2" style={{ background: "var(--bs-bg-elevated)", borderTop: "1px solid var(--bs-border)" }}>
+                <div className="flex items-center gap-3 text-[10px]" style={{ color: "var(--bs-text-dim)" }}>
+                  {(["critical","major","minor"] as const).map(sev => {
+                    const count = impactCheckResult.impacts.filter(i => i.severity === sev).length;
+                    if (!count) return null;
+                    const color = sev === "critical" ? "var(--bs-red)" : sev === "major" ? "var(--bs-amber)" : "var(--bs-text-dim)";
+                    return <span key={sev} style={{ color }}>{count} {sev}</span>;
+                  })}
+                </div>
+                {onFlagChecklist && impactCheckResult.impacts.length > 0 && (
+                  <button
+                    onClick={() => onFlagChecklist(impactCheckResult.impacts.map(i => i.phaseKey))}
+                    className="text-[11px] font-medium px-3 py-1 rounded-lg transition-colors"
+                    style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }}
+                  >
+                    Flag {impactCheckResult.impacts.length} phase{impactCheckResult.impacts.length !== 1 ? "s" : ""} in checklist
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

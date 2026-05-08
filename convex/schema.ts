@@ -382,6 +382,7 @@ export default defineSchema({
     reviewStatus: v.optional(v.union(v.literal("reviewed"), v.literal("pending_review"))),
     reviewedBy: v.optional(v.string()), // userId of reviewer
     reviewedAt: v.optional(v.number()), // timestamp
+    aiImpacts: v.optional(v.string()), // JSON: { impacts: ImpactItem[], summary: string }
     createdAt: v.number(),
     updatedAt: v.number(),
   })

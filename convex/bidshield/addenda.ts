@@ -64,6 +64,7 @@ export const updateAddendum = mutation({
     reviewStatus: v.optional(v.union(v.literal("reviewed"), v.literal("pending_review"))),
     reviewedBy: v.optional(v.string()),
     reviewedAt: v.optional(v.number()),
+    aiImpacts: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const addendum = await ctx.db.get(args.addendumId);
