@@ -160,6 +160,7 @@ export default defineSchema({
       enabled: v.optional(v.boolean()),        // ON/OFF toggle
       area: v.optional(v.number()),            // assembly area in SF
       uValue: v.optional(v.number()),          // thermal U-value
+      attachmentMethod: v.optional(v.string()), // "mechanically_attached" | "fully_adhered" | "ballasted" | "self_adhered" | "hybrid" | "unknown"
     }))),
     systemDescription: v.optional(v.string()), // AI-generated project-level system summary
     specSummary: v.optional(v.string()), // JSON-stringified spec extraction result

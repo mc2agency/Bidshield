@@ -26,6 +26,7 @@ function IconDownload({ size = 15 }: { size?: number }) {
 }
 function TabIcon({ id }: { id: string | null }) {
   const paths: Record<string, string> = {
+    setup: "M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z",
     checklist: "M8.25 6.75h7.5M8.25 12h7.5m-7.5 5.25h7.5M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z",
     scope: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12",
     pricing: "M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
@@ -82,6 +83,8 @@ function ScoreRing({ score, size = 120 }: { score: number; size?: number }) {
 
 // ── Section card definitions ─────────────────────────────────────────────────
 const SECTION_DEFS: { tabId: TabId | null; label: string }[] = [
+  { tabId: "setup",             label: "Plans"          },
+  { tabId: "setup",             label: "Specification"  },
   { tabId: "checklist",         label: "Checklist"      },
   { tabId: "scope",             label: "Scope"          },
   { tabId: "pricing",           label: "Pricing"        },
@@ -116,6 +119,8 @@ function getLabelGroup(label: string): TabId | "__meta__" {
     "Coverage Rates": "materials" as any,
     "Waste Factors": "materials" as any,
     "Labor Verification": "labor" as any,
+    "Plans": "setup" as any,
+    "Specification": "setup" as any,
     "Scope-Pricing Conflicts": "scope",
     "GC Bid Forms": "bidquals",
   };
@@ -155,6 +160,8 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
   const gcFormDocuments = validatorData?.gcFormDocuments ?? null;
   const unconfirmedGcFormCount = validatorData?.unconfirmedGcFormCount ?? null;
   const laborTotal = validatorData?.laborTotal ?? null;
+  const projectSpecs = validatorData?.projectSpecs ?? null;
+  const takeoffSections = validatorData?.takeoffSections ?? null;
 
   const [hasRun] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -176,6 +183,8 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
     laborAnalysis,
     gcFormDocuments,
     unconfirmedGcFormCount,
+    projectSpecs,
+    takeoffSections,
   }) : null;
   if (!scoreData) return null;
 

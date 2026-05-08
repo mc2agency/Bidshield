@@ -56,7 +56,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
   const [selectedRFI, setSelectedRFI] = useState<string | null>(null);
   const [newAddendum, setNewAddendum] = useState({
     title: "",
-    receivedDate: new Date().toISOString().split("T")[0],
+    receivedDate: new Date().toLocaleDateString("en-CA"),
     priority: "normal",
     notes: "",
   });
@@ -118,7 +118,7 @@ export default function AddendaTab({ projectId, isDemo, isPro, project, userId, 
       priority: newAddendum.priority,
       notes: newAddendum.notes || undefined,
     });
-    setNewAddendum({ title: "", receivedDate: new Date().toISOString().split("T")[0], priority: "normal", notes: "" });
+    setNewAddendum({ title: "", receivedDate: new Date().toLocaleDateString("en-CA"), priority: "normal", notes: "" });
     setShowAdd(false);
   };
 
@@ -668,7 +668,7 @@ function AddendumCard({
                   const newVal = !add.repriced;
                   onUpdate(add._id, {
                     repriced: newVal,
-                    repricedDate: newVal ? new Date().toISOString().split("T")[0] : undefined,
+                    repricedDate: newVal ? new Date().toLocaleDateString("en-CA") : undefined,
                     incorporated: newVal,
                   });
                 }}

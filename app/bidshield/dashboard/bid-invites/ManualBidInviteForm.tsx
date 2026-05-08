@@ -129,7 +129,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
           </div>
 
           {/* Contact Info */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Contact Name
@@ -171,7 +171,7 @@ export default function ManualBidInviteForm({ onClose }: { onClose: () => void }
           {/* Prebid Meeting */}
           <div className="border-t border-slate-200 pt-4">
             <p className="text-sm font-medium text-slate-700 mb-3">Prebid Meeting (optional)</p>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm text-slate-600 mb-1">Date</label>
                 <input

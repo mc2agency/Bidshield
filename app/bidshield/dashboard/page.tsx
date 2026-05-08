@@ -700,11 +700,16 @@ function DashboardContent() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    if (deleteTarget.id === "bulk" as any) {
-      await Promise.all([...selectedIds].map(id => deleteProjectMut({ projectId: id as Id<"bidshield_projects"> })));
-      setSelectedIds(new Set());
-    } else {
-      await deleteProjectMut({ projectId: deleteTarget.id });
+    try {
+      if (deleteTarget.id === "bulk" as any) {
+        await Promise.all([...selectedIds].map(id => deleteProjectMut({ projectId: id as Id<"bidshield_projects"> })));
+        setSelectedIds(new Set());
+      } else {
+        await deleteProjectMut({ projectId: deleteTarget.id });
+      }
+    } catch (err) {
+      alert("Failed to delete: " + ((err as any)?.message ?? "Unknown error"));
+      return;
     }
     setDeleteTarget(null);
   };

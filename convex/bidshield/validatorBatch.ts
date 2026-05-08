@@ -29,6 +29,8 @@ export const getValidatorData = query({
       laborTasks,
       laborAnalysis,
       gcFormDocuments,
+      projectSpecs,
+      takeoffSections,
     ] = await Promise.all([
       ctx.db.query("bidshield_checklist_items").withIndex("by_project", byProject).collect(),
       ctx.db.query("bidshield_quotes").withIndex("by_project", byProject).collect(),
@@ -42,6 +44,8 @@ export const getValidatorData = query({
       ctx.db.query("bidshield_laborTasks").withIndex("by_project", byProject).collect(),
       ctx.db.query("bidshield_laborAnalysis").withIndex("by_project", byProject).first(),
       ctx.db.query("bidshield_gcBidFormDocuments").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_project_specs").withIndex("by_project", byProject).collect(),
+      ctx.db.query("bidshield_takeoff_sections").withIndex("by_project", byProject).collect(),
     ]);
 
     // Compute labor total from analysis record (matches getLaborTotal behavior)
@@ -74,6 +78,8 @@ export const getValidatorData = query({
       gcFormDocuments,
       unconfirmedGcFormCount,
       laborTotal,
+      projectSpecs,
+      takeoffSections,
     };
   },
 });

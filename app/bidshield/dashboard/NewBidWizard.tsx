@@ -119,6 +119,7 @@ interface AssemblyInput {
   surfaceType: string;
   area?: number;
   uValue?: number;
+  attachmentMethod?: string;
 }
 
 interface WizardData {
@@ -148,6 +149,7 @@ export interface EditProjectData {
     insulationType?: string; insulationThickness?: string;
     rValue?: number; surfaceType?: string;
     area?: number; uValue?: number;
+    attachmentMethod?: string;
   }>;
   systemDescription?: string;
 }
@@ -265,6 +267,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           surfaceType: a.surface || a.surfaceType || "",
           area: typeof a.area === "number" ? a.area : undefined,
           uValue: typeof a.uValue === "number" ? a.uValue : undefined,
+          attachmentMethod: a.attachmentMethod || undefined,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
@@ -1013,6 +1016,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       surfaceType: a.surfaceType || "",
                       area: a.area ?? undefined,
                       uValue: a.uValue ?? undefined,
+                      attachmentMethod: a.attachmentMethod ?? undefined,
                     }))
                   : undefined,
                 systemDescription: aiDescription || undefined,

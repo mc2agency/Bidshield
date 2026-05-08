@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -18,6 +18,8 @@ type LineItem = {
   label: string; quantity?: number; unit: string; verified: boolean;
   notes?: string; sortOrder: number;
 };
+
+type RescanRow = { label: string; extractedSF: number; matched: TakeoffSection | null; applied: boolean };
 
 const DEMO_LINEAR_ITEMS: LineItem[] = [
   { _id: "li_1", category: "linear", itemType: "parapet_wall", label: "Parapet Wall", quantity: 1240, unit: "LF", verified: true, sortOrder: 0 },
@@ -329,6 +331,74 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
 
   const [activeTab, setActiveTab] = useState<"areas" | "linear" | "counts">("areas");
 
+  // Re-scan PDF state
+  const [showRescanModal, setShowRescanModal] = useState(false);
+  const [rescanStep, setRescanStep] = useState<"upload" | "diff">("upload");
+  const [rescanLoading, setRescanLoading] = useState(false);
+  const [rescanError, setRescanError] = useState<string | null>(null);
+  const [rescanDiff, setRescanDiff] = useState<RescanRow[]>([]);
+  const rescanFileRef = useRef<HTMLInputElement>(null);
+
+  const handleRescanPdf = useCallback(async (file: File) => {
+    setRescanLoading(true);
+    setRescanError(null);
+    try {
+      const arrayBuf = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuf);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+      const base64 = btoa(binary);
+      const res = await fetch("/api/bidshield/extract-assemblies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setRescanError(data.error || "Extraction failed"); setRescanLoading(false); return; }
+      const extracted: Array<{ label: string; area?: number }> = (data.assemblies || []).filter((a: any) => typeof a.area === "number" && a.area > 0);
+      if (extracted.length === 0) { setRescanError("No area data found in this PDF. Make sure the drawing includes a roof type takeoff schedule."); setRescanLoading(false); return; }
+      const rows: RescanRow[] = extracted.map((a) => {
+        const lbl = (a.label || "").toLowerCase().trim();
+        const matched = displaySections.find(s =>
+          s.name.toLowerCase().startsWith(lbl) || s.assemblyType.toLowerCase().startsWith(lbl)
+        ) ?? null;
+        return { label: a.label, extractedSF: a.area!, matched, applied: false };
+      });
+      setRescanDiff(rows);
+      setRescanStep("diff");
+    } catch (err: any) {
+      setRescanError(err?.message || "Unknown error");
+    } finally {
+      setRescanLoading(false);
+    }
+  }, [displaySections]);
+
+  const handleApplyRescanRow = useCallback(async (rowIdx: number) => {
+    const row = rescanDiff[rowIdx];
+    if (!row || row.applied) return;
+    if (row.matched) {
+      if (!isDemo) {
+        await updateSection({ sectionId: row.matched._id as Id<"bidshield_takeoff_sections">, squareFeet: row.extractedSF });
+        await silentSyncToMaterials();
+      } else {
+        setDemoSections(p => p.map(s => s._id === row.matched!._id ? { ...s, squareFeet: row.extractedSF } : s));
+      }
+    } else {
+      if (!isDemo && userId && isValidConvexId) {
+        await createSection({ projectId: projectId as Id<"bidshield_projects">, userId, name: row.label, assemblyType: row.label, squareFeet: row.extractedSF });
+      } else if (isDemo) {
+        setDemoSections(p => [...p, { _id: `ts_rescan_${row.label}`, name: row.label, assemblyType: row.label, squareFeet: row.extractedSF, completed: false, sortOrder: p.length }]);
+      }
+    }
+    setRescanDiff(p => p.map((r, i) => i === rowIdx ? { ...r, applied: true } : r));
+  }, [rescanDiff, isDemo, userId, isValidConvexId, projectId, updateSection, createSection, silentSyncToMaterials]);
+
+  const handleApplyAllRescan = useCallback(async () => {
+    for (let i = 0; i < rescanDiff.length; i++) {
+      if (!rescanDiff[i].applied) await handleApplyRescanRow(i);
+    }
+  }, [rescanDiff, handleApplyRescanRow]);
+
   const areaComplete = displaySections.length > 0 && displaySections.every((s) => s.completed) && areaGood;
   const areaPartial = displaySections.length > 0 && displaySections.some((s) => s.completed);
   const linearComplete = linearTotal > 0 && linearVerified === linearTotal;
@@ -471,6 +541,18 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
         </div>
         {activeTab === "areas" && (
           <div>
+            <div className="flex justify-end mb-3">
+              <button
+                onClick={() => { setShowRescanModal(true); setRescanStep("upload"); setRescanDiff([]); setRescanError(null); }}
+                className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors"
+                style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--bs-teal)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--bs-teal)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--bs-border)"; }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                Re-scan from Plans
+              </button>
+            </div>
             {displaySections.length > 0 && (
               <div className="overflow-x-auto mb-3">
                 <table className="w-full text-sm">
@@ -569,6 +651,131 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
           </div>
         )}
       </div>
+
+      {/* Re-scan from Plans Modal */}
+      {showRescanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+          <div className="rounded-xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>Re-scan from Plans PDF</div>
+                <div style={{ fontSize: 11, color: "var(--bs-text-muted)", marginTop: 2 }}>
+                  {rescanStep === "upload" ? "Upload a roof plan to extract area data" : "Review and apply AI-extracted areas"}
+                </div>
+              </div>
+              <button onClick={() => setShowRescanModal(false)} style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-5">
+              {rescanStep === "upload" ? (
+                <div className="space-y-4">
+                  <div
+                    className="flex flex-col items-center justify-center gap-3 rounded-xl cursor-pointer transition-colors"
+                    style={{ border: "2px dashed var(--bs-border)", padding: "32px 24px", background: "var(--bs-bg-elevated)" }}
+                    onClick={() => rescanFileRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file?.type === "application/pdf") handleRescanPdf(file); }}
+                  >
+                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="var(--bs-text-dim)"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                    {rescanLoading ? (
+                      <div style={{ fontSize: 13, color: "var(--bs-text-muted)" }}>
+                        <svg className="w-5 h-5 animate-spin inline mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                        Extracting areas from PDF...
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-primary)" }}>Drop PDF here or click to upload</div>
+                        <div style={{ fontSize: 11, color: "var(--bs-text-muted)" }}>Roof plan with takeoff schedule — max 20 MB</div>
+                      </>
+                    )}
+                  </div>
+                  <input ref={rescanFileRef} type="file" accept="application/pdf" className="hidden"
+                    onChange={(e) => { const file = e.target.files?.[0]; if (file) handleRescanPdf(file); e.target.value = ""; }} />
+                  {rescanError && (
+                    <div className="text-sm px-3 py-2 rounded-lg" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>{rescanError}</div>
+                  )}
+                  <div style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>
+                    AI reads the roof type takeoff schedule and extracts SF per assembly. You review before any changes are applied.
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--bs-border)" }}>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+                          <th className="text-left px-3 py-2" style={{ color: "var(--bs-text-dim)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: 10 }}>Assembly</th>
+                          <th className="text-right px-3 py-2" style={{ color: "var(--bs-text-dim)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: 10 }}>AI SF</th>
+                          <th className="text-right px-3 py-2" style={{ color: "var(--bs-text-dim)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: 10 }}>Current SF</th>
+                          <th className="text-right px-3 py-2" style={{ color: "var(--bs-text-dim)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: 10 }}>Δ</th>
+                          <th className="text-center px-3 py-2 w-20" style={{ color: "var(--bs-text-dim)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", fontSize: 10 }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rescanDiff.map((row, i) => {
+                          const delta = row.matched ? row.extractedSF - row.matched.squareFeet : null;
+                          const deltaPctRow = row.matched && row.matched.squareFeet > 0 ? (delta! / row.matched.squareFeet) * 100 : null;
+                          const deltaColor = deltaPctRow === null ? "var(--bs-text-muted)" : Math.abs(deltaPctRow) <= 2 ? "var(--bs-teal)" : Math.abs(deltaPctRow) <= 5 ? "var(--bs-amber)" : "var(--bs-red)";
+                          return (
+                            <tr key={i} style={{ borderBottom: "1px solid var(--bs-border)", opacity: row.applied ? 0.5 : 1 }}>
+                              <td className="px-3 py-2.5" style={{ color: "var(--bs-text-primary)", fontWeight: 500 }}>
+                                {row.label}
+                                {!row.matched && <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)" }}>New</span>}
+                                {row.applied && <span className="ml-1.5 text-[10px]" style={{ color: "var(--bs-teal)" }}>✓ Applied</span>}
+                              </td>
+                              <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: "var(--bs-text-primary)" }}>{fmt(row.extractedSF)}</td>
+                              <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{row.matched ? fmt(row.matched.squareFeet) : "—"}</td>
+                              <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: deltaColor }}>
+                                {delta !== null ? (delta >= 0 ? "+" : "") + fmt(delta) : "—"}
+                                {deltaPctRow !== null && <span className="ml-1 text-[10px]">({Math.abs(deltaPctRow).toFixed(1)}%)</span>}
+                              </td>
+                              <td className="px-3 py-2.5 text-center">
+                                <button
+                                  onClick={() => handleApplyRescanRow(i)}
+                                  disabled={row.applied}
+                                  className="text-[11px] font-medium px-2.5 py-1 rounded-md transition-colors disabled:opacity-40"
+                                  style={{ background: row.matched ? "var(--bs-teal-dim)" : "var(--bs-amber-dim)", color: row.matched ? "var(--bs-teal)" : "var(--bs-amber)", border: `1px solid ${row.matched ? "var(--bs-teal-border, var(--bs-teal))" : "var(--bs-amber-border, var(--bs-amber))"}` }}
+                                >
+                                  {row.applied ? "Done" : row.matched ? "Apply" : "Create"}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ background: "var(--bs-bg-elevated)", borderTop: "1px solid var(--bs-border)" }}>
+                          <td className="px-3 py-2 text-xs font-medium" style={{ color: "var(--bs-text-primary)" }}>TOTAL</td>
+                          <td className="px-3 py-2 text-right text-xs font-medium tabular-nums" style={{ color: "var(--bs-text-primary)" }}>{fmt(rescanDiff.reduce((s, r) => s + r.extractedSF, 0))}</td>
+                          <td className="px-3 py-2 text-right text-xs tabular-nums" style={{ color: "var(--bs-text-muted)" }}>{fmt(rescanDiff.reduce((s, r) => s + (r.matched?.squareFeet ?? 0), 0))}</td>
+                          <td colSpan={2}></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => { setRescanStep("upload"); setRescanDiff([]); setRescanError(null); }} className="flex-1 text-sm py-2 rounded-lg transition-colors" style={{ border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)", background: "none" }}>Back</button>
+                    <button
+                      onClick={async () => { await handleApplyAllRescan(); }}
+                      disabled={rescanDiff.every(r => r.applied)}
+                      className="flex-1 text-sm font-medium py-2 rounded-lg transition-colors disabled:opacity-40"
+                      style={{ background: "var(--bs-teal)", color: "#13151a" }}
+                    >
+                      Apply All
+                    </button>
+                  </div>
+                  <button onClick={() => setShowRescanModal(false)} className="w-full text-xs text-center transition-colors" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>
+                    Done — close
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

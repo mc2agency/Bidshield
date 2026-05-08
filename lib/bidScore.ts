@@ -29,6 +29,8 @@ export interface BidScoreInput {
   laborAnalysis?: any | null;
   gcFormDocuments?: any[] | null;
   unconfirmedGcFormCount?: number | null;
+  projectSpecs?: any[] | null;
+  takeoffSections?: any[] | null;
 }
 
 export interface BidScoreResult {
@@ -54,6 +56,8 @@ export function computeBidScore(input: BidScoreInput): BidScoreResult {
     laborAnalysis,
     gcFormDocuments,
     unconfirmedGcFormCount,
+    projectSpecs,
+    takeoffSections,
   } = input;
 
   const items: ScoreItem[] = [];
@@ -481,6 +485,55 @@ export function computeBidScore(input: BidScoreInput): BidScoreResult {
       });
     } else if (unconfirmedGcFormCount === 0) {
       items.push({ label: "GC Bid Forms", status: "pass", message: "All GC bid form items confirmed" });
+    }
+  }
+
+  // 16. PLANS EXTRACTION vs TAKEOFF COMPARISON
+  if (!isDemo && projectData) {
+    const assemblies: any[] = projectData.roofAssemblies ?? [];
+    const extractedSF = assemblies.reduce((s: number, a: any) => s + (a.area ?? 0), 0);
+    const enteredSF = (takeoffSections ?? []).reduce((s: number, t: any) => s + (t.squareFeet ?? 0), 0);
+
+    if (assemblies.length === 0) {
+      items.push({ label: "Plans", status: "warn", message: "No roof plan uploaded — upload PDF in Setup to extract assemblies and verify takeoff", tabLink: "setup" });
+    } else if (extractedSF > 0 && enteredSF > 0) {
+      const delta = Math.abs(extractedSF - enteredSF);
+      const deltaPct = (delta / extractedSF) * 100;
+      if (deltaPct > 10) {
+        items.push({ label: "Plans", status: "fail", message: `Takeoff is ${Math.round(deltaPct)}% off from architect's plans — ${delta.toLocaleString()} SF gap, review before submitting`, tabLink: "takeoff" });
+      } else if (deltaPct > 3) {
+        items.push({ label: "Plans", status: "warn", message: `Takeoff is ${Math.round(deltaPct)}% off from extracted plans (${delta.toLocaleString()} SF gap)`, tabLink: "takeoff" });
+      } else {
+        items.push({ label: "Plans", status: "pass", message: `${assemblies.length} assemblies extracted — takeoff within ${Math.round(deltaPct)}% of architect's quantities` });
+      }
+    } else if (assemblies.length > 0) {
+      items.push({ label: "Plans", status: "warn", message: `${assemblies.length} assemblies from plans — enter takeoff SF to verify against architect's quantities`, tabLink: "takeoff" });
+    }
+  }
+
+  // 17. SPECIFICATION REVIEW
+  if (!isDemo) {
+    const specs = projectSpecs ?? [];
+    if (specs.length === 0) {
+      items.push({ label: "Specification", status: "warn", message: "No Division 07 spec uploaded — upload in Setup to auto-extract materials, warranty, and compliance checks", tabLink: "setup" });
+    } else {
+      const baseSpec = specs.find((s: any) => s.sourceType === "base_spec") ?? specs[0];
+      let specInfo = `${specs.length} spec${specs.length !== 1 ? "s" : ""} on file`;
+      let criticalCount = 0;
+      try {
+        const extracted = JSON.parse(baseSpec.extractionJson ?? "{}");
+        const manufacturer = extracted.warranty?.manufacturer ?? extracted.approvedManufacturers?.[0];
+        const warrantyTier = extracted.warranty?.tier;
+        if (manufacturer && warrantyTier) specInfo = `${manufacturer} ${warrantyTier} — ${specs.length} spec${specs.length !== 1 ? "s" : ""} on file`;
+        else if (manufacturer) specInfo = `${manufacturer} — ${specs.length} spec${specs.length !== 1 ? "s" : ""} on file`;
+        criticalCount = (extracted.phase9Flags?.complianceWarnings ?? []).filter((w: any) => w.severity === "critical").length;
+      } catch { /* malformed JSON — treat as uploaded but unread */ }
+
+      if (criticalCount > 0) {
+        items.push({ label: "Specification", status: "fail", message: `${criticalCount} critical compliance flag${criticalCount !== 1 ? "s" : ""} from spec — ${specInfo}`, tabLink: "setup" });
+      } else {
+        items.push({ label: "Specification", status: "pass", message: specInfo });
+      }
     }
   }
 

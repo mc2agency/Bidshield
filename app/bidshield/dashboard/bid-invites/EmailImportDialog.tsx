@@ -179,7 +179,7 @@ Plans: https://..."
             </div>
 
             {/* Bid DateTime */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Bid Date</label>
                 <input
@@ -213,7 +213,7 @@ Plans: https://..."
             </div>
 
             {/* Contact */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Contact</label>
                 <input
@@ -264,7 +264,7 @@ Plans: https://..."
                   value={editedData.notes}
                   onChange={(e) => setEditedData({ ...editedData, notes: e.target.value || undefined })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none text-slate-900 bg-white"
                 />
               </div>
             )}

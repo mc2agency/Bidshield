@@ -84,6 +84,8 @@ rValue: insulation R-value as a number if explicitly stated in the drawing (e.g.
 
 surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating'
 
+attachmentMethod: 'mechanically_attached' | 'fully_adhered' | 'ballasted' | 'self_adhered' | 'hybrid' | 'unknown' — how the membrane is fastened. Look for words like "mechanically attached", "fully adhered", "ballasted", "self-adhered", "adhered", "hybrid". Use 'unknown' if not determinable from the drawing.
+
 label: use label from drawing (RT-1, RT-2, RT-01, RT-02) if shown, otherwise RT-01, RT-02, etc. Max 10 assemblies.
 
 area: number in SF if a roof type takeoff schedule, region area, or area table is present. Include sub-areas (e.g. RT-01 and RT-01 N) as separate entries. Omit if no area data found.
@@ -154,6 +156,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       thickness: z.string().nullable().optional(),
       rValue: z.number().nullable().optional(),
       surface: z.string().nullable().optional(),
+      attachmentMethod: z.string().nullable().optional(),
       area: z.number().nullable().optional(),
       name: z.string().nullable().optional(),
       deckType: z.string().nullable().optional(),

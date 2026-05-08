@@ -8,6 +8,8 @@ import { resolveUserId } from "./_helpers";
 export const getNotifications = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
     const take = args.limit ?? 20;
     return await ctx.db
       .query("bidshield_notifications")
@@ -21,6 +23,8 @@ export const getNotifications = query({
 export const getUnreadCount = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
     const unread = await ctx.db
       .query("bidshield_notifications")
       .withIndex("by_user_read", (q) => q.eq("userId", args.userId).eq("read", false))
@@ -33,6 +37,10 @@ export const getUnreadCount = query({
 export const markRead = mutation({
   args: { notificationId: v.id("bidshield_notifications") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const notification = await ctx.db.get(args.notificationId);
+    if (!notification || notification.userId !== identity.subject) throw new Error("Unauthorized");
     await ctx.db.patch(args.notificationId, { read: true });
   },
 });
@@ -41,6 +49,8 @@ export const markRead = mutation({
 export const markAllRead = mutation({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Unauthorized");
     const unread = await ctx.db
       .query("bidshield_notifications")
       .withIndex("by_user_read", (q) => q.eq("userId", args.userId).eq("read", false))
@@ -53,6 +63,10 @@ export const markAllRead = mutation({
 export const dismiss = mutation({
   args: { notificationId: v.id("bidshield_notifications") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const notification = await ctx.db.get(args.notificationId);
+    if (!notification || notification.userId !== identity.subject) throw new Error("Unauthorized");
     await ctx.db.patch(args.notificationId, { dismissedAt: Date.now(), read: true });
   },
 });

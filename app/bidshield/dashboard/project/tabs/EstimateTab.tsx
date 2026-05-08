@@ -78,16 +78,16 @@ export default function EstimateTab({
   const autoTotalBid = materialTotal + computedLaborTotal + gcTotal;
   const totalBid = project?.totalBidAmount || autoTotalBid;
 
-  // Cost/SF
-  const grossRoofArea = project?.grossRoofArea || 1;
-  const costPerSf = totalBid / grossRoofArea;
+  // Cost/SF — null when grossRoofArea not set to avoid inflated $/SF display
+  const grossRoofArea = project?.grossRoofArea && project.grossRoofArea > 0 ? project.grossRoofArea : null;
+  const costPerSf = grossRoofArea ? totalBid / grossRoofArea : null;
 
   const summaryCards = [
     { label: "Material Total", value: materialTotal },
     { label: "Labor Total", value: computedLaborTotal },
     { label: "Gen. Conds Total", value: gcTotal },
     { label: "Total Bid", value: totalBid },
-    { label: "Cost/SF", value: costPerSf, format: (n: number) => "$" + n.toFixed(2) },
+    { label: "Cost/SF", value: costPerSf, format: (n: number | null) => n != null ? "$" + n.toFixed(2) : "—" },
   ];
 
   return (

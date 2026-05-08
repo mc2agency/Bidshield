@@ -88,7 +88,7 @@ export const getOrCreateUser = mutation({
 // L4: Shared user lookup by email — used by webhook handlers to avoid duplicating
 // identical query logic across checkout.session.completed and subscription.updated
 // branches. Pass the customer email from the Stripe session/subscription object.
-export const getByEmail = query({
+export const getByEmail = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, args) => {
     return ctx.db
@@ -236,7 +236,7 @@ export const isWebhookEventProcessed = mutation({
 });
 
 // Count user's active projects (for free tier limit)
-export const countActiveProjects = query({
+export const countActiveProjects = internalQuery({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
     const projects = await ctx.db
@@ -351,6 +351,9 @@ export const getUserByClerkId = internalQuery({
 export const getSystemSubstitutions = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    if (identity.subject !== args.clerkId) throw new Error("Unauthorized");
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
@@ -371,6 +374,9 @@ export const saveSystemSubstitutions = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    if (identity.subject !== args.clerkId) throw new Error("Unauthorized");
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))

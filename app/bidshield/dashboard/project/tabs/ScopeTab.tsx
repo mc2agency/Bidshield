@@ -751,7 +751,7 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
               {bulkRunning ? "Updating..." : `Bulk: ${unaddressedCount} undecided`}
             </button>
             {bulkAction && (
-              <div className="absolute top-full left-0 mt-1 z-20 rounded-lg shadow-lg py-1 min-w-[180px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+              <div className="absolute top-full left-0 mt-1 z-50 rounded-lg shadow-lg py-1 min-w-[180px]" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
                 {PILL_OPTIONS.map(opt => (
                   <button
                     key={opt.value}

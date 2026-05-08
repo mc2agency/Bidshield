@@ -211,7 +211,7 @@ function ProjectDetail() {
       setOutcomeModalOpen(false);
       return;
     }
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local timezone
     const parseNum = (s: string) => { const n = parseFloat(s); return isNaN(n) ? undefined : n; };
     await updateProject({
       projectId: projectIdParam as Id<"bidshield_projects">,
@@ -290,7 +290,7 @@ function ProjectDetail() {
     const scores = {
       checklist: clPct,
       scope: scPct,
-      takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : (controlSF > 0 ? 0 : 50)),
+      takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : 0),
       pricing: pricingDone ? 100 : (bidAmt ? 50 : 0),
       materials: mats.length > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
       quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 0,
@@ -317,7 +317,7 @@ function ProjectDetail() {
     const taskList = isDemo ? Array.from({ length: demoLaborTotal }, (_, i) => ({ verified: i < demoLaborVerified })) : (laborTasks ?? []);
     const ltTotal = taskList.length;
     const ltVerified = taskList.filter((t: any) => t.verified).length;
-    const laborScore = ltTotal === 0 ? 0 : ltVerified === 0 ? 25 : ltVerified === ltTotal ? 100 : Math.round((ltVerified / ltTotal) * 100);
+    const laborScore = ltTotal === 0 ? 0 : ltVerified === 0 ? 0 : ltVerified === ltTotal ? 100 : Math.round((ltVerified / ltTotal) * 100);
     (scores as any).labor = laborScore;
 
     // Scope-Pricing conflict count (for sidebar badge)
