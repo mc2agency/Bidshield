@@ -177,6 +177,76 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     }
   };
 
+  // ── Section 1b: Bid Source ──
+  const [bidSource, setBidSource] = useState({ bidType: "", bidContactName: "", bidContactEmail: "", bidContactPhone: "" });
+  const [bidSourceSaving, setBidSourceSaving] = useState(false);
+  const [bidSourceSaved, setBidSourceSaved] = useState(false);
+  const [bidScanLoading, setBidScanLoading] = useState(false);
+  const [bidScanError, setBidScanError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!project) return;
+    setBidSource({
+      bidType: (project as any).bidType || "",
+      bidContactName: (project as any).bidContactName || "",
+      bidContactEmail: (project as any).bidContactEmail || "",
+      bidContactPhone: (project as any).bidContactPhone || "",
+    });
+  }, [project]);
+
+  const handleBidSourceSave = async () => {
+    if (isDemo) return;
+    setBidSourceSaving(true);
+    try {
+      await updateProject({
+        projectId: projectId as any,
+        bidType: bidSource.bidType || undefined,
+        bidContactName: bidSource.bidContactName || undefined,
+        bidContactEmail: bidSource.bidContactEmail || undefined,
+        bidContactPhone: bidSource.bidContactPhone || undefined,
+      });
+      setBidSourceSaved(true);
+      setTimeout(() => setBidSourceSaved(false), 2000);
+    } catch (e) {
+      console.error("Failed to save bid source:", e);
+    } finally {
+      setBidSourceSaving(false);
+    }
+  };
+
+  const handleBidSourceScan = async (file: File) => {
+    setBidScanLoading(true);
+    setBidScanError(null);
+    try {
+      const ab = await file.arrayBuffer();
+      const bytes = new Uint8Array(ab);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 8192) {
+        binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + 8192, bytes.length)));
+      }
+      const pdfBase64 = btoa(binary);
+      const res = await guardedFetch("/api/bidshield/extract-bid-source", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64 }),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Scan failed");
+      setBidSource(prev => ({
+        bidType: data.bidType || prev.bidType,
+        bidContactName: data.contactName || prev.bidContactName,
+        bidContactEmail: data.contactEmail || prev.bidContactEmail,
+        bidContactPhone: data.contactPhone || prev.bidContactPhone,
+      }));
+      if (data.gcName) setInfo(prev => ({ ...prev, gc: prev.gc || data.gcName }));
+    } catch (e: any) {
+      setBidScanError(e.message || "Failed to scan document");
+    } finally {
+      setBidScanLoading(false);
+    }
+  };
+
   // ── Section 2: Roof Assemblies ──
   const [assemblies, setAssemblies] = useState<AssemblyRow[]>([]);
   const [assembliesDirty, setAssembliesDirty] = useState(false);
@@ -898,6 +968,125 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               onChange={(e) => setInfo({ ...info, drawingRevision: e.target.value })}
               style={inputStyle}
               placeholder="e.g. 95% CD, Rev 3"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bid Source ── */}
+      <div style={cardStyle}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--bs-text-primary)", margin: 0 }}>Bid Source</h3>
+            <p style={{ fontSize: 12, color: "var(--bs-text-muted)", marginTop: 2 }}>How this bid came in and who to contact.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {bidSourceSaved && <span style={{ fontSize: 12, color: "var(--bs-teal)" }}>Saved</span>}
+            <label
+              style={{
+                ...btnSecondary,
+                display: "inline-flex", alignItems: "center", gap: 6,
+                opacity: bidScanLoading ? 0.5 : 1,
+                cursor: bidScanLoading ? "not-allowed" : "pointer",
+                fontSize: 12,
+              }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+              </svg>
+              {bidScanLoading ? "Scanning..." : "Scan Bid Invite PDF"}
+              <input
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                disabled={bidScanLoading || isDemo}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleBidSourceScan(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <button
+              onClick={handleBidSourceSave}
+              disabled={bidSourceSaving || isDemo}
+              style={{ ...btnPrimary, opacity: bidSourceSaving ? 0.5 : 1 }}
+            >
+              {bidSourceSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        {bidScanError && (
+          <div className="mb-4 px-3 py-2 rounded-lg text-xs" style={{ background: "var(--bs-red-dim, rgba(239,68,68,0.1))", color: "var(--bs-red, #ef4444)", border: "1px solid var(--bs-red-border, rgba(239,68,68,0.2))" }}>
+            {bidScanError}
+          </div>
+        )}
+
+        {/* Bid type pills */}
+        <div className="mb-4">
+          <label style={{ ...labelStyle, marginBottom: 8 }}>Bid Type</label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "gc_invited", label: "GC Invited" },
+              { id: "private", label: "Private Owner" },
+              { id: "public", label: "Public / Gov't" },
+              { id: "pre_selective", label: "Pre-Selective" },
+              { id: "design_build", label: "Design-Build" },
+              { id: "negotiated", label: "Negotiated" },
+            ].map((t) => {
+              const active = bidSource.bidType === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setBidSource(prev => ({ ...prev, bidType: active ? "" : t.id }))}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: active ? 600 : 400,
+                    border: active ? "1px solid var(--bs-teal)" : "1px solid var(--bs-border)",
+                    background: active ? "var(--bs-teal-dim)" : "transparent",
+                    color: active ? "var(--bs-teal)" : "var(--bs-text-muted)",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Contact fields */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2 sm:col-span-1">
+            <label style={labelStyle}>Contact Name</label>
+            <input
+              value={bidSource.bidContactName}
+              onChange={(e) => setBidSource(prev => ({ ...prev, bidContactName: e.target.value }))}
+              style={inputStyle}
+              placeholder="e.g. John Smith"
+            />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label style={labelStyle}>Contact Phone</label>
+            <input
+              value={bidSource.bidContactPhone}
+              onChange={(e) => setBidSource(prev => ({ ...prev, bidContactPhone: e.target.value }))}
+              style={inputStyle}
+              placeholder="e.g. (704) 555-0100"
+            />
+          </div>
+          <div className="col-span-2">
+            <label style={labelStyle}>Contact Email</label>
+            <input
+              type="email"
+              value={bidSource.bidContactEmail}
+              onChange={(e) => setBidSource(prev => ({ ...prev, bidContactEmail: e.target.value }))}
+              style={inputStyle}
+              placeholder="e.g. jsmith@gccompany.com"
             />
           </div>
         </div>

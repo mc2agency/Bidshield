@@ -206,6 +206,10 @@ export const updateProject = mutation({
     drawingRevision: v.optional(v.string()),
     systemDescription: v.optional(v.string()),
     specSummary: v.optional(v.string()),
+    bidType: v.optional(v.string()),
+    bidContactName: v.optional(v.string()),
+    bidContactEmail: v.optional(v.string()),
+    bidContactPhone: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await assertProjectOwnership(ctx, args.projectId);

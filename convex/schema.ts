@@ -164,6 +164,10 @@ export default defineSchema({
     }))),
     systemDescription: v.optional(v.string()), // AI-generated project-level system summary
     specSummary: v.optional(v.string()), // JSON-stringified spec extraction result
+    bidType: v.optional(v.string()), // "gc_invited", "private", "public", "pre_selective", "design_build", "negotiated"
+    bidContactName: v.optional(v.string()),
+    bidContactEmail: v.optional(v.string()),
+    bidContactPhone: v.optional(v.string()),
     grossRoofArea: v.optional(v.number()), // Control number from site plan (SF)
     notes: v.optional(v.string()),
     // Bid pricing — canonical field is totalBidAmount
