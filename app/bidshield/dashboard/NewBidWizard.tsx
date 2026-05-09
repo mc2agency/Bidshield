@@ -9,12 +9,14 @@ const PROJECT_TYPE_ICONS: Record<string, React.ReactNode> = {
   reroof: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>,
   recover: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" /></svg>,
   repair: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.654m5.65-4.65 3.086-3.086a1 1 0 0 1 1.414 1.414l-3.086 3.086m-5.65 4.65-.649-.352M6.75 7.5l4.59-4.59a1.952 1.952 0 0 1 2.763 2.763L9.513 9.672" /></svg>,
+  pre_selective: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-.723 3.066 3.745 3.745 0 01-3.066.723A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.745 3.745 0 01-3.066-.723 3.745 3.745 0 01-.723-3.066A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 01.723-3.066 3.745 3.745 0 013.066-.723A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.745 3.745 0 013.066.723 3.745 3.745 0 01.723 3.066A3.745 3.745 0 0121 12z" /></svg>,
 };
 const PROJECT_TYPES = [
   { id: "new_construction", label: "New Construction", desc: "New building, full roof system install" },
   { id: "reroof", label: "Re-Roof / Tear-Off", desc: "Existing building, remove & replace" },
   { id: "recover", label: "Recover / Overlay", desc: "Install new system over existing" },
   { id: "repair", label: "Repair / Maintenance", desc: "Targeted repairs, leak fixes" },
+  { id: "pre_selective", label: "Pre-Selective / Invited", desc: "GC pre-qualified you for this bid" },
 ];
 
 const SYSTEMS = [
@@ -66,6 +68,10 @@ function getConfigSummary(projectType: string, systems: string[]) {
     configs.push("Damage assessment items");
     configs.push("Warranty impact checks");
     configs.push("Simplified scope checker");
+  } else if (projectType === "pre_selective") {
+    configs.push("Pre-qualification documentation checklist");
+    configs.push("Invited bid compliance review");
+    configs.push("Negotiated scope verification items");
   }
 
   // System-specific (deduplicate by checking each system)
@@ -160,9 +166,10 @@ interface Props {
   isDemo?: boolean;
   isPro?: boolean;
   editProject?: EditProjectData;
+  inviteData?: { inviteId: string; name?: string; gc?: string; bidDate?: string };
 }
 
-export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editProject }: Props) {
+export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editProject, inviteData }: Props) {
   const isEdit = !!editProject;
   const [step, setStep] = useState(isEdit ? 1 : 0);
   const [projectType, setProjectType] = useState(editProject?.projectType || "");
@@ -200,12 +207,12 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
   const [takeoffError, setTakeoffError] = useState("");
   const [deck, setDeck] = useState(editProject?.deckType || "");
-  const [name, setName] = useState(editProject?.name || "");
+  const [name, setName] = useState(editProject?.name || inviteData?.name || "");
   const [location, setLocation] = useState(editProject?.location || "");
-  const [bidDate, setBidDate] = useState(editProject?.bidDate || "");
+  const [bidDate, setBidDate] = useState(editProject?.bidDate || inviteData?.bidDate || "");
   const [drawingDate, setDrawingDate] = useState(editProject?.drawingDate || "");
   const [drawingRevision, setDrawingRevision] = useState(editProject?.drawingRevision || "");
-  const [gc, setGc] = useState(editProject?.gc || "");
+  const [gc, setGc] = useState(editProject?.gc || inviteData?.gc || "");
   const [sqft, setSqft] = useState(editProject?.sqft ? String(editProject.sqft) : "");
   const [totalBidAmount, setTotalBidAmount] = useState(editProject?.totalBidAmount ? String(editProject.totalBidAmount) : "");
 

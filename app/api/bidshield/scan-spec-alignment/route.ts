@@ -39,7 +39,7 @@ const ScanSpecAlignmentSchema = z
     checklistPhases: z.array(z.string().max(100).trim()).max(30).optional(),
     // Project context
     systemType: z.enum(["tpo", "epdm", "sbs", "pvc", "metal", "bur", "spf"]).optional(),
-    projectType: z.enum(["reroof", "new-construction", "recover"]).optional(),
+    projectType: z.enum(["reroof", "new-construction", "new_construction", "recover", "repair", "pre_selective"]).optional(),
     totalBidAmount: z.number().positive().optional(),
   })
   .refine(

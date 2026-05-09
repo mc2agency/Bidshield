@@ -24,7 +24,7 @@ const GenerateExclusionsSchema = z.object({
   systemType: z
     .enum(["tpo", "epdm", "sbs", "pvc", "metal", "bur", "spf"])
     .optional(),
-  projectType: z.enum(["reroof", "new-construction", "recover"]).optional(),
+  projectType: z.enum(["reroof", "new-construction", "new_construction", "recover", "repair", "pre_selective"]).optional(),
   gcName: z.string().max(200).trim().optional(),
   flaggedChecklistItems: z.array(z.string().max(500).trim()).max(50).optional(),
 });
@@ -110,11 +110,26 @@ function buildProjectTypeContext(projectType?: string): string {
 - Local code limits on number of roof layers`;
 
     case "new-construction":
+    case "new_construction":
       return `This is a NEW CONSTRUCTION project. Additional scope risks to flag:
 - Coordination with other trades for penetration sleeves and blocking
 - Temporary weather protection / phased installation responsibility
 - Substrate readiness verification — who confirms deck is ready?
 - Owner-furnished equipment curbs and equipment weights`;
+
+    case "repair":
+      return `This is a REPAIR / MAINTENANCE project. Additional scope risks to flag:
+- Scope creep — additional deterioration found once repair area is opened
+- Matching existing membrane, granules, and surfacing for aesthetic continuity
+- Liability for pre-existing conditions outside the repair scope
+- Warranty exclusions: repairs on aged or incompatible existing systems may void warranty`;
+
+    case "pre_selective":
+      return `This is a PRE-SELECTIVE (invited / negotiated) bid. Additional considerations:
+- Pre-qualification requirements must be documented (bonding capacity, experience, safety ratings)
+- Invited bid scope may differ from open-bid specs — verify all exclusions match the agreed scope
+- Negotiate scope gaps upfront; scope creep is harder to recover post-award on negotiated work
+- Bonding and insurance levels may be elevated per pre-qualification requirements`;
 
     default:
       return "No specific project type was provided. Apply general commercial roofing project risk knowledge.";

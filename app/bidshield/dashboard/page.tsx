@@ -538,6 +538,7 @@ function DashboardContent() {
   const createProjectMut = useMutation(api.bidshield.createProject);
   const updateProjectMut = useMutation(api.bidshield.updateProject);
   const deleteProjectMut = useMutation(api.bidshield.deleteProject);
+  const convertToProjectMut = useMutation(api.bidInvites.convertToProject);
   const projects: BidProject[] = isDemo ? demoProjects : (convexProjects ?? []);
   const stats = isDemo ? demoStats : (convexStats ?? {
     activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0,
@@ -577,6 +578,20 @@ function DashboardContent() {
   useEffect(() => {
     if (searchParams.get("signup") === "1") track("signup_completed");
   }, [searchParams]);
+
+  // Auto-open wizard when arriving from a bid invite conversion
+  const fromInvite = searchParams.get("fromInvite") || undefined;
+  const invitePreFill = fromInvite ? {
+    inviteId: fromInvite,
+    name: searchParams.get("name") || undefined,
+    gc: searchParams.get("gc") || undefined,
+    bidDate: searchParams.get("bidDate") || undefined,
+  } : undefined;
+  useEffect(() => {
+    if (fromInvite) setShowNewProject(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const isLoading = !isDemo && convexProjects === undefined;
 
   const handleCreateProject = async (np: any) => {
@@ -589,6 +604,7 @@ function DashboardContent() {
       drawingDate: np.drawingDate || undefined,
       drawingRevision: np.drawingRevision || undefined,
       trade: np.trade || "roofing",
+      projectType: np.projectType || undefined,
       systemType: np.systemType || undefined,
       deckType: np.deckType || undefined,
       gc: np.gc || undefined,
@@ -632,6 +648,17 @@ function DashboardContent() {
       }
     }
     if (isFirst) track("first_project_created");
+    // If created from a bid invite, link the project back to the invite
+    if (fromInvite) {
+      try {
+        await convertToProjectMut({
+          inviteId: fromInvite as Id<"bidInvites">,
+          projectId: projectId as Id<"bidshield_projects">,
+        });
+      } catch (e) {
+        console.warn("convertToProject link failed:", e);
+      }
+    }
     setShowNewProject(false);
     // Use full page navigation instead of router.push to ensure Clerk
     // re-initialises with a fresh JWT — soft navigations can hit the
@@ -974,7 +1001,7 @@ function DashboardContent() {
         </div>
       )}
 
-      {showNewProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} />}
+      {showNewProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setShowNewProject(false)} onCreate={handleCreateProject} inviteData={invitePreFill} />}
       {editingProject && <NewBidWizard isDemo={isDemo} isPro={isPro} onClose={() => setEditingProject(null)} onCreate={handleUpdateProject} editProject={{
         projectType: (editingProject as any).projectType,
         systemType: (editingProject as any).systemType,
