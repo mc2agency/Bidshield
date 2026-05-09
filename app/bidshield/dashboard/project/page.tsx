@@ -456,7 +456,7 @@ function ProjectDetail() {
             return (
               <button
                 key={id}
-                onClick={() => setActiveTab(isActive ? null : id)}
+                onClick={() => setActiveTab(id)}
                 className="bs-nav-item w-full text-left"
                 style={isActive
                   ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500, border: "1px solid var(--bs-teal-border)" }
