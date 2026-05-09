@@ -423,6 +423,7 @@ export default defineSchema({
     pricingVerified: v.optional(v.boolean()),
     coverageVerified: v.optional(v.boolean()),
     wasteVerified: v.optional(v.boolean()),
+    manufacturer: v.optional(v.string()), // vendor/manufacturer brand (Siplast, Hydrotech, etc.)
     createdAt: v.number(),
     updatedAt: v.number(),
   })

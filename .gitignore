@@ -49,3 +49,6 @@ BidShield-Audit-Report.docx
 # Editor / tool configs
 .cursor/
 .claude/
+
+# Sample files
+app/samples/

@@ -82,6 +82,7 @@ export {
   initProjectMaterials,
   clearProjectMaterials,
   bulkSaveMaterialsFromExtraction,
+  bulkSaveEdgeMaterials,
   updateMaterialCoverageRate,
   fixMaterialCategories,
   getUserMaterialPrices,

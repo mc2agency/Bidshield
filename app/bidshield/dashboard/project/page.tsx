@@ -517,16 +517,38 @@ function ProjectDetail() {
         >
           {/* Single row — breadcrumb + countdown + blocker */}
           <div className="flex items-center gap-1.5 py-2.5">
+            {/* Back chevron: goes to project overview when on a tab, dashboard when on overview */}
+            {activeTab ? (
+              <button
+                onClick={() => setActiveTab(null)}
+                className="flex items-center transition-colors cursor-pointer"
+                style={{ fontSize: 11, color: "var(--bs-text-muted)", background: "none", border: "none", padding: 0 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+            ) : (
+              <Link
+                href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
+                className="flex items-center transition-colors"
+                style={{ fontSize: 11, color: "var(--bs-text-muted)", textDecoration: "none" }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+              </Link>
+            )}
             <Link
               href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-              className="flex items-center gap-0.5 transition-colors cursor-pointer"
               style={{ fontSize: 11, color: "var(--bs-text-muted)", textDecoration: "none" }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-              </svg>
               Projects
             </Link>
             <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>/</span>

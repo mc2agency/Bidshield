@@ -359,6 +359,64 @@ export const bulkSaveMaterialsFromExtraction = mutation({
   },
 });
 
+// Bulk save materials from Edge Estimating XLSX import
+export const bulkSaveEdgeMaterials = mutation({
+  args: {
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    replaceAll: v.boolean(),
+    items: v.array(v.object({
+      category: v.string(),
+      name: v.string(),
+      unit: v.string(),
+      quantity: v.optional(v.number()),
+      unitPrice: v.optional(v.number()),
+      totalCost: v.optional(v.number()),
+      wasteFactor: v.number(),
+      notes: v.optional(v.string()),
+      manufacturer: v.optional(v.string()),
+    })),
+  },
+  handler: async (ctx, args) => {
+    const convexUserId = await validateAuth(ctx, args.userId);
+    await assertProjectOwnership(ctx, args.projectId);
+    const now = Date.now();
+
+    if (args.replaceAll) {
+      const existing = await ctx.db
+        .query("bidshield_project_materials")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect();
+      await Promise.all(existing.map((d) => ctx.db.delete(d._id)));
+    }
+
+    for (let i = 0; i < args.items.length; i++) {
+      const item = args.items[i];
+      await ctx.db.insert("bidshield_project_materials", {
+        projectId: args.projectId,
+        userId: args.userId,
+        convexUserId,
+        category: item.category,
+        name: item.name,
+        unit: item.unit,
+        calcType: "fixed",
+        quantity: item.quantity ?? 0,
+        unitPrice: item.unitPrice ? roundCurrency(item.unitPrice) : 0,
+        totalCost: item.totalCost ? roundCurrency(item.totalCost) : 0,
+        wasteFactor: item.wasteFactor,
+        notes: item.notes,
+        manufacturer: item.manufacturer,
+        extractedFromPdf: false,
+        coverageSource: "report",
+        sortOrder: i,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    return { inserted: args.items.length };
+  },
+});
+
 // Update coverage rate for a single material
 export const updateMaterialCoverageRate = mutation({
   args: {
