@@ -236,13 +236,11 @@ export function generatePricingEmailBody(
   const subject = `Material Pricing Request – ${projectName}`;
   const body = `Hi,
 
-I'm putting together pricing for the following ${manufacturer} materials on project: ${projectName}.
-
-Please provide unit pricing and lead time for the items below:
+Please provide pricing for the following ${manufacturer} materials on project: ${projectName}.
 
 ${lines}
 
-Please reply with your best pricing valid for 30 days. Let me know if you need additional spec information.
+Please reply with your best pricing valid for 30 days.
 
 Thank you`;
 

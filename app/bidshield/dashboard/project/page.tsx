@@ -295,7 +295,11 @@ function ProjectDetail() {
       takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : 0),
       pricing: pricingDone ? 100 : (bidAmt ? 50 : 0),
       materials: mats.length > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
-      quotes: qCount > 0 ? (expired === 0 ? (expiring === 0 ? 100 : 70) : 40) : 0,
+      quotes: (() => {
+        const receivedCount = isDemo ? 4 : qs.filter((q: any) => ["received", "valid", "expiring", "expired"].includes(q.status ?? "")).length;
+        if (receivedCount > 0) return expired === 0 ? (expiring === 0 ? 100 : 70) : 40;
+        return qCount > 0 ? 20 : 0; // 20% = requests sent but nothing received yet
+      })(),
       addenda: adCount > 0 ? (adNotRepriced === 0 && adNotReviewed === 0 ? 100 : 40) : 0,
       rfis: rCount > 0 ? (rPending === 0 ? 100 : 60) : 0,
     };

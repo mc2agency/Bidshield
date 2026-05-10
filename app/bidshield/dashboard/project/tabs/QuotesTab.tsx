@@ -266,11 +266,28 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
         });
       }
     }
-    // Open single mailto with all vendor emails in TO
-    const toField = emails.join(",");
-    window.open(`mailto:${toField}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank");
+    if (emails.length > 0) {
+      try {
+        const res = await fetch("/api/bidshield/send-pricing-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vendorEmails: emails,
+            manufacturer: group.manufacturer,
+            items: group.items.filter(i => i.orderQty > 0).map(i => ({ name: i.description, qty: i.orderQty, unit: i.orderUnit })),
+            projectName,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Send failed");
+        notify(`Sent to ${data.sent} vendor${data.sent !== 1 ? "s" : ""}!`);
+      } catch (err: any) {
+        notify(`Email error: ${err.message ?? "Failed to send"}`);
+      }
+    } else {
+      notify(`Quote request created for ${group.manufacturer}`);
+    }
     setDismissedGroups(prev => new Set([...prev, group.manufacturer]));
-    notify(`Pricing request sent to ${savedVendors.length > 1 ? `${savedVendors.length} vendors` : group.manufacturer}!`);
   };
 
   const handleBulkMove = () => {
@@ -570,7 +587,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"}
                 >
-                  {xlsxImporting ? "Parsing..." : "Import Estimate"}
+                  {xlsxImporting ? "Parsing..." : "Import Materials"}
                 </button>
               )}
               {isValidConvexId && (
@@ -666,12 +683,13 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
               </div>
               <button
                 onClick={() => { setXlsxRawItems([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); setItemGroupOverrides({}); setSelectedItemKeys(new Set()); setRemovedItemKeys(new Set()); setBulkMoveTarget(""); }}
-                className="text-xs transition-colors"
-                style={{ color: "var(--bs-text-dim)" }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
+                className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
+                style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-red)"; el.style.borderColor = "var(--bs-red)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-text-muted)"; el.style.borderColor = "var(--bs-border)"; }}
               >
-                Clear
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                Clear list
               </button>
             </div>
             {activeGroups.length === 0 ? (
@@ -856,7 +874,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                       className="text-[12px] font-semibold px-4 py-1.5 rounded-lg transition-opacity hover:opacity-80"
                       style={{ background: "var(--bs-teal)", color: "#13151a" }}
                     >
-                      Request Pricing
+                      {(selectedVendors[group.manufacturer]?.length ?? 0) > 0 ? "Send to All Vendors" : "Request Pricing"}
                     </button>
                   </div>
                 </div>
@@ -865,6 +883,15 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           </div>
         );
       })()}
+
+      {/* Section divider when both panels are visible */}
+      {xlsxRawItems.length > 0 && resolvedQuotes.length > 0 && (
+        <div className="flex items-center gap-3 my-1">
+          <div className="flex-1 h-px" style={{ background: "var(--bs-border)" }} />
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Saved Quotes</span>
+          <div className="flex-1 h-px" style={{ background: "var(--bs-border)" }} />
+        </div>
+      )}
 
       {/* Quote cards */}
       {resolvedQuotes.length === 0 ? (
