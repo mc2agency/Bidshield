@@ -180,11 +180,21 @@ export function groupByManufacturer(items: EstimatingLineItem[]): ManufacturerGr
     map.set(item.manufacturer, g);
   }
   return Array.from(map.entries())
-    .map(([manufacturer, items]) => ({
-      manufacturer,
-      items,
-      subtotal: items.reduce((s, i) => s + i.netCost, 0),
-    }))
+    .map(([manufacturer, groupItems]) => {
+      // Merge items with identical descriptions (sum qty + netCost, keep first unitPrice)
+      const merged = new Map<string, EstimatingLineItem>();
+      for (const item of groupItems) {
+        const key = item.description.toLowerCase().trim();
+        if (merged.has(key)) {
+          const ex = merged.get(key)!;
+          merged.set(key, { ...ex, orderQty: ex.orderQty + item.orderQty, netCost: ex.netCost + item.netCost });
+        } else {
+          merged.set(key, { ...item });
+        }
+      }
+      const items = Array.from(merged.values());
+      return { manufacturer, items, subtotal: items.reduce((s, i) => s + i.netCost, 0) };
+    })
     .sort((a, b) => b.subtotal - a.subtotal);
 }
 

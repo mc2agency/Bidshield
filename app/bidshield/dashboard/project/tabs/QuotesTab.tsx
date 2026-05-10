@@ -139,12 +139,24 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
 
   // Import Estimate (.xlsx) state
   const xlsxInputRef = useRef<HTMLInputElement>(null);
-  const [xlsxGroups, setXlsxGroups] = useState<ManufacturerGroup[]>([]);
+  const [xlsxRawItems, setXlsxRawItems] = useState<import("@/lib/bidshield/estimating-import").EstimatingLineItem[]>([]);
+  const [itemGroupOverrides, setItemGroupOverrides] = useState<Record<string, string>>({});
   const [xlsxFilename, setXlsxFilename] = useState("");
   const [xlsxImporting, setXlsxImporting] = useState(false);
   const [dismissedGroups, setDismissedGroups] = useState<Set<string>>(new Set());
   const [selectedVendors, setSelectedVendors] = useState<Record<string, string>>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  // Derived manufacturer groups (reactive to per-item group overrides)
+  const xlsxGroups = useMemo(() => {
+    if (xlsxRawItems.length === 0) return [];
+    const adjusted = xlsxRawItems.map(item => {
+      const key = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
+      const override = itemGroupOverrides[key];
+      return override ? { ...item, manufacturer: override } : item;
+    });
+    return groupByManufacturer(adjusted);
+  }, [xlsxRawItems, itemGroupOverrides]);
 
   // Quotes available to import = all user quotes not already in this project
   const importableQuotes = useMemo(() => {
@@ -187,11 +199,13 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     setXlsxFilename(file.name);
     setDismissedGroups(new Set());
     setExpandedGroups(new Set());
+    setItemGroupOverrides({});
     try {
       const buf = await file.arrayBuffer();
       const items = await parseEstimatingXlsx(buf);
+      setXlsxRawItems(items);
+      // Auto-match vendors from initial groups
       const groups = groupByManufacturer(items);
-      setXlsxGroups(groups);
       const autoSelected: Record<string, string> = {};
       for (const g of groups) {
         const match = (vendors as any[])?.find((v: any) =>
@@ -202,7 +216,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       }
       setSelectedVendors(autoSelected);
     } catch {
-      setXlsxGroups([]);
+      setXlsxRawItems([]);
     } finally {
       setXlsxImporting(false);
       if (xlsxInputRef.current) xlsxInputRef.current.value = "";
@@ -593,7 +607,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       )}
 
       {/* Import Estimate panel */}
-      {xlsxGroups.length > 0 && (() => {
+      {xlsxRawItems.length > 0 && (() => {
         const activeGroups = xlsxGroups.filter(g => !dismissedGroups.has(g.manufacturer));
         const fmtQty = (n: number) => {
           const r = Math.round(n * 1000) / 1000;
@@ -615,7 +629,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
               </div>
               <button
-                onClick={() => { setXlsxGroups([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); }}
+                onClick={() => { setXlsxRawItems([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); setItemGroupOverrides({}); }}
                 className="text-xs transition-colors"
                 style={{ color: "var(--bs-text-dim)" }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
@@ -670,15 +684,29 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                   </div>
                   {/* Item rows */}
                   <div>
-                    {visibleItems.map((item, i) => (
-                      <div key={i} className="flex items-center px-5 py-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
-                        <span className="flex-1 text-[12px]" style={{ color: "var(--bs-text-secondary)" }}>{item.description}</span>
-                        {item.orderQty > 0 && (
-                          <span className="text-[12px] tabular-nums font-medium ml-4 shrink-0" style={{ color: "var(--bs-text-primary)" }}>{fmtQty(item.orderQty)}</span>
-                        )}
-                        <span className="text-[11px] ml-2 w-10 shrink-0" style={{ color: "var(--bs-text-dim)" }}>{item.orderUnit}</span>
-                      </div>
-                    ))}
+                    {visibleItems.map((item, i) => {
+                      const overrideKey = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
+                      return (
+                        <div key={i} className="flex items-center px-5 py-2 gap-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                          <span className="flex-1 text-[12px]" style={{ color: "var(--bs-text-secondary)" }}>{item.description}</span>
+                          {item.orderQty > 0 && (
+                            <span className="text-[12px] tabular-nums font-medium shrink-0" style={{ color: "var(--bs-text-primary)" }}>{fmtQty(item.orderQty)}</span>
+                          )}
+                          <span className="text-[11px] w-10 shrink-0" style={{ color: "var(--bs-text-dim)" }}>{item.orderUnit}</span>
+                          {isExpanded && (
+                            <select
+                              value={itemGroupOverrides[overrideKey] ?? group.manufacturer}
+                              onChange={e => setItemGroupOverrides(prev => ({ ...prev, [overrideKey]: e.target.value }))}
+                              className="text-[10px] rounded focus:outline-none shrink-0"
+                              style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-dim)", padding: "2px 4px", maxWidth: 120 }}
+                              title="Move to group"
+                            >
+                              {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
+                            </select>
+                          )}
+                        </div>
+                      );
+                    })}
                     {hiddenCount > 0 && (
                       <div className="px-5 py-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
                         <button

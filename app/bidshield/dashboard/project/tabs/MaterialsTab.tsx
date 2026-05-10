@@ -350,6 +350,11 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [editWaste, setEditWaste] = useState("");
   const [editQuoteId, setEditQuoteId] = useState<string>("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showPriceLibModal, setShowPriceLibModal] = useState(false);
+  const [priceLibSearch, setPriceLibSearch] = useState("");
+  const [priceLibCategory, setPriceLibCategory] = useState<string>("all");
+  const [priceLibSelected, setPriceLibSelected] = useState<Set<string>>(new Set());
+  const [priceLibAdding, setPriceLibAdding] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [checkRowId, setCheckRowId] = useState<string | null>(null);
@@ -904,6 +909,31 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     setShowAddModal(false);
   };
 
+  const handleAddFromLibrary = async () => {
+    if (isDemo || !isValidConvexId || !userId || priceLibSelected.size === 0) return;
+    setPriceLibAdding(true);
+    const addableSheets = (datasheets ?? []).filter((ds: any) => priceLibSelected.has(ds._id));
+    for (const ds of addableSheets) {
+      const category = datasheetCategoryToMaterial(ds.category);
+      await addMaterial({
+        projectId: projectId as Id<"bidshield_projects">,
+        userId,
+        category,
+        name: ds.productName,
+        unit: ds.unit,
+        calcType: ds.coverage ? "coverage" : "fixed",
+        unitPrice: ds.unitPrice,
+        coverage: ds.coverage,
+        wasteFactor: 1.05,
+        totalCost: undefined,
+        quantity: undefined,
+      });
+    }
+    setPriceLibSelected(new Set());
+    setPriceLibAdding(false);
+    setShowPriceLibModal(false);
+  };
+
   // ── CSV bulk import (L-13) ──────────────────────────────────────────────────
   const VALID_CATEGORIES = new Set(["membrane", "insulation", "fasteners", "adhesive", "edge_metal", "accessories"]);
   const handleCsvImport = async (file: File) => {
@@ -1370,6 +1400,18 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               Upload PDF · Pro
             </a>
           )}
+          {/* From Price Library */}
+          {!isDemo && (datasheets ?? []).length > 0 && (
+            <button
+              onClick={() => { setPriceLibSearch(""); setPriceLibCategory("all"); setPriceLibSelected(new Set()); setShowPriceLibModal(true); }}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+            >
+              From Price Library
+            </button>
+          )}
           {/* Add Material */}
           {(isPro || isDemo) ? (
             <button onClick={() => setShowAddModal(true)} className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
@@ -1754,6 +1796,110 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
       {filteredMaterials.length === 0 && materials.length > 0 && (
         <div className="text-center py-10" style={{ color: "var(--bs-text-muted)" }}>No materials in this category</div>
       )}
+
+      {/* From Price Library Modal */}
+      {showPriceLibModal && (() => {
+        const allSheets = (datasheets ?? []) as any[];
+        const existingNames = new Set(materials.map((m: any) => m.name.toLowerCase().trim()));
+        const categoryKeys = ["all", ...Array.from(new Set(allSheets.map((d: any) => d.category)))];
+        const filtered = allSheets.filter((d: any) => {
+          const matchCat = priceLibCategory === "all" || d.category === priceLibCategory;
+          const matchSearch = !priceLibSearch || d.productName.toLowerCase().includes(priceLibSearch.toLowerCase()) || (d.vendorName ?? "").toLowerCase().includes(priceLibSearch.toLowerCase());
+          return matchCat && matchSearch;
+        });
+        return (
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(0,0,0,0.7)" }} onClick={() => setShowPriceLibModal(false)}>
+            <div className="rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" style={{ background: "var(--bs-bg-card)" }} onClick={e => e.stopPropagation()}>
+              <div className="px-6 py-4 flex items-center justify-between flex-shrink-0" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                <div>
+                  <h2 className="text-[15px] font-bold" style={{ color: "var(--bs-text-primary)" }}>From Price Library</h2>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>Select products to add to this project's material list</p>
+                </div>
+                <button onClick={() => setShowPriceLibModal(false)} className="text-lg transition-colors" style={{ color: "var(--bs-text-muted)" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-primary)"} onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}>✕</button>
+              </div>
+              <div className="px-4 py-3 flex gap-2 flex-shrink-0" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search products or vendors..."
+                  value={priceLibSearch}
+                  onChange={e => setPriceLibSearch(e.target.value)}
+                  className="flex-1 px-3 py-2 text-[13px] rounded-lg focus:outline-none"
+                  style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+                />
+                <select
+                  value={priceLibCategory}
+                  onChange={e => setPriceLibCategory(e.target.value)}
+                  className="text-[12px] rounded-lg px-2 py-2 focus:outline-none"
+                  style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
+                >
+                  {categoryKeys.map(k => <option key={k} value={k}>{k === "all" ? "All categories" : k}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-12 text-sm" style={{ color: "var(--bs-text-muted)" }}>No matching products</div>
+                ) : filtered.map((ds: any) => {
+                  const alreadyAdded = existingNames.has(ds.productName.toLowerCase().trim());
+                  const isSelected = priceLibSelected.has(ds._id);
+                  return (
+                    <div
+                      key={ds._id}
+                      className="flex items-center px-5 py-3 gap-3 transition-colors"
+                      style={{ borderBottom: "1px solid var(--bs-border)", opacity: alreadyAdded ? 0.45 : 1, background: isSelected ? "var(--bs-teal-dim)" : undefined, cursor: alreadyAdded ? "default" : "pointer" }}
+                      onClick={() => {
+                        if (alreadyAdded) return;
+                        setPriceLibSelected(prev => {
+                          const next = new Set(prev);
+                          isSelected ? next.delete(ds._id) : next.add(ds._id);
+                          return next;
+                        });
+                      }}
+                      onMouseEnter={e => { if (!alreadyAdded && !isSelected) (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"; }}
+                      onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = ""; }}
+                    >
+                      <div className="w-4 h-4 rounded flex items-center justify-center shrink-0" style={{ background: isSelected ? "var(--bs-teal)" : "var(--bs-bg-elevated)", border: `1px solid ${isSelected ? "var(--bs-teal)" : "var(--bs-border)"}` }}>
+                        {isSelected && <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="#13151a"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-medium truncate" style={{ color: alreadyAdded ? "var(--bs-text-dim)" : "var(--bs-text-primary)" }}>
+                          {ds.productName}
+                          {alreadyAdded && <span className="ml-2 text-[10px]" style={{ color: "var(--bs-text-dim)" }}>already added</span>}
+                        </div>
+                        <div className="flex gap-3 mt-0.5 text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
+                          {ds.vendorName && <span>{ds.vendorName}</span>}
+                          <span>{ds.category}</span>
+                          {ds.quoteDate && <span>{ds.quoteDate}</span>}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-[13px] font-semibold" style={{ color: "var(--bs-teal)" }}>${ds.unitPrice.toFixed(2)}</div>
+                        <div className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>/{ds.unit}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="px-6 py-3 flex items-center justify-between flex-shrink-0" style={{ borderTop: "1px solid var(--bs-border)" }}>
+                <span className="text-[12px]" style={{ color: "var(--bs-text-muted)" }}>
+                  {priceLibSelected.size > 0 ? `${priceLibSelected.size} selected` : "Click rows to select"}
+                </span>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowPriceLibModal(false)} className="text-[13px] font-medium transition-colors px-3 py-1.5 rounded-lg" style={{ color: "var(--bs-text-muted)" }}>Cancel</button>
+                  <button
+                    onClick={handleAddFromLibrary}
+                    disabled={priceLibSelected.size === 0 || priceLibAdding}
+                    className="px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
+                    style={{ background: "var(--bs-teal)", color: "#13151a" }}
+                  >
+                    {priceLibAdding ? "Adding..." : `Add ${priceLibSelected.size > 0 ? `${priceLibSelected.size} ` : ""}to Project`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Extraction Preview Modal */}
       {previewItems && (
