@@ -14,7 +14,7 @@ import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflic
 import type { TabId } from "./tab-types";
 import {
   ChecklistTab, ValidatorTab,
-  SetupTab, EstimateTab, DocumentsTab,
+  SetupTab, EstimateTab, DocumentsTab, QuotesTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -30,6 +30,7 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   setup:     <><path d="M8 2v2M8 12v2M2 8h2M12 8h2M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/></>,
   checklist: <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
   estimate:  <><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
+  quotes:    <><path d="M3 4h10a1 1 0 011 1v6a1 1 0 01-1 1H9l-3 2v-2H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
   documents: <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M9 3v3h3" stroke="currentColor" strokeWidth="1.1"/></>,
   validate:  <><path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
 };
@@ -38,6 +39,7 @@ const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
   { id: "setup",     label: "Setup" },
   { id: "checklist", label: "Checklist" },
   { id: "estimate",  label: "Estimate" },
+  { id: "quotes",    label: "Quotes" },
   { id: "documents", label: "Documents" },
   { id: "validate",  label: "Validate" },
 ];
@@ -62,7 +64,7 @@ function ProjectDetail() {
   const navigateTab = useCallback((tab: TabId) => {
     // If a child component navigates to a legacy sub-tab, route to the parent view
     const estimateSubTabs: TabId[] = ["takeoff", "materials", "pricing", "labor", "generalconditions"];
-    const documentSubTabs: TabId[] = ["scope", "quotes", "addenda", "rfis", "bidquals"];
+    const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "bidquals"];
     const validateSubTabs: TabId[] = ["validator", "decisions"];
     if (estimateSubTabs.includes(tab)) { setActiveTab("estimate"); return; }
     if (documentSubTabs.includes(tab)) { setActiveTab("documents"); return; }
@@ -96,7 +98,7 @@ function ProjectDetail() {
 
   // ── Keyboard shortcuts (L-17) ──────────────────────────────────────────────
   const TAB_ORDER: TabId[] = useMemo(() => [
-    "setup", "checklist", "estimate", "documents", "validate",
+    "setup", "checklist", "estimate", "quotes", "documents", "validate",
   ], []);
 
   useEffect(() => {
@@ -386,7 +388,8 @@ function ProjectDetail() {
     setup:     scores.checklist > 0 || scores.takeoff > 0 || scores.materials > 0 ? 100 : null,
     checklist: scores.checklist,
     estimate:  Math.round((scores.takeoff + scores.materials + (scores.pricing ?? 0) + (scores as any).labor) / 4),
-    documents: Math.round((scores.scope + scores.quotes + scores.addenda + scores.rfis) / 4),
+    quotes:    scores.quotes > 0 ? scores.quotes : null,
+    documents: Math.round((scores.scope + scores.addenda + scores.rfis) / 3),
     validate:  readinessScore,
   };
 
@@ -673,6 +676,7 @@ function ProjectDetail() {
                   {activeTab === "setup"     && <TabErrorBoundary tabLabel="Setup"><SetupTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "checklist" && <TabErrorBoundary tabLabel="Checklist"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Estimate"><EstimateTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "quotes"    && <TabErrorBoundary tabLabel="Quotes"><QuotesTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "documents" && <TabErrorBoundary tabLabel="Documents"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
                 </div>

@@ -3,21 +3,19 @@
 import React, { useState } from "react";
 import { TabProps } from "../tab-types";
 import ScopeTab from "./ScopeTab";
-import QuotesTab from "./QuotesTab";
 import AddendaTab from "./AddendaTab";
 import RFIsTab from "./RFIsTab";
 import BidQualsTab from "./BidQualsTab";
 import SubmittalsTab from "./SubmittalsTab";
 
 interface DocumentsTabProps extends TabProps {
-  initialSubTab?: "scope" | "quotes" | "addenda" | "rfis" | "bid-quals" | "submittals";
+  initialSubTab?: "scope" | "addenda" | "rfis" | "bid-quals" | "submittals";
 }
 
-type SubTabKey = "scope" | "quotes" | "submittals" | "addenda" | "rfis" | "bid-quals";
+type SubTabKey = "scope" | "submittals" | "addenda" | "rfis" | "bid-quals";
 
 const SubTabConfig: Record<SubTabKey, { label: string; component: React.ComponentType<TabProps> }> = {
   scope: { label: "Scope", component: ScopeTab },
-  quotes: { label: "Quotes", component: QuotesTab },
   submittals: { label: "Submittals", component: SubmittalsTab },
   addenda: { label: "Addenda", component: AddendaTab },
   rfis: { label: "RFIs", component: RFIsTab },
