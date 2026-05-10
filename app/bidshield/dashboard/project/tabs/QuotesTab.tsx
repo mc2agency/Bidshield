@@ -693,17 +693,15 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                             <span className="text-[12px] tabular-nums font-medium shrink-0" style={{ color: "var(--bs-text-primary)" }}>{fmtQty(item.orderQty)}</span>
                           )}
                           <span className="text-[11px] w-10 shrink-0" style={{ color: "var(--bs-text-dim)" }}>{item.orderUnit}</span>
-                          {isExpanded && (
-                            <select
-                              value={itemGroupOverrides[overrideKey] ?? group.manufacturer}
-                              onChange={e => setItemGroupOverrides(prev => ({ ...prev, [overrideKey]: e.target.value }))}
-                              className="text-[10px] rounded focus:outline-none shrink-0"
-                              style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-dim)", padding: "2px 4px", maxWidth: 120 }}
-                              title="Move to group"
-                            >
-                              {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
-                            </select>
-                          )}
+                          <select
+                            value={itemGroupOverrides[overrideKey] ?? group.manufacturer}
+                            onChange={e => setItemGroupOverrides(prev => ({ ...prev, [overrideKey]: e.target.value }))}
+                            className="text-[10px] rounded focus:outline-none shrink-0"
+                            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-dim)", padding: "2px 4px", maxWidth: 120 }}
+                            title="Move to group"
+                          >
+                            {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
+                          </select>
                         </div>
                       );
                     })}
