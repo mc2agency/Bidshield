@@ -653,42 +653,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 Clear
               </button>
             </div>
-            {/* Bulk action bar */}
-            {selectedItemKeys.size > 0 && (
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-wrap" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
-                <span className="text-[12px] font-semibold" style={{ color: "var(--bs-teal)" }}>
-                  {selectedItemKeys.size} item{selectedItemKeys.size !== 1 ? "s" : ""} selected
-                </span>
-                <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>→ Move to:</span>
-                <select
-                  value={bulkMoveTarget}
-                  onChange={e => setBulkMoveTarget(e.target.value)}
-                  className="text-[12px] rounded-md focus:outline-none"
-                  style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-teal-border)", color: "var(--bs-text-primary)", padding: "4px 8px", maxWidth: 200 }}
-                >
-                  <option value="">Select group…</option>
-                  {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
-                </select>
-                <button
-                  onClick={handleBulkMove}
-                  disabled={!bulkMoveTarget}
-                  className="text-[12px] font-semibold px-3 py-1 rounded-lg disabled:opacity-40 transition-opacity"
-                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
-                >
-                  Apply
-                </button>
-                <button
-                  onClick={() => { setSelectedItemKeys(new Set()); setBulkMoveTarget(""); }}
-                  className="text-[11px] ml-auto transition-colors"
-                  style={{ color: "var(--bs-text-muted)" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-primary)"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-                >
-                  Clear
-                </button>
-              </div>
-            )}
-
             {activeGroups.length === 0 ? (
               <div className="text-center py-4 text-xs rounded-xl" style={{ color: "var(--bs-text-muted)", border: "1px dashed var(--bs-border)" }}>
                 All groups handled — quote records created above.
@@ -992,6 +956,45 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Fixed floating bulk-move bar — stays visible when scrolled */}
+      {xlsxRawItems.length > 0 && selectedItemKeys.size > 0 && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-3 rounded-2xl z-50 shadow-2xl flex-wrap"
+          style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-teal-border)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}
+        >
+          <span className="text-[13px] font-bold" style={{ color: "var(--bs-teal)" }}>
+            {selectedItemKeys.size} item{selectedItemKeys.size !== 1 ? "s" : ""} selected
+          </span>
+          <span className="text-[12px]" style={{ color: "var(--bs-text-muted)" }}>→ Move to:</span>
+          <select
+            value={bulkMoveTarget}
+            onChange={e => setBulkMoveTarget(e.target.value)}
+            className="text-[13px] rounded-lg focus:outline-none"
+            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-teal-border)", color: "var(--bs-text-primary)", padding: "6px 10px", minWidth: 160 }}
+          >
+            <option value="">Select group…</option>
+            {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
+          </select>
+          <button
+            onClick={handleBulkMove}
+            disabled={!bulkMoveTarget}
+            className="text-[13px] font-semibold px-4 py-1.5 rounded-lg disabled:opacity-40 transition-opacity"
+            style={{ background: "var(--bs-teal)", color: "#13151a" }}
+          >
+            Apply
+          </button>
+          <button
+            onClick={() => { setSelectedItemKeys(new Set()); setBulkMoveTarget(""); }}
+            className="text-[12px] transition-colors px-2"
+            style={{ color: "var(--bs-text-muted)" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-primary)"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+          >
+            ✕
+          </button>
         </div>
       )}
 
