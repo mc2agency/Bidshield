@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
+import { parseEstimatingXlsx, groupByManufacturer, generatePricingEmailBody, type ManufacturerGroup } from "@/lib/bidshield/estimating-import";
 
 // ─── Line item + meta encoding ──────────────────────────────────────────────
 // products[] stores JSON-encoded line items: {m, u, p, n}
@@ -112,6 +113,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     api.bidshield.getQuotesWithProjects,
     !isDemo && userId ? { userId } : "skip"
   );
+  const vendors = useQuery(api.bidshield.getVendors, !isDemo && userId ? { userId } : "skip");
   const createQuoteMut = useMutation(api.bidshield.createQuote);
   const deleteQuoteMut = useMutation(api.bidshield.deleteQuote);
   const importQuoteMut = useMutation(api.bidshield.importQuoteToProject);
@@ -134,6 +136,13 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [importModal, setImportModal] = useState(false);
   const [importSearch, setImportSearch] = useState("");
   const [importingId, setImportingId] = useState<string | null>(null);
+
+  // Import Estimate (.xlsx) state
+  const xlsxInputRef = useRef<HTMLInputElement>(null);
+  const [xlsxGroups, setXlsxGroups] = useState<ManufacturerGroup[]>([]);
+  const [xlsxFilename, setXlsxFilename] = useState("");
+  const [xlsxImporting, setXlsxImporting] = useState(false);
+  const [dismissedGroups, setDismissedGroups] = useState<Set<string>>(new Set());
 
   // Quotes available to import = all user quotes not already in this project
   const importableQuotes = useMemo(() => {
@@ -167,6 +176,51 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     } finally {
       setImportingId(null);
     }
+  };
+
+  const handleXlsxImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setXlsxImporting(true);
+    setXlsxFilename(file.name);
+    setDismissedGroups(new Set());
+    try {
+      const buf = await file.arrayBuffer();
+      const items = await parseEstimatingXlsx(buf);
+      setXlsxGroups(groupByManufacturer(items));
+    } catch {
+      setXlsxGroups([]);
+    } finally {
+      setXlsxImporting(false);
+      if (xlsxInputRef.current) xlsxInputRef.current.value = "";
+    }
+  };
+
+  const handleRequestPricing = async (group: ManufacturerGroup) => {
+    const projectName = (project as any)?.name ?? "Project";
+    const { subject, body } = generatePricingEmailBody(group.manufacturer, group.items, projectName);
+    const savedVendor = (vendors as any[])?.find((v: any) =>
+      v.companyName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
+      group.manufacturer.toLowerCase().includes((v.companyName ?? "").toLowerCase().split(" ")[0])
+    );
+    const vendorEmail = savedVendor?.repEmail ?? savedVendor?.email ?? "";
+    if (!isDemo && userId) {
+      const products = group.items
+        .filter(i => i.description)
+        .map(i => JSON.stringify({ m: i.description, u: i.orderUnit, p: i.unitPrice, n: "" }));
+      await createQuoteMut({
+        userId,
+        projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
+        vendorName: group.manufacturer,
+        vendorEmail: vendorEmail || undefined,
+        category: "system",
+        products,
+        status: "requested",
+      });
+    }
+    window.open(`mailto:${vendorEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank");
+    setDismissedGroups(prev => new Set([...prev, group.manufacturer]));
+    notify(`Pricing request sent to ${group.manufacturer}!`);
   };
 
   // Scope analysis state (per-quote)
@@ -445,6 +499,19 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           )}
           {!isDemo && (
             <>
+              <input ref={xlsxInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleXlsxImport} />
+              {isValidConvexId && (
+                <button
+                  onClick={() => xlsxInputRef.current?.click()}
+                  disabled={xlsxImporting}
+                  className="cursor-pointer transition-colors disabled:opacity-50"
+                  style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 8, border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", background: "var(--bs-bg-card)" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"}
+                >
+                  {xlsxImporting ? "Parsing..." : "Import Estimate"}
+                </button>
+              )}
               {isValidConvexId && (
                 <button onClick={() => { setImportSearch(""); setImportModal(true); }} className="cursor-pointer transition-colors" style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 8, border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", background: "var(--bs-bg-card)" }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
@@ -513,6 +580,103 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           </div>
         </div>
       )}
+
+      {/* Import Estimate panel */}
+      {xlsxGroups.length > 0 && (() => {
+        const activeGroups = xlsxGroups.filter(g => !dismissedGroups.has(g.manufacturer));
+        const statusColors: Record<string, { bg: string; color: string; label: string }> = {
+          none:      { bg: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)",   label: "No Quote" },
+          requested: { bg: "var(--bs-amber-dim)",   color: "var(--bs-amber)",      label: "Requested" },
+          received:  { bg: "var(--bs-blue-dim)",    color: "var(--bs-blue)",       label: "Received" },
+          valid:     { bg: "var(--bs-teal-dim)",    color: "var(--bs-teal)",       label: "Valid" },
+          expiring:  { bg: "var(--bs-amber-dim)",   color: "var(--bs-amber)",      label: "Expiring" },
+          expired:   { bg: "var(--bs-red-dim)",     color: "var(--bs-red)",        label: "Expired" },
+        };
+        return (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-muted)" }}>Pricing Outreach</span>
+                <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
+              </div>
+              <button
+                onClick={() => { setXlsxGroups([]); setXlsxFilename(""); setDismissedGroups(new Set()); }}
+                className="text-xs transition-colors"
+                style={{ color: "var(--bs-text-dim)" }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
+              >
+                Clear
+              </button>
+            </div>
+            {activeGroups.length === 0 ? (
+              <div className="text-center py-4 text-xs rounded-xl" style={{ color: "var(--bs-text-muted)", border: "1px dashed var(--bs-border)" }}>
+                All groups handled — quote records created above.
+              </div>
+            ) : activeGroups.map(group => {
+              const savedVendor = (vendors as any[])?.find((v: any) =>
+                v.companyName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
+                group.manufacturer.toLowerCase().includes((v.companyName ?? "").toLowerCase().split(" ")[0])
+              );
+              const groupQuote = resolvedQuotes.find((q: any) =>
+                q.vendorName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
+                group.manufacturer.toLowerCase().includes((q.vendorName ?? "").toLowerCase().split(" ")[0])
+              );
+              const quoteStatus = groupQuote ? getEffectiveStatus(groupQuote) : "none";
+              const sc = statusColors[quoteStatus] ?? statusColors.none;
+              return (
+                <div key={group.manufacturer} className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <div className="font-semibold text-sm" style={{ color: "var(--bs-text-primary)" }}>{group.manufacturer}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                        {group.items.length} item{group.items.length !== 1 ? "s" : ""} · ${group.subtotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                        {savedVendor && (
+                          <span className="ml-2" style={{ color: "var(--bs-teal)" }}>
+                            · {savedVendor.companyName}{savedVendor.repName ? ` — ${savedVendor.repName}` : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: sc.bg, color: sc.color }}>{sc.label}</span>
+                      <button
+                        onClick={() => handleRequestPricing(group)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80"
+                        style={{ background: "var(--bs-teal)", color: "#13151a" }}
+                      >
+                        Request Pricing ✉
+                      </button>
+                      <button
+                        onClick={() => setDismissedGroups(prev => new Set([...prev, group.manufacturer]))}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+                      >
+                        Skip
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                    {group.items.slice(0, 8).map((item, i) => (
+                      <div key={i} className="flex items-baseline gap-1.5">
+                        <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{item.description}</span>
+                        {item.orderQty > 0 && (
+                          <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>{item.orderQty} {item.orderUnit}</span>
+                        )}
+                      </div>
+                    ))}
+                    {group.items.length > 8 && (
+                      <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>+{group.items.length - 8} more</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Quote cards */}
       {resolvedQuotes.length === 0 ? (

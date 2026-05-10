@@ -18,7 +18,6 @@ import {
   type MaterialTemplate,
 } from "@/lib/bidshield/material-templates";
 import { getQuoteFreshness } from "@/lib/bidshield/quote-status";
-import { parseEstimatingXlsx, groupByManufacturer, estimatingItemToMaterial, generatePricingEmailBody, type ManufacturerGroup } from "@/lib/bidshield/estimating-import";
 
 // Demo material data for Meridian Business Park (TPO 60mil, 68,000 SF)
 const DEMO_MATERIALS = [
@@ -325,18 +324,12 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     api.bidshield.getQuotes,
     !isDemo && isValidConvexId && userId ? { userId, projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
-  const vendors = useQuery(
-    api.bidshield.getVendors,
-    !isDemo && userId ? { userId } : "skip"
-  );
-
   const initMaterials = useMutation(api.bidshield.initProjectMaterials);
   const addMaterial = useMutation(api.bidshield.addProjectMaterial);
   const updateMaterial = useMutation(api.bidshield.updateProjectMaterial);
   const deleteMaterial = useMutation(api.bidshield.deleteProjectMaterial);
   const upsertPrice = useMutation(api.bidshield.upsertUserMaterialPrice);
   const bulkSaveExtracted = useMutation(api.bidshield.bulkSaveMaterialsFromExtraction);
-  const bulkSaveEdge = useMutation(api.bidshield.bulkSaveEdgeMaterials);
   const clearMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const updateCoverageRate = useMutation(api.bidshield.updateMaterialCoverageRate);
   const fixCategories = useMutation(api.bidshield.fixMaterialCategories);
@@ -372,15 +365,8 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
   const [isFixingCategories, setIsFixingCategories] = useState(false);
   const [csvImporting, setCsvImporting] = useState(false);
   const [csvError, setCsvError] = useState<string | null>(null);
-  const [xlsxImporting, setXlsxImporting] = useState(false);
-  const [xlsxError, setXlsxError] = useState<string | null>(null);
-  const [xlsxPreview, setXlsxPreview] = useState<ManufacturerGroup[] | null>(null);
-  const [xlsxFilename, setXlsxFilename] = useState("");
-  const [isSavingXlsx, setIsSavingXlsx] = useState(false);
-  const [showVendorGroups, setShowVendorGroups] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
-  const xlsxInputRef = useRef<HTMLInputElement>(null);
 
   // Resolve materials (demo vs real)
   const [demoMaterials, setDemoMaterials] = useState(DEMO_MATERIALS as any[]);
@@ -980,60 +966,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
     }
   };
 
-  // ── Edge Estimating XLSX import ─────────────────────────────────────────────
-  const handleXlsxImport = async (file: File) => {
-    if (isDemo || !isValidConvexId || !userId) return;
-    setXlsxImporting(true);
-    setXlsxError(null);
-    setXlsxPreview(null);
-    setXlsxFilename(file.name);
-    try {
-      const buffer = await file.arrayBuffer();
-      const items = await parseEstimatingXlsx(buffer);
-      if (!items.length) {
-        setXlsxError("No line items found. Make sure this is an Edge Estimating report export.");
-        return;
-      }
-      const groups = groupByManufacturer(items);
-      setXlsxPreview(groups);
-    } catch (err: any) {
-      setXlsxError(err?.message || "Failed to parse Excel file.");
-    } finally {
-      setXlsxImporting(false);
-    }
-  };
-
-  const handleSaveXlsxImport = async (replaceAll: boolean) => {
-    if (!xlsxPreview || !userId || !isValidConvexId) return;
-    setIsSavingXlsx(true);
-    try {
-      const allItems = xlsxPreview.flatMap(g => g.items);
-      const mapped = allItems.map((item, i) => estimatingItemToMaterial(item, i));
-      await bulkSaveEdge({
-        projectId: projectId as Id<"bidshield_projects">,
-        userId,
-        replaceAll,
-        items: mapped.map(m => ({
-          category: m.category,
-          name: m.name,
-          unit: m.unit,
-          quantity: m.quantity,
-          unitPrice: m.unitPrice,
-          totalCost: m.totalCost,
-          wasteFactor: m.wasteFactor,
-          notes: m.notes,
-          manufacturer: m.manufacturer,
-        })),
-      });
-      setXlsxPreview(null);
-      track("edge_xlsx_imported");
-    } catch (err: any) {
-      setXlsxError(err?.message || "Failed to save materials.");
-    } finally {
-      setIsSavingXlsx(false);
-    }
-  };
-
   // If no materials and not demo, show smart empty state
   if (!isDemo && materials.length === 0 && projectMaterials !== undefined) {
     return (
@@ -1068,7 +1000,7 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
             )}
           </>
         )}
-        <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePdfUpload(f); }} />
+        <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePdfUpload(f); e.target.value = ""; }} />
       </div>
     );
   }
@@ -1310,63 +1242,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
         </div>
       )}
 
-      {/* XLSX import error */}
-      {xlsxError && (
-        <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm" style={{ background: "var(--bs-red-dim)", border: "1px solid var(--bs-red-border)", color: "var(--bs-red)" }}>
-          <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-red)"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-          <span className="flex-1">{xlsxError}</span>
-          <button onClick={() => setXlsxError(null)} className="font-medium text-xs shrink-0" style={{ color: "var(--bs-red)" }}>Dismiss</button>
-        </div>
-      )}
-
-      {/* XLSX import preview — grouped by manufacturer */}
-      {xlsxPreview && (
-        <div className="rounded-xl flex flex-col gap-3 p-4" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-sm" style={{ color: "var(--bs-text-primary)" }}>Edge Import Preview — {xlsxFilename}</div>
-              <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{xlsxPreview.reduce((s, g) => s + g.items.length, 0)} items across {xlsxPreview.length} vendor groups</div>
-            </div>
-            <button onClick={() => setXlsxPreview(null)} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Cancel</button>
-          </div>
-          <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
-            {xlsxPreview.map(group => (
-              <div key={group.manufacturer} className="rounded-lg px-3 py-2" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold" style={{ color: "var(--bs-text-secondary)" }}>{group.manufacturer}</span>
-                  <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{group.items.length} items · ${group.subtotal.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-                </div>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-                  {group.items.slice(0, 5).map((item, i) => (
-                    <span key={i} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>{item.description}</span>
-                  ))}
-                  {group.items.length > 5 && <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>+{group.items.length - 5} more</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              onClick={() => handleSaveXlsxImport(true)}
-              disabled={isSavingXlsx}
-              className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50"
-              style={{ background: "var(--bs-teal)", color: "#13151a" }}
-            >
-              {isSavingXlsx ? "Saving…" : "Replace all & save"}
-            </button>
-            <button
-              onClick={() => handleSaveXlsxImport(false)}
-              disabled={isSavingXlsx}
-              className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50"
-              style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-secondary)", border: "1px solid var(--bs-border)" }}
-            >
-              Append to existing
-            </button>
-            <span className="text-xs ml-1" style={{ color: "var(--bs-text-dim)" }}>Total: ${xlsxPreview.reduce((s, g) => s + g.subtotal, 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-          </div>
-        </div>
-      )}
-
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
@@ -1468,22 +1343,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
                 className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCsvImport(f); e.target.value = ""; }}
               />
-              <button
-                onClick={() => xlsxInputRef.current?.click()}
-                disabled={xlsxImporting || !isValidConvexId}
-                title="Import from any estimating software (Edge, STACK, Timberline, PlanSwift, etc.)"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
-              >
-                {xlsxImporting ? "Reading..." : "Import .xlsx"}
-              </button>
-              <input
-                ref={xlsxInputRef}
-                type="file"
-                accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleXlsxImport(f); e.target.value = ""; }}
-              />
             </>
           )}
           {/* Upload Report PDF */}
@@ -1510,20 +1369,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
               <svg className="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
               Upload PDF · Pro
             </a>
-          )}
-          {/* Vendor Groups toggle */}
-          {materials.length > 0 && (
-            <button
-              onClick={() => setShowVendorGroups(v => !v)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-              style={{
-                background: showVendorGroups ? "var(--bs-amber-dim)" : "var(--bs-bg-elevated)",
-                color: showVendorGroups ? "var(--bs-amber)" : "var(--bs-text-muted)",
-                border: showVendorGroups ? "1px solid var(--bs-amber-border)" : "1px solid var(--bs-border)",
-              }}
-            >
-              Vendor Groups
-            </button>
           )}
           {/* Add Material */}
           {(isPro || isDemo) ? (
@@ -1563,94 +1408,6 @@ export default function MaterialsTab({ projectId, isDemo, isPro, project, userId
           <span>Enter SF in the <button onClick={() => onNavigateTab?.("takeoff")} className="font-semibold underline" style={{ color: "var(--bs-blue)" }}>Takeoff tab</button> to auto-calculate quantities</span>
         </div>
       )}
-
-      {/* Vendor Groups view */}
-      {showVendorGroups && materials.length > 0 && (() => {
-        const vendorGroups = groupByManufacturer(
-          materials
-            .filter((m: any) => filterCategory === "all" || m.category === filterCategory)
-            .map((m: any) => ({
-              description: m.name,
-              orderQty: m.quantity ?? 0,
-              orderUnit: m.unit,
-              unitPrice: m.unitPrice ?? 0,
-              netCost: m.totalCost ?? 0,
-              wastePct: m.wasteFactor ? (m.wasteFactor - 1) : 0,
-              userCode: "",
-              conditionName: null,
-              sectionName: null,
-              scenarioName: null,
-              manufacturer: m.manufacturer || "Other",
-              category: m.category,
-            }))
-        );
-        const projectName = (project as any)?.name ?? "Project";
-        return (
-          <div className="flex flex-col gap-3">
-            <div className="text-xs font-semibold px-1" style={{ color: "var(--bs-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Vendor Groups — Pricing Outreach
-            </div>
-            {vendorGroups.map(group => {
-              const { subject, body } = generatePricingEmailBody(group.manufacturer, group.items, projectName);
-              const savedVendor = (vendors as any[])?.find((v: any) =>
-                v.companyName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
-                group.manufacturer.toLowerCase().includes(v.companyName?.toLowerCase().split(" ")[0])
-              );
-              const vendorEmail = savedVendor?.repEmail ?? "";
-              const mailtoHref = `mailto:${vendorEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-              const groupQuote = (quotes as any[]).find((q: any) =>
-                q.vendorName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
-                group.manufacturer.toLowerCase().includes(q.vendorName?.toLowerCase().split(" ")[0])
-              );
-              const quoteStatus = groupQuote?.status ?? "none";
-              const statusColors: Record<string, { bg: string; color: string; label: string }> = {
-                none: { bg: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)", label: "No Quote" },
-                requested: { bg: "var(--bs-amber-dim)", color: "var(--bs-amber)", label: "Requested" },
-                received: { bg: "var(--bs-blue-dim)", color: "var(--bs-blue)", label: "Received" },
-                valid: { bg: "var(--bs-teal-dim)", color: "var(--bs-teal)", label: "Valid" },
-                expiring: { bg: "var(--bs-amber-dim)", color: "var(--bs-amber)", label: "Expiring" },
-                expired: { bg: "var(--bs-red-dim)", color: "var(--bs-red)", label: "Expired" },
-              };
-              const sc = statusColors[quoteStatus] ?? statusColors.none;
-
-              return (
-                <div key={group.manufacturer} className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div>
-                      <div className="font-semibold text-sm" style={{ color: "var(--bs-text-primary)" }}>{group.manufacturer}</div>
-                      <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
-                        {group.items.length} items · ${group.subtotal.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        {savedVendor && <span className="ml-2" style={{ color: "var(--bs-teal)" }}>· {savedVendor.companyName}{savedVendor.repName ? ` — ${savedVendor.repName}` : ""}</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: sc.bg, color: sc.color }}>{sc.label}</span>
-                      <a
-                        href={mailtoHref}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
-                        style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)", textDecoration: "none" }}
-                      >
-                        Request Pricing
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-0.5">
-                    {group.items.map((item, i) => (
-                      <div key={i} className="flex items-baseline gap-1.5">
-                        <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{item.description}</span>
-                        <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>
-                          {item.orderQty > 0 ? `${item.orderQty} ${item.orderUnit}` : ""}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      })()}
 
       {/* Material Table — single table, one header row, flat tbody */}
       {filteredMaterials.length > 0 && (() => {

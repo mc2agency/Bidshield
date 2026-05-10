@@ -122,6 +122,14 @@ export const createQuote = mutation({
     notes: v.optional(v.string()),
     sourcePdf: v.optional(v.string()),
     isExtracted: v.optional(v.boolean()),
+    status: v.optional(v.union(
+      v.literal("none"),
+      v.literal("requested"),
+      v.literal("received"),
+      v.literal("valid"),
+      v.literal("expiring"),
+      v.literal("expired")
+    )),
   },
   handler: async (ctx, args) => {
     const convexUserId = await validateAuth(ctx, args.userId);
@@ -141,7 +149,7 @@ export const createQuote = mutation({
       notes: args.notes,
       sourcePdf: args.sourcePdf,
       isExtracted: args.isExtracted,
-      status: "none",
+      status: args.status ?? "none",
       createdAt: now,
       updatedAt: now,
     });
