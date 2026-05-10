@@ -984,18 +984,18 @@ export default function QuotesPricingPage() {
               <table className="w-full">
                 <thead>
                   <tr>
-                    {["Product", "Category", "Price", "Unit", "Coverage", "Vendor", "Price List Date", ""].map(h => (
+                    {["Product", "Category", "Price", "Unit", "Vendor", "Price List Date", ""].map(h => (
                       <th key={h} className="text-left p-3.5 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--bs-text-dim)", borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {datasheets === undefined && (
-                    <tr><td colSpan={8} className="text-center py-10 text-sm" style={{ color: "var(--bs-text-dim)" }}>Loading...</td></tr>
+                    <tr><td colSpan={7} className="text-center py-10 text-sm" style={{ color: "var(--bs-text-dim)" }}>Loading...</td></tr>
                   )}
                   {datasheets !== undefined && filteredDs.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="text-center py-16">
+                      <td colSpan={7} className="text-center py-16">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: "var(--bs-bg-elevated)" }}>
                           <svg className="w-5 h-5" style={{ color: "var(--bs-text-dim)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v8.25m19.5 0H2.25m19.5 0v3a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 18v-3" /></svg>
                         </div>
@@ -1013,7 +1013,7 @@ export default function QuotesPricingPage() {
                     const stale = isStale(ds.quoteDate);
                     const veryStale = isVeryStale(ds.quoteDate);
                     return (
-                      <tr key={ds._id} style={{ borderBottom: "1px solid var(--bs-border)", background: veryStale ? "rgba(239,68,68,0.05)" : stale ? "rgba(245,158,11,0.05)" : undefined }}>
+                      <tr key={ds._id} className="group" style={{ borderBottom: "1px solid var(--bs-border)", background: veryStale ? "rgba(239,68,68,0.05)" : stale ? "rgba(245,158,11,0.05)" : undefined }}>
                         <td className="p-3.5">
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-medium" style={{ color: "var(--bs-text-primary)" }}>{ds.productName}</span>
@@ -1028,7 +1028,6 @@ export default function QuotesPricingPage() {
                         <td className="p-3.5"><span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>{ds.category}</span></td>
                         <td className="p-3.5 text-sm font-bold" style={{ color: "var(--bs-teal)" }}>${ds.unitPrice.toFixed(2)}</td>
                         <td className="p-3.5 text-sm" style={{ color: "var(--bs-text-muted)" }}>{ds.unit}</td>
-                        <td className="p-3.5 text-sm" style={{ color: "var(--bs-text-muted)" }}>{ds.coverage ? `${ds.coverage} ${ds.coverageUnit || "SF"}` : <span style={{ color: "var(--bs-text-dim)" }}>—</span>}</td>
                         <td className="p-3.5 text-sm" style={{ color: "var(--bs-text-muted)" }}>{ds.vendorName || <span style={{ color: "var(--bs-text-dim)" }}>—</span>}</td>
                         <td className="p-3.5 text-sm font-medium" style={{ color: staleColorStyle(ds.quoteDate) }}>
                           {formatDate(ds.quoteDate)}
@@ -1043,7 +1042,7 @@ export default function QuotesPricingPage() {
                               <button onClick={() => setDsDeleteConfirm(null)} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>No</button>
                             </div>
                           ) : (
-                            <button onClick={() => setDsDeleteConfirm(ds._id)} className="text-xs transition-colors" style={{ color: "var(--bs-text-dim)" }}>×</button>
+                            <button onClick={() => setDsDeleteConfirm(ds._id)} className="text-xs transition-colors opacity-0 group-hover:opacity-100" style={{ color: "var(--bs-text-dim)" }}>×</button>
                           )}
                         </td>
                       </tr>

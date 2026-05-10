@@ -125,28 +125,47 @@ const demoStats = {
 // ============================================================
 // STAT CARD
 // ============================================================
-function StatCard({ value, label, dimmed, icon, accent = "var(--bs-teal)" }: {
+function StatCard({ value, label, dimmed, icon, accent = "var(--bs-teal)", hint }: {
   value: string | number;
   label: string;
   dimmed?: boolean;
   icon?: React.ReactNode;
   accent?: string;
+  hint?: string;
 }) {
   return (
     <div
-      className="rounded-xl hover:-translate-y-0.5 transition-all duration-200 p-5"
+      className="rounded-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex"
       style={{
         background: "var(--bs-bg-card)",
         border: "1px solid var(--bs-border)",
-        borderTop: dimmed ? "2px solid var(--bs-border)" : `2px solid ${accent}`,
+        boxShadow: "var(--bs-shadow-card)",
       }}
     >
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>{label}</span>
-        {icon && <span style={{ color: dimmed ? "var(--bs-text-dim)" : accent, opacity: dimmed ? 0.3 : 0.8 }}>{icon}</span>}
-      </div>
-      <div className="text-3xl font-extrabold tracking-tight leading-none" style={{ color: dimmed ? "var(--bs-text-dim)" : "var(--bs-text-primary)" }}>
-        {dimmed ? "—" : value}
+      {/* Left accent stripe */}
+      <div style={{ width: 3, flexShrink: 0, background: dimmed ? "var(--bs-border)" : accent }} />
+      <div className="flex-1 p-5">
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>{label}</span>
+          {icon && (
+            <span
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{
+                background: dimmed ? "var(--bs-border)" : `color-mix(in srgb, ${accent} 12%, transparent)`,
+                color: dimmed ? "var(--bs-text-dim)" : accent,
+              }}
+            >
+              {icon}
+            </span>
+          )}
+        </div>
+        {dimmed && hint ? (
+          <p className="text-xs font-medium leading-snug mt-1" style={{ color: "var(--text-3)" }}>{hint}</p>
+        ) : (
+          <div className="text-3xl font-extrabold tracking-tight leading-none" style={{ color: dimmed ? "var(--bs-text-dim)" : "var(--bs-text-primary)" }}>
+            {dimmed ? "—" : value}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -185,9 +204,39 @@ function WelcomeCard({ onNewBid, onDismiss }: { onNewBid: () => void; onDismiss:
 }
 
 // ============================================================
+// SYSTEM PILL — categorical color by roof type
+// ============================================================
+const SYSTEM_COLORS: Record<string, { bg: string; color: string }> = {
+  lam:   { bg: "var(--cat-indigo-50)", color: "var(--cat-indigo)" },
+  lam_irma: { bg: "var(--cat-indigo-50)", color: "var(--cat-indigo)" },
+  sbs:   { bg: "var(--cat-pink-50)",   color: "var(--cat-pink)"   },
+  app:   { bg: "var(--cat-pink-50)",   color: "var(--cat-pink)"   },
+  tpo:   { bg: "var(--cat-teal-50)",   color: "var(--cat-teal)"   },
+  pvc:   { bg: "var(--cat-teal-50)",   color: "var(--cat-teal)"   },
+  epdm:  { bg: "var(--cat-orange-50)", color: "var(--cat-orange)" },
+  bur:   { bg: "var(--cat-orange-50)", color: "var(--cat-orange)" },
+  metal: { bg: "var(--cat-violet-50)", color: "var(--cat-violet)" },
+  spf:   { bg: "var(--cat-violet-50)", color: "var(--cat-violet)" },
+};
+
+function SystemPill({ type }: { type: string }) {
+  const key = type.toLowerCase().replace(/[^a-z]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+  const colors = SYSTEM_COLORS[key] ?? { bg: "var(--surface-2)", color: "var(--text-3)" };
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+      background: colors.bg, color: colors.color,
+      padding: "3px 8px", borderRadius: 4,
+    }}>
+      {type.toUpperCase()}
+    </span>
+  );
+}
+
+// ============================================================
 // PROJECT TABLE (desktop pipeline view)
 // ============================================================
-function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, isSelected, onSelect, isNearBottom }: {
+function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, isSelected, onSelect, isNearBottom, revN }: {
   project: BidProject;
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
@@ -198,6 +247,7 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
   isSelected: boolean;
   onSelect: (id: Id<"bidshield_projects">, checked: boolean) => void;
   isNearBottom: boolean;
+  revN?: number;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const progress = useQuery(
@@ -234,21 +284,26 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-2.5">
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-primary)" }} className="truncate max-w-[180px]">{project.name}</div>
-            <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 1 }} className="truncate">{project.location}</div>
+            <div className="flex items-center gap-1.5 max-w-[190px]">
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-primary)" }} className="truncate">{project.name}</span>
+              {revN && revN > 1 && (
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "var(--bs-blue-dim)", color: "var(--bs-blue)", flexShrink: 0, whiteSpace: "nowrap" }}>Rev {revN}</span>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--bs-text-secondary)", fontWeight: 500, marginTop: 1 }} className="truncate max-w-[190px]">{project.location}</div>
           </div>
         </div>
       </td>
       <td className="px-4 py-3.5" style={{ fontSize: 13, color: "var(--bs-text-secondary)" }}>{project.gc || <span style={{ color: "var(--bs-text-dim)" }}>—</span>}</td>
       <td className="px-4 py-3.5 whitespace-nowrap">
-        <span className="text-sm font-medium tabular-nums" style={{ color: isPastDue ? "var(--bs-red)" : isUrgent ? "var(--bs-amber)" : "var(--bs-text-muted)" }}>
+        <span className="text-sm font-bold tabular-nums" style={{ color: isPastDue ? "var(--danger)" : isUrgent ? "var(--warn)" : "var(--text)" }}>
           {isPastDue ? "Past due" : daysUntil === 0 ? "Today" : `${daysUntil}d`}
         </span>
         <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 1 }}>{project.bidDate}</div>
       </td>
       <td className="px-4 py-3.5">
         {systemType ? (
-          <span style={{ fontSize: 11, fontWeight: 600, background: "rgba(255,255,255,0.06)", color: "var(--bs-text-secondary)", padding: "3px 8px", borderRadius: 4, letterSpacing: "0.02em" }}>{systemType.toUpperCase()}</span>
+          <SystemPill type={systemType} />
         ) : project.assemblies && project.assemblies.length > 0 ? (
           <span style={{ fontSize: 12, color: "var(--bs-text-muted)" }} className="truncate max-w-[100px] block">{project.assemblies[0]}</span>
         ) : <span style={{ color: "var(--bs-text-dim)", fontSize: 13 }}>—</span>}
@@ -258,8 +313,11 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
       </td>
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-2 justify-end">
-          <div className="w-14 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-            <div className="h-full rounded-full transition-all duration-400" style={{ width: `${displayProgress}%`, background: displayProgress >= 75 ? "var(--bs-teal)" : displayProgress >= 25 ? "var(--bs-amber)" : "var(--bs-red)" }} />
+          <div className="w-14 h-2 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
+            <div className="h-full rounded-full transition-all duration-400" style={{
+              width: `${displayProgress}%`,
+              background: displayProgress >= 86 ? "var(--pass)" : displayProgress >= 26 ? "var(--warn)" : "var(--border-strong)"
+            }} />
           </div>
           <span className="text-sm font-medium tabular-nums w-8 text-right" style={{ color: "var(--bs-text-secondary)" }}>{displayProgress}%</span>
         </div>
@@ -334,7 +392,7 @@ function ProjectRow({ project, isDemo, onStatusChange, onDelete, onEdit, onEditS
   );
 }
 
-function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, onNewBid, selectedIds, onSelect, onSelectAll, onBulkDelete }: {
+function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEditSetup, router, onNewBid, selectedIds, onSelect, onSelectAll, onBulkDelete, revMap }: {
   projects: BidProject[];
   isDemo: boolean;
   onStatusChange: (id: Id<"bidshield_projects">, status: "won" | "lost") => void;
@@ -347,6 +405,7 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEd
   onSelect: (id: Id<"bidshield_projects">, checked: boolean) => void;
   onSelectAll: (checked: boolean) => void;
   onBulkDelete: () => void;
+  revMap?: Map<string, number>;
 }) {
   const allSelected = projects.length > 0 && projects.every(p => selectedIds.has(p._id));
   const someSelected = selectedIds.size > 0;
@@ -372,7 +431,7 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEd
       <div className="rounded-xl" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", overflow: "visible" }}>
       <table className="w-full text-sm">
         <thead className="sticky top-0 z-10">
-          <tr style={{ background: "var(--bs-bg-elevated)", borderBottom: "1px solid var(--bs-border)" }}>
+          <tr style={{ background: "#ECF1F8", borderBottom: "1px solid var(--bs-border)" }}>
             <th className="pl-4 pr-2 py-3 w-8" onClick={e => e.stopPropagation()}>
               <input
                 type="checkbox"
@@ -382,18 +441,18 @@ function ProjectTable({ projects, isDemo, onStatusChange, onDelete, onEdit, onEd
                 aria-label="Select all"
               />
             </th>
-            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Project</th>
-            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>GC</th>
-            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Bid Date</th>
-            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>System</th>
-            <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>$/SF</th>
-            <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Ready</th>
+            <th className="text-left px-4 py-3 text-[11.5px] font-bold uppercase tracking-wider" style={{ color: "var(--text-2)" }}>Project</th>
+            <th className="text-left px-4 py-3 text-[11.5px] font-bold uppercase tracking-wider" style={{ color: "var(--text-2)" }}>GC</th>
+            <th className="text-left px-4 py-3 text-[11.5px] font-bold uppercase tracking-wider" style={{ color: "var(--text-2)" }}>Bid Date</th>
+            <th className="text-left px-4 py-3 text-[11.5px] font-bold uppercase tracking-wider" style={{ color: "var(--text-2)" }}>System</th>
+            <th className="text-right px-4 py-3 text-[11.5px] font-bold uppercase tracking-wider" style={{ color: "var(--text-2)" }}>$/SF</th>
+            <th className="text-right px-4 py-3 text-[11.5px] font-bold uppercase tracking-wider" style={{ color: "var(--text-2)" }}>Ready</th>
             <th className="px-4 py-3 w-24" />
           </tr>
         </thead>
         <tbody>
           {projects.map((project, i) => (
-            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} onEditSetup={onEditSetup} router={router} isSelected={selectedIds.has(project._id)} onSelect={onSelect} isNearBottom={i >= projects.length - 2} />
+            <ProjectRow key={project._id} project={project} isDemo={isDemo} onStatusChange={onStatusChange} onDelete={onDelete} onEdit={onEdit} onEditSetup={onEditSetup} router={router} isSelected={selectedIds.has(project._id)} onSelect={onSelect} isNearBottom={i >= projects.length - 2} revN={revMap?.get(String(project._id))} />
           ))}
           <tr>
             <td colSpan={8} className="px-4 py-3" style={{ borderTop: "1px solid var(--bs-border)" }}>
@@ -517,6 +576,119 @@ function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, onEdit
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// RECENT ACTIVITY PANEL
+// ============================================================
+function RecentActivityPanel({ projects }: { projects: BidProject[] }) {
+  const now = Date.now();
+  type Entry = { id: string; ts: number; label: string; sub: string; icon: "flag" | "rfi" | "done" | "blocker" };
+  const entries: Entry[] = [];
+  for (const p of projects) {
+    if (p.status === "won") {
+      entries.push({ id: `won_${p._id}`, ts: p.updatedAt, label: "Won", sub: p.name, icon: "done" });
+    } else if (p.status === "lost") {
+      entries.push({ id: `lost_${p._id}`, ts: p.updatedAt, label: "Lost", sub: p.name, icon: "blocker" });
+    } else {
+      const bidDate = new Date(p.bidDate).getTime();
+      const daysUntil = Math.ceil((bidDate - now) / 86400000);
+      if (daysUntil >= 0 && daysUntil <= 7) {
+        entries.push({ id: `due_${p._id}`, ts: bidDate, label: "Bid due soon", sub: `${p.name} — ${daysUntil === 0 ? "today" : `${daysUntil}d`}`, icon: "flag" });
+      }
+      if (now - p.updatedAt < 14 * 86400000) {
+        entries.push({ id: `upd_${p._id}`, ts: p.updatedAt, label: "Updated", sub: p.name, icon: "rfi" });
+      }
+    }
+  }
+  const sorted = entries.sort((a, b) => b.ts - a.ts).slice(0, 8);
+  const fmtTs = (ts: number) => {
+    const diff = Math.floor((now - ts) / 60000);
+    if (diff < 60) return `${diff}m ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+    return `${Math.floor(diff / 1440)}d ago`;
+  };
+  const IC = {
+    flag:    { color: "var(--bs-amber)", bg: "var(--bs-amber-dim)" },
+    rfi:     { color: "var(--bs-blue)",  bg: "var(--bs-blue-dim)"  },
+    done:    { color: "var(--bs-teal)",  bg: "var(--bs-teal-dim)"  },
+    blocker: { color: "var(--bs-red)",   bg: "var(--bs-red-dim)"   },
+  };
+  return (
+    <div className="rounded-xl h-full" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+      <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+        <h3 className="text-sm font-bold" style={{ color: "var(--bs-text-primary)" }}>Recent Activity</h3>
+      </div>
+      {sorted.length === 0 ? (
+        <div className="px-5 py-10 text-center text-sm" style={{ color: "var(--bs-text-dim)" }}>No recent activity yet</div>
+      ) : (
+        <div className="divide-y" style={{ borderColor: "var(--bs-border)" }}>
+          {sorted.map(e => {
+            const ic = IC[e.icon];
+            return (
+              <div key={e.id} className="flex items-center gap-3 px-5 py-3">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: ic.bg }}>
+                  {e.icon === "flag"    && <svg className="w-3.5 h-3.5" style={{ color: ic.color }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" /></svg>}
+                  {e.icon === "rfi"     && <svg className="w-3.5 h-3.5" style={{ color: ic.color }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>}
+                  {e.icon === "done"    && <svg className="w-3.5 h-3.5" style={{ color: ic.color }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>}
+                  {e.icon === "blocker" && <svg className="w-3.5 h-3.5" style={{ color: ic.color }} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[12px] font-semibold" style={{ color: ic.color }}>{e.label}: </span>
+                  <span className="text-[12px] truncate" style={{ color: "var(--bs-text-muted)" }}>{e.sub}</span>
+                </div>
+                <span className="text-[11px] shrink-0" style={{ color: "var(--bs-text-dim)" }}>{fmtTs(e.ts)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// UPCOMING DEADLINES PANEL
+// ============================================================
+function UpcomingDeadlinesPanel({ projects }: { projects: BidProject[] }) {
+  const now = Date.now();
+  const upcoming = projects
+    .filter(p => new Date(p.bidDate).getTime() >= now - 86400000)
+    .sort((a, b) => new Date(a.bidDate).getTime() - new Date(b.bidDate).getTime())
+    .slice(0, 5);
+  return (
+    <div className="rounded-xl h-full" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+      <div className="px-5 py-3.5" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+        <h3 className="text-sm font-bold" style={{ color: "var(--bs-text-primary)" }}>Upcoming Deadlines</h3>
+      </div>
+      {upcoming.length === 0 ? (
+        <div className="px-5 py-10 text-center text-sm" style={{ color: "var(--bs-text-dim)" }}>No upcoming bid dates</div>
+      ) : (
+        <div className="divide-y" style={{ borderColor: "var(--bs-border)" }}>
+          {upcoming.map(p => {
+            const daysUntil = Math.ceil((new Date(p.bidDate).getTime() - now) / 86400000);
+            const urgency = daysUntil <= 7 ? "red" : daysUntil <= 14 ? "amber" : "emerald";
+            const C = {
+              red:     { bg: "var(--bs-red-dim)",   text: "var(--bs-red)"   },
+              amber:   { bg: "var(--bs-amber-dim)", text: "var(--bs-amber)" },
+              emerald: { bg: "var(--bs-teal-dim)",  text: "var(--bs-teal)"  },
+            }[urgency];
+            return (
+              <div key={p._id} className="flex items-center gap-3 px-5 py-3.5">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-medium truncate" style={{ color: "var(--bs-text-secondary)" }}>{p.name}</div>
+                  {p.location && <div className="text-[11px] mt-0.5 truncate" style={{ color: "var(--bs-text-dim)" }}>{p.location}</div>}
+                </div>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded shrink-0 whitespace-nowrap" style={{ background: C.bg, color: C.text }}>
+                  {daysUntil === 0 ? "Today" : daysUntil < 0 ? "Past due" : `${daysUntil}d`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -794,6 +966,19 @@ function DashboardContent() {
     .filter((p) => { const s = getProjectStatus(p); return s === "won" || s === "lost"; })
     .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
+  // Rev N chip: projects that share name + location get revision numbers (sorted by createdAt)
+  const revMap = (() => {
+    const map = new Map<string, number>();
+    const groups = new Map<string, string[]>();
+    for (const p of [...projects].sort((a, b) => a.createdAt - b.createdAt)) {
+      const key = `${p.name.toLowerCase().trim()}|${p.location.toLowerCase().trim()}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(String(p._id));
+    }
+    groups.forEach(ids => { if (ids.length > 1) ids.forEach((id, i) => map.set(id, i + 1)); });
+    return map;
+  })();
+
   const handleNewBidClick = () => {
     if (!isDemo && !isPro && activeProjects.length >= 1) {
       setShowUpgradeModal(true);
@@ -840,7 +1025,7 @@ function DashboardContent() {
             {activeProjects.length === 0 ? "No active bids — create one to get started." : `${activeProjects.length} active bid${activeProjects.length !== 1 ? "s" : ""} in your pipeline`}
           </p>
         </div>
-        <button onClick={handleNewBidClick} className="inline-flex items-center gap-2 shrink-0 cursor-pointer transition-all duration-150 hover:opacity-90 active:scale-95" style={{ background: "var(--bs-teal)", color: "#13151a", fontSize: 13, fontWeight: 700, padding: "10px 20px", borderRadius: 8, border: "none" }}>
+        <button onClick={handleNewBidClick} className="inline-flex items-center gap-2 shrink-0 cursor-pointer transition-all duration-150 hover:opacity-90 active:scale-95" style={{ background: "var(--bs-teal)", color: "#ffffff", fontSize: 13, fontWeight: 700, padding: "10px 20px", borderRadius: 8, border: "none" }}>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
           New Bid
         </button>
@@ -854,28 +1039,31 @@ function DashboardContent() {
           <StatCard
             value={stats.activeProjects}
             label="Active Bids"
-            accent="var(--bs-teal)"
+            accent="var(--blue)"
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" /></svg>}
           />
           <StatCard
             value={`${stats.winRate}%`}
             label="Win Rate"
-            accent="var(--bs-blue)"
+            accent="var(--emerald)"
             dimmed={stats.winRate === 0 && stats.wonProjects + stats.lostProjects === 0}
+            hint="Mark bids Won / Lost to populate"
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>}
           />
           <StatCard
             value={`${stats.wonProjects}/${stats.wonProjects + stats.lostProjects}`}
             label="Won / Decided"
-            accent="var(--bs-teal)"
+            accent="var(--cat-violet)"
             dimmed={stats.wonProjects + stats.lostProjects === 0}
+            hint="No decisions logged yet"
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" /></svg>}
           />
           <StatCard
-            value={`$${(stats.pipelineValue / 1000000).toFixed(1)}M`}
+            value={stats.pipelineValue >= 1000000 ? `$${(stats.pipelineValue / 1000000).toFixed(1)}M` : `$${(stats.pipelineValue / 1000).toFixed(0)}K`}
             label="Pipeline Value"
-            accent="var(--bs-text-secondary)"
+            accent="var(--warn)"
             dimmed={stats.pipelineValue === 0}
+            hint="Add bid amounts in Estimate"
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
           />
         </div>
@@ -927,7 +1115,7 @@ function DashboardContent() {
 
         {/* Desktop: pipeline table */}
         <div className="hidden md:block">
-          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} onEditSetup={handleEditSetup} router={router} onNewBid={handleNewBidClick} selectedIds={selectedIds} onSelect={handleSelect} onSelectAll={handleSelectAll} onBulkDelete={handleBulkDelete} />
+          <ProjectTable projects={activeProjects} isDemo={isDemo} onStatusChange={handleStatusChange} onDelete={handleDeleteRequest} onEdit={handleEdit} onEditSetup={handleEditSetup} router={router} onNewBid={handleNewBidClick} selectedIds={selectedIds} onSelect={handleSelect} onSelectAll={handleSelectAll} onBulkDelete={handleBulkDelete} revMap={revMap} />
         </div>
 
         {/* Mobile: card grid */}
@@ -943,6 +1131,18 @@ function DashboardContent() {
           </div>
         </div>
       </div>
+
+      {/* Below-table panels: Recent Activity + Upcoming Deadlines */}
+      {projects.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <RecentActivityPanel projects={projects} />
+          </div>
+          <div className="lg:col-span-1">
+            <UpcomingDeadlinesPanel projects={activeProjects} />
+          </div>
+        </div>
+      )}
 
       {/* Completed Bids */}
       {completedProjects.length > 0 && (

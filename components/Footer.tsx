@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function Footer() {
   const footerSections = [
     {
-      title: 'BidShield',
+      title: 'Product',
       links: [
         { href: '/sign-in', label: 'Sign In' },
         { href: '/bidshield/pricing', label: 'Pricing' },

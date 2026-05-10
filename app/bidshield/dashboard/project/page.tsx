@@ -475,11 +475,15 @@ function ProjectDetail() {
                 {(() => {
                   const s = phaseScore[id];
                   if (s === null || s === undefined) return null;
-                  const color = s === 100 ? 'var(--bs-teal)' : s >= 60 ? 'var(--bs-amber)' : 'var(--bs-red)';
-                  const bg = s === 100 ? 'var(--bs-teal-dim)' : s >= 60 ? 'var(--bs-amber-dim)' : 'var(--bs-red-dim)';
+                  const isValidate = id === 'validate';
+                  const color = s >= 80 ? 'var(--bs-teal)' : s >= 40 ? 'var(--bs-amber)' : s > 0 ? 'var(--bs-red)' : 'var(--bs-text-dim)';
+                  const bg = s >= 80 ? 'var(--bs-teal-dim)' : s >= 40 ? 'var(--bs-amber-dim)' : s > 0 ? 'var(--bs-red-dim)' : 'rgba(0,0,0,0.05)';
+                  const label = isValidate
+                    ? (s >= 80 ? 'Ready' : s >= 40 ? `${s}/100` : s > 0 ? `${s}/100` : 'Not ready')
+                    : `${s}%`;
                   return (
                     <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: bg, color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.2px' }}>
-                      {s}%
+                      {label}
                     </span>
                   );
                 })()}

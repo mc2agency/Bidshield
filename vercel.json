@@ -74,6 +74,16 @@
       "source": "/dashboard",
       "destination": "/bidshield/dashboard",
       "permanent": true
+    },
+    {
+      "source": "/demo",
+      "destination": "/bidshield/demo",
+      "permanent": false
+    },
+    {
+      "source": "/bidshield/dashboard/quotes",
+      "destination": "/bidshield/dashboard/datasheets",
+      "permanent": true
     }
   ],
   "headers": [

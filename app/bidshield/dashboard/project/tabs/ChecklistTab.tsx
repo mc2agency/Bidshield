@@ -727,7 +727,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "rfi"); }}
                                         className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap cursor-pointer"
-                                        style={{ background: "var(--bs-amber-dim)", color: "var(--bs-amber)", border: "1px solid var(--bs-amber-border)" }}
+                                        style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)", border: "1px solid var(--bs-blue-border)" }}
                                       >
                                         ? RFI
                                       </button>

@@ -1,54 +1,214 @@
 @import "tailwindcss";
 
+/* ════════════════════════════════════════════════════════════════
+   BIDSHIELD DESIGN TOKENS  — single source of truth
+   Light theme = default. Dark theme = [data-theme="dark"].
+   All --bs-* aliases map existing component code to semantic tokens.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Light theme (default) ──────────────────────────────────── */
+:root,
+[data-theme="light"] {
+  /* Surfaces */
+  --bg:            #F4F6FA;
+  --surface:       #FFFFFF;
+  --surface-2:     #EEF2F7;
+  --border:        #DCE2EA;
+  --border-strong: #C7CFDA;
+
+  /* Text — all WCAG AA on white */
+  --text:     #0B1A2E;   /* ~18:1 */
+  --text-2:   #2E3F55;   /* ~11:1 */
+  --text-3:   #4A5A70;   /* ~7.5:1 */
+  --text-mut: #6B7A91;   /* ~4.9:1 */
+
+  /* Brand structure — sidebar is always navy, both themes */
+  --navy-900: #0F2A47;
+  --navy-700: #1B3A5E;
+  --navy-500: #2A547F;
+
+  /* Brand accents */
+  --blue:        #2563EB;
+  --blue-700:    #1D4ED8;
+  --blue-50:     #EFF6FF;
+  --emerald:     #10B981;
+  --emerald-600: #059669;
+  --emerald-50:  #ECFDF5;
+
+  /* Semantic status */
+  --pass:   #10B981;  --pass-50:   #ECFDF5;
+  --warn:   #F59E0B;  --warn-50:   #FFFBEB;
+  --danger: #EF4444;  --danger-50: #FEF2F2;
+  --info:   #2563EB;  --info-50:   #EFF6FF;
+
+  /* Categorical (roof system types) */
+  --cat-indigo: #6366F1;  --cat-indigo-50: #EEF2FF;
+  --cat-pink:   #DB2777;  --cat-pink-50:   #FDF2F8;
+  --cat-teal:   #0D9488;  --cat-teal-50:   #F0FDFA;
+  --cat-orange: #EA580C;  --cat-orange-50: #FFF7ED;
+  --cat-violet: #7C3AED;  --cat-violet-50: #F5F3FF;
+
+  --shadow-sm: 0 1px 2px rgba(11,26,46,0.05), 0 1px 1px rgba(11,26,46,0.03);
+  --shadow-md: 0 6px 18px rgba(11,26,46,0.08), 0 1px 3px rgba(11,26,46,0.04);
+
+  /* ── Tailwind @theme ── */
+  --background: var(--bg);
+  --foreground: var(--text);
+
+  /* ── --bs-* backward-compat aliases (content area) ── */
+  --bs-bg-primary:   var(--bg);
+  --bs-bg-page:      var(--bg);
+  --bs-bg-card:      var(--surface);
+  --bs-bg-elevated:  var(--surface-2);
+  --bs-bg-input:     var(--surface);
+  --bs-bg-sidebar:   var(--navy-900);
+  /* NOTE: --bs-bg-secondary points to navy so sidebar bg always works */
+  --bs-bg-secondary: var(--navy-900);
+
+  --bs-border:        var(--border);
+  --bs-border-hover:  var(--border-strong);
+  --bs-border-active: #9AAFC4;
+
+  --bs-text-primary:   var(--text);
+  --bs-text-secondary: var(--text-2);
+  --bs-text-muted:     var(--text-3);
+  --bs-text-dim:       var(--text-mut);
+  --bs-text-label:     var(--text-3);
+
+  /* Primary action: blue in light (was teal) */
+  --bs-teal:        var(--blue);
+  --bs-teal-hover:  var(--blue-700);
+  --bs-teal-dim:    var(--blue-50);
+  --bs-teal-border: rgba(37,99,235,0.25);
+
+  --bs-green:       var(--emerald);
+  --bs-green-dim:   var(--emerald-50);
+
+  --bs-red:         var(--danger);
+  --bs-red-dim:     var(--danger-50);
+  --bs-red-border:  rgba(239,68,68,0.25);
+
+  --bs-amber:        var(--warn);
+  --bs-amber-dim:    var(--warn-50);
+  --bs-amber-border: rgba(245,158,11,0.25);
+
+  --bs-blue:        var(--info);
+  --bs-blue-dim:    var(--info-50);
+  --bs-blue-border: rgba(37,99,235,0.25);
+
+  --bs-shadow-card:     var(--shadow-sm);
+  --bs-shadow-dropdown: var(--shadow-md);
+
+  /* Card tokens */
+  --bs-card-radius:  var(--bs-radius-lg);
+  --bs-card-padding: 18px;
+  --bs-card-border:  1px solid var(--bs-border);
+  --bs-card-bg:      var(--bs-bg-card);
+  --bs-section-gap:  24px;
+
+  /* Legacy compat */
+  --bs-accent-green: var(--emerald);
+  --bs-accent-red:   var(--danger);
+  --bs-accent-amber: var(--warn);
+  --bs-accent-blue:  var(--blue);
+}
+
+/* ── Dark theme ─────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:            #0A1220;
+  --surface:       #111B2E;
+  --surface-2:     #18243B;
+  --border:        #243650;
+  --border-strong: #2F4566;
+
+  --text:     #F5F8FC;
+  --text-2:   #C1CCDB;
+  --text-3:   #93A1B5;
+  --text-mut: #6F809A;
+
+  --navy-900: #0A1220;
+  --navy-700: #18243B;
+  --navy-500: #243650;
+
+  --blue:        #60A5FA;
+  --blue-700:    #3B82F6;
+  --blue-50:     rgba(96,165,250,0.12);
+  --emerald:     #34D399;
+  --emerald-600: #10B981;
+  --emerald-50:  rgba(52,211,153,0.12);
+
+  --pass:   #34D399;  --pass-50:   rgba(52,211,153,0.14);
+  --warn:   #FBBF24;  --warn-50:   rgba(251,191,36,0.14);
+  --danger: #F87171;  --danger-50: rgba(248,113,113,0.14);
+  --info:   #60A5FA;  --info-50:   rgba(96,165,250,0.14);
+
+  --cat-indigo: #818CF8;  --cat-indigo-50: rgba(129,140,248,0.14);
+  --cat-pink:   #F472B6;  --cat-pink-50:   rgba(244,114,182,0.14);
+  --cat-teal:   #2DD4BF;  --cat-teal-50:   rgba(45,212,191,0.14);
+  --cat-orange: #FB923C;  --cat-orange-50: rgba(251,146,60,0.14);
+  --cat-violet: #A78BFA;  --cat-violet-50: rgba(167,139,250,0.14);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+
+  --background: var(--bg);
+  --foreground: var(--text);
+
+  --bs-bg-primary:   var(--bg);
+  --bs-bg-page:      var(--bg);
+  --bs-bg-card:      var(--surface);
+  --bs-bg-elevated:  var(--surface-2);
+  --bs-bg-input:     var(--surface);
+  --bs-bg-sidebar:   var(--navy-900);
+  --bs-bg-secondary: var(--navy-900);
+
+  --bs-border:        var(--border);
+  --bs-border-hover:  var(--border-strong);
+  --bs-border-active: #3D5A80;
+
+  --bs-text-primary:   var(--text);
+  --bs-text-secondary: var(--text-2);
+  --bs-text-muted:     var(--text-3);
+  --bs-text-dim:       var(--text-mut);
+  --bs-text-label:     var(--text-3);
+
+  --bs-teal:        var(--blue);
+  --bs-teal-hover:  var(--blue-700);
+  --bs-teal-dim:    var(--blue-50);
+  --bs-teal-border: rgba(96,165,250,0.2);
+
+  --bs-green:       var(--emerald);
+  --bs-green-dim:   var(--emerald-50);
+
+  --bs-red:         var(--danger);
+  --bs-red-dim:     var(--danger-50);
+  --bs-red-border:  rgba(248,113,113,0.2);
+
+  --bs-amber:        var(--warn);
+  --bs-amber-dim:    var(--warn-50);
+  --bs-amber-border: rgba(251,191,36,0.2);
+
+  --bs-blue:        var(--info);
+  --bs-blue-dim:    var(--info-50);
+  --bs-blue-border: rgba(96,165,250,0.2);
+
+  --bs-shadow-card:     var(--shadow-sm);
+  --bs-shadow-dropdown: var(--shadow-md);
+
+  --bs-card-radius:  var(--bs-radius-lg);
+  --bs-card-padding: 18px;
+  --bs-card-border:  1px solid var(--bs-border);
+  --bs-card-bg:      var(--bs-bg-card);
+  --bs-section-gap:  24px;
+
+  --bs-accent-green: var(--emerald);
+  --bs-accent-red:   var(--danger);
+  --bs-accent-amber: var(--warn);
+  --bs-accent-blue:  var(--blue);
+}
+
+/* ── Spacing ─────────────────────────────────────────────────── */
 :root {
-  --background: #1a1d23;
-  --foreground: #e8e9ec;
-
-  /* ── BidShield Dark Theme Tokens ─────────────────────────────────── */
-
-  /* Backgrounds */
-  --bs-bg-primary:    #1a1d23;
-  --bs-bg-secondary:  #13151a;
-  --bs-bg-card:       #21242c;
-  --bs-bg-elevated:   #2a2d36;
-  --bs-bg-input:      #1e2128;
-  --bs-bg-page:       #1a1d23;
-
-  /* Borders */
-  --bs-border:        rgba(255, 255, 255, 0.08);
-  --bs-border-hover:  rgba(255, 255, 255, 0.14);
-  --bs-border-active: rgba(255, 255, 255, 0.22);
-
-  /* Text */
-  --bs-text-primary:   #ffffff;
-  --bs-text-secondary: #e8e9ec;
-  --bs-text-muted:     #9ca0ab;
-  --bs-text-dim:       #5f6370;
-  --bs-text-label:     #9ca0ab;
-
-  /* Brand / Accent */
-  --bs-teal:        #00b896;
-  --bs-teal-hover:  #00cca8;
-  --bs-teal-dim:    rgba(0,184,150,0.12);
-  --bs-teal-border: rgba(0,184,150,0.2);
-
-  /* Status Colors */
-  --bs-red:         #f06060;
-  --bs-red-dim:     rgba(240, 96, 96, 0.12);
-  --bs-red-border:  rgba(240, 96, 96, 0.2);
-
-  --bs-amber:       #f0a030;
-  --bs-amber-dim:   rgba(240, 160, 48, 0.12);
-  --bs-amber-border:rgba(240, 160, 48, 0.2);
-
-  --bs-blue:        #5a9cf5;
-  --bs-blue-dim:    rgba(90, 156, 245, 0.12);
-  --bs-blue-border: rgba(90, 156, 245, 0.2);
-
-  --bs-green:       #00b896;
-  --bs-green-dim:   rgba(0,184,150,0.12);
-
-  /* Spacing */
   --bs-space-xs:  4px;
   --bs-space-sm:  8px;
   --bs-space-md:  12px;
@@ -57,14 +217,12 @@
   --bs-space-2xl: 28px;
   --bs-space-3xl: 40px;
 
-  /* Radii */
   --bs-radius-sm:   6px;
   --bs-radius-md:   8px;
   --bs-radius-lg:   10px;
   --bs-radius-xl:   12px;
   --bs-radius-pill: 100px;
 
-  /* Typography */
   --bs-font-size-xs:   11px;
   --bs-font-size-sm:   12px;
   --bs-font-size-base: 13px;
@@ -79,27 +237,68 @@
   --bs-letter-spacing-caps:   0.8px;
 
   --bs-font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace;
-
-  /* Shadows (minimal for dark theme) */
-  --bs-shadow-card:     0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
-  --bs-shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.4);
-
-  /* Card tokens */
-  --bs-card-radius:   var(--bs-radius-lg);
-  --bs-card-padding:  18px;
-  --bs-card-border:   1px solid var(--bs-border);
-  --bs-card-bg:       var(--bs-bg-card);
-  --bs-section-gap:   24px;
-
-  /* Legacy compat aliases */
-  --bs-bg-sidebar: var(--bs-bg-secondary);
-  --bs-accent-green: var(--bs-teal);
-  --bs-accent-red: var(--bs-red);
-  --bs-accent-amber: var(--bs-amber);
-  --bs-accent-blue: var(--bs-blue);
 }
 
-/* ── Utility classes ──────────────────────────────────────────────── */
+/* ── Sidebar scope — always dark navy, both themes ──────────── */
+.bs-sidebar {
+  background: var(--navy-900);
+  border-right: 1px solid rgba(255,255,255,0.1);
+
+  /* Override tokens within sidebar so child components render correctly */
+  --bs-bg-secondary: var(--navy-900);
+  --bs-bg-card:      var(--navy-700);
+  --bs-bg-elevated:  var(--navy-700);
+  --bs-border:       rgba(255,255,255,0.1);
+  --bs-border-hover: rgba(255,255,255,0.18);
+
+  --bs-text-primary:   #FFFFFF;
+  --bs-text-secondary: #D4E2F4;
+  --bs-text-muted:     #B6C4D8;
+  --bs-text-dim:       #6F839E;
+
+  /* Keep --bs-teal as blue so CTA buttons stay blue-on-navy (readable) */
+  /* Active nav items use .bs-nav-item-active overrides below */
+}
+
+/* ── Tailwind @theme ─────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ── Base ────────────────────────────────────────────────────── */
+body {
+  background: var(--bs-bg-primary);
+  color: var(--bs-text-secondary);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+::selection {
+  background-color: rgba(37,99,235,0.15);
+  color: inherit;
+}
+
+.focus-ring { outline: none; }
+.focus-ring:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Utility classes ─────────────────────────────────────────── */
 
 .bs-nav-item {
   display: flex;
@@ -118,12 +317,24 @@
   background: var(--bs-bg-elevated);
   color: var(--bs-text-secondary);
 }
+
+/* Sidebar active: blue-tint bg, left accent border, white text */
+.bs-sidebar .bs-nav-item-active {
+  background: rgba(37,99,235,0.18);
+  color: #FFFFFF;
+  font-weight: var(--bs-font-weight-medium);
+  border-color: transparent;
+  border-left: 3px solid rgba(37,99,235,0.55) !important;
+  padding-left: 8px;
+}
+/* Content-area active (project page sidebar — not navy bg) */
 .bs-nav-item-active {
   background: var(--bs-teal-dim);
   color: var(--bs-teal);
   font-weight: var(--bs-font-weight-medium);
   border-color: var(--bs-teal-border);
 }
+
 .bs-nav-section {
   font-size: 10px;
   color: var(--bs-text-dim);
@@ -132,6 +343,7 @@
   letter-spacing: 1px;
   font-weight: var(--bs-font-weight-medium);
 }
+
 .bs-metric-card {
   background: var(--bs-card-bg);
   border-radius: var(--bs-card-radius);
@@ -152,31 +364,38 @@
   color: var(--bs-text-primary);
   letter-spacing: var(--bs-letter-spacing-tight);
 }
+
 .bs-badge {
   font-size: var(--bs-font-size-xs);
   padding: 2px 8px;
   border-radius: var(--bs-radius-sm);
   font-weight: var(--bs-font-weight-medium);
 }
-.bs-badge-warning  { background: var(--bs-amber-dim); color: var(--bs-amber); }
-.bs-badge-danger   { background: var(--bs-red-dim);   color: var(--bs-red);   }
-.bs-badge-success  { background: var(--bs-green-dim); color: var(--bs-green); }
-.bs-badge-info     { background: var(--bs-blue-dim);  color: var(--bs-blue);  }
+.bs-badge-warning { background: var(--bs-amber-dim); color: var(--bs-amber); }
+.bs-badge-danger  { background: var(--bs-red-dim);   color: var(--bs-red);   }
+.bs-badge-success { background: var(--bs-green-dim); color: var(--bs-green); }
+.bs-badge-info    { background: var(--bs-blue-dim);  color: var(--bs-blue);  }
+
 .bs-pill {
   font-size: var(--bs-font-size-xs);
   padding: 1px 7px;
   border-radius: var(--bs-radius-pill);
   font-weight: var(--bs-font-weight-medium);
 }
-.bs-pill-neutral { background: rgba(255,255,255,0.06); color: var(--bs-text-dim); }
+.bs-pill-neutral { background: rgba(0,0,0,0.06); color: var(--bs-text-dim); }
+[data-theme="dark"] .bs-pill-neutral { background: rgba(255,255,255,0.06); }
+
 .bs-dot { width: 6px; height: 6px; border-radius: 50%; }
+
 .bs-progress-track {
   height: 4px;
-  background: rgba(255,255,255,0.06);
+  background: var(--border);
   border-radius: 2px;
   overflow: hidden;
 }
+[data-theme="dark"] .bs-progress-track { background: rgba(255,255,255,0.06); }
 .bs-progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+
 .bs-alert {
   padding: 12px 16px;
   border-left: 3px solid;
@@ -186,6 +405,7 @@
 }
 .bs-alert-warning { background: var(--bs-amber-dim); border-left-color: var(--bs-amber); }
 .bs-alert-danger  { background: var(--bs-red-dim);   border-left-color: var(--bs-red);   }
+
 .bs-btn {
   font-size: var(--bs-font-size-sm);
   padding: 6px 14px;
@@ -203,7 +423,7 @@
 .bs-btn-primary {
   background: var(--bs-teal);
   border: 1px solid var(--bs-teal);
-  color: #13151a;
+  color: #ffffff;
   font-weight: var(--bs-font-weight-medium);
 }
 .bs-btn-primary:hover { background: var(--bs-teal-hover); }
@@ -213,14 +433,19 @@
   color: var(--bs-teal);
   font-weight: var(--bs-font-weight-medium);
 }
+
 .bs-table-header {
-  font-size: var(--bs-font-size-xs);
-  color: var(--bs-text-dim);
+  font-size: 11.5px;
+  color: var(--bs-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 700;
   padding: 10px 18px;
   border-bottom: 1px solid var(--bs-border);
+  background: var(--surface-2);
 }
+[data-theme="dark"] .bs-table-header { background: var(--bs-bg-elevated); }
+
 .bs-table-row {
   padding: 12px 18px;
   border-bottom: 1px solid var(--bs-border);
@@ -228,6 +453,7 @@
 }
 .bs-table-row:hover { background: var(--bs-bg-elevated); }
 .bs-table-row:last-child { border-bottom: none; }
+
 .bs-link { color: var(--bs-teal); text-decoration: none; font-size: var(--bs-font-size-sm); cursor: pointer; }
 .bs-link:hover { color: var(--bs-teal-hover); }
 
@@ -235,51 +461,4 @@
   font-family: var(--bs-font-mono);
   letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
-}
-
-body {
-  background: var(--bs-bg-secondary);
-  color: var(--bs-text-secondary);
-  font-feature-settings: "rlig" 1, "calt" 1;
-}
-
-/* Smooth scrolling and transitions */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-/* Selection color */
-::selection {
-  background-color: rgba(0, 184, 150, 0.2);
-  color: inherit;
-}
-
-/* Focus ring for accessibility */
-.focus-ring {
-  outline: none;
-}
-
-.focus-ring:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }

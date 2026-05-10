@@ -74,6 +74,79 @@ const NAV_ITEMS = [
   },
 ];
 
+type ThemePref = "light" | "dark" | "system";
+
+function SidebarThemeToggle() {
+  const [pref, setPref] = useState<ThemePref>("system");
+  useEffect(() => {
+    const stored = localStorage.getItem("bidshield-theme") as ThemePref | null;
+    setPref(stored ?? "system");
+  }, []);
+  const apply = (p: ThemePref) => {
+    setPref(p);
+    localStorage.setItem("bidshield-theme", p);
+    const resolved = p === "system"
+      ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : p;
+    document.documentElement.setAttribute("data-theme", resolved);
+  };
+  const options: { value: ThemePref; label: string; icon: React.ReactNode }[] = [
+    {
+      value: "light",
+      label: "Light",
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+        </svg>
+      ),
+    },
+    {
+      value: "dark",
+      label: "Dark",
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+        </svg>
+      ),
+    },
+    {
+      value: "system",
+      label: "Auto",
+      icon: (
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3" />
+        </svg>
+      ),
+    },
+  ];
+  return (
+    <div className="px-3 pb-2">
+      <p className="text-[9px] font-semibold uppercase tracking-widest mb-1.5 px-1" style={{ color: "#6F839E" }}>Appearance</p>
+      <div className="flex gap-1">
+        {options.map(({ value, label, icon }) => {
+          const active = pref === value;
+          return (
+            <button
+              key={value}
+              onClick={() => apply(value)}
+              title={label}
+              className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[9px] font-semibold transition-colors"
+              style={{
+                background: active ? "rgba(37,99,235,0.2)" : "rgba(255,255,255,0.04)",
+                color: active ? "#93C5FD" : "#6F839E",
+                border: active ? "1px solid rgba(37,99,235,0.35)" : "1px solid transparent",
+              }}
+            >
+              {icon}
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function NotificationBell({ userId, isDemo }: { userId: string | null | undefined; isDemo: boolean }) {
   const [open, setOpen] = useState(false);
   const unreadCount = useQuery(api.bidshield.getUnreadCount, !isDemo && userId ? { userId } : "skip");
@@ -151,20 +224,17 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
   };
 
   return (
-    <aside
-      className="hidden lg:flex flex-col w-56 shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto"
-      style={{ background: "var(--bs-bg-secondary)", borderRight: "1px solid var(--bs-border)" }}
-    >
+    <aside className="bs-sidebar hidden lg:flex flex-col w-56 shrink-0 sticky top-0 h-screen overflow-y-auto">
       {/* Logo */}
-      <div className="px-[18px] py-4 flex items-center gap-[10px]" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+      <div className="px-[18px] py-4 flex items-center gap-[10px]" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <a href="https://www.bidshield.co" target="_blank" rel="noopener" className="flex items-center gap-[10px] hover:opacity-80 transition-opacity">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--bs-teal)" }}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--emerald)" }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#13151a" strokeWidth="1.8" fill="none"/>
-              <path d="M7 5V9M5 7H9" stroke="#13151a" strokeWidth="1.4"/>
+              <path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#fff" strokeWidth="1.8" fill="none"/>
+              <path d="M7 5V9M5 7H9" stroke="#fff" strokeWidth="1.4"/>
             </svg>
           </div>
-          <span style={{ fontWeight: 500, fontSize: 15, color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>BidShield</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: "#FFFFFF", letterSpacing: "-0.3px" }}>BidShield</span>
         </a>
       </div>
 
@@ -178,6 +248,7 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
               key={href}
               href={fullHref}
               className={`bs-nav-item${active ? " bs-nav-item-active" : ""}`}
+              style={!active ? { color: "#B6C4D8" } : undefined}
             >
               <span style={{ width: 16, height: 16, flexShrink: 0 }}>{icon}</span>
               <span>{label}</span>
@@ -186,45 +257,48 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
         })}
       </nav>
 
-      {/* L-15: Notification bell */}
+      {/* Notification bell */}
       <NotificationBell userId={userId} isDemo={isDemo} />
 
       {/* Free plan upgrade nudge */}
       {!isDemo && !isPro && isSignedIn && (
-        <div className="mx-2 mb-2 px-3 py-3 rounded-lg" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
-          <p className="text-[11px] font-medium mb-0.5" style={{ color: "var(--bs-text-secondary)" }}>Free Plan</p>
-          <p className="text-[10px] mb-2" style={{ color: "var(--bs-text-dim)" }}>Unlock unlimited projects & PDF export</p>
-          <Link href="/bidshield/pricing" className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
+        <div className="mx-2 mb-2 px-3 py-3 rounded-lg" style={{ background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)" }}>
+          <p className="text-[11px] font-medium mb-0.5" style={{ color: "#D4E2F4" }}>Free Plan</p>
+          <p className="text-[10px] mb-2" style={{ color: "#6F839E" }}>Unlock unlimited projects & PDF export</p>
+          <Link href="/bidshield/pricing" className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--blue)", color: "#ffffff" }}>
             Upgrade to Pro
           </Link>
         </div>
       )}
 
+      {/* Theme toggle */}
+      <SidebarThemeToggle />
+
       {/* User / Plan footer */}
-      <div className="px-2 pb-3 pt-2" style={{ borderTop: "1px solid var(--bs-border)" }}>
+      <div className="px-2 pb-3 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>
         {isDemo ? (
           <div className="flex flex-col gap-2 px-2 py-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)" }}>D</div>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "rgba(255,255,255,0.08)", color: "#6F839E" }}>D</div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium" style={{ color: "var(--bs-text-secondary)" }}>Demo Mode</div>
-                <div className="text-[10px]" style={{ color: "var(--bs-text-dim)" }}>Not saved to account</div>
+                <div className="text-xs font-medium" style={{ color: "#D4E2F4" }}>Demo Mode</div>
+                <div className="text-[10px]" style={{ color: "#6F839E" }}>Not saved to account</div>
               </div>
             </div>
-            <Link href="/sign-up" className="block text-center py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
+            <Link href="/sign-up" className="block text-center py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--emerald)", color: "#ffffff" }}>
               Start Free →
             </Link>
           </div>
         ) : (
           <div className="flex items-center gap-2.5 px-2 py-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)" }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: "linear-gradient(135deg,#2563EB,#1D4ED8)", color: "#ffffff" }}>
               {userId ? userId.slice(5, 7).toUpperCase() : "??"}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium truncate" style={{ color: "var(--bs-text-secondary)" }}>
+              <div className="text-xs font-medium truncate" style={{ color: "#D4E2F4" }}>
                 {isSignedIn ? "Signed in" : "—"}
               </div>
-              <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 tracking-wider uppercase" style={{ background: isPro ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.05)", color: isPro ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
+              <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 tracking-wider uppercase" style={{ background: isPro ? "rgba(37,99,235,0.25)" : "rgba(255,255,255,0.08)", color: isPro ? "#93C5FD" : "#6F839E" }}>
                 {isPro ? "Pro" : "Free"}
               </span>
             </div>
@@ -340,7 +414,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   if (!isLoaded && !isDemo) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bs-bg-primary)" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bs-bg-primary)" }}>
         <div style={{ color: "var(--bs-text-muted)", fontSize: "1.125rem" }}>Loading BidShield...</div>
       </div>
     );
@@ -358,7 +432,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       #bidshield-app { font-family: 'DM Sans', system-ui, sans-serif; }
       #bidshield-app .app-display { font-family: 'Barlow Condensed', system-ui, sans-serif; }
     `}</style>
-    <div id="bidshield-app" className="flex" style={{ minHeight: "calc(100vh - 4rem)", background: "var(--bs-bg-primary)" }}>
+    <div id="bidshield-app" className="flex" style={{ minHeight: "100vh", background: "var(--bs-bg-primary)" }}>
       <Sidebar isDemo={isDemo} pathname={pathname} isPro={isPro} />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -405,7 +479,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 export default function BidShieldDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={
-      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bs-bg-primary)" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bs-bg-primary)" }}>
         <div style={{ color: "var(--bs-text-muted)", fontSize: "1.125rem" }}>Loading BidShield...</div>
       </div>
     }>

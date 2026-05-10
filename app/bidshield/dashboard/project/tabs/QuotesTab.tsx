@@ -1001,6 +1001,9 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                   <div className="flex gap-4 mt-2.5 text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
                     {quote.quoteDate     && <span>Quoted: {formatDate(quote.quoteDate)}</span>}
                     {quote.expirationDate && <span style={{ color: status === "expired" ? "var(--bs-red)" : status === "expiring" ? "var(--bs-amber)" : "var(--bs-text-muted)" }}>Expires: {formatDate(quote.expirationDate)}</span>}
+                    {!quote.quoteDate && !meta.quoteNum && !quote.quoteAmount && quote._creationTime && (
+                      <span style={{ color: "var(--bs-text-dim)" }}>Added: {new Date(quote._creationTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                    )}
                   </div>
                 </div>
 

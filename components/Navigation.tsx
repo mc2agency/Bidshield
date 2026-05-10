@@ -36,10 +36,42 @@ class AuthErrorBoundary extends Component<
 // They are only ever mounted after isClient is true (client-side
 // only) so they never run during SSR / static generation.
 // ============================================================
+type ThemePref = 'light' | 'dark' | 'system';
+
+function ThemeMenuItems({ onClose }: { onClose: () => void }) {
+  const [current, setCurrent] = useState<ThemePref>('system');
+  useEffect(() => {
+    const stored = localStorage.getItem('bidshield-theme') as ThemePref | null;
+    setCurrent(stored ?? 'system');
+  }, []);
+  const apply = (pref: ThemePref) => {
+    setCurrent(pref);
+    localStorage.setItem('bidshield-theme', pref);
+    const resolved = pref === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : pref;
+    document.documentElement.setAttribute('data-theme', resolved);
+    onClose();
+  };
+  return (
+    <>
+      <div className="px-4 pt-2 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Appearance</div>
+      {(['light', 'dark', 'system'] as ThemePref[]).map(p => (
+        <button key={p} onClick={() => apply(p)} className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center gap-2 ${current === p ? 'text-emerald-600 bg-emerald-50' : 'text-slate-700 hover:bg-slate-50'}`}>
+          {current === p && <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 1.414-1.414L8 12.586l7.293-7.293a1 1 0 0 1 1.414 0z" clipRule="evenodd" /></svg>}
+          {!current || current !== p && <span className="w-3 shrink-0" />}
+          {p.charAt(0).toUpperCase() + p.slice(1)}
+        </button>
+      ))}
+    </>
+  );
+}
+
 function NavAuthDesktop({ isDashboard, pathname }: { isDashboard: boolean; pathname: string }) {
   const { isSignedIn, userId, signOut } = useAuth();
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showTheme, setShowTheme] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const initials = userId ? userId.slice(5, 7).toUpperCase() : '??';
   const checkActive = (href: string) => pathname.startsWith(href);
@@ -48,6 +80,7 @@ function NavAuthDesktop({ isDashboard, pathname }: { isDashboard: boolean; pathn
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+        setShowTheme(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -68,12 +101,15 @@ function NavAuthDesktop({ isDashboard, pathname }: { isDashboard: boolean; pathn
             {label}
           </Link>
         ))}
+        <Link href="/bidshield/dashboard" className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300">
+          Open Dashboard
+        </Link>
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => setDropdownOpen((v) => !v)}
+            onClick={() => { setDropdownOpen((v) => !v); setShowTheme(false); }}
             className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold select-none">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold select-none">
               {initials}
             </div>
             <svg
@@ -84,13 +120,19 @@ function NavAuthDesktop({ isDashboard, pathname }: { isDashboard: boolean; pathn
             </svg>
           </button>
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
               <Link href="/bidshield/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setDropdownOpen(false)}>
                 Dashboard
               </Link>
               <Link href="/bidshield/pricing" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setDropdownOpen(false)}>
                 Billing
               </Link>
+              <div className="my-1 border-t border-slate-100" />
+              <button onClick={() => setShowTheme(v => !v)} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-between">
+                Appearance
+                <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showTheme ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+              </button>
+              {showTheme && <ThemeMenuItems onClose={() => { setDropdownOpen(false); setShowTheme(false); }} />}
               <div className="my-1 border-t border-slate-100" />
               <button
                 onClick={() => { setDropdownOpen(false); signOut(() => router.push('/')); }}
@@ -137,7 +179,7 @@ function NavAuthMobileInitials() {
   if (!isSignedIn) return null;
   const initials = userId ? userId.slice(5, 7).toUpperCase() : '??';
   return (
-    <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold select-none">
+    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold select-none">
       {initials}
     </div>
   );
@@ -151,8 +193,8 @@ function NavAuthMobileMenu({ pathname, isDashboard, onClose }: { pathname: strin
   if (isSignedIn) {
     return (
       <>
-        <Link href="/bidshield/dashboard" className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors" onClick={onClose}>
-          Dashboard
+        <Link href="/bidshield/dashboard" className="block mx-2 mt-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg text-center font-semibold text-sm shadow-lg shadow-emerald-500/20" onClick={onClose}>
+          Open Dashboard
         </Link>
         {NAV_LINKS.map(({ href, label }) => (
           <Link
@@ -233,6 +275,30 @@ function StaticDesktopNav({ pathname }: { pathname: string }) {
   );
 }
 
+function ThemeToggleButton() {
+  const [pref, setPref] = useState<'light' | 'dark' | 'system'>('system');
+  useEffect(() => {
+    const stored = localStorage.getItem('bidshield-theme') as 'light' | 'dark' | 'system' | null;
+    setPref(stored ?? 'system');
+  }, []);
+  const toggle = () => {
+    const next = pref === 'dark' ? 'light' : 'dark';
+    setPref(next);
+    localStorage.setItem('bidshield-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+  };
+  const isDark = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark';
+  return (
+    <button onClick={toggle} className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" aria-label="Toggle theme">
+      {isDark ? (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>
+      ) : (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>
+      )}
+    </button>
+  );
+}
+
 function StaticMobileMenu({ pathname, onClose }: { pathname: string; onClose: () => void }) {
   const checkActive = (href: string) => pathname.startsWith(href);
   return (
@@ -292,6 +358,9 @@ export default function Navigation() {
   }, [updateScrollState]);
 
   const isDashboard = pathname.startsWith('/bidshield/dashboard');
+
+  // Hide marketing nav entirely on authenticated app pages
+  if (isDashboard) return null;
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${

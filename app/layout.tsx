@@ -87,6 +87,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Theme: read preference before paint to avoid flash */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('bidshield-theme');if(t==='dark'||t==='light'){document.documentElement.setAttribute('data-theme',t);return;}if(t==='system'||!t){var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',d?'dark':'light');}}catch(e){document.documentElement.setAttribute('data-theme','light');}})();` }} />
         {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#059669" />

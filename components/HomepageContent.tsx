@@ -130,7 +130,7 @@ function HeroMockup() {
                       </svg>
                     )}
                   </div>
-                  <span className={done ? 'text-slate-600 line-through' : active ? 'text-emerald-300 font-semibold' : 'text-slate-600'}>
+                  <span className={done ? 'line-through' : active ? 'text-emerald-300 font-semibold' : 'text-slate-300'} style={done ? { color: '#64748b' } : undefined}>
                     {label}
                   </span>
                   {active && (
@@ -150,7 +150,7 @@ function HeroMockup() {
       </div>
       {/* Floating badge */}
       <div className="absolute -right-3 -bottom-3 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg shadow-emerald-500/40 whitespace-nowrap">
-        134 checks · 18 phases
+        135 checks · 18 phases
       </div>
     </div>
   );
@@ -249,7 +249,7 @@ const FEATURES = [
     tag: 'Phase 09 — Specification Review',
     title: 'Specification Review',
     body: 'Spec sections reviewed for submittal requirements, special inspections, and compliance items that affect your scope and final cost.',
-    stat: '134',
+    stat: '135',
     statLabel: 'checklist items',
   },
 ];
@@ -361,7 +361,7 @@ export default function HomepageContent() {
                 <div className="grid grid-cols-3 gap-0 pt-8 border-t border-white/5">
                   {[
                     { n: '18', label: 'Bid Phases' },
-                    { n: '134', label: 'Checklist Items' },
+                    { n: '135', label: 'Checklist Items' },
                     { n: '12yr', label: 'Field Experience' },
                   ].map(({ n, label }, i) => (
                     <div key={label} className={`${i > 0 ? 'pl-6 border-l border-white/5 ml-6' : ''}`}>
@@ -432,7 +432,7 @@ export default function HomepageContent() {
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <div className="bs-display text-3xl font-bold text-emerald-400">134</div>
+                  <div className="bs-display text-3xl font-bold text-emerald-400">135</div>
                   <div className="text-xs text-slate-500 mt-0.5">total checklist items</div>
                 </div>
               </div>
@@ -445,7 +445,7 @@ export default function HomepageContent() {
                 href="/bidshield/pricing"
                 className="inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
               >
-                See the full 134-item checklist on the pricing page
+                See the full 135-item checklist on the pricing page
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -518,7 +518,7 @@ export default function HomepageContent() {
                   >
                     See Pricing & Start Free Trial →
                   </Link>
-                  <div className="text-sm text-slate-500">Free plan available · No card required · Cancel anytime</div>
+                  <div className="text-sm text-slate-300">Free plan available · No card required · Cancel anytime</div>
                 </div>
               </div>
             </Reveal>
@@ -579,7 +579,7 @@ export default function HomepageContent() {
               >
                 Start 14-Day Free Trial — No Card Required
               </Link>
-              <p className="text-xs text-slate-700 mt-4">No credit card · Cancel anytime · 14-day money-back guarantee</p>
+              <p className="text-xs mt-4" style={{ color: "#4A5A70" }}>No credit card · Cancel anytime · 14-day money-back guarantee</p>
             </Reveal>
           </div>
         </section>

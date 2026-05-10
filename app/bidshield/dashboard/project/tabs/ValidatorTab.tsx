@@ -63,19 +63,40 @@ function ScoreRing({ score, size = 120 }: { score: number; size?: number }) {
   const r = size / 2 - 9, sw = 9, circ = 2 * Math.PI * r;
   const offset = animated ? circ * (1 - score / 100) : circ;
   const color = scoreColor(score);
+
+  /* Submit-ready marker at 80% — a small tick on the ring */
+  const threshold = 80;
+  const thresholdAngle = (threshold / 100) * 2 * Math.PI - Math.PI / 2; // rotated -90deg
+  const cx = size / 2, cy = size / 2;
+  const markerR = r;
+  const mx = cx + markerR * Math.cos(thresholdAngle);
+  const my = cy + markerR * Math.sin(thresholdAngle);
+  const innerR = r - sw / 2 - 2;
+  const outerR = r + sw / 2 + 2;
+  const ix = cx + innerR * Math.cos(thresholdAngle);
+  const iy = cy + innerR * Math.sin(thresholdAngle);
+  const ox = cx + outerR * Math.cos(thresholdAngle);
+  const oy = cy + outerR * Math.sin(thresholdAngle);
+
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--bs-border)" strokeWidth={sw} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none"
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--bs-border)" strokeWidth={sw} />
+        <circle cx={cx} cy={cy} r={r} fill="none"
           stroke={color} strokeWidth={sw} strokeLinecap="round"
           strokeDasharray={circ} strokeDashoffset={offset}
           style={{ transition: "stroke-dashoffset 1.1s ease-out" }}
         />
+        {/* Submit-ready threshold marker at 80 */}
+        <line x1={ix} y1={iy} x2={ox} y2={oy} stroke="var(--bs-amber)" strokeWidth={2} strokeLinecap="round" />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
         <span style={{ fontSize: size * 0.32, fontWeight: 800, color: "var(--bs-text-primary)", lineHeight: 1, letterSpacing: "-0.03em" }}>{score}</span>
         <span style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 1 }}>/100</span>
+      </div>
+      {/* Label below ring for the threshold marker */}
+      <div style={{ position: "absolute", bottom: -20, left: 0, right: 0, textAlign: "center", fontSize: 9, color: "var(--bs-amber)", fontWeight: 600, letterSpacing: "0.03em", whiteSpace: "nowrap" }}>
+        Submit-ready ≥ 80
       </div>
     </div>
   );

@@ -102,11 +102,12 @@ export default function EstimateTab({
       >
         {summaryCards.map(({ label, value, format }) => {
           const isTotalBid = label === "Total Bid";
+          const hasValue = isTotalBid && (value ?? 0) > 0;
           return (
             <div key={label} className="flex flex-col gap-1">
               <p
                 className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: isTotalBid ? "var(--bs-teal)" : "var(--bs-text-muted)" }}
+                style={{ color: hasValue ? "var(--bs-teal)" : "var(--bs-text-muted)" }}
               >
                 {label}
               </p>
@@ -114,7 +115,7 @@ export default function EstimateTab({
                 className="bs-num font-bold"
                 style={{
                   fontSize: isTotalBid ? 22 : undefined,
-                  color: isTotalBid ? "var(--bs-teal)" : "var(--bs-text-primary)",
+                  color: hasValue ? "var(--bs-teal)" : "var(--bs-text-primary)",
                   lineHeight: 1.1,
                 }}
               >
@@ -124,7 +125,7 @@ export default function EstimateTab({
                 <button
                   onClick={() => setActiveSubTab("pricing")}
                   className="text-[11px] font-medium mt-0.5 text-left transition-opacity hover:opacity-70"
-                  style={{ color: "var(--bs-teal)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  style={{ color: hasValue ? "var(--bs-teal)" : "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
                 >
                   → Recap
                 </button>
