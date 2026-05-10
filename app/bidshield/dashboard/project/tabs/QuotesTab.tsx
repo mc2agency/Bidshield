@@ -977,12 +977,26 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                         <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{quote.vendorEmail}</div>
                       )}
                     </div>
-                    <span
-                      className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0"
-                      style={{ background: ss.bg, color: ss.text }}
-                    >
-                      {ss.label}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
+                        style={{ background: ss.bg, color: ss.text }}
+                      >
+                        {ss.label}
+                      </span>
+                      {!isDemo && (
+                        <button
+                          onClick={() => handleDelete(quote)}
+                          className="p-1 rounded-lg transition-colors"
+                          style={{ color: "var(--bs-text-dim)", background: "transparent" }}
+                          onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-red)"; el.style.background = "var(--bs-red-dim)"; }}
+                          onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-text-dim)"; el.style.background = "transparent"; }}
+                          title="Delete quote"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-4 mt-2.5 text-[11px]" style={{ color: "var(--bs-text-muted)" }}>
                     {quote.quoteDate     && <span>Quoted: {formatDate(quote.quoteDate)}</span>}
@@ -1028,25 +1042,14 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                     )}
                   </div>
                   {!isDemo && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleAnalyzeScope(quote)}
-                        disabled={analyzingQuoteId === quote._id}
-                        className="text-[11px] font-medium transition-colors px-2 py-1 rounded disabled:opacity-50"
-                        style={{ color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
-                      >
-                        {analyzingQuoteId === quote._id ? "Analyzing…" : "Analyze Scope"}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(quote)}
-                        className="text-[12px] transition-colors px-2 py-1"
-                        style={{ color: "var(--bs-text-muted)" }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleAnalyzeScope(quote)}
+                      disabled={analyzingQuoteId === quote._id}
+                      className="text-[11px] font-medium transition-colors px-2 py-1 rounded disabled:opacity-50"
+                      style={{ color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
+                    >
+                      {analyzingQuoteId === quote._id ? "Analyzing…" : "Analyze Scope"}
+                    </button>
                   )}
                 </div>
                 {/* Scope analysis result */}
