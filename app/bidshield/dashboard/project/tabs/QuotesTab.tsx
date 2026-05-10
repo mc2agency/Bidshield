@@ -144,7 +144,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [xlsxFilename, setXlsxFilename] = useState("");
   const [xlsxImporting, setXlsxImporting] = useState(false);
   const [dismissedGroups, setDismissedGroups] = useState<Set<string>>(new Set());
-  const [selectedVendors, setSelectedVendors] = useState<Record<string, string>>({});
+  const [selectedVendors, setSelectedVendors] = useState<Record<string, string[]>>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [selectedItemKeys, setSelectedItemKeys] = useState<Set<string>>(new Set());
   const [removedItemKeys, setRemovedItemKeys] = useState<Set<string>>(new Set());
@@ -235,7 +235,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const handleRequestPricing = async (group: ManufacturerGroup) => {
     const projectName = (project as any)?.name ?? "Project";
     const { subject, body } = generatePricingEmailBody(group.manufacturer, group.items, projectName);
-    const vendorIds = (selectedVendors as Record<string, string[]>)[group.manufacturer] ?? [];
+    const vendorIds = selectedVendors[group.manufacturer] ?? [];
     const savedVendors = (vendors as any[] ?? []).filter((v: any) => vendorIds.includes(v._id));
     const emails = savedVendors.map((v: any) => v.repEmail).filter(Boolean);
     const products = group.items
@@ -717,7 +717,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                   </div>
                   {/* Multi-vendor selector */}
                   {(() => {
-                    const groupVendorIds: string[] = (selectedVendors as Record<string, string[]>)[group.manufacturer] ?? [];
+                    const groupVendorIds: string[] = selectedVendors[group.manufacturer] ?? [];
                     const groupVendors = (vendors as any[] ?? []).filter((v: any) => groupVendorIds.includes(v._id));
                     const unselected = (vendors as any[] ?? []).filter((v: any) => !groupVendorIds.includes(v._id));
                     return (
