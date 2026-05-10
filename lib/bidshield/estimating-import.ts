@@ -184,7 +184,12 @@ export function groupByManufacturer(items: EstimatingLineItem[]): ManufacturerGr
       // Merge items with identical descriptions (sum qty + netCost, keep first unitPrice)
       const merged = new Map<string, EstimatingLineItem>();
       for (const item of groupItems) {
-        const key = item.description.toLowerCase().trim();
+        // Normalize: collapse whitespace, unify smart quotes/inch marks so visually identical names merge
+        const key = item.description.toLowerCase()
+          .replace(/[‘’′‵ʼ]/g, "'")
+          .replace(/[“”″‶]/g, '"')
+          .replace(/\s+/g, " ")
+          .trim();
         if (merged.has(key)) {
           const ex = merged.get(key)!;
           merged.set(key, { ...ex, orderQty: ex.orderQty + item.orderQty, netCost: ex.netCost + item.netCost });
