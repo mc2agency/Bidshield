@@ -146,14 +146,16 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [dismissedGroups, setDismissedGroups] = useState<Set<string>>(new Set());
   const [selectedVendors, setSelectedVendors] = useState<Record<string, string>>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [selectedItemKeys, setSelectedItemKeys] = useState<Set<string>>(new Set());
+  const [bulkMoveTarget, setBulkMoveTarget] = useState("");
 
   // Derived manufacturer groups (reactive to per-item group overrides)
   const xlsxGroups = useMemo(() => {
     if (xlsxRawItems.length === 0) return [];
     const adjusted = xlsxRawItems.map(item => {
-      const key = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
-      const override = itemGroupOverrides[key];
-      return override ? { ...item, manufacturer: override } : item;
+      const _itemKey = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
+      const override = itemGroupOverrides[_itemKey];
+      return { ...item, _itemKey, manufacturer: override ?? item.manufacturer };
     });
     return groupByManufacturer(adjusted);
   }, [xlsxRawItems, itemGroupOverrides]);
@@ -200,6 +202,8 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     setDismissedGroups(new Set());
     setExpandedGroups(new Set());
     setItemGroupOverrides({});
+    setSelectedItemKeys(new Set());
+    setBulkMoveTarget("");
     try {
       const buf = await file.arrayBuffer();
       const items = await parseEstimatingXlsx(buf);
@@ -246,6 +250,17 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     window.open(`mailto:${vendorEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank");
     setDismissedGroups(prev => new Set([...prev, group.manufacturer]));
     notify(`Pricing request sent to ${group.manufacturer}!`);
+  };
+
+  const handleBulkMove = () => {
+    if (!bulkMoveTarget) return;
+    setItemGroupOverrides(prev => {
+      const next = { ...prev };
+      for (const key of selectedItemKeys) next[key] = bulkMoveTarget;
+      return next;
+    });
+    setSelectedItemKeys(new Set());
+    setBulkMoveTarget("");
   };
 
   // Scope analysis state (per-quote)
@@ -629,7 +644,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
               </div>
               <button
-                onClick={() => { setXlsxRawItems([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); setItemGroupOverrides({}); }}
+                onClick={() => { setXlsxRawItems([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); setItemGroupOverrides({}); setSelectedItemKeys(new Set()); setBulkMoveTarget(""); }}
                 className="text-xs transition-colors"
                 style={{ color: "var(--bs-text-dim)" }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
@@ -638,6 +653,42 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 Clear
               </button>
             </div>
+            {/* Bulk action bar */}
+            {selectedItemKeys.size > 0 && (
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-wrap" style={{ background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)" }}>
+                <span className="text-[12px] font-semibold" style={{ color: "var(--bs-teal)" }}>
+                  {selectedItemKeys.size} item{selectedItemKeys.size !== 1 ? "s" : ""} selected
+                </span>
+                <span className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>→ Move to:</span>
+                <select
+                  value={bulkMoveTarget}
+                  onChange={e => setBulkMoveTarget(e.target.value)}
+                  className="text-[12px] rounded-md focus:outline-none"
+                  style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-teal-border)", color: "var(--bs-text-primary)", padding: "4px 8px", maxWidth: 200 }}
+                >
+                  <option value="">Select group…</option>
+                  {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
+                </select>
+                <button
+                  onClick={handleBulkMove}
+                  disabled={!bulkMoveTarget}
+                  className="text-[12px] font-semibold px-3 py-1 rounded-lg disabled:opacity-40 transition-opacity"
+                  style={{ background: "var(--bs-teal)", color: "#13151a" }}
+                >
+                  Apply
+                </button>
+                <button
+                  onClick={() => { setSelectedItemKeys(new Set()); setBulkMoveTarget(""); }}
+                  className="text-[11px] ml-auto transition-colors"
+                  style={{ color: "var(--bs-text-muted)" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-primary)"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+
             {activeGroups.length === 0 ? (
               <div className="text-center py-4 text-xs rounded-xl" style={{ color: "var(--bs-text-muted)", border: "1px dashed var(--bs-border)" }}>
                 All groups handled — quote records created above.
@@ -656,8 +707,22 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
               return (
                 <div key={group.manufacturer} className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
                   {/* Header */}
-                  <div className="px-5 py-3.5 flex items-center justify-between gap-3" style={{ borderBottom: "1px solid var(--bs-border)" }}>
-                    <div>
+                  <div className="px-5 py-3.5 flex items-center gap-3" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                    <input
+                      type="checkbox"
+                      checked={group.items.length > 0 && group.items.every(i => selectedItemKeys.has((i as any)._itemKey))}
+                      onChange={e => {
+                        const keys = group.items.map(i => (i as any)._itemKey as string);
+                        setSelectedItemKeys(prev => {
+                          const next = new Set(prev);
+                          keys.forEach(k => e.target.checked ? next.add(k) : next.delete(k));
+                          return next;
+                        });
+                      }}
+                      style={{ width: 14, height: 14, cursor: "pointer", accentColor: "var(--bs-teal)", flexShrink: 0 }}
+                      title="Select all items in this group"
+                    />
+                    <div className="flex-1 min-w-0">
                       <div className="text-[15px] font-bold" style={{ color: "var(--bs-text-primary)" }}>{group.manufacturer}</div>
                       <div className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
                         {group.items.length} item{group.items.length !== 1 ? "s" : ""} · ${group.subtotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
@@ -685,19 +750,38 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                   {/* Item rows */}
                   <div>
                     {visibleItems.map((item, i) => {
-                      const overrideKey = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
+                      const overrideKey = (item as any)._itemKey as string;
+                      const isSelected = selectedItemKeys.has(overrideKey);
                       return (
-                        <div key={i} className="flex items-center px-5 py-2 gap-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
-                          <span className="flex-1 text-[12px]" style={{ color: "var(--bs-text-secondary)" }}>{item.description}</span>
+                        <div
+                          key={i}
+                          className="flex items-center px-5 py-2.5 gap-2.5"
+                          style={{
+                            borderBottom: "1px solid var(--bs-border)",
+                            background: isSelected ? "var(--bs-teal-dim)" : undefined,
+                            transition: "background 0.1s",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={e => setSelectedItemKeys(prev => {
+                              const next = new Set(prev);
+                              e.target.checked ? next.add(overrideKey) : next.delete(overrideKey);
+                              return next;
+                            })}
+                            style={{ width: 13, height: 13, cursor: "pointer", accentColor: "var(--bs-teal)", flexShrink: 0 }}
+                          />
+                          <span className="flex-1 text-[12px]" style={{ color: "var(--bs-text-primary)" }}>{item.description}</span>
                           {item.orderQty > 0 && (
                             <span className="text-[12px] tabular-nums font-medium shrink-0" style={{ color: "var(--bs-text-primary)" }}>{fmtQty(item.orderQty)}</span>
                           )}
-                          <span className="text-[11px] w-10 shrink-0" style={{ color: "var(--bs-text-dim)" }}>{item.orderUnit}</span>
+                          <span className="text-[11px] w-10 shrink-0" style={{ color: "var(--bs-text-muted)" }}>{item.orderUnit}</span>
                           <select
                             value={itemGroupOverrides[overrideKey] ?? group.manufacturer}
                             onChange={e => setItemGroupOverrides(prev => ({ ...prev, [overrideKey]: e.target.value }))}
-                            className="text-[10px] rounded focus:outline-none shrink-0"
-                            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-dim)", padding: "2px 4px", maxWidth: 120 }}
+                            className="text-[11px] rounded focus:outline-none shrink-0"
+                            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", padding: "3px 6px", maxWidth: 130 }}
                             title="Move to group"
                           >
                             {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
