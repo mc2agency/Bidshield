@@ -150,6 +150,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [removedItemKeys, setRemovedItemKeys] = useState<Set<string>>(new Set());
   const [bulkMoveTarget, setBulkMoveTarget] = useState("");
   const [bulkVendorPick, setBulkVendorPick] = useState<Record<string, string>>({});
+  const [sessionCreatedQuoteIds, setSessionCreatedQuoteIds] = useState<string[]>([]);
 
   // Derived manufacturer groups (reactive to per-item group overrides + removals)
   const xlsxGroups = useMemo(() => {
@@ -209,6 +210,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     setSelectedItemKeys(new Set());
     setRemovedItemKeys(new Set());
     setBulkMoveTarget("");
+    setSessionCreatedQuoteIds([]);
     try {
       const buf = await file.arrayBuffer();
       const items = await parseEstimatingXlsx(buf);
@@ -242,10 +244,11 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       .filter(i => i.description)
       .map(i => JSON.stringify({ m: i.description, u: i.orderUnit, p: i.unitPrice, n: "" }));
     if (!isDemo && userId) {
+      const createdIds: string[] = [];
       // Create one quote record per selected vendor (or one generic if none selected)
       if (savedVendors.length > 0) {
         for (const v of savedVendors) {
-          await createQuoteMut({
+          const id = await createQuoteMut({
             userId,
             projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
             vendorName: v.companyName ?? group.manufacturer,
@@ -254,9 +257,10 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
             products,
             status: "requested",
           });
+          if (id) createdIds.push(String(id));
         }
       } else {
-        await createQuoteMut({
+        const id = await createQuoteMut({
           userId,
           projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
           vendorName: group.manufacturer,
@@ -264,7 +268,9 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           products,
           status: "requested",
         });
+        if (id) createdIds.push(String(id));
       }
+      setSessionCreatedQuoteIds(prev => [...prev, ...createdIds]);
     }
     if (emails.length > 0) {
       try {
@@ -682,7 +688,25 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
               </div>
               <button
-                onClick={() => { setXlsxRawItems([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); setItemGroupOverrides({}); setSelectedItemKeys(new Set()); setRemovedItemKeys(new Set()); setBulkMoveTarget(""); }}
+                onClick={async () => {
+                  if (sessionCreatedQuoteIds.length > 0 && userId) {
+                    await Promise.allSettled(
+                      sessionCreatedQuoteIds.map(id =>
+                        deleteQuoteMut({ quoteId: id as Id<"bidshield_quotes">, userId })
+                      )
+                    );
+                  }
+                  setSessionCreatedQuoteIds([]);
+                  setXlsxRawItems([]);
+                  setXlsxFilename("");
+                  setDismissedGroups(new Set());
+                  setSelectedVendors({});
+                  setExpandedGroups(new Set());
+                  setItemGroupOverrides({});
+                  setSelectedItemKeys(new Set());
+                  setRemovedItemKeys(new Set());
+                  setBulkMoveTarget("");
+                }}
                 className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
                 style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}
                 onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-red)"; el.style.borderColor = "var(--bs-red)"; }}
