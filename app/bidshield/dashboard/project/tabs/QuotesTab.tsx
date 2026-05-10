@@ -720,53 +720,51 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                     const groupVendorIds: string[] = selectedVendors[group.manufacturer] ?? [];
                     const groupVendors = (vendors as any[] ?? []).filter((v: any) => groupVendorIds.includes(v._id));
                     const unselected = (vendors as any[] ?? []).filter((v: any) => !groupVendorIds.includes(v._id));
+                    const vendorList = vendors as any[] ?? [];
                     return (
                       <div className="px-5 py-2.5 flex flex-col gap-2" style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[11px] font-medium shrink-0" style={{ color: "var(--bs-text-muted)" }}>Vendors</span>
+                        {/* Selected vendor chips */}
+                        <div className="flex items-center gap-2 flex-wrap min-h-[22px]">
+                          <span className="text-[11px] font-semibold shrink-0" style={{ color: "var(--bs-text-muted)" }}>Send to:</span>
                           {groupVendors.map((v: any) => (
-                            <span key={v._id} className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+                            <span key={v._id} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
                               {v.companyName}
                               <button
-                                onClick={() => setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: ((prev as Record<string, string[]>)[group.manufacturer] ?? []).filter(id => id !== v._id) }))}
-                                className="ml-0.5 leading-none transition-opacity hover:opacity-70"
-                                title="Remove vendor"
-                              >✕</button>
+                                onClick={() => setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: (prev[group.manufacturer] ?? []).filter(id => id !== v._id) }))}
+                                className="ml-0.5 leading-none transition-opacity hover:opacity-60 text-[12px]"
+                                title="Remove"
+                              >×</button>
                             </span>
                           ))}
-                          {groupVendors.length === 0 && (
-                            <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>No vendor selected</span>
+                          {groupVendors.length === 0 && vendorList.length > 0 && (
+                            <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>Pick vendors below ↓</span>
+                          )}
+                          {vendorList.length === 0 && (
+                            <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>No vendors saved — add them in the Vendors section</span>
                           )}
                         </div>
+                        {/* One-click vendor picker — selecting auto-adds as chip */}
                         {unselected.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <select
-                              value={bulkVendorPick[group.manufacturer] ?? ""}
-                              onChange={e => setBulkVendorPick(prev => ({ ...prev, [group.manufacturer]: e.target.value }))}
-                              className="text-[11px] rounded-md focus:outline-none flex-1"
-                              style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", padding: "3px 8px" }}
-                            >
-                              <option value="">Add vendor…</option>
-                              {unselected.map((v: any) => (
-                                <option key={v._id} value={v._id}>
-                                  {v.companyName}{v.repName ? ` — ${v.repName}` : ""}
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              disabled={!bulkVendorPick[group.manufacturer]}
-                              onClick={() => {
-                                const id = bulkVendorPick[group.manufacturer];
-                                if (!id) return;
-                                setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: [...((prev as Record<string, string[]>)[group.manufacturer] ?? []), id] }));
-                                setBulkVendorPick(prev => ({ ...prev, [group.manufacturer]: "" }));
-                              }}
-                              className="text-[11px] font-semibold px-3 py-1 rounded-lg disabled:opacity-40 shrink-0 transition-opacity"
-                              style={{ background: "var(--bs-teal)", color: "#13151a" }}
-                            >
-                              Add
-                            </button>
-                          </div>
+                          <select
+                            value=""
+                            onChange={e => {
+                              const id = e.target.value;
+                              if (!id) return;
+                              setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: [...(prev[group.manufacturer] ?? []), id] }));
+                            }}
+                            className="text-[11px] rounded-md focus:outline-none w-full"
+                            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", padding: "5px 8px" }}
+                          >
+                            <option value="">+ Add vendor to this request…</option>
+                            {unselected.map((v: any) => (
+                              <option key={v._id} value={v._id}>
+                                {v.companyName}{v.repName ? ` — ${v.repName}` : ""}{v.repEmail ? ` · ${v.repEmail}` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {unselected.length === 0 && groupVendors.length > 0 && (
+                          <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>All vendors selected</span>
                         )}
                       </div>
                     );
