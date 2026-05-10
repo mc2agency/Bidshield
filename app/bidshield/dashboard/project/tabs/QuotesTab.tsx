@@ -143,6 +143,8 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [xlsxFilename, setXlsxFilename] = useState("");
   const [xlsxImporting, setXlsxImporting] = useState(false);
   const [dismissedGroups, setDismissedGroups] = useState<Set<string>>(new Set());
+  const [selectedVendors, setSelectedVendors] = useState<Record<string, string>>({});
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Quotes available to import = all user quotes not already in this project
   const importableQuotes = useMemo(() => {
@@ -184,10 +186,21 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     setXlsxImporting(true);
     setXlsxFilename(file.name);
     setDismissedGroups(new Set());
+    setExpandedGroups(new Set());
     try {
       const buf = await file.arrayBuffer();
       const items = await parseEstimatingXlsx(buf);
-      setXlsxGroups(groupByManufacturer(items));
+      const groups = groupByManufacturer(items);
+      setXlsxGroups(groups);
+      const autoSelected: Record<string, string> = {};
+      for (const g of groups) {
+        const match = (vendors as any[])?.find((v: any) =>
+          v.companyName?.toLowerCase().includes(g.manufacturer.toLowerCase().split(" ")[0]) ||
+          g.manufacturer.toLowerCase().includes((v.companyName ?? "").toLowerCase().split(" ")[0])
+        );
+        if (match) autoSelected[g.manufacturer] = match._id;
+      }
+      setSelectedVendors(autoSelected);
     } catch {
       setXlsxGroups([]);
     } finally {
@@ -199,11 +212,9 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const handleRequestPricing = async (group: ManufacturerGroup) => {
     const projectName = (project as any)?.name ?? "Project";
     const { subject, body } = generatePricingEmailBody(group.manufacturer, group.items, projectName);
-    const savedVendor = (vendors as any[])?.find((v: any) =>
-      v.companyName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
-      group.manufacturer.toLowerCase().includes((v.companyName ?? "").toLowerCase().split(" ")[0])
-    );
-    const vendorEmail = savedVendor?.repEmail ?? savedVendor?.email ?? "";
+    const vendorId = selectedVendors[group.manufacturer];
+    const savedVendor = vendorId ? (vendors as any[])?.find((v: any) => v._id === vendorId) : undefined;
+    const vendorEmail = savedVendor?.repEmail ?? "";
     if (!isDemo && userId) {
       const products = group.items
         .filter(i => i.description)
@@ -584,6 +595,10 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       {/* Import Estimate panel */}
       {xlsxGroups.length > 0 && (() => {
         const activeGroups = xlsxGroups.filter(g => !dismissedGroups.has(g.manufacturer));
+        const fmtQty = (n: number) => {
+          const r = Math.round(n * 1000) / 1000;
+          return r % 1 === 0 ? String(Math.round(r)) : r.toString();
+        };
         const statusColors: Record<string, { bg: string; color: string; label: string }> = {
           none:      { bg: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)",   label: "No Quote" },
           requested: { bg: "var(--bs-amber-dim)",   color: "var(--bs-amber)",      label: "Requested" },
@@ -600,7 +615,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
               </div>
               <button
-                onClick={() => { setXlsxGroups([]); setXlsxFilename(""); setDismissedGroups(new Set()); }}
+                onClick={() => { setXlsxGroups([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); }}
                 className="text-xs transition-colors"
                 style={{ color: "var(--bs-text-dim)" }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
@@ -614,62 +629,92 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 All groups handled — quote records created above.
               </div>
             ) : activeGroups.map(group => {
-              const savedVendor = (vendors as any[])?.find((v: any) =>
-                v.companyName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
-                group.manufacturer.toLowerCase().includes((v.companyName ?? "").toLowerCase().split(" ")[0])
-              );
               const groupQuote = resolvedQuotes.find((q: any) =>
                 q.vendorName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
                 group.manufacturer.toLowerCase().includes((q.vendorName ?? "").toLowerCase().split(" ")[0])
               );
               const quoteStatus = groupQuote ? getEffectiveStatus(groupQuote) : "none";
               const sc = statusColors[quoteStatus] ?? statusColors.none;
+              const isExpanded = expandedGroups.has(group.manufacturer);
+              const SHOW = 5;
+              const visibleItems = isExpanded ? group.items : group.items.slice(0, SHOW);
+              const hiddenCount = group.items.length - SHOW;
               return (
-                <div key={group.manufacturer} className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div key={group.manufacturer} className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
+                  {/* Header */}
+                  <div className="px-5 py-3.5 flex items-center justify-between gap-3" style={{ borderBottom: "1px solid var(--bs-border)" }}>
                     <div>
-                      <div className="font-semibold text-sm" style={{ color: "var(--bs-text-primary)" }}>{group.manufacturer}</div>
-                      <div className="text-xs mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
+                      <div className="text-[15px] font-bold" style={{ color: "var(--bs-text-primary)" }}>{group.manufacturer}</div>
+                      <div className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
                         {group.items.length} item{group.items.length !== 1 ? "s" : ""} · ${group.subtotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
-                        {savedVendor && (
-                          <span className="ml-2" style={{ color: "var(--bs-teal)" }}>
-                            · {savedVendor.companyName}{savedVendor.repName ? ` — ${savedVendor.repName}` : ""}
-                          </span>
-                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: sc.bg, color: sc.color }}>{sc.label}</span>
-                      <button
-                        onClick={() => handleRequestPricing(group)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-80"
-                        style={{ background: "var(--bs-teal)", color: "#13151a" }}
-                      >
-                        Request Pricing ✉
-                      </button>
-                      <button
-                        onClick={() => setDismissedGroups(prev => new Set([...prev, group.manufacturer]))}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                        style={{ background: "var(--bs-bg-elevated)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-                      >
-                        Skip
-                      </button>
-                    </div>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0" style={{ background: sc.bg, color: sc.color }}>{sc.label}</span>
                   </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-0.5">
-                    {group.items.slice(0, 8).map((item, i) => (
-                      <div key={i} className="flex items-baseline gap-1.5">
-                        <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>{item.description}</span>
+                  {/* Vendor selector */}
+                  <div className="px-5 py-2.5 flex items-center gap-3" style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                    <span className="text-[11px] font-medium shrink-0" style={{ color: "var(--bs-text-muted)" }}>Vendor</span>
+                    <select
+                      value={selectedVendors[group.manufacturer] ?? ""}
+                      onChange={e => setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: e.target.value }))}
+                      className="flex-1 text-[12px] rounded-md focus:outline-none"
+                      style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)", padding: "4px 8px" }}
+                    >
+                      <option value="">No vendor selected</option>
+                      {(vendors as any[] ?? []).map((v: any) => (
+                        <option key={v._id} value={v._id}>
+                          {v.companyName}{v.repName ? ` — ${v.repName}` : ""}{v.repEmail ? ` (${v.repEmail})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Item rows */}
+                  <div>
+                    {visibleItems.map((item, i) => (
+                      <div key={i} className="flex items-center px-5 py-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                        <span className="flex-1 text-[12px]" style={{ color: "var(--bs-text-secondary)" }}>{item.description}</span>
                         {item.orderQty > 0 && (
-                          <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>{item.orderQty} {item.orderUnit}</span>
+                          <span className="text-[12px] tabular-nums font-medium ml-4 shrink-0" style={{ color: "var(--bs-text-primary)" }}>{fmtQty(item.orderQty)}</span>
                         )}
+                        <span className="text-[11px] ml-2 w-10 shrink-0" style={{ color: "var(--bs-text-dim)" }}>{item.orderUnit}</span>
                       </div>
                     ))}
-                    {group.items.length > 8 && (
-                      <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>+{group.items.length - 8} more</span>
+                    {hiddenCount > 0 && (
+                      <div className="px-5 py-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
+                        <button
+                          onClick={() => setExpandedGroups(prev => {
+                            const next = new Set(prev);
+                            isExpanded ? next.delete(group.manufacturer) : next.add(group.manufacturer);
+                            return next;
+                          })}
+                          className="text-[11px] transition-colors"
+                          style={{ color: "var(--bs-text-dim)" }}
+                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
+                        >
+                          {isExpanded ? "Show less" : `Show ${hiddenCount} more item${hiddenCount !== 1 ? "s" : ""}`}
+                        </button>
+                      </div>
                     )}
+                  </div>
+                  {/* Actions */}
+                  <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ background: "var(--bs-bg-elevated)" }}>
+                    <button
+                      onClick={() => setDismissedGroups(prev => new Set([...prev, group.manufacturer]))}
+                      className="text-[12px] font-medium px-3 py-1.5 rounded-lg transition-colors"
+                      style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
+                    >
+                      Skip
+                    </button>
+                    <button
+                      onClick={() => handleRequestPricing(group)}
+                      className="text-[12px] font-semibold px-4 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+                      style={{ background: "var(--bs-teal)", color: "#13151a" }}
+                    >
+                      Request Pricing
+                    </button>
                   </div>
                 </div>
               );
