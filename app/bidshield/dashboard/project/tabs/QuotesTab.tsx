@@ -147,18 +147,22 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [selectedVendors, setSelectedVendors] = useState<Record<string, string>>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [selectedItemKeys, setSelectedItemKeys] = useState<Set<string>>(new Set());
+  const [removedItemKeys, setRemovedItemKeys] = useState<Set<string>>(new Set());
   const [bulkMoveTarget, setBulkMoveTarget] = useState("");
+  const [bulkVendorPick, setBulkVendorPick] = useState<Record<string, string>>({});
 
-  // Derived manufacturer groups (reactive to per-item group overrides)
+  // Derived manufacturer groups (reactive to per-item group overrides + removals)
   const xlsxGroups = useMemo(() => {
     if (xlsxRawItems.length === 0) return [];
-    const adjusted = xlsxRawItems.map(item => {
-      const _itemKey = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
-      const override = itemGroupOverrides[_itemKey];
-      return { ...item, _itemKey, manufacturer: override ?? item.manufacturer };
-    });
+    const adjusted = xlsxRawItems
+      .filter(item => !removedItemKeys.has(`${item.manufacturer}::${item.description.toLowerCase().trim()}`))
+      .map(item => {
+        const _itemKey = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
+        const override = itemGroupOverrides[_itemKey];
+        return { ...item, _itemKey, manufacturer: override ?? item.manufacturer };
+      });
     return groupByManufacturer(adjusted);
-  }, [xlsxRawItems, itemGroupOverrides]);
+  }, [xlsxRawItems, itemGroupOverrides, removedItemKeys]);
 
   // Quotes available to import = all user quotes not already in this project
   const importableQuotes = useMemo(() => {
@@ -203,6 +207,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     setExpandedGroups(new Set());
     setItemGroupOverrides({});
     setSelectedItemKeys(new Set());
+    setRemovedItemKeys(new Set());
     setBulkMoveTarget("");
     try {
       const buf = await file.arrayBuffer();
@@ -210,13 +215,13 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
       setXlsxRawItems(items);
       // Auto-match vendors from initial groups
       const groups = groupByManufacturer(items);
-      const autoSelected: Record<string, string> = {};
+      const autoSelected: Record<string, string[]> = {};
       for (const g of groups) {
         const match = (vendors as any[])?.find((v: any) =>
           v.companyName?.toLowerCase().includes(g.manufacturer.toLowerCase().split(" ")[0]) ||
           g.manufacturer.toLowerCase().includes((v.companyName ?? "").toLowerCase().split(" ")[0])
         );
-        if (match) autoSelected[g.manufacturer] = match._id;
+        if (match) autoSelected[g.manufacturer] = [match._id];
       }
       setSelectedVendors(autoSelected);
     } catch {
@@ -230,26 +235,42 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const handleRequestPricing = async (group: ManufacturerGroup) => {
     const projectName = (project as any)?.name ?? "Project";
     const { subject, body } = generatePricingEmailBody(group.manufacturer, group.items, projectName);
-    const vendorId = selectedVendors[group.manufacturer];
-    const savedVendor = vendorId ? (vendors as any[])?.find((v: any) => v._id === vendorId) : undefined;
-    const vendorEmail = savedVendor?.repEmail ?? "";
+    const vendorIds = (selectedVendors as Record<string, string[]>)[group.manufacturer] ?? [];
+    const savedVendors = (vendors as any[] ?? []).filter((v: any) => vendorIds.includes(v._id));
+    const emails = savedVendors.map((v: any) => v.repEmail).filter(Boolean);
+    const products = group.items
+      .filter(i => i.description)
+      .map(i => JSON.stringify({ m: i.description, u: i.orderUnit, p: i.unitPrice, n: "" }));
     if (!isDemo && userId) {
-      const products = group.items
-        .filter(i => i.description)
-        .map(i => JSON.stringify({ m: i.description, u: i.orderUnit, p: i.unitPrice, n: "" }));
-      await createQuoteMut({
-        userId,
-        projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
-        vendorName: group.manufacturer,
-        vendorEmail: vendorEmail || undefined,
-        category: "system",
-        products,
-        status: "requested",
-      });
+      // Create one quote record per selected vendor (or one generic if none selected)
+      if (savedVendors.length > 0) {
+        for (const v of savedVendors) {
+          await createQuoteMut({
+            userId,
+            projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
+            vendorName: v.companyName ?? group.manufacturer,
+            vendorEmail: v.repEmail || undefined,
+            category: "system",
+            products,
+            status: "requested",
+          });
+        }
+      } else {
+        await createQuoteMut({
+          userId,
+          projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
+          vendorName: group.manufacturer,
+          category: "system",
+          products,
+          status: "requested",
+        });
+      }
     }
-    window.open(`mailto:${vendorEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank");
+    // Open single mailto with all vendor emails in TO
+    const toField = emails.join(",");
+    window.open(`mailto:${toField}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank");
     setDismissedGroups(prev => new Set([...prev, group.manufacturer]));
-    notify(`Pricing request sent to ${group.manufacturer}!`);
+    notify(`Pricing request sent to ${savedVendors.length > 1 ? `${savedVendors.length} vendors` : group.manufacturer}!`);
   };
 
   const handleBulkMove = () => {
@@ -644,7 +665,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
               </div>
               <button
-                onClick={() => { setXlsxRawItems([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); setItemGroupOverrides({}); setSelectedItemKeys(new Set()); setBulkMoveTarget(""); }}
+                onClick={() => { setXlsxRawItems([]); setXlsxFilename(""); setDismissedGroups(new Set()); setSelectedVendors({}); setExpandedGroups(new Set()); setItemGroupOverrides({}); setSelectedItemKeys(new Set()); setRemovedItemKeys(new Set()); setBulkMoveTarget(""); }}
                 className="text-xs transition-colors"
                 style={{ color: "var(--bs-text-dim)" }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
@@ -694,23 +715,62 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                     </div>
                     <span className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0" style={{ background: sc.bg, color: sc.color }}>{sc.label}</span>
                   </div>
-                  {/* Vendor selector */}
-                  <div className="px-5 py-2.5 flex items-center gap-3" style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
-                    <span className="text-[11px] font-medium shrink-0" style={{ color: "var(--bs-text-muted)" }}>Vendor</span>
-                    <select
-                      value={selectedVendors[group.manufacturer] ?? ""}
-                      onChange={e => setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: e.target.value }))}
-                      className="flex-1 text-[12px] rounded-md focus:outline-none"
-                      style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)", padding: "4px 8px" }}
-                    >
-                      <option value="">No vendor selected</option>
-                      {(vendors as any[] ?? []).map((v: any) => (
-                        <option key={v._id} value={v._id}>
-                          {v.companyName}{v.repName ? ` — ${v.repName}` : ""}{v.repEmail ? ` (${v.repEmail})` : ""}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Multi-vendor selector */}
+                  {(() => {
+                    const groupVendorIds: string[] = (selectedVendors as Record<string, string[]>)[group.manufacturer] ?? [];
+                    const groupVendors = (vendors as any[] ?? []).filter((v: any) => groupVendorIds.includes(v._id));
+                    const unselected = (vendors as any[] ?? []).filter((v: any) => !groupVendorIds.includes(v._id));
+                    return (
+                      <div className="px-5 py-2.5 flex flex-col gap-2" style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[11px] font-medium shrink-0" style={{ color: "var(--bs-text-muted)" }}>Vendors</span>
+                          {groupVendors.map((v: any) => (
+                            <span key={v._id} className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+                              {v.companyName}
+                              <button
+                                onClick={() => setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: ((prev as Record<string, string[]>)[group.manufacturer] ?? []).filter(id => id !== v._id) }))}
+                                className="ml-0.5 leading-none transition-opacity hover:opacity-70"
+                                title="Remove vendor"
+                              >✕</button>
+                            </span>
+                          ))}
+                          {groupVendors.length === 0 && (
+                            <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>No vendor selected</span>
+                          )}
+                        </div>
+                        {unselected.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={bulkVendorPick[group.manufacturer] ?? ""}
+                              onChange={e => setBulkVendorPick(prev => ({ ...prev, [group.manufacturer]: e.target.value }))}
+                              className="text-[11px] rounded-md focus:outline-none flex-1"
+                              style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", padding: "3px 8px" }}
+                            >
+                              <option value="">Add vendor…</option>
+                              {unselected.map((v: any) => (
+                                <option key={v._id} value={v._id}>
+                                  {v.companyName}{v.repName ? ` — ${v.repName}` : ""}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              disabled={!bulkVendorPick[group.manufacturer]}
+                              onClick={() => {
+                                const id = bulkVendorPick[group.manufacturer];
+                                if (!id) return;
+                                setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: [...((prev as Record<string, string[]>)[group.manufacturer] ?? []), id] }));
+                                setBulkVendorPick(prev => ({ ...prev, [group.manufacturer]: "" }));
+                              }}
+                              className="text-[11px] font-semibold px-3 py-1 rounded-lg disabled:opacity-40 shrink-0 transition-opacity"
+                              style={{ background: "var(--bs-teal)", color: "#13151a" }}
+                            >
+                              Add
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {/* Item rows */}
                   <div>
                     {visibleItems.map((item, i) => {
@@ -750,6 +810,17 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                           >
                             {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
                           </select>
+                          <button
+                            onClick={() => {
+                              setRemovedItemKeys(prev => new Set([...prev, overrideKey]));
+                              setSelectedItemKeys(prev => { const next = new Set(prev); next.delete(overrideKey); return next; });
+                            }}
+                            className="text-[13px] leading-none transition-colors shrink-0 px-1"
+                            style={{ color: "var(--bs-text-dim)" }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
+                            title="Remove item"
+                          >✕</button>
                         </div>
                       );
                     })}
@@ -984,7 +1055,18 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
             className="text-[13px] font-semibold px-4 py-1.5 rounded-lg disabled:opacity-40 transition-opacity"
             style={{ background: "var(--bs-teal)", color: "#13151a" }}
           >
-            Apply
+            Move
+          </button>
+          <button
+            onClick={() => {
+              setRemovedItemKeys(prev => new Set([...prev, ...selectedItemKeys]));
+              setSelectedItemKeys(new Set());
+              setBulkMoveTarget("");
+            }}
+            className="text-[13px] font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)" }}
+          >
+            Remove
           </button>
           <button
             onClick={() => { setSelectedItemKeys(new Set()); setBulkMoveTarget(""); }}
