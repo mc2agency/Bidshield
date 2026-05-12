@@ -53,7 +53,7 @@ const FREE_FEATURES = [
   "Scope tracker",
   "Takeoff & Materials (view)",
   "RFIs & Addenda tracking",
-  "10 Decision Log entries",
+  "5 Decision Log entries",
 ];
 
 const FREE_UPGRADE_LINE = "Upgrade to Pro for AI features, Labor Verification, GC Bid Forms, and more.";

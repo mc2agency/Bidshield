@@ -698,7 +698,7 @@ function AnalyticsInner() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-center py-4" style={{ color: "var(--bs-text-muted)" }}>Need 2+ bids per GC to show data</p>
+            <p className="text-sm text-center py-4" style={{ color: "var(--bs-text-muted)" }}>Win rate populates after you mark bids Won or Lost</p>
           )}
         </div>
 
@@ -723,7 +723,7 @@ function AnalyticsInner() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-center py-4" style={{ color: "var(--bs-text-muted)" }}>No loss reasons recorded yet</p>
+            <p className="text-sm text-center py-4" style={{ color: "var(--bs-text-muted)" }}>Log a loss reason when marking a bid Lost — patterns appear here</p>
           )}
         </div>
       </div>
@@ -784,7 +784,7 @@ function AnalyticsInner() {
         </div>
         {filteredProjects.length === 0 && (
           <p className="text-center text-sm py-8" style={{ color: "var(--bs-text-muted)" }}>
-            No projects match your filters. Adjust filters above or add projects from the dashboard.
+            Completed and decided bids appear here.
           </p>
         )}
       </div>

@@ -105,7 +105,7 @@ export default function SettingsPage() {
         <button className="text-xs font-medium px-3 py-1.5 rounded-lg" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", cursor: "pointer" }}>
           + Invite team member
         </button>
-        <p className="text-[11px] mt-2" style={{ color: "var(--bs-text-dim)" }}>Additional seats are $79/mo each. Contact support to add seats.</p>
+        <p className="text-[11px] mt-2" style={{ color: "var(--bs-text-dim)" }}>Additional seats are $99/mo each. <a href="/api/billing-portal" style={{ color: "var(--bs-teal)", textDecoration: "underline" }}>Manage seats from your billing portal →</a></p>
       </div>
 
       {/* Notifications */}

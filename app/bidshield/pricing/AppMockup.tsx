@@ -139,7 +139,7 @@ export default function AppMockup() {
         </div>
         <div>
           <div className="text-[10px] font-bold text-slate-900">134 checks</div>
-          <div className="text-[9px] text-slate-500">18 phases</div>
+          <div className="text-[9px] text-slate-500">17 phases</div>
         </div>
       </div>
     </div>
