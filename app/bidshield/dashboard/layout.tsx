@@ -121,7 +121,7 @@ function SidebarThemeToggle() {
   ];
   return (
     <div className="px-3 pb-2">
-      <p className="text-[9px] font-semibold uppercase tracking-widest mb-1.5 px-1" style={{ color: "#6F839E" }}>Appearance</p>
+      <p className="text-[9px] font-semibold uppercase tracking-widest mb-1.5 px-1" style={{ color: "#93A1B5" }}>Appearance</p>
       <div className="flex gap-1">
         {options.map(({ value, label, icon }) => {
           const active = pref === value;
@@ -133,7 +133,7 @@ function SidebarThemeToggle() {
               className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[9px] font-semibold transition-colors"
               style={{
                 background: active ? "rgba(37,99,235,0.2)" : "rgba(255,255,255,0.04)",
-                color: active ? "#93C5FD" : "#6F839E",
+                color: active ? "#93C5FD" : "#93A1B5",
                 border: active ? "1px solid rgba(37,99,235,0.35)" : "1px solid transparent",
               }}
             >
@@ -248,7 +248,7 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
               key={href}
               href={fullHref}
               className={`bs-nav-item${active ? " bs-nav-item-active" : ""}`}
-              style={!active ? { color: "#B6C4D8" } : undefined}
+              style={!active ? { color: "#C9D4E3" } : undefined}
             >
               <span style={{ width: 16, height: 16, flexShrink: 0 }}>{icon}</span>
               <span>{label}</span>
@@ -264,7 +264,7 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
       {!isDemo && !isPro && isSignedIn && (
         <div className="mx-2 mb-2 px-3 py-3 rounded-lg" style={{ background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)" }}>
           <p className="text-[11px] font-medium mb-0.5" style={{ color: "#D4E2F4" }}>Free Plan</p>
-          <p className="text-[10px] mb-2" style={{ color: "#6F839E" }}>Unlock unlimited projects & PDF export</p>
+          <p className="text-[10px] mb-2" style={{ color: "#A6B5CB" }}>Unlock unlimited projects & PDF export</p>
           <Link href="/bidshield/pricing" className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--blue)", color: "#ffffff" }}>
             Upgrade to Pro
           </Link>
@@ -279,10 +279,10 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
         {isDemo ? (
           <div className="flex flex-col gap-2 px-2 py-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "rgba(255,255,255,0.08)", color: "#6F839E" }}>D</div>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "rgba(255,255,255,0.08)", color: "#A6B5CB" }}>D</div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium" style={{ color: "#D4E2F4" }}>Demo Mode</div>
-                <div className="text-[10px]" style={{ color: "#6F839E" }}>Not saved to account</div>
+                <div className="text-[10px]" style={{ color: "#A6B5CB" }}>Not saved to account</div>
               </div>
             </div>
             <Link href="/sign-up" className="block text-center py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer" style={{ background: "var(--emerald)", color: "#ffffff" }}>
@@ -298,7 +298,7 @@ function Sidebar({ isDemo, pathname, isPro }: { isDemo: boolean; pathname: strin
               <div className="text-xs font-medium truncate" style={{ color: "#D4E2F4" }}>
                 {isSignedIn ? "Signed in" : "—"}
               </div>
-              <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 tracking-wider uppercase" style={{ background: isPro ? "rgba(37,99,235,0.25)" : "rgba(255,255,255,0.08)", color: isPro ? "#93C5FD" : "#6F839E" }}>
+              <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 tracking-wider uppercase" style={{ background: isPro ? "rgba(37,99,235,0.25)" : "rgba(255,255,255,0.08)", color: isPro ? "#93C5FD" : "#93A1B5" }}>
                 {isPro ? "Pro" : "Free"}
               </span>
             </div>
