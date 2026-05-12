@@ -151,6 +151,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [bulkMoveTarget, setBulkMoveTarget] = useState("");
   const [bulkVendorPick, setBulkVendorPick] = useState<Record<string, string>>({});
   const [sessionCreatedQuoteIds, setSessionCreatedQuoteIds] = useState<string[]>([]);
+  const [sendingAll, setSendingAll] = useState(false);
 
   // Derived manufacturer groups (reactive to per-item group overrides + removals)
   const xlsxGroups = useMemo(() => {
@@ -305,6 +306,19 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     });
     setSelectedItemKeys(new Set());
     setBulkMoveTarget("");
+  };
+
+  const handleRequestAllPricing = async () => {
+    const pending = xlsxGroups.filter(g => !dismissedGroups.has(g.manufacturer));
+    if (pending.length === 0) return;
+    setSendingAll(true);
+    try {
+      for (const group of pending) {
+        await handleRequestPricing(group);
+      }
+    } finally {
+      setSendingAll(false);
+    }
   };
 
   // Scope analysis state (per-quote)
@@ -687,34 +701,66 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
                 <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-muted)" }}>Pricing Outreach</span>
                 <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
               </div>
-              <button
-                onClick={async () => {
-                  if (sessionCreatedQuoteIds.length > 0 && userId) {
-                    await Promise.allSettled(
-                      sessionCreatedQuoteIds.map(id =>
-                        deleteQuoteMut({ quoteId: id as Id<"bidshield_quotes">, userId })
-                      )
-                    );
-                  }
-                  setSessionCreatedQuoteIds([]);
-                  setXlsxRawItems([]);
-                  setXlsxFilename("");
-                  setDismissedGroups(new Set());
-                  setSelectedVendors({});
-                  setExpandedGroups(new Set());
-                  setItemGroupOverrides({});
-                  setSelectedItemKeys(new Set());
-                  setRemovedItemKeys(new Set());
-                  setBulkMoveTarget("");
-                }}
-                className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
-                style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-red)"; el.style.borderColor = "var(--bs-red)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-text-muted)"; el.style.borderColor = "var(--bs-border)"; }}
-              >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                Clear list
-              </button>
+              <div className="flex items-center gap-2">
+                {activeGroups.length > 0 && (() => {
+                  const withVendors = activeGroups.filter(g => (selectedVendors[g.manufacturer]?.length ?? 0) > 0);
+                  const totalVendorEmails = withVendors.reduce((sum, g) => {
+                    const ids = selectedVendors[g.manufacturer] ?? [];
+                    return sum + (vendors as any[] ?? []).filter((v: any) => ids.includes(v._id) && v.repEmail).length;
+                  }, 0);
+                  const label = withVendors.length > 0
+                    ? `Send All (${withVendors.length} group${withVendors.length !== 1 ? "s" : ""}, ${totalVendorEmails} email${totalVendorEmails !== 1 ? "s" : ""})`
+                    : `Skip All (${activeGroups.length})`;
+                  return (
+                    <button
+                      onClick={handleRequestAllPricing}
+                      disabled={sendingAll}
+                      className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 disabled:opacity-50"
+                      style={{ background: "var(--bs-teal)", color: "#ffffff" }}
+                    >
+                      {sendingAll ? (
+                        <>
+                          <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                          Sending…
+                        </>
+                      ) : (
+                        <>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 19-7z"/></svg>
+                          {label}
+                        </>
+                      )}
+                    </button>
+                  );
+                })()}
+                <button
+                  onClick={async () => {
+                    if (sessionCreatedQuoteIds.length > 0 && userId) {
+                      await Promise.allSettled(
+                        sessionCreatedQuoteIds.map(id =>
+                          deleteQuoteMut({ quoteId: id as Id<"bidshield_quotes">, userId })
+                        )
+                      );
+                    }
+                    setSessionCreatedQuoteIds([]);
+                    setXlsxRawItems([]);
+                    setXlsxFilename("");
+                    setDismissedGroups(new Set());
+                    setSelectedVendors({});
+                    setExpandedGroups(new Set());
+                    setItemGroupOverrides({});
+                    setSelectedItemKeys(new Set());
+                    setRemovedItemKeys(new Set());
+                    setBulkMoveTarget("");
+                  }}
+                  className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
+                  style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-red)"; el.style.borderColor = "var(--bs-red)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-text-muted)"; el.style.borderColor = "var(--bs-border)"; }}
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                  Clear list
+                </button>
+              </div>
             </div>
             {activeGroups.length === 0 ? (
               <div className="text-center py-4 text-xs rounded-xl" style={{ color: "var(--bs-text-muted)", border: "1px dashed var(--bs-border)" }}>
