@@ -296,15 +296,18 @@ function ProjectDetail() {
       takeoff: Math.round(deltaPct !== null ? Math.max(0, 100 - deltaPct * 10) : 0),
       pricing: pricingDone ? 100 : (bidAmt ? 50 : 0),
       materials: mats.length > 0 ? (matUnpriced === 0 ? 100 : 60) : 0,
-      quotes: (() => {
-        const receivedCount = isDemo ? 4 : qs.filter((q: any) => ["received", "valid", "expiring", "expired"].includes(q.status ?? "")).length;
-        if (receivedCount > 0) return expired === 0 ? (expiring === 0 ? 100 : 70) : 40;
-        return qCount > 0 ? 20 : 0; // 20% = requests sent but nothing received yet
-      })(),
       addenda: adCount > 0 ? (adNotRepriced === 0 && adNotReviewed === 0 ? 100 : 40) : 0,
       rfis: rCount > 0 ? (rPending === 0 ? 100 : 60) : 0,
+      bidquals: (() => {
+        const bqRawInner = Array.isArray(bidQuals) ? bidQuals : bidQuals ? [bidQuals] : [];
+        const bqTotalInner = isDemo ? 3 : bqRawInner.length;
+        if (bqTotalInner === 0) return 0;
+        const bqUnconfirmedInner = isDemo ? 1 : (unconfirmedGcFormCount ?? 0);
+        const bqConfirmedInner = Math.max(0, bqTotalInner - bqUnconfirmedInner);
+        return Math.round((bqConfirmedInner / bqTotalInner) * 100);
+      })(),
     };
-    const w = { checklist: 0.25, scope: 0.20, takeoff: 0.15, pricing: 0.15, materials: 0.10, quotes: 0.05, addenda: 0.05, rfis: 0.05 };
+    const w = { checklist: 0.25, scope: 0.20, takeoff: 0.15, pricing: 0.15, materials: 0.10, bidquals: 0.05, addenda: 0.05, rfis: 0.05 };
     const readiness = Math.round(Object.entries(w).reduce((s, [k, v]) => s + (scores[k as keyof typeof scores] ?? 0) * v, 0));
     const passes = [scPct >= 100, adCount === 0 || (adNotRepriced === 0 && adNotReviewed === 0), expired === 0 && expiring === 0, rPending === 0, clPct >= 80, mats.length > 0 && matUnpriced === 0, pricingDone].filter(Boolean).length;
 
@@ -336,7 +339,7 @@ function ProjectDetail() {
     }).length;
 
     return { actionItems: items, readinessScore: readiness, passCount: passes, scores, remaining, scopeConflictCount };
-  }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis, laborTasks]);
+  }, [isDemo, projectData, checklist, scopeItems, takeoffSections, projectMaterials, quotes, addenda, rfis, laborTasks, bidQuals, unconfirmedGcFormCount]);
 
   const bidDeadlineMs = useMemo(() => {
     if (!projectData?.bidDate) return null;
