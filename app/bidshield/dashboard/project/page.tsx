@@ -898,6 +898,24 @@ function ProjectDetail() {
                     ],
                   };
 
+                  const cardStat: Record<string, string> = {
+                    setup:     asmCount > 0 ? `${asmCount}` : "—",
+                    checklist: clTotal > 0 ? `${clDone}/${clTotal}` : "135",
+                    estimate:  takenOff > 0 ? takenOff.toLocaleString() : "0",
+                    quotes:    `${qCount}`,
+                    documents: scTotal > 0 ? `${Math.round(((scTotal - scUnaddressed) / scTotal) * 100)}%` : "—",
+                    validate:  `${readinessScore}%`,
+                  };
+
+                  const cardStatLabel: Record<string, string> = {
+                    setup:     asmCount !== 1 ? "assemblies" : "assembly",
+                    checklist: clTotal > 0 ? "items done" : "items total",
+                    estimate:  "SF",
+                    quotes:    qCount !== 1 ? "quotes" : "quote",
+                    documents: scTotal > 0 ? "scope addressed" : "scope items",
+                    validate:  "bid readiness",
+                  };
+
                   const cardCta: Record<string, string> = {
                     setup: "Set up project →",
                     checklist: "Work checklist →",
@@ -923,31 +941,38 @@ function ProjectDetail() {
                             key={id}
                             onClick={() => openTab(id)}
                             className="text-left transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-                            style={{ background: "var(--bs-bg-card)", borderRadius: 14, padding: "20px", border: "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 10 }}
+                            style={{ background: "var(--bs-bg-card)", borderRadius: 14, padding: "18px 20px", border: "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 0 }}
                           >
                             {/* Card header */}
-                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <div style={{ width: 34, height: 34, borderRadius: 9, background: "var(--bs-bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: scoreColor }}>
+                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--bs-bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: scoreColor }}>
                                     {NAV_ICONS[id]}
                                   </svg>
                                 </div>
-                                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--bs-text-primary)", lineHeight: 1.2 }}>{label}</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)" }}>{label}</div>
                               </div>
                               <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 6, whiteSpace: "nowrap", background: badgeBg, color: scoreColor, border: `1px solid ${badgeBorder}` }}>
                                 {badgeLabel}
                               </span>
                             </div>
 
-                            {/* Live stat lines */}
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-primary)", lineHeight: 1.4 }}>{line1}</div>
-                              <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 3, lineHeight: 1.4 }}>{line2}</div>
+                            {/* Big stat */}
+                            <div style={{ marginBottom: 2 }}>
+                              <span style={{ fontSize: 32, fontWeight: 800, lineHeight: 1, color: scoreColor, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
+                                {cardStat[id]}
+                              </span>
+                              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-text-dim)", marginLeft: 5 }}>
+                                {cardStatLabel[id]}
+                              </span>
                             </div>
 
+                            {/* Sub-line */}
+                            <div style={{ fontSize: 11, color: "var(--bs-text-dim)", lineHeight: 1.4, minHeight: 16, marginBottom: 12 }}>{line2}</div>
+
                             {/* Progress bar */}
-                            <div style={{ height: 3, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden" }}>
+                            <div style={{ height: 3, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden", marginBottom: 10 }}>
                               <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999, transition: "width 0.6s" }} />
                             </div>
 
