@@ -18,6 +18,11 @@ export async function validateAuth(
   if (isDemoUser(userId)) return undefined; // demo mode bypasses auth
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
+  // Bind writes to the caller — reject if the client-supplied userId does not
+  // match the authenticated subject from the JWT, preventing privilege escalation.
+  if (identity.subject !== userId) {
+    throw new Error("Unauthorized: userId does not match authenticated identity");
+  }
   return resolveUserId(ctx, userId);
 }
 

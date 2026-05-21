@@ -1,24 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { isDemoUser } from "@/lib/isDemoUser";
+import { isDemoUser, DEMO_USER_ID } from "@/lib/isDemoUser";
 import { formatDate, daysUntil } from "@/lib/bidshield/utils";
 
 describe("isDemoUser", () => {
-  it("returns true for demo user IDs", () => {
-    expect(isDemoUser("demo_123")).toBe(true);
-    expect(isDemoUser("demo_")).toBe(true);
-    expect(isDemoUser("demo_user_abc")).toBe(true);
+  it("returns true only for the exact fixed demo ID", () => {
+    expect(isDemoUser(DEMO_USER_ID)).toBe(true);
+  });
+
+  it("returns false for arbitrary demo_ prefixed IDs (no longer allowed by prefix match)", () => {
+    expect(isDemoUser("demo_123")).toBe(false);
+    expect(isDemoUser("demo_")).toBe(false);
+    expect(isDemoUser("demo_user_abc")).toBe(false);
   });
 
   it("returns false for real user IDs", () => {
     expect(isDemoUser("user_2abc")).toBe(false);
     expect(isDemoUser("clerk_123")).toBe(false);
     expect(isDemoUser("")).toBe(false);
-    expect(isDemoUser("DEMO_123")).toBe(false); // case-sensitive
+    expect(isDemoUser("DEMO_123")).toBe(false);
   });
 
-  it("returns false for tricky IDs that contain 'demo_' but don't start with it", () => {
-    expect(isDemoUser("not_demo_123")).toBe(false);
-    expect(isDemoUser("xdemo_123")).toBe(false);
+  it("returns false for IDs that contain but do not equal the demo ID", () => {
+    expect(isDemoUser(`${DEMO_USER_ID}_extra`)).toBe(false);
+    expect(isDemoUser(`x${DEMO_USER_ID}`)).toBe(false);
   });
 });
 

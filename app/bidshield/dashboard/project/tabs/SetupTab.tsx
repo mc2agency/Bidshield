@@ -105,6 +105,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   // @ts-ignore TS2589: Convex API generics hit type-depth limit with Zod v4
   const updateProject = useMutation(api.bidshield.updateProject);
   const createTakeoffSection = useMutation(api.bidshield.createTakeoffSection);
+  const updateTakeoffSection = useMutation(api.bidshield.updateTakeoffSection);
   const initProjectMaterials = useMutation(api.bidshield.initProjectMaterials);
   const clearProjectMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
@@ -379,26 +380,40 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         roofAssemblies: cleanAssemblies as any,
       });
 
-      // Auto-create takeoff sections for assemblies that don't already have one
+      // Sync assembly areas to takeoff sections: create missing sections, update existing ones.
+      // TakeoffTab names sections as `${label}${name ? " — " + name : ""}` (label-first).
+      // Match by label prefix so we find sections regardless of whether the assembly has a custom name.
       if (userId && cleanAssemblies.length > 0) {
         try {
-          const existingSectionNames = new Set((takeoffSections || []).map((s: any) => s.name));
+          const existingSections: any[] = takeoffSections || [];
           for (const asm of cleanAssemblies) {
-            const sectionName = asm.name || asm.label || "Roof Section";
-            // Only create if this section name doesn't already exist
-            if (!existingSectionNames.has(sectionName)) {
+            const label: string = asm.label || "";
+            const canonicalName: string = label + (asm.name ? ` — ${asm.name}` : "");
+            const existing = existingSections.find((s: any) => {
+              const sn: string = s.name || "";
+              return sn === label || sn.startsWith(`${label} — `) || sn.startsWith(`${label} `);
+            });
+            if (existing) {
+              // Update squareFeet when assembly area is set and differs from current section value
+              if (asm.area != null && asm.area !== existing.squareFeet) {
+                await updateTakeoffSection({
+                  sectionId: existing._id,
+                  squareFeet: asm.area,
+                });
+              }
+            } else {
               await createTakeoffSection({
                 projectId: projectId as any,
                 userId,
-                name: sectionName,
+                name: canonicalName || "Roof Section",
                 assemblyType: (asm.systemType || "").toUpperCase(),
-                squareFeet: 0,
+                squareFeet: asm.area || 0,
               });
             }
           }
         } catch (err) {
           // Takeoff sections may already exist or other error — log but don't fail the save
-          console.warn("Warning: could not auto-create takeoff sections:", err);
+          console.warn("Warning: could not sync takeoff sections:", err);
         }
       }
 
@@ -679,7 +694,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     } finally {
       setSpecApplying(false);
     }
-  }, [isDemo, project, projectId, info, assemblies, userId, isValidConvexId, checklistItems, updateProject, createTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, updateChecklistItem, computeInsulationRValue]);
+  }, [isDemo, project, projectId, info, assemblies, userId, isValidConvexId, checklistItems, updateProject, createTakeoffSection, updateTakeoffSection, clearProjectMaterials, initProjectMaterials, syncTakeoffToMaterials, updateChecklistItem, computeInsulationRValue]);
 
   // Apply spec data to assemblies and project info (thin wrapper for manual re-apply)
   const handleApplySpec = async () => {

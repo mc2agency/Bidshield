@@ -6,7 +6,6 @@ import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import OnboardingWizard from "./OnboardingWizard";
 import NewBidWizard from "./NewBidWizard";
 import { track } from "@vercel/analytics";
 
@@ -719,7 +718,6 @@ function DashboardContent() {
 
   const [showNewProject, setShowNewProject] = useState(false);
   const [editingProject, setEditingProject] = useState<BidProject | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [demoOverrides, setDemoOverrides] = useState<Record<string, string>>({});
   const [deleteTarget, setDeleteTarget] = useState<{ id: Id<"bidshield_projects">; name: string } | null>(null);
@@ -734,10 +732,10 @@ function DashboardContent() {
     setWelcomeDismissed(true);
   };
 
-  // Show onboarding for new users with zero projects
+  // Show new-bid wizard for new users with zero projects (same wizard as "New Bid" button)
   useEffect(() => {
     if (!isDemo && convexProjects !== undefined && convexProjects.length === 0 && userId) {
-      setShowOnboarding(true);
+      setShowNewProject(true);
     }
   }, [isDemo, convexProjects, userId]);
 
@@ -1005,18 +1003,6 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Onboarding for new users */}
-      {showOnboarding && userId && (
-        <OnboardingWizard
-          userId={userId}
-          onComplete={(projectId) => {
-            setShowOnboarding(false);
-            router.push(`/bidshield/dashboard/project?id=${projectId}#checklist`);
-          }}
-          onSkip={() => setShowOnboarding(false)}
-        />
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{ paddingBottom: 8 }}>
         <div>

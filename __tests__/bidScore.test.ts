@@ -132,14 +132,33 @@ describe("computeBidScore", () => {
 
   describe("grade boundaries", () => {
     it("assigns correct grade letters", () => {
-      // Grade thresholds: A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60, F < 60
-      // All-pass input → score ≥ 80 → A or B
+      // Grade thresholds: A ≥ 90, B ≥ 80, C ≥ 65, D ≥ 50, F < 50
+      // All-pass input → every scoring section passes → A or B
       const allPass = computeBidScore(makeInput({
-        checklist: Array.from({ length: 20 }, (_, i) => ({
-          phaseKey: "phase2",
-          itemId: `p2-${i}`,
-          status: "done",
-        })),
+        // phase1 is critical in the mock template — must be complete for Critical Phases to pass
+        checklist: [
+          { phaseKey: "phase1", itemId: "p1-1", status: "done" },
+          { phaseKey: "phase1", itemId: "p1-2", status: "done" },
+          ...Array.from({ length: 20 }, (_, i) => ({
+            phaseKey: "phase2",
+            itemId: `p2-${i}`,
+            status: "done",
+          })),
+        ],
+        // non-empty + all addressed → Scope Coverage: pass
+        scopeItems: [
+          { status: "included" },
+          { status: "excluded" },
+          { status: "by_others" },
+        ],
+        // 3+ items with totals → General Conditions: pass
+        gcItems: [
+          { isMarkup: false, total: 1000 },
+          { isMarkup: false, total: 2000 },
+          { isMarkup: false, total: 3000 },
+        ],
+        // verified tasks → Labor Verification: pass
+        laborTasks: [{ verified: true }, { verified: true }],
         addenda: [{ number: 1, reviewStatus: "reviewed", affectsScope: false }],
         quotes: [{ status: "valid", expirationDate: "2027-01-01" }],
         rfis: [],
