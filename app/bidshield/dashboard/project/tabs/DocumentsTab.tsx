@@ -5,21 +5,19 @@ import { TabProps } from "../tab-types";
 import ScopeTab from "./ScopeTab";
 import AddendaTab from "./AddendaTab";
 import RFIsTab from "./RFIsTab";
-import BidQualsTab from "./BidQualsTab";
-import SubmittalsTab from "./SubmittalsTab";
+import QuotesTab from "./QuotesTab";
 
 interface DocumentsTabProps extends TabProps {
-  initialSubTab?: "scope" | "addenda" | "rfis" | "bid-quals" | "submittals";
+  initialSubTab?: "scope" | "addenda" | "rfis" | "quotes";
 }
 
-type SubTabKey = "scope" | "submittals" | "addenda" | "rfis" | "bid-quals";
+type SubTabKey = "scope" | "addenda" | "rfis" | "quotes";
 
 const SubTabConfig: Record<SubTabKey, { label: string; component: React.ComponentType<TabProps> }> = {
-  scope: { label: "Scope", component: ScopeTab },
-  submittals: { label: "Submittals", component: SubmittalsTab },
+  scope:   { label: "Scope",   component: ScopeTab },
   addenda: { label: "Addenda", component: AddendaTab },
-  rfis: { label: "RFIs", component: RFIsTab },
-  "bid-quals": { label: "Bid Quals", component: BidQualsTab },
+  rfis:    { label: "RFIs",    component: RFIsTab },
+  quotes:  { label: "Quotes",  component: QuotesTab },
 };
 
 export default function DocumentsTab({ initialSubTab = "scope", ...tabProps }: DocumentsTabProps) {

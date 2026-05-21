@@ -14,7 +14,7 @@ import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflic
 import type { TabId } from "./tab-types";
 import {
   ChecklistTab, ValidatorTab,
-  SetupTab, EstimateTab, DocumentsTab, QuotesTab,
+  SetupTab, EstimateTab, DocumentsTab, BidQualsTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -30,7 +30,7 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   setup:     <><path d="M8 2v2M8 12v2M2 8h2M12 8h2M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/></>,
   checklist: <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
   estimate:  <><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
-  quotes:    <><path d="M3 4h10a1 1 0 011 1v6a1 1 0 01-1 1H9l-3 2v-2H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
+  bidquals:  <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M6 8.5l1 1 2-2M6 11h3M9 3v3h3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></>,
   documents: <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M9 3v3h3" stroke="currentColor" strokeWidth="1.1"/></>,
   validate:  <><path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
 };
@@ -38,8 +38,8 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
 const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
   { id: "setup",     label: "Setup" },
   { id: "checklist", label: "Checklist" },
-  { id: "estimate",  label: "Estimate" },
-  { id: "quotes",    label: "Quotes" },
+  { id: "estimate",  label: "Pricing" },
+  { id: "bidquals",  label: "Bid Quals" },
   { id: "documents", label: "Documents" },
   { id: "validate",  label: "Validate" },
 ];
@@ -65,7 +65,7 @@ function ProjectDetail() {
   const navigateTab = useCallback((tab: TabId) => {
     // If a child component navigates to a legacy sub-tab, route to the parent view
     const estimateSubTabs: TabId[] = ["takeoff", "materials", "pricing", "labor", "generalconditions"];
-    const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "bidquals"];
+    const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "quotes"];
     const validateSubTabs: TabId[] = ["validator", "decisions"];
     if (estimateSubTabs.includes(tab)) { setActiveTab("estimate"); return; }
     if (documentSubTabs.includes(tab)) { setActiveTab("documents"); return; }
@@ -99,7 +99,7 @@ function ProjectDetail() {
 
   // ── Keyboard shortcuts (L-17) ──────────────────────────────────────────────
   const TAB_ORDER: TabId[] = useMemo(() => [
-    "setup", "checklist", "estimate", "quotes", "documents", "validate",
+    "setup", "checklist", "estimate", "bidquals", "documents", "validate",
   ], []);
 
   useEffect(() => {
@@ -389,11 +389,16 @@ function ProjectDetail() {
 
   const readinessColor = readinessScore >= 75 ? "var(--bs-teal)" : readinessScore >= 40 ? "var(--bs-amber)" : "var(--bs-red)";
 
+  const bqUnconfirmed = isDemo ? 1 : (unconfirmedGcFormCount ?? 0);
+  const bqRaw = Array.isArray(bidQuals) ? bidQuals : bidQuals ? [bidQuals] : [];
+  const bqTotal = isDemo ? 3 : bqRaw.length;
+  const bqConfirmed = Math.max(0, bqTotal - bqUnconfirmed);
+
   const phaseScore: Record<string, number | null> = {
     setup:     scores.checklist > 0 || scores.takeoff > 0 || scores.materials > 0 ? 100 : null,
     checklist: scores.checklist,
     estimate:  Math.round((scores.takeoff + scores.materials + (scores.pricing ?? 0) + (scores as any).labor) / 4),
-    quotes:    scores.quotes > 0 ? scores.quotes : null,
+    bidquals:  bqTotal > 0 ? Math.round((bqConfirmed / bqTotal) * 100) : null,
     documents: Math.round((scores.scope + scores.addenda + scores.rfis) / 3),
     validate:  readinessScore,
   };
@@ -567,8 +572,8 @@ function ProjectDetail() {
                 <div className="p-6">
                   {activeTab === "setup"     && <TabErrorBoundary tabLabel="Setup"><SetupTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "checklist" && <TabErrorBoundary tabLabel="Checklist"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Estimate"><EstimateTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "quotes"    && <TabErrorBoundary tabLabel="Quotes"><QuotesTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "documents" && <TabErrorBoundary tabLabel="Documents"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
                 </div>
@@ -772,12 +777,12 @@ function ProjectDetail() {
                         ? (matUnpriced > 0 ? `${matUnpriced} material${matUnpriced !== 1 ? "s" : ""} need pricing` : `${mats.length} materials priced`)
                         : "No materials added yet",
                     ],
-                    quotes: qCount > 0
+                    bidquals: bqTotal > 0
                       ? [
-                          `${qCount} quote${qCount !== 1 ? "s" : ""} tracked`,
-                          qExpired > 0 ? `${qExpired} expired — update needed` : qExpiring > 0 ? `${qExpiring} expiring soon` : "All quotes valid",
+                          `${bqConfirmed} of ${bqTotal} items confirmed`,
+                          bqUnconfirmed > 0 ? `${bqUnconfirmed} need confirmation` : "All items confirmed",
                         ]
-                      : ["No quotes yet", "Request pricing from vendors"],
+                      : ["No GC bid form uploaded yet", "Upload to extract Exhibit A items"],
                     documents: [
                       scTotal > 0
                         ? (scUnaddressed > 0 ? `${scUnaddressed} of ${scTotal} scope items to address` : `All ${scTotal} scope items addressed`)
@@ -800,7 +805,7 @@ function ProjectDetail() {
                     setup:     asmCount > 0 ? `${asmCount}` : "—",
                     checklist: clTotal > 0 ? `${clDone}/${clTotal}` : "135",
                     estimate:  takenOff > 0 ? takenOff.toLocaleString() : "0",
-                    quotes:    `${qCount}`,
+                    bidquals:  bqTotal > 0 ? `${bqConfirmed}/${bqTotal}` : "—",
                     documents: scTotal > 0 ? `${Math.round(((scTotal - scUnaddressed) / scTotal) * 100)}%` : "—",
                     validate:  `${readinessScore}%`,
                   };
@@ -809,7 +814,7 @@ function ProjectDetail() {
                     setup:     asmCount !== 1 ? "assemblies" : "assembly",
                     checklist: clTotal > 0 ? "items done" : "items total",
                     estimate:  "SF",
-                    quotes:    qCount !== 1 ? "quotes" : "quote",
+                    bidquals:  bqTotal > 0 ? "confirmed" : "items",
                     documents: scTotal > 0 ? "scope addressed" : "scope items",
                     validate:  "bid readiness",
                   };
@@ -817,8 +822,8 @@ function ProjectDetail() {
                   const cardCta: Record<string, string> = {
                     setup: "Set up project →",
                     checklist: "Work checklist →",
-                    estimate: "Open estimate →",
-                    quotes: "Manage quotes →",
+                    estimate: "Build your price →",
+                    bidquals: "Prepare bid quals →",
                     documents: "Review documents →",
                     validate: "Validate & export →",
                   };
@@ -920,7 +925,7 @@ function ProjectDetail() {
                             {expandedCard === "setup"     && <SetupTab {...tabProps} />}
                             {expandedCard === "checklist" && <ChecklistTab {...tabProps} />}
                             {expandedCard === "estimate"  && <EstimateTab {...tabProps} />}
-                            {expandedCard === "quotes"    && <QuotesTab {...tabProps} />}
+                            {expandedCard === "bidquals"  && <BidQualsTab {...tabProps} />}
                             {expandedCard === "documents" && <DocumentsTab {...tabProps} />}
                             {expandedCard === "validate"  && <ValidatorTab {...tabProps} />}
                           </TabErrorBoundary>

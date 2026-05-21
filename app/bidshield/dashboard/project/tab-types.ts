@@ -1,11 +1,11 @@
 // ── BidShield Workflow Architecture ──
-// 6 views that mirror the real estimating process:
+// 6 views that mirror the real bid-prep process:
 //   1. Setup → project info, spec upload, assemblies
 //   2. Checklist → 18-phase QA pre-flight check
-//   3. Estimate → takeoff + materials + labor + gen. conds + pricing summary
-//   4. Quotes → pricing outreach, vendor quote tracking
-//   5. Documents → scope, addenda, RFIs, bid quals
-//   6. Validate → readiness scoring
+//   3. Pricing → takeoff + materials + labor + gen. conds + pricing summary
+//   4. Bid Quals → GC Exhibit A, bid form items, exclusions, clarifications
+//   5. Documents → scope review, addenda, RFIs, vendor quotes
+//   6. Validate → readiness scoring & export
 
 export type TabId =
   | "setup"
@@ -72,11 +72,11 @@ export interface Phase {
 export const CROSS_PHASE_TABS: TabId[] = [];
 
 export const PHASES: Phase[] = [
-  { id: "setup", label: "Project Setup", shortLabel: "Setup", tabs: ["setup"], defaultTab: "setup" },
-  { id: "checklist", label: "Checklist", shortLabel: "Checklist", tabs: ["checklist"], defaultTab: "checklist" },
-  { id: "estimate", label: "Estimate", shortLabel: "Estimate", tabs: ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"], defaultTab: "estimate" },
-  { id: "documents", label: "Documents", shortLabel: "Docs", tabs: ["documents", "scope", "addenda", "rfis", "bidquals"], defaultTab: "documents" },
-  { id: "validate", label: "Validate", shortLabel: "Validate", tabs: ["validate", "validator", "decisions"], defaultTab: "validate" },
+  { id: "setup",     label: "Project Setup", shortLabel: "Setup",      tabs: ["setup"], defaultTab: "setup" },
+  { id: "checklist", label: "Checklist",     shortLabel: "Checklist",  tabs: ["checklist"], defaultTab: "checklist" },
+  { id: "estimate",  label: "Pricing",       shortLabel: "Pricing",    tabs: ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"], defaultTab: "estimate" },
+  { id: "documents", label: "Documents",     shortLabel: "Docs",       tabs: ["documents", "scope", "addenda", "rfis", "quotes"], defaultTab: "documents" },
+  { id: "validate",  label: "Validate",      shortLabel: "Validate",   tabs: ["validate", "validator", "decisions"], defaultTab: "validate" },
 ];
 
 export function getPhaseForTab(tabId: TabId): Phase | undefined {
