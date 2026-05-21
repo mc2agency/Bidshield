@@ -357,10 +357,15 @@ export default function TakeoffTab({ projectId, isDemo, project, userId }: TabPr
       if (!res.ok || data.error) { setRescanError(data.error || "Extraction failed"); setRescanLoading(false); return; }
       const extracted: Array<{ label: string; area?: number }> = (data.assemblies || []).filter((a: any) => typeof a.area === "number" && a.area > 0);
       if (extracted.length === 0) { setRescanError("No area data found in this PDF. Make sure the drawing includes a roof type takeoff schedule."); setRescanLoading(false); return; }
+      const labelNum = (s: string) => { const m = s.match(/\d+/g); return m ? String(parseInt(m[m.length - 1], 10)) : null; };
       const rows: RescanRow[] = extracted.map((a) => {
         const lbl = (a.label || "").toLowerCase().trim();
+        const extNum = labelNum(lbl);
         const matched = displaySections.find(s =>
-          s.name.toLowerCase().startsWith(lbl) || s.assemblyType.toLowerCase().startsWith(lbl)
+          // Exact / prefix match
+          s.name.toLowerCase().startsWith(lbl) || s.assemblyType.toLowerCase().startsWith(lbl) ||
+          // Numeric match: "Roof-R4" → 4, "ROOF 04" → 4
+          (extNum !== null && (labelNum(s.name) === extNum || labelNum(s.assemblyType) === extNum))
         ) ?? null;
         return { label: a.label, extractedSF: a.area!, matched, applied: false };
       });
