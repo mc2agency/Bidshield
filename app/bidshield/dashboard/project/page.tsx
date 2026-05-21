@@ -754,6 +754,63 @@ function ProjectDetail() {
                   )}
                 </div>
 
+                {/* Next-step banner */}
+                {(() => {
+                  const top = actionItems[0];
+                  const isNew = actionItems.length > 0 && readinessScore === 0;
+                  if (!top && readinessScore === 0) {
+                    // Brand-new project, no action items computed yet
+                    return (
+                      <button
+                        onClick={() => openTab("setup")}
+                        className="w-full text-left cursor-pointer transition-all duration-150 hover:opacity-90 active:scale-[0.99]"
+                        style={{ background: "var(--bs-teal-dim)", borderRadius: 12, padding: "16px 20px", border: "1px solid var(--bs-teal-border)", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--bs-teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Start here</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>Set up your project — add assemblies, system type & roof area</div>
+                        </div>
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)" style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                      </button>
+                    );
+                  }
+                  if (!top && readinessScore >= 80) {
+                    return (
+                      <button
+                        onClick={() => openTab("validate")}
+                        className="w-full text-left cursor-pointer transition-all duration-150 hover:opacity-90 active:scale-[0.99]"
+                        style={{ background: "var(--bs-teal-dim)", borderRadius: 12, padding: "16px 20px", border: "1px solid var(--bs-teal-border)", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--bs-teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Bid ready</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>Your bid is {readinessScore}% ready — validate and export your submission</div>
+                        </div>
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)" style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                      </button>
+                    );
+                  }
+                  if (!top) return null;
+                  const isBlocker = top.level === "blocker";
+                  const bannerColor = isBlocker ? "var(--bs-red)" : "var(--bs-amber)";
+                  const bannerBg = isBlocker ? "var(--bs-red-dim)" : "var(--bs-amber-dim)";
+                  const bannerBorder = isBlocker ? "var(--bs-red-border)" : "var(--bs-amber-border)";
+                  const bannerLabel = isBlocker ? (isNew ? "Start here" : "Fix this first") : "Review needed";
+                  return (
+                    <button
+                      onClick={() => navigateTab(top.tab)}
+                      className="w-full text-left cursor-pointer transition-all duration-150 hover:opacity-90 active:scale-[0.99]"
+                      style={{ background: bannerBg, borderRadius: 12, padding: "16px 20px", border: `1px solid ${bannerBorder}`, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                    >
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: bannerColor, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>{bannerLabel}</div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>{top.title}</div>
+                        {top.detail && <div style={{ fontSize: 12, color: "var(--bs-text-dim)", marginTop: 2 }}>{top.detail}</div>}
+                      </div>
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke={bannerColor} style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                    </button>
+                  );
+                })()}
+
                 {/* Section card grid — data-driven stats */}
                 {(() => {
                   // Compute card-level stats from live Convex data
