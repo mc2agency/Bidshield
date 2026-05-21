@@ -60,6 +60,7 @@ function ProjectDetail() {
   const isDemo = searchParams.get("demo") === "true";
   const { userId } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const [expandedCard, setExpandedCard] = useState<TabId | null>(null);
   // Map legacy tab IDs to the new 5-view structure
   const navigateTab = useCallback((tab: TabId) => {
     // If a child component navigates to a legacy sub-tab, route to the parent view
@@ -926,6 +927,7 @@ function ProjectDetail() {
                   };
 
                   return (
+                    <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {BROWSE_ITEMS.map(({ id, label }) => {
                         const score = (phaseScore[id] ?? 0) as number;
@@ -939,9 +941,9 @@ function ProjectDetail() {
                         return (
                           <button
                             key={id}
-                            onClick={() => openTab(id)}
+                            onClick={() => setExpandedCard(prev => prev === id ? null : id)}
                             className="text-left transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-                            style={{ background: "var(--bs-bg-card)", borderRadius: 14, padding: "18px 20px", border: "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 0 }}
+                            style={{ background: expandedCard === id ? "var(--bs-bg-elevated)" : "var(--bs-bg-card)", borderRadius: 14, padding: "18px 20px", border: expandedCard === id ? "1px solid var(--bs-teal-border)" : "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 0 }}
                           >
                             {/* Card header */}
                             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
@@ -977,13 +979,58 @@ function ProjectDetail() {
                             </div>
 
                             {/* CTA */}
-                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)" }}>
-                              {cardCta[id] ?? "Open →"}
+                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)", display: "flex", alignItems: "center", gap: 3 }}>
+                              {expandedCard === id ? (
+                                <>Collapse <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 6.5l3-3 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></>
+                              ) : (
+                                <>{cardCta[id] ?? "Open →"}</>
+                              )}
                             </div>
                           </button>
                         );
                       })}
                     </div>
+
+                    {/* Inline expanded tab panel */}
+                    {expandedCard && (
+                      <div style={{ marginTop: 16, background: "var(--bs-bg-card)", borderRadius: 14, border: "1px solid var(--bs-teal-border)", overflow: "hidden" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 18px", borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--bs-teal-dim)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ color: "var(--bs-teal)" }}>{NAV_ICONS[expandedCard]}</svg>
+                            </div>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)" }}>
+                              {BROWSE_ITEMS.find(b => b.id === expandedCard)?.label}
+                            </span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <button
+                              onClick={() => openTab(expandedCard)}
+                              style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)", cursor: "pointer", background: "none", border: "none", padding: 0 }}
+                            >
+                              Open full view →
+                            </button>
+                            <button
+                              onClick={() => setExpandedCard(null)}
+                              style={{ width: 24, height: 24, borderRadius: 6, background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--bs-text-dim)" }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <TabErrorBoundary tabLabel={BROWSE_ITEMS.find(b => b.id === expandedCard)?.label ?? expandedCard}>
+                            {expandedCard === "setup"     && <SetupTab {...tabProps} />}
+                            {expandedCard === "checklist" && <ChecklistTab {...tabProps} />}
+                            {expandedCard === "estimate"  && <EstimateTab {...tabProps} />}
+                            {expandedCard === "quotes"    && <QuotesTab {...tabProps} />}
+                            {expandedCard === "documents" && <DocumentsTab {...tabProps} />}
+                            {expandedCard === "validate"  && <ValidatorTab {...tabProps} />}
+                          </TabErrorBoundary>
+                        </div>
+                      </div>
+                    )}
+                    </>
                   );
                 })()}
 
