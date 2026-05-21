@@ -380,14 +380,19 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
         roofAssemblies: cleanAssemblies as any,
       });
 
-      // Sync assembly areas to takeoff sections: create missing sections, update existing ones
+      // Sync assembly areas to takeoff sections: create missing sections, update existing ones.
+      // TakeoffTab names sections as `${label}${name ? " — " + name : ""}` (label-first).
+      // Match by label prefix so we find sections regardless of whether the assembly has a custom name.
       if (userId && cleanAssemblies.length > 0) {
         try {
           const existingSections: any[] = takeoffSections || [];
-          const sectionByName = new Map(existingSections.map((s: any) => [s.name, s]));
           for (const asm of cleanAssemblies) {
-            const sectionName = asm.name || asm.label || "Roof Section";
-            const existing = sectionByName.get(sectionName);
+            const label: string = asm.label || "";
+            const canonicalName: string = label + (asm.name ? ` — ${asm.name}` : "");
+            const existing = existingSections.find((s: any) => {
+              const sn: string = s.name || "";
+              return sn === label || sn.startsWith(`${label} — `) || sn.startsWith(`${label} `);
+            });
             if (existing) {
               // Update squareFeet when assembly area is set and differs from current section value
               if (asm.area != null && asm.area !== existing.squareFeet) {
@@ -400,7 +405,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               await createTakeoffSection({
                 projectId: projectId as any,
                 userId,
-                name: sectionName,
+                name: canonicalName || "Roof Section",
                 assemblyType: (asm.systemType || "").toUpperCase(),
                 squareFeet: asm.area || 0,
               });
