@@ -790,15 +790,25 @@ function ProjectDetail() {
                   const asmList = (projectData as any)?.assemblies as string[] | undefined;
                   const asmCount = asmList?.length ?? 0;
                   const sysName = sys?.name ?? ((projectData as any)?.primaryAssembly as string | undefined) ?? null;
+                  const firstAsmName = asmList?.[0] ?? null;
+
+                  const PHASE_NAMES: Record<string, string> = {
+                    phase1: "Project Setup", phase2: "Document Receipt", phase3: "Architectural Review",
+                    phase4: "Structural Review", phase5: "Mechanical Review", phase6: "Plumbing Review",
+                    phase7: "Electrical Review", phase8: "Civil/Site Review", phase9: "Spec Review",
+                    phase10: "Takeoff — Areas", phase11: "Takeoff — Linear", phase12: "Takeoff — Counts",
+                    phase13: "Pricing — Materials", phase14: "Pricing — Labor", phase15: "Pre-Submission Review",
+                    phase16: "Bid Submission", phase17: "Scope Boundaries", phase18: "General Conditions",
+                  };
 
                   const cardLines: Record<string, [string, string]> = {
                     setup: asmCount > 0
-                      ? [`${asmCount} assembl${asmCount !== 1 ? "ies" : "y"} configured`, sysName ?? "Tap to review details"]
+                      ? [`${asmCount} assembl${asmCount !== 1 ? "ies" : "y"} configured`, sysName ?? firstAsmName ?? "Tap to review details"]
                       : ["No assemblies defined yet", "Add your system type & deck info"],
                     checklist: clTotal > 0
                       ? [
                           `${clDone} of ${clTotal} items complete`,
-                          clDone === clTotal ? "All done!" : nextClPhase ? `Next: Phase ${nextClPhase}` : `${clTotal - clDone} remaining`,
+                          clDone === clTotal ? "All done!" : nextClPhase ? `Next: ${PHASE_NAMES[nextClPhase] ?? nextClPhase}` : `${clTotal - clDone} remaining`,
                         ]
                       : ["135 items across 18 phases", "Tap to start the bid review"],
                     estimate: [
