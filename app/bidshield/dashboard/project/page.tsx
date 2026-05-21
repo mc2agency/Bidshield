@@ -754,71 +754,139 @@ function ProjectDetail() {
                   )}
                 </div>
 
-                {/* Section card grid */}
+                {/* Section card grid — data-driven stats */}
                 {(() => {
-                  const SECTION_META: Record<string, { desc: string; sub?: string }> = {
-                    setup:     { desc: "Roof assemblies, system specs & project info" },
-                    checklist: { desc: "Phase-by-phase bid review tasks", sub: "18 phases" },
-                    estimate:  { desc: "Takeoff, materials, labor & general conditions", sub: "5 sections" },
-                    quotes:    { desc: "Vendor pricing, quote tracking & expiration" },
-                    documents: { desc: "Scope, RFIs, addenda & bid qualifications", sub: "5 sections" },
-                    validate:  { desc: "Final bid readiness score & PDF export" },
+                  // Compute card-level stats from live Convex data
+                  const cl = isDemo ? [] : (checklist ?? []);
+                  const clTotal = isDemo ? 95 : cl.length;
+                  const clDone = isDemo ? 68 : cl.filter((i: any) => i.status === "done" || i.status === "na").length;
+                  const nextClPhase = isDemo ? null : cl.find((i: any) => i.status !== "done" && i.status !== "na")?.phaseKey as string | undefined;
+
+                  const secs = isDemo
+                    ? [{ squareFeet: 28500 }, { squareFeet: 24800 }, { squareFeet: 8200 }, { squareFeet: 3400 }]
+                    : (takeoffSections ?? []);
+                  const takenOff = secs.reduce((s: number, sec: any) => s + (sec.squareFeet || 0), 0);
+
+                  const mats = isDemo ? Array.from({ length: 12 }, () => ({ unitPrice: 100 })) : (projectMaterials ?? []);
+                  const matUnpriced = mats.filter((m: any) => !m.unitPrice || m.unitPrice <= 0).length;
+
+                  const qs = isDemo ? [] : (quotes ?? []);
+                  const qCount = isDemo ? 5 : qs.length;
+                  const qExpired = isDemo ? 0 : qs.filter((q: any) => { const d = q.expirationDate; return d && new Date(d).getTime() < Date.now(); }).length;
+                  const qExpiring = isDemo ? 1 : qs.filter((q: any) => { const d = q.expirationDate; if (!d) return false; const days = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000); return days > 0 && days <= 14; }).length;
+
+                  const sc = isDemo
+                    ? Array.from({ length: 40 }, (_, i) => ({ status: i < 35 ? "included" : "unaddressed" }))
+                    : (scopeItems ?? []);
+                  const scTotal = sc.length;
+                  const scUnaddressed = sc.filter((s: any) => s.status === "unaddressed").length;
+
+                  const ad = isDemo ? [] : (addenda ?? []);
+                  const adNotRepriced = isDemo ? 1 : ad.filter((a: any) => a.affectsScope === true && !a.repriced).length;
+
+                  const rs = isDemo ? [] : (rfis ?? []);
+                  const rPending = isDemo ? 1 : rs.filter((r: any) => r.status === "sent" || r.status === "draft").length;
+
+                  const asmList = (projectData as any)?.assemblies as string[] | undefined;
+                  const asmCount = asmList?.length ?? 0;
+                  const sysName = sys?.name ?? ((projectData as any)?.primaryAssembly as string | undefined) ?? null;
+
+                  const cardLines: Record<string, [string, string]> = {
+                    setup: asmCount > 0
+                      ? [`${asmCount} assembl${asmCount !== 1 ? "ies" : "y"} configured`, sysName ?? "Tap to review details"]
+                      : ["No assemblies defined yet", "Add your system type & deck info"],
+                    checklist: clTotal > 0
+                      ? [
+                          `${clDone} of ${clTotal} items complete`,
+                          clDone === clTotal ? "All done!" : nextClPhase ? `Next: Phase ${nextClPhase}` : `${clTotal - clDone} remaining`,
+                        ]
+                      : ["135 items across 18 phases", "Tap to start the bid review"],
+                    estimate: [
+                      takenOff > 0 ? `${takenOff.toLocaleString()} SF taken off` : "No takeoff yet",
+                      mats.length > 0
+                        ? (matUnpriced > 0 ? `${matUnpriced} material${matUnpriced !== 1 ? "s" : ""} need pricing` : `${mats.length} materials priced`)
+                        : "No materials added yet",
+                    ],
+                    quotes: qCount > 0
+                      ? [
+                          `${qCount} quote${qCount !== 1 ? "s" : ""} tracked`,
+                          qExpired > 0 ? `${qExpired} expired — update needed` : qExpiring > 0 ? `${qExpiring} expiring soon` : "All quotes valid",
+                        ]
+                      : ["No quotes yet", "Request pricing from vendors"],
+                    documents: [
+                      scTotal > 0
+                        ? (scUnaddressed > 0 ? `${scUnaddressed} of ${scTotal} scope items to address` : `All ${scTotal} scope items addressed`)
+                        : "Scope not started",
+                      [
+                        rPending > 0 ? `${rPending} RFI${rPending !== 1 ? "s" : ""} pending` : null,
+                        adNotRepriced > 0 ? `${adNotRepriced} addend${adNotRepriced !== 1 ? "a" : "um"} to reprice` : null,
+                      ].filter(Boolean).join(" · ") || "No open RFIs or addenda",
+                    ],
+                    validate: [
+                      `${readinessScore}% bid readiness`,
+                      blockerCount > 0
+                        ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""} to fix first`
+                        : warnCount > 0 ? `${warnCount} item${warnCount !== 1 ? "s" : ""} to review`
+                        : passCount > 0 ? "Ready to export" : "Complete other sections first",
+                    ],
                   };
+
+                  const cardCta: Record<string, string> = {
+                    setup: "Set up project →",
+                    checklist: "Work checklist →",
+                    estimate: "Open estimate →",
+                    quotes: "Manage quotes →",
+                    documents: "Review documents →",
+                    validate: "Validate & export →",
+                  };
+
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {BROWSE_ITEMS.map(({ id, label }) => {
-                        const score = scores[id as keyof typeof scores] ?? 0;
+                        const score = (phaseScore[id] ?? 0) as number;
                         const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
                         const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
                         const scoreColor = hasBlocker ? "var(--bs-red)" : hasWarning ? "var(--bs-amber)" : score >= 75 ? "var(--bs-teal)" : score > 0 ? "var(--bs-amber)" : "var(--bs-text-dim)";
                         const badgeBg = hasBlocker ? "var(--bs-red-dim)" : hasWarning ? "var(--bs-amber-dim)" : score >= 75 ? "var(--bs-teal-dim)" : "var(--bs-bg-elevated)";
                         const badgeBorder = hasBlocker ? "var(--bs-red-border)" : hasWarning ? "var(--bs-amber-border)" : score >= 75 ? "var(--bs-teal-border)" : "var(--bs-border)";
                         const badgeLabel = hasBlocker ? "Fix needed" : hasWarning ? "Review" : score >= 75 ? "Good" : score > 0 ? "In progress" : "Not started";
-                        const meta = SECTION_META[id];
-                        const sectionActions = actionItems.filter(a => a.tab === id);
+                        const [line1, line2] = cardLines[id] ?? ["", ""];
                         return (
                           <button
                             key={id}
                             onClick={() => openTab(id)}
                             className="text-left transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-                            style={{ background: "var(--bs-bg-card)", borderRadius: 14, padding: "20px", border: "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 12 }}
+                            style={{ background: "var(--bs-bg-card)", borderRadius: 14, padding: "20px", border: "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 10 }}
                           >
                             {/* Card header */}
                             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--bs-bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                <div style={{ width: 34, height: 34, borderRadius: 9, background: "var(--bs-bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: scoreColor }}>
                                     {NAV_ICONS[id]}
                                   </svg>
                                 </div>
-                                <div>
-                                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--bs-text-primary)", lineHeight: 1.2 }}>{label}</div>
-                                  {meta?.sub && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 2 }}>{meta.sub}</div>}
-                                </div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--bs-text-primary)", lineHeight: 1.2 }}>{label}</div>
                               </div>
                               <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 6, whiteSpace: "nowrap", background: badgeBg, color: scoreColor, border: `1px solid ${badgeBorder}` }}>
                                 {badgeLabel}
                               </span>
                             </div>
 
-                            {/* Description */}
-                            <div style={{ fontSize: 12, color: "var(--bs-text-muted)", lineHeight: 1.5 }}>{meta?.desc}</div>
+                            {/* Live stat lines */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-primary)", lineHeight: 1.4 }}>{line1}</div>
+                              <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 3, lineHeight: 1.4 }}>{line2}</div>
+                            </div>
 
                             {/* Progress bar */}
-                            <div style={{ height: 4, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden" }}>
+                            <div style={{ height: 3, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden" }}>
                               <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999, transition: "width 0.6s" }} />
                             </div>
 
-                            {/* Footer: score + top action */}
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                              <span style={{ fontSize: 11, color: "var(--bs-text-dim)", fontVariantNumeric: "tabular-nums" }}>{score}% complete</span>
-                              {sectionActions[0] ? (
-                                <span style={{ fontSize: 11, color: scoreColor, fontWeight: 500, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {sectionActions[0].title}
-                                </span>
-                              ) : (
-                                <span style={{ fontSize: 11, color: "var(--bs-teal)", fontWeight: 500 }}>Open →</span>
-                              )}
+                            {/* CTA */}
+                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)" }}>
+                              {cardCta[id] ?? "Open →"}
                             </div>
                           </button>
                         );
