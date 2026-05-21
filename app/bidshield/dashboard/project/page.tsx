@@ -411,12 +411,23 @@ function ProjectDetail() {
           borderRight: "1px solid var(--bs-border)",
         }}
       >
-        {/* Logo */}
-        <div style={{ padding: "16px 18px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--bs-teal)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#13151a" strokeWidth="1.8" fill="none"/><path d="M7 5V9M5 7H9" stroke="#13151a" strokeWidth="1.4"/></svg>
+        {/* Logo + back to dashboard */}
+        <div style={{ padding: "14px 14px 10px", borderBottom: "1px solid var(--bs-border)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--bs-teal)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#fff" strokeWidth="1.8" fill="none"/><path d="M7 5V9M5 7H9" stroke="#fff" strokeWidth="1.4"/></svg>
+            </div>
+            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>BidShield</span>
           </div>
-          <span style={{ fontWeight: 500, fontSize: 15, color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>BidShield</span>
+          <Link
+            href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
+            style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--bs-text-muted)", textDecoration: "none", padding: "5px 6px", borderRadius: 6, transition: "background 0.15s" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+            All Projects
+          </Link>
         </div>
 
         {/* Project card */}
