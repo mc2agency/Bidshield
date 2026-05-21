@@ -402,134 +402,6 @@ function ProjectDetail() {
     <>
     <div className="-m-6 flex" style={{ minHeight: "calc(100vh - 4rem)" }}>
 
-      {/* Panel A — sidebar */}
-      <aside
-        className="hidden lg:flex flex-col shrink-0 overflow-y-auto"
-        style={{
-          width: 230,
-          minHeight: "calc(100vh - 4rem)",
-          background: "var(--bs-bg-secondary)",
-          borderRight: "1px solid var(--bs-border)",
-        }}
-      >
-        {/* Logo + back to dashboard */}
-        <div style={{ padding: "14px 14px 10px", borderBottom: "1px solid var(--bs-border)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--bs-teal)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="#fff" strokeWidth="1.8" fill="none"/><path d="M7 5V9M5 7H9" stroke="#fff" strokeWidth="1.4"/></svg>
-            </div>
-            <span style={{ fontWeight: 600, fontSize: 15, color: "var(--bs-text-primary)", letterSpacing: "-0.3px" }}>BidShield</span>
-          </div>
-          <Link
-            href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-            style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--bs-text-muted)", textDecoration: "none", padding: "5px 6px", borderRadius: 6, transition: "background 0.15s" }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-            All Projects
-          </Link>
-        </div>
-
-        {/* Project card */}
-        <div style={{ padding: "0 12px 14px" }}>
-          <div style={{ background: "var(--bs-bg-card)", borderRadius: 10, padding: "11px 13px", border: "1px solid var(--bs-border)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--bs-text-primary)" }}>{projectData?.name}</span>
-                {!isDemo && (
-                  <button
-                    onClick={() => setActiveTab("setup")}
-                    style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex" }}
-                    title="Edit project"
-                  >
-                    <svg width="11" height="11" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 500, color: readinessColor }}>{readinessScore}%</span>
-            </div>
-            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
-              <div style={{ height: "100%", borderRadius: 2, width: `${readinessScore}%`, background: readinessColor, transition: "width 0.5s" }} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 5 }}>
-              <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Bid readiness</span>
-              <span style={{ fontSize: 11, color: "var(--bs-text-dim)", display: "flex", alignItems: "center", gap: 6 }}>
-                {projectData?.location && <span>{projectData.location}</span>}
-                {daysUntilBid !== null && (
-                  <span style={{ fontWeight: 600, color: daysUntilBid <= 1 ? "var(--bs-red)" : daysUntilBid <= 3 ? "var(--bs-amber)" : "var(--bs-text-dim)" }}>
-                    {daysUntilBid}d
-                  </span>
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section nav with groups */}
-        <nav className="flex-1 px-2 flex flex-col" style={{ fontSize: 13 }}>
-          {BROWSE_ITEMS.map(({ id, label }) => {
-            const isActive = activeTab === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className="bs-nav-item w-full text-left"
-                style={isActive
-                  ? { background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500, border: "1px solid var(--bs-teal-border)" }
-                  : { color: "var(--bs-text-muted)", border: "1px solid transparent" }
-                }
-              >
-                <NavIcon paths={NAV_ICONS[id]} />
-                <span style={{ flex: 1 }}>{label}</span>
-                {(() => {
-                  const s = phaseScore[id];
-                  if (s === null || s === undefined) return null;
-                  const isValidate = id === 'validate';
-                  const color = s >= 80 ? 'var(--bs-teal)' : s >= 40 ? 'var(--bs-amber)' : s > 0 ? 'var(--bs-red)' : 'var(--bs-text-dim)';
-                  const bg = s >= 80 ? 'var(--bs-teal-dim)' : s >= 40 ? 'var(--bs-amber-dim)' : s > 0 ? 'var(--bs-red-dim)' : 'rgba(0,0,0,0.05)';
-                  const label = isValidate
-                    ? (s >= 80 ? 'Ready' : s >= 40 ? `${s}/100` : s > 0 ? `${s}/100` : 'Not ready')
-                    : `${s}%`;
-                  return (
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: bg, color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.2px' }}>
-                      {label}
-                    </span>
-                  );
-                })()}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Status summary */}
-        <div className="px-3 pb-3 pt-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <div className="text-[9px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Status</div>
-          <div className="flex flex-wrap gap-1.5">
-            {blockerCount > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 500, background: "var(--bs-red-dim)", color: "var(--bs-red)", padding: "3px 9px", borderRadius: 6, border: "1px solid var(--bs-red-border)" }}>
-                {blockerCount} blocker{blockerCount > 1 ? "s" : ""}
-              </span>
-            )}
-            {warnCount > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 500, background: "var(--bs-amber-dim)", color: "var(--bs-amber)", padding: "3px 9px", borderRadius: 6, border: "1px solid var(--bs-amber-border)" }}>
-                {warnCount} warning{warnCount > 1 ? "s" : ""}
-              </span>
-            )}
-            {passCount > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 500, background: "var(--bs-teal-dim)", color: "var(--bs-teal)", padding: "3px 9px", borderRadius: 6, border: "1px solid var(--bs-teal-border)" }}>
-                {passCount} passing
-              </span>
-            )}
-            {blockerCount === 0 && warnCount === 0 && passCount === 0 && (
-              <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>No issues yet</span>
-            )}
-          </div>
-        </div>
-      </aside>
-
       {/* Right side: breadcrumb + panels B + C */}
       <div className="flex-1 flex flex-col min-w-0">
 
@@ -704,6 +576,31 @@ function ProjectDetail() {
             ) : (
               /* Overview — full-width card grid */
               <div className="p-6">
+
+                {/* Project title + back to dashboard */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                  <Link
+                    href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
+                    style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--bs-text-muted)", textDecoration: "none", padding: "6px 10px", borderRadius: 7, border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)", whiteSpace: "nowrap", flexShrink: 0 }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                    All Projects
+                  </Link>
+                  <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.4px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {projectData?.name ?? "Project"}
+                  </h1>
+                  {!isDemo && (
+                    <button
+                      onClick={() => setActiveTab("setup")}
+                      style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", flexShrink: 0 }}
+                      title="Edit project"
+                    >
+                      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" /></svg>
+                    </button>
+                  )}
+                </div>
 
                 {/* Hero row: deadline + readiness */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -943,7 +840,7 @@ function ProjectDetail() {
                             key={id}
                             onClick={() => setExpandedCard(prev => prev === id ? null : id)}
                             className="text-left transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-                            style={{ background: expandedCard === id ? "var(--bs-bg-elevated)" : "var(--bs-bg-card)", borderRadius: 14, padding: "18px 20px", border: expandedCard === id ? "1px solid var(--bs-teal-border)" : "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 0 }}
+                            style={{ background: expandedCard === id ? "var(--bs-teal-dim)" : "var(--bs-bg-card)", borderRadius: 14, padding: "18px 20px", border: expandedCard === id ? "2px solid var(--bs-teal)" : "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 0, boxShadow: expandedCard === id ? "0 0 0 3px rgba(0,200,170,0.12)" : "none" }}
                           >
                             {/* Card header */}
                             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
