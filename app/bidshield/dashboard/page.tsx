@@ -798,6 +798,7 @@ function DashboardContent() {
       ...(a.surfaceType ? { surfaceType: a.surfaceType } : {}),
       ...(a.area != null ? { area: a.area } : {}),
       ...(a.uValue != null ? { uValue: a.uValue } : {}),
+      ...(a.layers && a.layers.length > 0 ? { layers: a.layers } : {}),
     }));
     let projectId: string;
     try {
@@ -852,6 +853,7 @@ function DashboardContent() {
       if (a.surfaceType) obj.surfaceType = a.surfaceType;
       if (a.area != null) obj.area = a.area;
       if (a.uValue != null) obj.uValue = a.uValue;
+      if (a.layers && a.layers.length > 0) obj.layers = a.layers;
       return obj;
     });
     try {

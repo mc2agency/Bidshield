@@ -121,6 +121,7 @@ interface AssemblyInput {
   area?: number;
   uValue?: number;
   attachmentMethod?: string;
+  layers?: string[];
 }
 
 interface WizardData {
@@ -151,6 +152,7 @@ export interface EditProjectData {
     rValue?: number; surfaceType?: string;
     area?: number; uValue?: number;
     attachmentMethod?: string;
+    layers?: string[];
   }>;
   systemDescription?: string;
 }
@@ -187,6 +189,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         surfaceType: a.surfaceType || "",
         area: a.area ?? undefined,
         uValue: a.uValue ?? undefined,
+        layers: a.layers ?? undefined,
       }));
     }
     return [];
@@ -198,6 +201,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [pdfError, setPdfError] = useState("");
   const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
   const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string; drawingDate?: string; drawingRevision?: string }>({});
+  const [expandedLayers, setExpandedLayers] = useState<Set<number>>(new Set());
   // Takeoff schedule upload state
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
   const [takeoffError, setTakeoffError] = useState("");
@@ -271,6 +275,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           area: typeof a.area === "number" ? a.area : undefined,
           uValue: typeof a.uValue === "number" ? a.uValue : undefined,
           attachmentMethod: a.attachmentMethod || undefined,
+          layers: Array.isArray(a.layers) && a.layers.length > 0 ? a.layers : undefined,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
@@ -551,6 +556,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                     <button
                       onClick={() => {
                         setAssemblies(pdfResults);
+                        // Pre-expand layer stacks for all assemblies that have layers
+                        setExpandedLayers(new Set(pdfResults.map((_, i) => i).filter(i => (pdfResults[i].layers?.length ?? 0) > 0)));
                         if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
                         if (pdfMeta.location && !location) setLocation(pdfMeta.location);
                         if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
@@ -706,6 +713,32 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         </select>
                       </div>
                     </div>
+
+                    {/* AI Layer Stack — read-only reference of what the AI extracted */}
+                    {a.layers && a.layers.length > 0 && (
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedLayers(prev => {
+                            const next = new Set(prev);
+                            next.has(idx) ? next.delete(idx) : next.add(idx);
+                            return next;
+                          })}
+                          className="flex items-center gap-1.5 text-[11px] font-medium"
+                          style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                        >
+                          <span style={{ fontSize: 8, color: "var(--bs-teal)" }}>{expandedLayers.has(idx) ? "▲" : "▼"}</span>
+                          AI Layer Stack ({a.layers.length} layers)
+                        </button>
+                        {expandedLayers.has(idx) && (
+                          <ol className="mt-1.5 rounded-lg px-3 py-2 space-y-0.5" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", listStyleType: "decimal", listStylePosition: "inside" }}>
+                            {a.layers.map((layer, li) => (
+                              <li key={li} className="text-[11px]" style={{ color: "var(--bs-text-muted)" }}>{layer}</li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    )}
 
                     {/* Cover board / substrate board field */}
                     <div className="mt-3">
@@ -1044,6 +1077,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       area: a.area ?? undefined,
                       uValue: a.uValue ?? undefined,
                       attachmentMethod: a.attachmentMethod ?? undefined,
+                      layers: a.layers && a.layers.length > 0 ? a.layers : undefined,
                     }))
                   : undefined,
                 systemDescription: aiDescription || undefined,

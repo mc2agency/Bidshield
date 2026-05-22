@@ -91,6 +91,11 @@ thickness: total PRIMARY insulation thickness in inches as a number string — r
 
 coverBoard: string — ALL non-membrane, non-primary-insulation layers in the assembly, listed from bottom to top, separated by ' + '. Capture EVERY such layer including substrate boards below the insulation, cover boards between insulation and membrane, and cementitious/concrete toppings above the insulation. Always include thickness when shown. Examples: '5/8" DensGlass Sheathing + 3" Cementitious Board', '1/2" DensDeck', '5/8" Gypsum Board + 3" Concrete Topping', '3" Cementitious Topping'. If only one such layer exists, list just that layer. Omit this field entirely only if NO such layers are present anywhere in the assembly.
 
+layers: string array — every layer in the assembly stack listed from bottom (deck) to top finish, one string per layer including thickness when shown. Capture ALL layers: substrate/sheathing boards, vapor retarders, each insulation layer, cover boards, the waterproofing membrane itself, and any finish above. Label architectural elements outside roofing scope with "(arch.)". Always include this field — use an empty array [] only when no layer information is present in the drawing. Examples:
+- Conventional assembly (ROOF 06): ["5/8\" DensGlass Sheathing", "7\" Rigid Insulation", "3\" Cementitious Board", "Waterproofing Membrane (Fully Adhered)", "Aluminum Panel (arch.)"]
+- IRMA/inverted assembly: ["Concrete Deck", "Waterproofing Membrane (Cold-Applied)", "Drainage Mat", "3\" XPS Insulation", "Filter Fabric", "Concrete Pavers on Pedestals"]
+- Simple TPO: ["Steel Deck", "3\" Polyiso Insulation", "1/2\" DensDeck Cover Board", "TPO Membrane (Mechanically Attached)"]
+
 rValue: insulation R-value as a number if explicitly stated in the drawing (e.g. "R-39.2" → 39.2, "R-33 Min." → 33). Do NOT calculate — only extract if the drawing states it. Omit if not shown.
 
 surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating' | 'aluminum_panel' | 'concrete_topping' | 'wood_tile'
@@ -141,7 +146,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 2048,
+          max_tokens: 3072,
           system: systemPrompt,
           messages: [
             {
@@ -189,6 +194,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       name: z.string().nullable().optional(),
       coverBoard: z.string().nullable().optional(),
       deckType: z.string().nullable().optional(),
+      layers: z.array(z.string()).nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
       assemblies: z.array(AssemblyItemSchema).default([]),

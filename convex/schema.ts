@@ -156,6 +156,7 @@ export default defineSchema({
       protectionBoard: v.optional(v.string()),
       drainageMat: v.optional(v.boolean()),
       coverBoard: v.optional(v.string()),
+      layers: v.optional(v.array(v.string())), // AI-extracted layer stack from deck to top
       aiDescription: v.optional(v.string()),   // per-assembly AI layer description
       enabled: v.optional(v.boolean()),        // ON/OFF toggle
       area: v.optional(v.number()),            // assembly area in SF
