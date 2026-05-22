@@ -46,6 +46,29 @@ export interface SectionDef {
 
 export type SectionValues = Partial<Record<SectionId, string | boolean | null>>;
 
+// ─── Deck type options (industry-frequency order) ─────────────────────────────
+
+export const DECK_TYPE_OPTIONS = [
+  "Steel Deck",
+  "Concrete Deck",
+  "Lightweight Concrete",
+  "Gypsum Deck",
+  "Wood / Plywood",
+  "Tectum / Cementwood",
+  "Other",
+  "Unknown / Existing Conditions",
+] as const;
+
+// Map from AI extraction deckType codes → display values
+export const DECK_TYPE_MAP: Record<string, string> = {
+  steel: "Steel Deck",
+  concrete: "Concrete Deck",
+  wood: "Wood / Plywood",
+  lightweight: "Lightweight Concrete",
+  gypsum: "Gypsum Deck",
+  tectum: "Tectum / Cementwood",
+};
+
 // ─── Section definitions ──────────────────────────────────────────────────────
 
 export const SECTION_DEFS: Record<SectionId, SectionDef> = {
@@ -53,7 +76,8 @@ export const SECTION_DEFS: Record<SectionId, SectionDef> = {
     id: "deck",
     label: "Structural Deck",
     type: "select",
-    options: ["Concrete", "Steel Deck", "Wood", "Gypsum", "Lightweight Concrete"],
+    options: [...DECK_TYPE_OPTIONS],
+    helperText: "Select the structural deck substrate — required for assembly validation",
   },
   vaporRetarder: { id: "vaporRetarder", label: "Vapor Retarder", type: "boolean" },
   insulation: {
@@ -109,8 +133,14 @@ export const SECTION_DEFS: Record<SectionId, SectionDef> = {
     label: "Drainage Mat",
     type: "text",
     placeholder: "e.g. Enkadrain 3611, Hydrodrain 40",
+    helperText: "Required for IRMA / protected membrane assemblies",
   },
-  filterFabric: { id: "filterFabric", label: "Filter Fabric", type: "boolean" },
+  filterFabric: {
+    id: "filterFabric",
+    label: "Filter Fabric",
+    type: "boolean",
+    helperText: "Install above insulation in IRMA assemblies",
+  },
   rootBarrier: { id: "rootBarrier", label: "Root Barrier / Root Resistant Sheet", type: "boolean" },
   pedestals: {
     id: "pedestals",
@@ -198,7 +228,7 @@ export interface ValidationRule {
 export interface ValidationResult {
   sectionId: SectionId;
   message: string;
-  severity: "error" | "warning" | "info";
+  severity: "error" | "warning" | "info" | "success";
 }
 
 export interface SystemMetadata {
@@ -209,6 +239,12 @@ export interface SystemMetadata {
   isProtectedMembrane: boolean;
   isRecoverable: boolean;
   greenRoofCompatible: boolean;
+  // Capability badges
+  irmaCompatible: boolean;
+  highWindRated: boolean;
+  highTraffic: boolean;
+  solarCompatible: boolean;
+  coldApplied: boolean;
   typicalSlope?: string;
 }
 
@@ -239,6 +275,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "taperedInsulation", "protectionBoard", "surfacing", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "protectionBoard", "membrane", "surfacing"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "TPO membrane not specified.", severity: "error" },
       { sectionId: "insulation", message: "Insulation layer not specified.", severity: "warning" },
       { sectionId: "drainage", message: "Drainage not specified — confirm drain type and overflow details.", severity: "warning" },
@@ -259,6 +296,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: true,
+      highTraffic: false,
+      solarCompatible: true,
+      coldApplied: false,
     },
   },
 
@@ -272,6 +314,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "taperedInsulation", "protectionBoard", "surfacing", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "protectionBoard", "membrane"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "PVC membrane not specified.", severity: "error" },
       { sectionId: "insulation", message: "Insulation layer not specified.", severity: "warning" },
     ],
@@ -291,6 +334,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: true,
+      highTraffic: true,
+      solarCompatible: true,
+      coldApplied: false,
     },
   },
 
@@ -304,6 +352,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "taperedInsulation", "ballast", "surfacing", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "membrane", "ballast"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "EPDM membrane not specified.", severity: "error" },
     ],
     scopeTemplate: [
@@ -321,6 +370,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: false,
     },
   },
 
@@ -334,6 +388,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "taperedInsulation", "surfacing", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "membrane", "surfacing"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "SBS membrane not specified.", severity: "error" },
       { sectionId: "coverBoard", message: "Cover board not specified for SBS.", severity: "warning" },
     ],
@@ -353,6 +408,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: true,
     },
   },
 
@@ -366,6 +426,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "taperedInsulation", "surfacing", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "membrane", "surfacing"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "APP membrane not specified.", severity: "error" },
     ],
     scopeTemplate: [
@@ -383,6 +444,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: false,
     },
   },
 
@@ -396,6 +462,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "taperedInsulation", "surfacing", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "burPlies", "capSheet", "surfacing"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "burPlies", message: "BUR plies not specified — required for BUR assembly.", severity: "error" },
       { sectionId: "capSheet", message: "Cap sheet or exposed surface not specified.", severity: "error" },
       { sectionId: "coverBoard", message: "Cover board not specified — confirm or mark N/A.", severity: "warning" },
@@ -418,6 +485,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: false,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: false,
     },
   },
 
@@ -431,10 +503,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "protectionBoard", "pedestals", "ballast", "greenRoof", "rootBarrier", "ballastRestraint", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "ballast", "pedestals", "greenRoof"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "Waterproofing membrane not specified — required for IRMA.", severity: "error" },
-      { sectionId: "drainageMat", message: "Drainage mat not detected — required for IRMA assembly.", severity: "error" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA assemblies — must be present above membrane.", severity: "error" },
       { sectionId: "insulation", message: "Insulation above membrane not specified — required for IRMA.", severity: "error" },
-      { sectionId: "filterFabric", message: "Filter fabric not confirmed — required above insulation in IRMA.", severity: "warning" },
+      { sectionId: "filterFabric", message: "Filter fabric should be installed above XPS insulation in IRMA assemblies.", severity: "warning" },
     ],
     scopeTemplate: [
       "Install waterproofing membrane ({membrane}) over structural deck.",
@@ -453,6 +526,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: true,
       isRecoverable: true,
       greenRoofCompatible: true,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: true,
+      coldApplied: true,
     },
   },
 
@@ -466,6 +544,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "drainageMat", "pedestals", "ballast", "greenRoof", "rootBarrier", "ballastRestraint", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "ballast", "pedestals", "greenRoof"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "MM6125 membrane not specified.", severity: "error" },
       { sectionId: "protectionBoard", message: "Hydroflex® protection sheet not specified — required over MM6125.", severity: "error" },
       { sectionId: "insulation", message: "XPS insulation above membrane not specified.", severity: "error" },
@@ -488,6 +567,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: true,
       isRecoverable: true,
       greenRoofCompatible: true,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: true,
+      coldApplied: false,
     },
   },
 
@@ -501,6 +585,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "protectionBoard", "insulation", "drainageMat", "irrigation", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "rootBarrier", "protectionBoard", "insulation", "drainageMat", "drainageLayer", "filterFabric", "growingMedia", "greenRoof"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "rootBarrier", message: "Root barrier not specified — required for all vegetated assemblies.", severity: "error" },
       { sectionId: "drainageLayer", message: "Drainage layer not specified — required for green roof.", severity: "error" },
       { sectionId: "filterFabric", message: "Filter fabric not confirmed — required above drainage layer.", severity: "error" },
@@ -526,6 +611,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: true,
       isRecoverable: false,
       greenRoofCompatible: true,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: true,
     },
   },
 
@@ -539,9 +629,10 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "protectionBoard", "rootBarrier", "ballastRestraint", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "pedestals"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "pedestals", message: "Pedestal system not specified — required for paver pedestal assembly.", severity: "error" },
-      { sectionId: "drainageMat", message: "Drainage mat not specified.", severity: "error" },
-      { sectionId: "filterFabric", message: "Filter fabric not confirmed.", severity: "warning" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA assemblies — must be present above membrane.", severity: "error" },
+      { sectionId: "filterFabric", message: "Filter fabric should be installed above XPS insulation in IRMA assemblies.", severity: "warning" },
       { sectionId: "membrane", message: "Waterproofing membrane not specified.", severity: "error" },
     ],
     scopeTemplate: [
@@ -562,6 +653,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: true,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: true,
     },
   },
 
@@ -575,9 +671,10 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "protectionBoard", "rootBarrier", "ballastRestraint", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "ballast"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "ballast", message: "Ballast not specified — required for ballasted assembly.", severity: "error" },
-      { sectionId: "drainageMat", message: "Drainage mat not specified.", severity: "error" },
-      { sectionId: "filterFabric", message: "Filter fabric not confirmed above insulation.", severity: "warning" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA assemblies — must be present above membrane.", severity: "error" },
+      { sectionId: "filterFabric", message: "Filter fabric should be installed above XPS insulation in IRMA assemblies.", severity: "warning" },
       { sectionId: "ballastRestraint", message: "Ballast restraint detail should be reviewed at perimeter.", severity: "info" },
     ],
     scopeTemplate: [
@@ -597,6 +694,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: true,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: true,
     },
   },
 
@@ -610,6 +712,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["vaporRetarder", "insulation", "reinforcement", "rootBarrier", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "reinforcement", "concretePavement"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "Waterproofing membrane not specified.", severity: "error" },
       { sectionId: "concretePavement", message: "Concrete pavement specification not provided.", severity: "error" },
       { sectionId: "protectionBoard", message: "Protection board not specified over membrane.", severity: "warning" },
@@ -631,6 +734,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: true,
       isRecoverable: false,
       greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: true,
     },
   },
 
@@ -644,6 +752,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["insulation", "vaporRetarder", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "membrane"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "Metal panel specification not provided.", severity: "error" },
       { sectionId: "flashing", message: "Flashing details not specified.", severity: "warning" },
     ],
@@ -661,6 +770,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: false,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: true,
+      highTraffic: false,
+      solarCompatible: true,
+      coldApplied: false,
       typicalSlope: "3:12 min",
     },
   },
@@ -675,6 +789,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     optionalSections: ["insulation", "penetrations", "edgeConditions"],
     defaultLayerOrder: ["deck", "insulation", "membrane", "surfacing"],
     validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
       { sectionId: "membrane", message: "SPF thickness and density not specified.", severity: "error" },
       { sectionId: "surfacing", message: "Protective coating/surfacing not specified — SPF requires UV protection.", severity: "error" },
     ],
@@ -692,6 +807,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: true,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: true,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: false,
     },
   },
 
@@ -721,6 +841,11 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       isProtectedMembrane: false,
       isRecoverable: false,
       greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: false,
     },
   },
 ];
@@ -738,6 +863,225 @@ export function getVisibleSections(config: RoofSystemConfig): SectionId[] {
 export function isHiddenSection(config: RoofSystemConfig, sectionId: SectionId): boolean {
   return !config.requiredSections.includes(sectionId) && !config.optionalSections.includes(sectionId);
 }
+
+// Returns capability/modifier badge labels for a system
+export function getSystemBadges(config: RoofSystemConfig): string[] {
+  const m = config.metadata;
+  const badges: string[] = [];
+  if (m.isProtectedMembrane) badges.push("PMR");
+  if (m.irmaCompatible && !m.isProtectedMembrane) badges.push("IRMA Compatible");
+  if (m.greenRoofCompatible) badges.push("Green Roof");
+  if (m.isRecoverable) badges.push("Recoverable");
+  if (m.highWindRated) badges.push("High Wind");
+  if (m.highTraffic) badges.push("High Traffic");
+  if (m.solarCompatible) badges.push("Solar Ready");
+  if (m.coldApplied) badges.push("Cold Applied");
+  return badges;
+}
+
+// ─── Deck intelligence ─────────────────────────────────────────────────────────
+
+interface DeckWarning {
+  message: string;
+  severity: "error" | "warning" | "info";
+}
+
+// Warnings to show when selected deck is incompatible or unusual for a given system
+const DECK_SYSTEM_WARNINGS: Record<string, Record<string, DeckWarning>> = {
+  "Steel Deck": {
+    lam: {
+      message: "Liquid-applied IRMA systems are typically installed on concrete decks. Verify structural capacity and specify a primer compatible with steel substrate.",
+      severity: "warning",
+    },
+    hydrotech: {
+      message: "Hydrotech MM6125 is designed for concrete deck substrates. Verify compatibility with steel deck and specify surface conditioner.",
+      severity: "warning",
+    },
+  },
+  "Wood / Plywood": {
+    bur: {
+      message: "Hot-mopped BUR on wood decks requires fire resistance verification. Consider a cold-applied or torch-applied alternative.",
+      severity: "warning",
+    },
+    lam: {
+      message: "Fluid-applied IRMA/PMR systems are not compatible with wood substrates. Verify with manufacturer.",
+      severity: "error",
+    },
+    hydrotech: {
+      message: "Hydrotech MM6125 is not designed for wood deck substrates.",
+      severity: "error",
+    },
+    paver_ped: {
+      message: "Paver pedestal assemblies impose concentrated point loads — verify structural capacity of wood deck.",
+      severity: "warning",
+    },
+    paver_bal: {
+      message: "Ballasted assemblies impose significant dead loads — verify structural capacity of wood deck.",
+      severity: "warning",
+    },
+    concrete: {
+      message: "Concrete paving over wood deck — verify structural capacity for concrete dead load.",
+      severity: "error",
+    },
+    green: {
+      message: "Green roof assemblies require verification of saturated dead load. Wood decks rarely support intensive green roof loads.",
+      severity: "error",
+    },
+  },
+  "Gypsum Deck": {
+    lam: {
+      message: "IRMA/fluid-applied systems are not typical on gypsum decks. Verify structural capacity and manufacturer compatibility.",
+      severity: "warning",
+    },
+    hydrotech: {
+      message: "Hydrotech MM6125 not typical on gypsum deck substrates.",
+      severity: "warning",
+    },
+  },
+  "Tectum / Cementwood": {
+    bur: {
+      message: "Hot asphalt BUR not recommended on Tectum — verify fire resistance rating and hot asphalt adhesion.",
+      severity: "warning",
+    },
+    lam: {
+      message: "Fluid-applied waterproofing not typical on Tectum decks. Verify compatibility with manufacturer.",
+      severity: "warning",
+    },
+    hydrotech: {
+      message: "Hydrotech MM6125 is not designed for Tectum/Cementwood substrates.",
+      severity: "warning",
+    },
+    paver_ped: {
+      message: "Paver pedestal point loads on Tectum — verify fastener pullout capacity.",
+      severity: "warning",
+    },
+  },
+  "Lightweight Concrete": {
+    lam: {
+      message: "Verify that the lightweight concrete substrate meets surface preparation and adhesion requirements for fluid-applied waterproofing.",
+      severity: "info",
+    },
+    paver_ped: {
+      message: "Paver pedestal point loads on LWIC — verify fastener pullout values for selected LWIC system.",
+      severity: "info",
+    },
+  },
+};
+
+export function getDeckCompatibilityWarning(
+  deckType: string | null | undefined,
+  systemId: string
+): DeckWarning | null {
+  if (!deckType || !systemId) return null;
+  return DECK_SYSTEM_WARNINGS[deckType]?.[systemId] ?? null;
+}
+
+// ─── Smart presets ─────────────────────────────────────────────────────────────
+
+export interface SmartPreset {
+  id: string;
+  label: string;
+  description: string;
+  systemId: string;
+  sectionValues: SectionValues;
+}
+
+export const SMART_PRESETS: SmartPreset[] = [
+  {
+    id: "nyc_irma_plaza",
+    label: "NYC IRMA Plaza Deck",
+    description: "Cold fluid membrane · 7\" XPS · pedestal pavers",
+    systemId: "lam",
+    sectionValues: {
+      deck: "Concrete Deck",
+      membrane: "Cold fluid-applied waterproofing membrane",
+      protectionBoard: "Protection course / base sheet reinforcement",
+      drainageMat: "Drainage mat as specified",
+      insulation: "7\" XPS Plazamate XR (R-35)",
+      filterFabric: true,
+      pedestals: "Buzon DPH-1 adjustable pedestals",
+      drainage: "Roof drains w/ overflow at +2\"",
+      flashing: "24 ga. galv. sheet metal, min 8\" ht.",
+    },
+  },
+  {
+    id: "standard_tpo",
+    label: "Standard Exposed TPO",
+    description: "60 mil TPO · 3\" polyiso · DensDeck · steel deck",
+    systemId: "tpo",
+    sectionValues: {
+      deck: "Steel Deck",
+      insulation: "3\" Polyiso (R-19.5)",
+      coverBoard: "1/2\" DensDeck Prime",
+      membrane: "60 mil TPO mechanically attached",
+      drainage: "Roof drains w/ overflow",
+      flashing: "TPO-coated metal flashing, min 8\" ht.",
+    },
+  },
+  {
+    id: "green_roof",
+    label: "Green Roof Assembly",
+    description: "PMR · root barrier · drainage composite · sedum",
+    systemId: "green",
+    sectionValues: {
+      deck: "Concrete Deck",
+      membrane: "Fluid-applied waterproofing membrane",
+      rootBarrier: true,
+      protectionBoard: "Protection course",
+      drainageMat: "Drainage composite mat",
+      filterFabric: true,
+      drainageLayer: "Drainage cell / LECA aggregate layer",
+      growingMedia: "4\"-6\" extensive growing media",
+      greenRoof: "Pre-vegetated sedum tray assembly",
+      drainage: "Roof drains w/ overflow at +2\"",
+      flashing: "Sheet metal flashing, min 8\" ht.",
+    },
+  },
+  {
+    id: "pmma_balcony",
+    label: "PMMA Balcony Assembly",
+    description: "Parapro® PMMA · reinforcement fleece · concrete deck",
+    systemId: "lam",
+    sectionValues: {
+      deck: "Concrete Deck",
+      membrane: "Siplast Parapro® PMMA liquid-applied membrane",
+      protectionBoard: "Pro Base TS + Pro Fleece reinforcement layer",
+      insulation: "2\" XPS thermal break where req.",
+      filterFabric: false,
+      drainage: "Scupper or floor drain at low point",
+      flashing: "PMMA-compatible flashing per manufacturer",
+    },
+  },
+  {
+    id: "ballasted_epdm",
+    label: "Ballasted EPDM",
+    description: "60 mil EPDM loose-laid · river stone ballast",
+    systemId: "epdm",
+    sectionValues: {
+      deck: "Steel Deck",
+      insulation: "2\" Polyiso (R-13)",
+      membrane: "60 mil EPDM loose-laid",
+      ballast: "1.5\" river stone, min 10 psf",
+      drainage: "Roof drains w/ overflow at +2\"",
+      flashing: "24 ga. galv. sheet metal, min 8\" ht.",
+    },
+  },
+  {
+    id: "recoverable_bur",
+    label: "Recoverable BUR",
+    description: "2-ply SBS + interply · polyiso · DensDeck",
+    systemId: "bur",
+    sectionValues: {
+      deck: "Steel Deck",
+      insulation: "3\" Polyiso (R-19.5)",
+      coverBoard: "1/2\" DensDeck Prime",
+      burPlies: "2-ply SBS + interply felt, hot asphalt",
+      capSheet: "SBS mineral-surfaced granule cap sheet",
+      drainage: "Roof drains w/ overflow",
+      flashing: "24 ga. galv. sheet metal, min 8\" ht.",
+    },
+  },
+];
 
 // ─── Engine functions (pure — no Convex, instant) ─────────────────────────────
 
@@ -761,7 +1105,6 @@ export function generateLayerStack(
   config: RoofSystemConfig,
   values: SectionValues
 ): string[] {
-  // Only include sections with a truthy value
   return config.defaultLayerOrder
     .filter((id) => {
       const val = values[id];
@@ -781,7 +1124,6 @@ export function generateScope(
 ): string[] {
   return config.scopeTemplate
     .map((line) => {
-      // Replace {sectionId} placeholders with actual values
       return line.replace(/\{(\w+)\}/g, (_, id) => {
         const val = values[id as SectionId];
         if (!val || val === true) return "";
@@ -789,7 +1131,6 @@ export function generateScope(
       });
     })
     .filter((line) => {
-      // Drop lines whose placeholder resolved to empty (section not filled)
       return !line.includes("()") && line.trim().length > 0;
     })
     .map((line) => line.replace(/\(\s*\)/g, "").replace(/\s{2,}/g, " ").trim());
@@ -808,6 +1149,7 @@ export function mapAIResultToSectionValues(
     protectionBoard?: string;
     layers?: string[];
     attachmentMethod?: string;
+    deckType?: string;
   },
   systemId: string
 ): SectionValues {
@@ -820,29 +1162,43 @@ export function mapAIResultToSectionValues(
       ? `${ai.insulationThickness} ${ai.insulationType}`
       : ai.insulationType || ai.insulationThickness || null;
 
+  // Map AI deckType code to display value
+  const deck = ai.deckType ? (DECK_TYPE_MAP[ai.deckType] ?? null) : null;
+
   const values: SectionValues = {
+    deck: deck ?? null,
     insulation: insulation ?? null,
     vaporRetarder: ai.vaporRetarder ?? null,
-    drainageMat: ai.drainageMat
-      ? "Drainage mat"
-      : null,
+    drainageMat: ai.drainageMat ? "Drainage mat" : null,
     filterFabric: isProtected ? (ai.drainageMat ? true : null) : null,
   };
 
   if (isProtected) {
     // For IRMA/Hydrotech, coverBoard AI result is likely the protection sheet
-    values.protectionBoard = ai.protectionBoard || (ai.coverBoard && !["DensDeck", "gypsum", "polyiso"].some(k => ai.coverBoard?.toLowerCase().includes(k.toLowerCase())) ? ai.coverBoard : null) || null;
-    values.membrane = ai.systemType === "lam" ? "Cold fluid-applied waterproofing membrane" : ai.systemType === "hydrotech" ? "Hydrotech MM6125" : null;
+    values.protectionBoard =
+      ai.protectionBoard ||
+      (ai.coverBoard &&
+      !["DensDeck", "gypsum", "polyiso"].some((k) =>
+        ai.coverBoard?.toLowerCase().includes(k.toLowerCase())
+      )
+        ? ai.coverBoard
+        : null) ||
+      null;
+    values.membrane =
+      ai.systemType === "lam"
+        ? "Cold fluid-applied waterproofing membrane"
+        : ai.systemType === "hydrotech"
+        ? "Hydrotech MM6125"
+        : null;
   } else {
     values.coverBoard = ai.coverBoard || null;
     if (isBur) {
-      // Extract ply info from layers
       const burLayer = ai.layers?.find((l) => /ply|felt|interply|asphalt/i.test(l));
       values.burPlies = burLayer || null;
       const capLayer = ai.layers?.find((l) => /cap\s*sheet|mineral|granule/i.test(l));
       values.capSheet = capLayer || null;
     } else {
-      values.membrane = null; // will be filled by user
+      values.membrane = null;
     }
   }
 

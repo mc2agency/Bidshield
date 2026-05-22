@@ -279,6 +279,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           vaporRetarder: a.vaporRetarder ?? false,
           protectionBoard: a.protectionBoard || undefined,
           layers: Array.isArray(a.layers) ? a.layers : [],
+          deckType: a.deckType || data.deckType || undefined,
         }, systemId);
         return {
           label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "00")}`,

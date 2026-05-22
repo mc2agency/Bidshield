@@ -5,6 +5,7 @@ import {
   SectionId,
   SectionValues,
   SECTION_DEFS,
+  ValidationResult,
 } from "@/lib/bidshield/assembly-system-configs";
 import { AssemblySectionRow } from "./AssemblySectionRow";
 
@@ -12,9 +13,10 @@ interface Props {
   systemConfig: RoofSystemConfig;
   sectionValues: SectionValues;
   onChange: (updated: SectionValues) => void;
+  warnings?: ValidationResult[];
 }
 
-export function DynamicAssemblyForm({ systemConfig, sectionValues, onChange }: Props) {
+export function DynamicAssemblyForm({ systemConfig, sectionValues, onChange, warnings = [] }: Props) {
   const [manuallyAdded, setManuallyAdded] = useState<Set<SectionId>>(new Set());
 
   const set = (id: SectionId, val: string | boolean | null) => {
@@ -35,31 +37,33 @@ export function DynamicAssemblyForm({ systemConfig, sectionValues, onChange }: P
     setManuallyAdded((prev) => new Set([...prev, id]));
   };
 
-  // Required sections — always shown
   const requiredIds = systemConfig.requiredSections;
 
-  // Optional sections — shown if they have a value OR were manually added
-  const visibleOptionalIds = systemConfig.optionalSections.filter(
-    (id) => {
-      const val = sectionValues[id];
-      return manuallyAdded.has(id) || (val !== undefined && val !== null && val !== false && val !== "");
-    }
-  );
+  const visibleOptionalIds = systemConfig.optionalSections.filter((id) => {
+    const val = sectionValues[id];
+    return manuallyAdded.has(id) || (val !== undefined && val !== null && val !== false && val !== "");
+  });
 
-  // Addable sections — optional, not yet shown
   const addableIds = systemConfig.optionalSections.filter(
     (id) => !visibleOptionalIds.includes(id)
   );
+
+  // Build a map from sectionId → first matching warning for inline display
+  const warningMap = new Map<SectionId, ValidationResult>();
+  for (const w of warnings) {
+    if (!warningMap.has(w.sectionId)) warningMap.set(w.sectionId, w);
+  }
 
   return (
     <div>
       <div
         className="rounded-lg divide-y overflow-hidden"
-        style={{ border: "1px solid var(--bs-border)", divideColor: "var(--bs-border)" } as React.CSSProperties}
+        style={{ border: "1px solid var(--bs-border)" } as React.CSSProperties}
       >
         {requiredIds.map((id) => {
           const def = SECTION_DEFS[id];
           if (!def) return null;
+          const warn = warningMap.get(id);
           return (
             <div key={id} className="px-3" style={{ borderBottom: "1px solid var(--bs-border)" }}>
               <AssemblySectionRow
@@ -67,6 +71,8 @@ export function DynamicAssemblyForm({ systemConfig, sectionValues, onChange }: P
                 value={sectionValues[id]}
                 onChange={(val) => set(id, val)}
                 isRequired
+                validationSeverity={warn?.severity}
+                validationMessage={warn?.message}
               />
             </div>
           );
@@ -75,6 +81,7 @@ export function DynamicAssemblyForm({ systemConfig, sectionValues, onChange }: P
         {visibleOptionalIds.map((id) => {
           const def = SECTION_DEFS[id];
           if (!def) return null;
+          const warn = warningMap.get(id);
           return (
             <div key={id} className="px-3" style={{ borderBottom: "1px solid var(--bs-border)" }}>
               <AssemblySectionRow
@@ -83,6 +90,8 @@ export function DynamicAssemblyForm({ systemConfig, sectionValues, onChange }: P
                 onChange={(val) => set(id, val)}
                 isRequired={false}
                 onRemove={() => removeOptional(id)}
+                validationSeverity={warn?.severity}
+                validationMessage={warn?.message}
               />
             </div>
           );
@@ -114,28 +123,32 @@ function AddSectionMenu({ sectionIds, onAdd }: { sectionIds: SectionId[]; onAdd:
       </button>
 
       {open && (
-        <div
-          className="absolute left-0 z-20 mt-1 rounded-xl py-1 shadow-xl min-w-[200px]"
-          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}
-        >
-          {sectionIds.map((id) => {
-            const def = SECTION_DEFS[id];
-            if (!def) return null;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => { onAdd(id); setOpen(false); }}
-                className="w-full text-left px-3 py-2 text-xs transition-colors"
-                style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-              >
-                {def.label}
-              </button>
-            );
-          })}
-        </div>
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div
+            className="absolute left-0 z-20 mt-1 rounded-xl py-1 shadow-xl min-w-[200px]"
+            style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}
+          >
+            {sectionIds.map((id) => {
+              const def = SECTION_DEFS[id];
+              if (!def) return null;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => { onAdd(id); setOpen(false); }}
+                  className="w-full text-left px-3 py-2 text-xs transition-colors"
+                  style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                >
+                  {def.label}
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );
