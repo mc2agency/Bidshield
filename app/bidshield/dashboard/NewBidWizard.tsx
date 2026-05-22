@@ -117,6 +117,7 @@ interface AssemblyInput {
   insulationThickness: string;
   rValue?: number;
   surfaceType: string;
+  coverBoard?: string;
   area?: number;
   uValue?: number;
   attachmentMethod?: string;
@@ -266,6 +267,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           insulationThickness,
           rValue: extractedRValue ?? computedRValue,
           surfaceType: a.surface || a.surfaceType || "",
+          coverBoard: a.coverBoard || undefined,
           area: typeof a.area === "number" ? a.area : undefined,
           uValue: typeof a.uValue === "number" ? a.uValue : undefined,
           attachmentMethod: a.attachmentMethod || undefined,
@@ -363,6 +365,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               insulationThickness: ext.thickness?.replace(/"/g, "") || "",
               rValue: undefined,
               surfaceType: ext.surface || ext.surfaceType || "",
+              coverBoard: ext.coverBoard || undefined,
               area,
               uValue,
             });
@@ -702,6 +705,19 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                           {SURFACE_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                         </select>
                       </div>
+                    </div>
+
+                    {/* Cover board / substrate board field */}
+                    <div className="mt-3">
+                      <label className="text-[11px] block mb-1" style={{ color: "var(--bs-text-dim)" }}>Cover Board / Substrate <span style={{ color: "var(--bs-text-dim)", fontWeight: 400 }}>(optional)</span></label>
+                      <input
+                        type="text"
+                        placeholder='e.g. 5/8" DensGlass, 3" Cementitious Board'
+                        value={a.coverBoard ?? ""}
+                        onChange={(e) => { const next = [...assemblies]; next[idx] = { ...a, coverBoard: e.target.value || undefined }; setAssemblies(next); }}
+                        className="w-full py-1.5 px-2 rounded-lg text-xs outline-none"
+                        style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
+                      />
                     </div>
 
                     {a.insulationType && (
