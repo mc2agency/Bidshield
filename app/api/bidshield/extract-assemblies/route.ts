@@ -69,18 +69,95 @@ System selection guide:
 - 'bur': Built-Up Roofing — multiple plies of felt/bitumen
 - 'metal': Standing seam or metal panel roof
 - 'spf': Spray polyurethane foam
-- 'lam': Liquid Applied Membrane — IRMA/PRMA/inverted configuration where insulation is ABOVE the membrane. Labels like "Liquid Membrane Cold-Applied", "IRMA", "Inverted Roof Membrane Assembly", "Protected Roof Membrane". The insulation (XPS) sits ON TOP of the waterproofing membrane.
+- 'lam': Liquid Applied Membrane — Use for CONVENTIONAL liquid-applied assemblies (insulation BELOW membrane) OR for IRMA/inverted assemblies. Classification into lam vs lam_irma is determined post-extraction by drainageMat and filterFabric flags below.
 - 'hydrotech': Use ONLY when drawing or spec explicitly names Hydrotech as the manufacturer.
 
-Key distinction — conventional vs inverted:
-- CONVENTIONAL (sbs/tpo/pvc/epdm/bur): insulation is BELOW the membrane, membrane is on top
-- INVERTED/IRMA (lam): membrane is on the deck, insulation (usually XPS) is ABOVE the membrane
+═══════════════════════════════════════════════════════════════
+CRITICAL: CONVENTIONAL vs IRMA CLASSIFICATION
+═══════════════════════════════════════════════════════════════
 
-insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'vacuum' | 'none'
+The ONLY reliable signals for IRMA/PMR are:
+  1. drainageMat is explicitly labeled or leader-lined in the drawing
+  2. filterFabric is explicitly labeled or leader-lined in the drawing
+  3. The OCR text explicitly contains: IRMA, PMR, "inverted roof", or "protected membrane"
 
-thickness: total insulation thickness in inches as a number string — read directly from the drawing (e.g. "7", "3.5", "4", "2"). For multiple layers add them (e.g. two 3.5" layers = "7"). Omit if not shown.
+DO NOT infer IRMA from membrane type alone.
+DO NOT invent drainageMat or filterFabric layers that are not explicitly visible.
 
-rValue: insulation R-value as a number if explicitly stated in the drawing (e.g. "R-39.2" → 39.2, "R-33 Min." → 33). Do NOT calculate — only extract if the drawing states it. Omit if not shown.
+CONVENTIONAL LAM (lam — drainageMat: false, filterFabric: false):
+  Stack: deck → insulation → membrane → finish/cladding
+  Examples:
+    - Concrete Deck → DensGlass → 7" Rigid Insulation → Cementitious Board → Waterproofing Membrane → Aluminum Panel
+    - Built-up rigid insulation roof with liquid-applied waterproofing on top
+    - Aluminum panel cladding systems with waterproofing below cladding
+  Rules: drainageMat=false, filterFabric=false when none are labeled
+
+IRMA / PMR (lam — drainageMat: true and/or filterFabric: true):
+  Stack: deck → membrane → drainage → insulation → filter fabric → overburden
+  Examples:
+    - Concrete Deck → Waterproofing Membrane → Drainage Mat → XPS Insulation → Filter Fabric → Gravel → Concrete Pavement
+    - Plaza deck with paver ballast
+    - Green roof system
+  Rules: Only set drainageMat=true or filterFabric=true when explicitly labeled
+
+═══════════════════════════════════════════════════════════════
+EXAMPLE A — Roof 06 (CONVENTIONAL lam — NOT IRMA)
+═══════════════════════════════════════════════════════════════
+Drawing shows: Concrete Deck → DensGlass → 7" Rigid Insulation → Cementitious Board → Waterproofing Membrane → Aluminum Panel
+Correct output:
+{
+  "system": "lam",
+  "drainageMat": false,
+  "filterFabric": false,
+  "insulation": "rigid",
+  "thickness": "7",
+  "rValue": 35
+}
+Why: insulation is BELOW the membrane, no drainage mat labeled, no filter fabric labeled.
+
+═══════════════════════════════════════════════════════════════
+EXAMPLE B — Roof 05 (IRMA / PMR)
+═══════════════════════════════════════════════════════════════
+Drawing shows: Concrete Deck → Waterproofing Membrane → Drainage Mat → Rigid Insulation → Filter Fabric → Gravel → Concrete Pavement
+Correct output:
+{
+  "system": "lam",
+  "drainageMat": true,
+  "filterFabric": true,
+  "insulation": "xps",
+  "thickness": null
+}
+Why: drainage mat and filter fabric are explicitly labeled, insulation is above membrane.
+
+═══════════════════════════════════════════════════════════════
+INSULATION THICKNESS EXTRACTION RULES
+═══════════════════════════════════════════════════════════════
+ONLY use dimensions directly associated with insulation layers.
+
+NEVER use dimensions from:
+  - Aluminum panels or cladding
+  - Cementitious boards
+  - Cover boards or substrate boards
+  - DensGlass or gypsum sheathing
+  - Finish layers or protective coatings
+
+If thickness is ambiguous or dimension is not clearly tied to insulation:
+  - Do NOT guess
+  - Set thickness to null
+  - This is correct behavior — wrong data is worse than missing data
+
+thickness field: total insulation thickness in inches as a number string — read ONLY from insulation layer annotations (e.g. "7", "3.5", "4"). For multiple insulation layers add them. Set to null if not shown or ambiguous.
+
+rValue: R-value as a number if explicitly stated for the insulation layer (e.g. "R-35" → 35, "R-39.2" → 39.2). Do NOT calculate — only extract if the drawing states it for the insulation. Set to null if not shown.
+
+insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'rigid' | 'vacuum' | 'none'
+Use 'rigid' when the drawing says "rigid insulation" without specifying XPS, polyiso, or EPS.
+Use 'xps' only when XPS is explicitly named.
+
+═══════════════════════════════════════════════════════════════
+
+drainageMat: true if drainage mat is EXPLICITLY labeled or leader-lined in the drawing. false otherwise. NEVER infer.
+filterFabric: true if filter fabric is EXPLICITLY labeled or leader-lined in the drawing. false otherwise. NEVER infer.
 
 surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating'
 
@@ -106,7 +183,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60_000);
-    let message: Awaited<ReturnType<typeof client.messages.create>>;
+    let message: any;
     try {
       message = await client.messages.create(
         {
@@ -157,6 +234,9 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       area: z.number().nullable().optional(),
       name: z.string().nullable().optional(),
       deckType: z.string().nullable().optional(),
+      // IRMA classification signals — only true when explicitly labeled in drawing
+      drainageMat: z.boolean().nullable().optional(),
+      filterFabric: z.boolean().nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
       assemblies: z.array(AssemblyItemSchema).default([]),
