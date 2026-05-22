@@ -64,28 +64,32 @@ System selection guide:
 - 'tpo': TPO membrane (thermoplastic polyolefin), typically white/gray single-ply
 - 'pvc': PVC membrane, typically white single-ply
 - 'epdm': EPDM rubber membrane, typically black single-ply
-- 'sbs': SBS modified bitumen — sheet membrane, torch-applied or cold-applied, with polyiso or other insulation BELOW the membrane (conventional assembly). Labels like "Sheet Membrane Roofing System", "Modified Bitumen", "SBS".
-- 'app': APP modified bitumen — similar to SBS but torch-applied
-- 'bur': Built-Up Roofing — multiple plies of felt/bitumen
-- 'metal': Standing seam or metal panel roof
+- 'sbs': SBS modified bitumen — multi-ply sheet membrane. Conventional assembly (insulation below, membrane on top) OR buried plaza/vegetated roof waterproofing (membrane below overburden). Recognizable by: "Modified Bitumen", "SBS", "Sheet Membrane Roofing System", or Siplast product names — Paradiene, Paratech, Parafor, Veral, Teranap, Irex. Typical Siplast conventional assembly (deck to top): Metal Deck → Paratherm Polyiso → Coverboard → Paradiene 20 base ply → Paradiene 30 FR finish ply. Typical Siplast LWIC assembly: Metal Deck → LWIC (Insulcel/NVS Concrete) → Insulperm Board → Parabase FS → Paradiene 20 → Paradiene 30 FR. Teranap plaza/waterproofing: Concrete Deck → Paradiene 20 base ply → Teranap finish ply → protection course → drainage → overburden (pavers, topping slab, vegetation).
+- 'app': APP modified bitumen — similar to SBS but specifically torch-applied APP polymer
+- 'bur': Built-Up Roofing — multiple plies of felt/bitumen, gravel or smooth surface
+- 'metal': Standing seam or metal panel roof where the metal IS the waterproofing
 - 'spf': Spray polyurethane foam
-- 'lam': Liquid Applied Membrane — IRMA/PRMA/inverted configuration where insulation is ABOVE the membrane. Labels like "Liquid Membrane Cold-Applied", "IRMA", "Inverted Roof Membrane Assembly", "Protected Roof Membrane" (when no manufacturer named). The insulation (XPS) sits ON TOP of the waterproofing membrane.
+- 'lam': Liquid-Applied Membrane — use for liquid-applied waterproofing membranes. Includes: PMMA (polymethyl methacrylate) systems like Siplast Parapro®, Paracoat®, Terapro®; cold-applied liquid membranes; urethane liquid membranes. Also use for generic IRMA/PRMA/inverted assemblies where no manufacturer is named and no sheet membrane is identified. Labels: "Liquid Membrane Cold-Applied", "IRMA", "Inverted Roof Membrane Assembly", "PMMA", "Parapro", "Paracoat". Typical Parapro assembly (conventional, over metal deck): Metal Deck → Paratherm Polyiso → Coverboard → Pro Base TS → Pro Fleece → Parapro Roof Membrane.
 - 'hydrotech': Hydrotech Monolithic Membrane 6125® (MM6125®) — a hot-applied rubberized asphalt PMR/IRMA assembly. Use when the drawing or spec explicitly names Hydrotech, MM6125, Sika-Hydrotech, or Monolithic Membrane 6125. Also recognizable by Hydrotech-specific components: Hydroflex®, Hydrodrain®, Styrofoam™ insulation (by DuPont/Dow), Gardendrain®, Systemfilter®, Ultimate Assembly®, Garden Roof® Assembly, Blue Roof Assembly. Assembly order (deck to top): Concrete/Steel Deck → Surface Conditioner → MM6125 membrane → Hydroflex® protection sheet → Styrofoam™ XPS insulation → filter fabric/Stone Filter Fabric → overburden (pavers, ballast, growing media, concrete topping). For Hydrotech, insulation = 'xps' (Styrofoam™ R-5/inch). Surface depends on overburden: Ultimate Assembly® = 'pavers_pedestals', Garden Roof® = 'green_roof', stone ballast = 'pavers_ballast', Blue Roof = 'pavers_ballast', split slab/concrete topping = 'concrete_topping'.
 
-Key distinction — conventional vs inverted:
-- CONVENTIONAL (sbs/tpo/pvc/epdm/bur): insulation is BELOW the membrane, membrane is on top
-- INVERTED/IRMA (lam/hydrotech): membrane is on the deck, insulation (usually XPS) is ABOVE the membrane
+Key distinction — conventional vs inverted/buried:
+- CONVENTIONAL (sbs/tpo/pvc/epdm/bur/lam): insulation is BELOW the membrane, membrane is topmost roofing layer
+- INVERTED/IRMA/BURIED (lam/hydrotech) or Teranap plaza (sbs): membrane is on the deck, insulation or overburden is ABOVE the membrane
 - Hydroflex® is a PROTECTION SHEET (not insulation, not membrane) — list in coverBoard and layers
 - Hydrodrain® / Gardendrain® are DRAINAGE COMPOSITES — list in layers only (not coverBoard)
+- Parabase FS / Parabase Plus = nailable BASE SHEET — list in layers (not primary insulation)
+- Paratherm = Siplast polyisocyanurate insulation → classify insulation as 'polyiso'
+- Insulperm = Siplast insulation board used in LWIC systems → classify as 'polyiso' or 'rigid'
+- LWIC / Insulcel / NVS Concrete = lightweight insulating concrete — list in layers/coverBoard, NOT as primary insulation unless it is the only insulating layer
 
 insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'rigid' | 'vacuum' | 'none'
 
 Insulation selection guide:
-- 'polyiso': explicitly named polyisocyanurate, polyiso, or ISO board
-- 'xps': explicitly named XPS, extruded polystyrene
+- 'polyiso': explicitly named polyisocyanurate, polyiso, ISO board, or Siplast Paratherm (Paratherm IS polyiso)
+- 'xps': explicitly named XPS, extruded polystyrene, or Styrofoam™ (DuPont/Dow brand XPS used in Hydrotech assemblies)
 - 'eps': explicitly named EPS, expanded polystyrene
 - 'mineral_wool': mineral wool, rock wool, stone wool
-- 'rigid': drawing says "Rigid Insulation" or "Rigid Board" without specifying the product type
+- 'rigid': drawing says "Rigid Insulation" or "Rigid Board" without specifying the product type; also use for Siplast Insulperm board when type is unclear
 - 'vacuum': vacuum insulated panel
 - 'none': no insulation present
 
@@ -95,6 +99,10 @@ coverBoard: string — ALL non-membrane, non-primary-insulation layers in the as
 
 layers: string array — every layer in the assembly stack listed from bottom (deck) to top finish, one string per layer including thickness when shown. Capture ALL layers: substrate/sheathing boards, vapor retarders, each insulation layer, cover boards, the waterproofing membrane itself, and any finish above. Label architectural elements outside roofing scope with "(arch.)". Always include this field — use an empty array [] only when no layer information is present in the drawing. Examples:
 - Conventional over concrete (ROOF 06): ["5/8\" DensGlass Sheathing", "7\" Rigid Insulation", "3\" Cementitious Board", "Waterproofing Membrane (Fully Adhered)", "Aluminum Panel (arch.)"]
+- Siplast Paradiene SBS conventional (metal deck): ["Metal Deck", "Paratherm Polyisocyanurate", "Coverboard", "Paradiene 20 Base Ply", "Paradiene 30 FR Finish Ply"]
+- Siplast Paradiene SBS over LWIC (metal deck): ["Metal Deck", "LWIC (NVS Concrete/Insulcel)", "Insulperm Insulation Board", "Parabase FS", "Paradiene 20 Base Ply", "Paradiene 30 FR Finish Ply"]
+- Siplast Teranap plaza/vegetated (buried waterproofing): ["Concrete Deck", "Paradiene 20 Base Ply", "Teranap Finish Ply", "Protection Course", "Drainage Layer", "XPS Insulation", "Filter Fabric", "Pavers / Growing Media"]
+- Siplast Parapro PMMA (liquid-applied, metal deck): ["Metal Deck", "Paratherm Polyisocyanurate", "Coverboard", "Pro Base TS", "Pro Fleece", "Parapro® PMMA Roof Membrane"]
 - Hydrotech PMR Ultimate Assembly: ["Concrete Deck", "Surface Conditioner", "MM6125 Membrane (215 mil)", "Hydroflex® Protection Sheet", "Styrofoam™ XPS Insulation", "Architectural Pavers on Pedestals"]
 - Hydrotech Garden Roof: ["Concrete Deck", "MM6125 Membrane", "Hydroflex® Protection Sheet", "Root Stop", "Gardendrain®", "Systemfilter®", "LiteTop® Growing Media", "Vegetation"]
 - Generic IRMA/inverted assembly: ["Concrete Deck", "Waterproofing Membrane (Cold-Applied)", "Drainage Mat", "3\" XPS Insulation", "Filter Fabric", "Concrete Pavers on Pedestals"]
