@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { INSULATION_TYPES, SURFACE_TYPES, THICKNESS_PRESETS, computeInsulationRValue } from "@/lib/bidshield/insulation-data";
+import { mapAIResultToSectionValues, SectionValues } from "@/lib/bidshield/assembly-system-configs";
+import { RoofSystemSelector } from "@/app/bidshield/components/assembly/RoofSystemSelector";
+import { RoofAssemblyCard } from "@/app/bidshield/components/assembly/RoofAssemblyCard";
 
 // ── Project types that determine what BidShield pre-configures ──
 const PROJECT_TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -113,14 +116,16 @@ interface AssemblyInput {
   label: string;
   name?: string;
   systemType: string;
-  insulationType: string;
-  insulationThickness: string;
+  insulationType?: string;
+  insulationThickness?: string;
   rValue?: number;
-  surfaceType: string;
+  surfaceType?: string;
   coverBoard?: string;
   area?: number;
   uValue?: number;
   attachmentMethod?: string;
+  layers?: string[];
+  sectionValues?: SectionValues;
 }
 
 interface WizardData {
@@ -151,6 +156,7 @@ export interface EditProjectData {
     rValue?: number; surfaceType?: string;
     area?: number; uValue?: number;
     attachmentMethod?: string;
+    layers?: string[];
   }>;
   systemDescription?: string;
 }
@@ -187,6 +193,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         surfaceType: a.surfaceType || "",
         area: a.area ?? undefined,
         uValue: a.uValue ?? undefined,
+        layers: a.layers ?? undefined,
       }));
     }
     return [];
@@ -198,6 +205,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [pdfError, setPdfError] = useState("");
   const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
   const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string; drawingDate?: string; drawingRevision?: string }>({});
+  const [expandedLayers, setExpandedLayers] = useState<Set<number>>(new Set());
   // Takeoff schedule upload state
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
   const [takeoffError, setTakeoffError] = useState("");
@@ -259,10 +267,23 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         const computedRValue = !extractedRValue && insulationType && insulationThickness
           ? computeInsulationRValue(insulationType, parseFloat(insulationThickness))
           : undefined;
+        const systemId = a.system || a.systemType || "";
+        // Build section values from AI extraction
+        const sectionValues = mapAIResultToSectionValues({
+          systemType: systemId,
+          insulationType,
+          insulationThickness,
+          surfaceType: a.surface || a.surfaceType || "",
+          coverBoard: a.coverBoard || undefined,
+          drainageMat: a.drainageMat ?? false,
+          vaporRetarder: a.vaporRetarder ?? false,
+          protectionBoard: a.protectionBoard || undefined,
+          layers: Array.isArray(a.layers) ? a.layers : [],
+        }, systemId);
         return {
           label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "00")}`,
           name: a.name || undefined,
-          systemType: a.system || a.systemType || "",
+          systemType: systemId,
           insulationType,
           insulationThickness,
           rValue: extractedRValue ?? computedRValue,
@@ -271,6 +292,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           area: typeof a.area === "number" ? a.area : undefined,
           uValue: typeof a.uValue === "number" ? a.uValue : undefined,
           attachmentMethod: a.attachmentMethod || undefined,
+          layers: Array.isArray(a.layers) && a.layers.length > 0 ? a.layers : undefined,
+          sectionValues,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
@@ -551,6 +574,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                     <button
                       onClick={() => {
                         setAssemblies(pdfResults);
+                        // Pre-expand layer stacks for all assemblies that have layers
+                        setExpandedLayers(new Set(pdfResults.map((_, i) => i).filter(i => (pdfResults[i].layers?.length ?? 0) > 0)));
                         if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
                         if (pdfMeta.location && !location) setLocation(pdfMeta.location);
                         if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
@@ -571,51 +596,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                 </div>
               )}
 
-              <div className="mb-5">
-                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Popular</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {SYSTEMS.filter(s => s.popular).map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => toggleSystem(s.id)}
-                      className="py-2.5 px-3 rounded-lg text-sm font-medium transition-all relative"
-                      style={systems.includes(s.id)
-                        ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }
-                        : { border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
-                    >
-                      {s.label}
-                      {systems.includes(s.id) && (
-                        <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ background: "var(--bs-teal)" }}>
-                          <svg className="w-2 h-2" style={{ color: "#13151a" }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>All Systems</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {SYSTEMS.filter(s => !s.popular).map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => toggleSystem(s.id)}
-                      className="py-2 px-3 rounded-lg text-sm transition-all relative"
-                      style={systems.includes(s.id)
-                        ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500 }
-                        : { border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
-                    >
-                      {s.label}
-                      {systems.includes(s.id) && (
-                        <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ background: "var(--bs-teal)" }}>
-                          <svg className="w-2 h-2" style={{ color: "#13151a" }} fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <RoofSystemSelector selected={systems} onToggle={toggleSystem} />
 
               <div>
                 <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-text-dim)" }}>Deck Type <span className="normal-case" style={{ color: "var(--bs-text-dim)" }}>(optional)</span></div>
@@ -651,105 +632,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
 
               <div className="space-y-3">
                 {assemblies.map((a, idx) => (
-                  <div key={idx} className="rounded-xl p-4" style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <input
-                          value={a.label}
-                          onChange={(e) => { const next = [...assemblies]; next[idx] = { ...a, label: e.target.value }; setAssemblies(next); }}
-                          className="w-16 text-sm font-bold bg-transparent outline-none"
-                          style={{ color: "var(--bs-text-primary)" }}
-                        />
-                        <span className="text-xs px-2 py-0.5 rounded uppercase font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)" }}>
-                          {SYSTEMS.find(s => s.id === a.systemType)?.label || a.systemType}
-                        </span>
-                        {a.area && (
-                          <span className="text-xs font-medium" style={{ color: "var(--bs-text-muted)" }}>
-                            {a.area.toLocaleString()} SF
-                          </span>
-                        )}
-                      </div>
-                      {assemblies.length > 1 && (
-                        <button onClick={() => setAssemblies(assemblies.filter((_, i) => i !== idx))} className="text-xs" style={{ color: "var(--bs-text-dim)" }}>Remove</button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[11px] block mb-1" style={{ color: "var(--bs-text-dim)" }}>Insulation</label>
-                        <select
-                          value={a.insulationType}
-                          onChange={(e) => {
-                            const next = [...assemblies];
-                            const ins = e.target.value;
-                            const thickness = a.insulationThickness ? parseFloat(a.insulationThickness) : 0;
-                            next[idx] = { ...a, insulationType: ins, rValue: ins && thickness ? computeInsulationRValue(ins, thickness) : undefined };
-                            setAssemblies(next);
-                          }}
-                          className="w-full py-1.5 px-2 rounded-lg text-xs outline-none"
-                          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
-                        >
-                          <option value="">None / TBD</option>
-                          {INSULATION_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[11px] block mb-1" style={{ color: "var(--bs-text-dim)" }}>Surface</label>
-                        <select
-                          value={a.surfaceType}
-                          onChange={(e) => { const next = [...assemblies]; next[idx] = { ...a, surfaceType: e.target.value }; setAssemblies(next); }}
-                          className="w-full py-1.5 px-2 rounded-lg text-xs outline-none"
-                          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
-                        >
-                          <option value="">Select...</option>
-                          {SURFACE_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Cover board / substrate board field */}
-                    <div className="mt-3">
-                      <label className="text-[11px] block mb-1" style={{ color: "var(--bs-text-dim)" }}>Cover Board / Substrate <span style={{ color: "var(--bs-text-dim)", fontWeight: 400 }}>(optional)</span></label>
-                      <input
-                        type="text"
-                        placeholder='e.g. 5/8" DensGlass, 3" Cementitious Board'
-                        value={a.coverBoard ?? ""}
-                        onChange={(e) => { const next = [...assemblies]; next[idx] = { ...a, coverBoard: e.target.value || undefined }; setAssemblies(next); }}
-                        className="w-full py-1.5 px-2 rounded-lg text-xs outline-none"
-                        style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-primary)" }}
-                      />
-                    </div>
-
-                    {a.insulationType && (
-                      <div className="mt-3">
-                        <label className="text-[11px] block mb-1.5" style={{ color: "var(--bs-text-dim)" }}>Thickness</label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {THICKNESS_PRESETS.map(t => (
-                            <button
-                              key={t}
-                              onClick={() => {
-                                const next = [...assemblies];
-                                const thick = parseFloat(t);
-                                next[idx] = { ...a, insulationThickness: t, rValue: computeInsulationRValue(a.insulationType, thick) };
-                                setAssemblies(next);
-                              }}
-                              className="py-1 px-2.5 rounded text-xs transition-all"
-                              style={a.insulationThickness === t
-                                ? { border: "1px solid var(--bs-teal)", background: "var(--bs-teal-dim)", color: "var(--bs-teal)", fontWeight: 500 }
-                                : { border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)" }}
-                            >
-                              {t}&quot;
-                            </button>
-                          ))}
-                        </div>
-                        {a.rValue != null && (
-                          <div className="mt-2 text-xs font-medium" style={{ color: "var(--bs-teal)" }}>
-                            R-{a.rValue.toFixed(1)}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <RoofAssemblyCard
+                    key={idx}
+                    assembly={a}
+                    onChange={(updated) => {
+                      const next = [...assemblies];
+                      next[idx] = updated;
+                      setAssemblies(next);
+                    }}
+                    onRemove={assemblies.length > 1 ? () => setAssemblies(assemblies.filter((_, i) => i !== idx)) : undefined}
+                  />
                 ))}
               </div>
 
@@ -762,7 +654,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               <div className="flex items-center gap-4 mt-3">
                 <button
                   onClick={() => setAssemblies([...assemblies, {
-                    label: `RT-0${assemblies.length + 1}`,
+                    label: `RT-${String(assemblies.length + 1).padStart(2, "0")}`,
                     systemType: systems[0] || "tpo",
                     insulationType: "",
                     insulationThickness: "",
@@ -1044,6 +936,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       area: a.area ?? undefined,
                       uValue: a.uValue ?? undefined,
                       attachmentMethod: a.attachmentMethod ?? undefined,
+                      layers: a.layers && a.layers.length > 0 ? a.layers : undefined,
                     }))
                   : undefined,
                 systemDescription: aiDescription || undefined,
