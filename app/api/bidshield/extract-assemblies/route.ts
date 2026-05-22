@@ -89,22 +89,28 @@ Insulation selection guide:
 
 thickness: total PRIMARY insulation thickness in inches as a number string — read directly from the drawing (e.g. "7", "3.5", "4", "2"). For multiple layers of the SAME insulation add them. Omit if not shown.
 
-coverBoard: string — any non-membrane layer that is NOT the primary insulation. This includes substrate boards, cover boards, deck boards, sheathing, and concrete/cementitious toppings. Combine all such layers into one string, including thickness if shown. Examples: '5/8" DensGlass Sheathing', '3" Cementitious Board', '1/2" DensDeck', '5/8" Gypsum Board + 3" Concrete Topping'. Omit (do not include the field) if no such layers are present.
+coverBoard: string — ALL non-membrane, non-primary-insulation layers in the assembly, listed from bottom to top, separated by ' + '. Capture EVERY such layer including substrate boards below the insulation, cover boards between insulation and membrane, and cementitious/concrete toppings above the insulation. Always include thickness when shown. Examples: '5/8" DensGlass Sheathing + 3" Cementitious Board', '1/2" DensDeck', '5/8" Gypsum Board + 3" Concrete Topping', '3" Cementitious Topping'. If only one such layer exists, list just that layer. Omit this field entirely only if NO such layers are present anywhere in the assembly.
 
 rValue: insulation R-value as a number if explicitly stated in the drawing (e.g. "R-39.2" → 39.2, "R-33 Min." → 33). Do NOT calculate — only extract if the drawing states it. Omit if not shown.
 
 surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating' | 'aluminum_panel' | 'concrete_topping' | 'wood_tile'
 
-Surface selection guide:
-- 'exposed': membrane is the top visible surface
-- 'pavers_pedestals': pavers set on pedestal supports
-- 'pavers_ballast': loose-laid ballast pavers
-- 'green_roof': vegetated/planted roof trays
-- 'walkpads': walk pad protection strips
-- 'traffic_coating': epoxy/urethane traffic deck coating
-- 'aluminum_panel': aluminum or metal panel finish (e.g. "Aluminum Panel", "Metal Cladding")
-- 'concrete_topping': concrete or cementitious topping slab as the finish surface
-- 'wood_tile': wood tiles or wood decking on pedestals
+Surface selection guide — CRITICAL: surface describes what lies directly on TOP of the WATERPROOFING MEMBRANE within the roofing scope. Architectural cladding or finishes that sit above the membrane (e.g., aluminum panels, metal cladding, facade elements) are NOT roofing surfaces — they are architectural elements above the roofing system. Do NOT use 'aluminum_panel' or any finish-cladding type unless the aluminum panel IS the waterproofing membrane itself (e.g., standing seam metal roof).
+
+- 'exposed': membrane is the topmost roofing layer with nothing bonded directly to it — use this when an aluminum panel, metal cladding, or architectural finish sits ABOVE the waterproofing membrane (the membrane is "exposed" within the roofing assembly even if covered architecturally)
+- 'pavers_pedestals': pavers set on pedestal supports directly on or above the membrane
+- 'pavers_ballast': loose-laid ballast pavers directly on or above the membrane
+- 'green_roof': vegetated/planted roof trays directly on or above the membrane
+- 'walkpads': walk pad protection strips bonded to or laid on the membrane
+- 'traffic_coating': epoxy/urethane traffic deck coating applied to the membrane
+- 'aluminum_panel': USE ONLY when the aluminum/metal panel IS the roofing system (standing seam metal roof, metal panel roof) — NOT when aluminum cladding sits above a separate waterproofing membrane
+- 'concrete_topping': concrete or cementitious topping slab poured directly on the membrane as the finish surface (common in IRMA/plaza decks and traffic-bearing assemblies)
+- 'wood_tile': wood tiles or wood decking on pedestals directly on or above the membrane
+
+Assembly type distinction for surface:
+- Conventional assembly (substrate → insulation → cover board → membrane → [architectural finish above]): surface = 'exposed' unless a roofing overburden (pavers, green roof, etc.) is bonded above the membrane
+- IRMA/inverted assembly (membrane → drainage → XPS → filter fabric → overburden): surface = whatever overburden sits on the XPS (pavers, concrete topping, green roof, etc.)
+- Standing seam / metal panel ROOF: surface = 'aluminum_panel' because the metal IS the waterproofing
 
 attachmentMethod: 'mechanically_attached' | 'fully_adhered' | 'ballasted' | 'self_adhered' | 'hybrid' | 'unknown' — how the membrane is fastened. Look for words like "mechanically attached", "fully adhered", "ballasted", "self-adhered", "adhered", "hybrid". Use 'unknown' if not determinable from the drawing.
 
