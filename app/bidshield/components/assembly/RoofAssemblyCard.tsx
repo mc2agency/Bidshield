@@ -4,8 +4,12 @@ import {
   getSystemConfig,
   validateAssembly,
   generateLayerStack,
+  getDeckCompatibilityWarning,
   SectionValues,
+  SectionId,
+  ValidationResult,
   ROOF_SYSTEM_CONFIGS,
+  SMART_PRESETS,
 } from "@/lib/bidshield/assembly-system-configs";
 import { DynamicAssemblyForm } from "./DynamicAssemblyForm";
 import { AssemblyWarningsPanel } from "./AssemblyWarningsPanel";
@@ -38,6 +42,7 @@ interface Props {
 
 export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack = true }: Props) {
   const [layersOpen, setLayersOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(false);
 
   const systemConfig = getSystemConfig(assembly.systemType);
   const sectionValues = assembly.sectionValues ?? {};
@@ -46,12 +51,37 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
     onChange({ ...assembly, sectionValues: updated });
   };
 
-  const warnings = systemConfig ? validateAssembly(systemConfig, sectionValues) : [];
+  const baseWarnings = systemConfig ? validateAssembly(systemConfig, sectionValues) : [];
+
+  // Deck compatibility intelligence
+  const deckValue = sectionValues.deck as string | null | undefined;
+  const deckWarning = getDeckCompatibilityWarning(deckValue, assembly.systemType);
+  const allWarnings: ValidationResult[] = [
+    ...baseWarnings,
+    ...(deckWarning
+      ? [{ sectionId: "deck" as SectionId, message: deckWarning.message, severity: deckWarning.severity }]
+      : []),
+  ];
+
   const generatedLayers = systemConfig ? generateLayerStack(systemConfig, sectionValues) : [];
 
   const systemLabel =
     ROOF_SYSTEM_CONFIGS.find((c) => c.systemId === assembly.systemType)?.label ??
     assembly.systemType.toUpperCase();
+
+  const errorCount = allWarnings.filter((w) => w.severity === "error").length;
+  const warnCount = allWarnings.filter((w) => w.severity === "warning").length;
+  const hasIssues = allWarnings.length > 0;
+
+  // Presets filtered to current system
+  const systemPresets = SMART_PRESETS.filter((p) => p.systemId === assembly.systemType);
+
+  const applyPreset = (presetId: string) => {
+    const preset = systemPresets.find((p) => p.id === presetId);
+    if (!preset) return;
+    onChange({ ...assembly, sectionValues: { ...sectionValues, ...preset.sectionValues } });
+    setPresetsOpen(false);
+  };
 
   return (
     <div
@@ -80,19 +110,90 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
             {assembly.area.toLocaleString()} SF
           </span>
         ) : null}
-        {warnings.length > 0 && (
+
+        {/* Validation badge */}
+        {hasIssues ? (
           <span
             className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-            style={{ background: warnings.some((w) => w.severity === "error") ? "#7f1d1d" : "#78350f", color: warnings.some((w) => w.severity === "error") ? "#f87171" : "#fbbf24" }}
+            style={
+              errorCount > 0
+                ? { background: "#7f1d1d", color: "#f87171" }
+                : { background: "#78350f", color: "#fbbf24" }
+            }
           >
-            {warnings.length}
+            {errorCount > 0 ? `${errorCount} error${errorCount > 1 ? "s" : ""}` : `${warnCount} warn`}
           </span>
+        ) : Object.values(sectionValues).some((v) => v !== null && v !== undefined && v !== false && v !== "") ? (
+          <span
+            className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+            style={{ background: "#14532d", color: "#4ade80" }}
+          >
+            ✓
+          </span>
+        ) : null}
+
+        {/* Presets menu */}
+        {systemPresets.length > 0 && (
+          <div className="relative ml-auto">
+            <button
+              type="button"
+              onClick={() => setPresetsOpen((v) => !v)}
+              className="text-[11px] font-medium px-2 py-1 rounded-md flex items-center gap-1 transition-all"
+              style={{
+                background: presetsOpen ? "var(--bs-teal-dim)" : "var(--bs-bg-card)",
+                border: "1px solid var(--bs-border)",
+                color: presetsOpen ? "var(--bs-teal)" : "var(--bs-text-dim)",
+                cursor: "pointer",
+              }}
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+              </svg>
+              Presets
+            </button>
+            {presetsOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setPresetsOpen(false)} />
+                <div
+                  className="absolute right-0 z-20 mt-1 rounded-xl py-1.5 shadow-xl min-w-[240px]"
+                  style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}
+                >
+                  <div
+                    className="px-3 pb-1.5 text-[9px] font-bold uppercase tracking-wider"
+                    style={{ color: "var(--bs-text-dim)" }}
+                  >
+                    Apply preset assembly
+                  </div>
+                  {systemPresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => applyPreset(preset.id)}
+                      className="w-full text-left px-3 py-2 transition-colors"
+                      style={{ background: "none", border: "none", cursor: "pointer" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bs-bg-elevated)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                    >
+                      <div className="text-xs font-semibold" style={{ color: "var(--bs-text-primary)" }}>
+                        {preset.label}
+                      </div>
+                      <div className="text-[10px] mt-0.5" style={{ color: "var(--bs-text-dim)" }}>
+                        {preset.description}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         )}
+
+        {/* Remove button (if no presets or after presets) */}
         {onRemove && (
           <button
             type="button"
             onClick={onRemove}
-            className="ml-auto text-sm"
+            className={`text-sm ${systemPresets.length > 0 ? "" : "ml-auto"}`}
             style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}
           >
             ×
@@ -100,7 +201,7 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
         )}
       </div>
 
-      {/* Area input */}
+      {/* Area + name inputs */}
       <div className="px-4 pt-3">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1">
@@ -144,13 +245,14 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
         </div>
       </div>
 
-      {/* Dynamic sections or fallback */}
+      {/* Dynamic sections */}
       <div className="px-4 pb-3">
         {systemConfig ? (
           <DynamicAssemblyForm
             systemConfig={systemConfig}
             sectionValues={sectionValues}
             onChange={updateSections}
+            warnings={allWarnings}
           />
         ) : (
           <div className="text-xs py-2" style={{ color: "var(--bs-text-dim)" }}>
@@ -158,8 +260,8 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
           </div>
         )}
 
-        {/* Validation warnings */}
-        <AssemblyWarningsPanel warnings={warnings} />
+        {/* Global warnings panel — shows only warnings without a visible form field */}
+        <AssemblyWarningsPanel warnings={allWarnings} />
 
         {/* Layer stack toggle */}
         {showLayerStack && (

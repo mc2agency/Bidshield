@@ -6,9 +6,10 @@ interface Props {
 }
 
 const SEVERITY_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  error:   { bg: "#2d1a1a", text: "#f87171", border: "#7f1d1d", dot: "#ef4444" },
-  warning: { bg: "#2d2210", text: "#fbbf24", border: "#78350f", dot: "#f59e0b" },
+  error:   { bg: "#2d1a1a", text: "#f87171", border: "#7f1d1d",             dot: "#ef4444" },
+  warning: { bg: "#2d2210", text: "#fbbf24", border: "#78350f",             dot: "#f59e0b" },
   info:    { bg: "var(--bs-teal-dim)", text: "var(--bs-teal)", border: "var(--bs-teal-border)", dot: "var(--bs-teal)" },
+  success: { bg: "#14532d", text: "#4ade80", border: "#166534",             dot: "#22c55e" },
 };
 
 export function AssemblyWarningsPanel({ warnings }: Props) {
@@ -24,7 +25,7 @@ export function AssemblyWarningsPanel({ warnings }: Props) {
             className="flex items-start gap-2 px-3 py-2 rounded-lg text-xs font-medium"
             style={{ background: s.bg, border: `1px solid ${s.border}`, color: s.text }}
           >
-            <span className="mt-0.5 w-2 h-2 flex-shrink-0 rounded-full" style={{ background: s.dot }} />
+            <span className="mt-0.5 w-1.5 h-1.5 flex-shrink-0 rounded-full" style={{ background: s.dot, marginTop: 3 }} />
             {w.message}
           </div>
         );

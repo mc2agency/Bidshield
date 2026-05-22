@@ -227,6 +227,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       drainageMat: z.boolean().nullable().optional(),
       vaporRetarder: z.boolean().nullable().optional(),
       protectionBoard: z.string().nullable().optional(),
+      uValue: z.number().nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
       assemblies: z.array(AssemblyItemSchema).default([]),
