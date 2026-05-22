@@ -31,6 +31,9 @@ export interface AssemblyCardData {
   layers?: string[];
   // New: section values (source of truth for system-specific data)
   sectionValues?: SectionValues;
+  // AI extraction metadata
+  confidence?: number;        // 0-100 AI classification confidence
+  extractedFromPdf?: boolean; // was this assembly extracted from a PDF
 }
 
 interface Props {
@@ -105,6 +108,21 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
         >
           {systemLabel}
         </span>
+        {assembly.extractedFromPdf && assembly.confidence !== undefined && (
+          <span
+            className="text-[10px] px-1.5 py-0.5 rounded font-bold"
+            title={`AI classification confidence: ${assembly.confidence}%`}
+            style={
+              assembly.confidence >= 85
+                ? { background: "#14532d", color: "#4ade80" }
+                : assembly.confidence >= 65
+                ? { background: "#78350f", color: "#fbbf24" }
+                : { background: "#1c1917", color: "#a8a29e" }
+            }
+          >
+            AI {assembly.confidence}%
+          </span>
+        )}
         {assembly.area ? (
           <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>
             {assembly.area.toLocaleString()} SF
