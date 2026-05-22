@@ -12,6 +12,7 @@ export const INSULATION_TYPES: InsulationType[] = [
   { id: "xps", label: "XPS (Extruded Polystyrene)", rPerInch: 5.0 },
   { id: "eps", label: "EPS (Expanded Polystyrene)", rPerInch: 4.0 },
   { id: "mineral_wool", label: "Mineral Wool", rPerInch: 3.7 },
+  { id: "rigid", label: "Rigid Board (type TBD)", rPerInch: 5.0 },
   { id: "vacuum", label: "Vacuum Insulated Panel (VIP)", rPerInch: 50.0 },
 ];
 
@@ -27,6 +28,9 @@ export const SURFACE_TYPES: SurfaceType[] = [
   { id: "green_roof", label: "Green Roof Trays" },
   { id: "walkpads", label: "Walk Pads" },
   { id: "traffic_coating", label: "Traffic Coating" },
+  { id: "aluminum_panel", label: "Aluminum / Metal Panel" },
+  { id: "concrete_topping", label: "Concrete / Cementitious Topping" },
+  { id: "wood_tile", label: "Wood Tiles" },
 ];
 
 // Common R-value presets for quick selection in the wizard

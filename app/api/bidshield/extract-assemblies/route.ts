@@ -76,13 +76,35 @@ Key distinction — conventional vs inverted:
 - CONVENTIONAL (sbs/tpo/pvc/epdm/bur): insulation is BELOW the membrane, membrane is on top
 - INVERTED/IRMA (lam): membrane is on the deck, insulation (usually XPS) is ABOVE the membrane
 
-insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'vacuum' | 'none'
+insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'rigid' | 'vacuum' | 'none'
 
-thickness: total insulation thickness in inches as a number string — read directly from the drawing (e.g. "7", "3.5", "4", "2"). For multiple layers add them (e.g. two 3.5" layers = "7"). Omit if not shown.
+Insulation selection guide:
+- 'polyiso': explicitly named polyisocyanurate, polyiso, or ISO board
+- 'xps': explicitly named XPS, extruded polystyrene
+- 'eps': explicitly named EPS, expanded polystyrene
+- 'mineral_wool': mineral wool, rock wool, stone wool
+- 'rigid': drawing says "Rigid Insulation" or "Rigid Board" without specifying the product type
+- 'vacuum': vacuum insulated panel
+- 'none': no insulation present
+
+thickness: total PRIMARY insulation thickness in inches as a number string — read directly from the drawing (e.g. "7", "3.5", "4", "2"). For multiple layers of the SAME insulation add them. Omit if not shown.
+
+coverBoard: string — any non-membrane layer that is NOT the primary insulation. This includes substrate boards, cover boards, deck boards, sheathing, and concrete/cementitious toppings. Combine all such layers into one string, including thickness if shown. Examples: '5/8" DensGlass Sheathing', '3" Cementitious Board', '1/2" DensDeck', '5/8" Gypsum Board + 3" Concrete Topping'. Omit (do not include the field) if no such layers are present.
 
 rValue: insulation R-value as a number if explicitly stated in the drawing (e.g. "R-39.2" → 39.2, "R-33 Min." → 33). Do NOT calculate — only extract if the drawing states it. Omit if not shown.
 
-surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating'
+surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating' | 'aluminum_panel' | 'concrete_topping' | 'wood_tile'
+
+Surface selection guide:
+- 'exposed': membrane is the top visible surface
+- 'pavers_pedestals': pavers set on pedestal supports
+- 'pavers_ballast': loose-laid ballast pavers
+- 'green_roof': vegetated/planted roof trays
+- 'walkpads': walk pad protection strips
+- 'traffic_coating': epoxy/urethane traffic deck coating
+- 'aluminum_panel': aluminum or metal panel finish (e.g. "Aluminum Panel", "Metal Cladding")
+- 'concrete_topping': concrete or cementitious topping slab as the finish surface
+- 'wood_tile': wood tiles or wood decking on pedestals
 
 attachmentMethod: 'mechanically_attached' | 'fully_adhered' | 'ballasted' | 'self_adhered' | 'hybrid' | 'unknown' — how the membrane is fastened. Look for words like "mechanically attached", "fully adhered", "ballasted", "self-adhered", "adhered", "hybrid". Use 'unknown' if not determinable from the drawing.
 
@@ -159,6 +181,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       attachmentMethod: z.string().nullable().optional(),
       area: z.number().nullable().optional(),
       name: z.string().nullable().optional(),
+      coverBoard: z.string().nullable().optional(),
       deckType: z.string().nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
