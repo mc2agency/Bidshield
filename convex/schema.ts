@@ -866,4 +866,79 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"])
     .index("by_project_product", ["projectId", "productName"]),
+
+  // ── Schema-driven roof assemblies (separate table, replaces embedded over time) ──
+  bidshield_roofAssemblies: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    label: v.string(),
+    roofName: v.optional(v.string()),
+    roofArea: v.optional(v.number()),
+    systemType: v.string(),
+    insulationType: v.optional(v.string()),
+    insulationThickness: v.optional(v.string()),
+    rValue: v.optional(v.number()),
+    uValue: v.optional(v.number()),
+    surfaceType: v.optional(v.string()),
+    coverBoard: v.optional(v.string()),
+    deckType: v.optional(v.string()),
+    attachmentMethod: v.optional(v.string()),
+    slope: v.optional(v.string()),
+    sectionValues: v.optional(v.record(v.string(), v.union(v.string(), v.boolean(), v.null()))),
+    layers: v.optional(v.array(v.string())),
+    extractedFromPdf: v.optional(v.boolean()),
+    extractionMetadata: v.optional(v.object({
+      confidence: v.optional(v.number()),
+      model: v.optional(v.string()),
+      drawingLabel: v.optional(v.string()),
+      drawingPage: v.optional(v.string()),
+      drawingRevision: v.optional(v.string()),
+    })),
+    warnings: v.optional(v.array(v.string())),
+    generatedLayers: v.optional(v.array(v.string())),
+    generatedScope: v.optional(v.array(v.string())),
+    confidence: v.optional(v.number()),
+    drawingReferences: v.optional(v.array(v.object({
+      label: v.string(),
+      date: v.optional(v.string()),
+      page: v.optional(v.string()),
+      revision: v.optional(v.string()),
+    }))),
+    enabled: v.optional(v.boolean()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"])
+    .index("by_project_system", ["projectId", "systemType"]),
+
+  // ── Roof system configs (seeded once, drives dynamic form sections) ──
+  bidshield_roofSystemConfigs: defineTable({
+    systemId: v.string(),
+    label: v.string(),
+    category: v.string(),
+    icon: v.optional(v.string()),
+    requiredSections: v.array(v.string()),
+    optionalSections: v.array(v.string()),
+    hiddenSections: v.array(v.string()),
+    defaultLayerOrder: v.array(v.string()),
+    validationRules: v.array(v.object({
+      sectionId: v.string(),
+      message: v.string(),
+      severity: v.union(v.literal("error"), v.literal("warning"), v.literal("info")),
+    })),
+    scopeTemplate: v.array(v.string()),
+    metadata: v.object({
+      assemblyType: v.string(),
+      membraneExposure: v.string(),
+      typicalInsulation: v.string(),
+      commonSurfaces: v.array(v.string()),
+      isProtectedMembrane: v.boolean(),
+      isRecoverable: v.boolean(),
+      greenRoofCompatible: v.boolean(),
+      typicalSlope: v.optional(v.string()),
+    }),
+    seeded: v.optional(v.boolean()),
+  })
+    .index("by_systemId", ["systemId"]),
 });

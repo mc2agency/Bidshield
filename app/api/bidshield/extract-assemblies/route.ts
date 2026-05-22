@@ -142,6 +142,12 @@ Assembly type distinction for surface:
 
 attachmentMethod: 'mechanically_attached' | 'fully_adhered' | 'ballasted' | 'self_adhered' | 'hybrid' | 'unknown' — how the membrane is fastened. Look for: "mechanically attached" / "mechanically fastened" / "MA" → 'mechanically_attached'; "fully adhered" / "FA" / "adhered" → 'fully_adhered'; "ballasted" / "BA" → 'ballasted'; "self-adhered" / "self-adhesive" / "SA" / "peel-and-stick" → 'self_adhered'; "hybrid" / "induction welded" (Firestone InvisiWeld) → 'hybrid'. Use 'unknown' if not determinable.
 
+drainageMat: boolean — true if any drainage mat, drainage composite, or drainage board is present in the assembly layers (e.g. Enkadrain, Hydrodrain, Gardendrain, Miradrain, drainage mat, drainage composite). Set false if not present. CRITICAL: Do NOT put drainage mat product names in the coverBoard field — they belong only in layers[] and this boolean flag.
+
+vaporRetarder: boolean — true if a vapor retarder or vapor barrier is present in the assembly (e.g. "vapor retarder", "vapor barrier", "VB", "15# felt base sheet used as vapor retarder"). Set false if not present.
+
+protectionBoard: string — if an explicit protection sheet or board sits directly above the waterproofing membrane (e.g. "Hydroflex®", "protection board", "protection course", "CCW protection board"), extract it here. Do NOT use this for insulation or drainage layers. Omit if not present.
+
 label: use label from drawing (RT-1, RT-2, RT-01, RT-02) if shown, otherwise RT-01, RT-02, etc. Max 10 assemblies.
 
 area: number in SF if a roof type takeoff schedule, region area, or area table is present. Include sub-areas (e.g. RT-01 and RT-01 N) as separate entries. Omit if no area data found.
@@ -218,6 +224,9 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       coverBoard: z.string().nullable().optional(),
       deckType: z.string().nullable().optional(),
       layers: z.array(z.string()).nullable().optional(),
+      drainageMat: z.boolean().nullable().optional(),
+      vaporRetarder: z.boolean().nullable().optional(),
+      protectionBoard: z.string().nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
       assemblies: z.array(AssemblyItemSchema).default([]),
