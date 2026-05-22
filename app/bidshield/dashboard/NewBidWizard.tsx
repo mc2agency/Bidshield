@@ -318,15 +318,25 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       const extracted: any[] = data.assemblies || [];
       if (extracted.length === 0) { setTakeoffError("No area data found in this PDF."); setTakeoffMode("error"); return; }
 
+      // Extract the numeric part from a label for fuzzy matching
+      // "ROOF 04" → "4", "Roof-R4" → "4", "RT-04" → "4"
+      const labelNum = (s: string) => { const m = s.match(/\d+/g); return m ? String(parseInt(m[m.length - 1], 10)) : null; };
+
       // Merge area data into existing assemblies by matching labels
       setAssemblies(prev => {
         const updated = [...prev];
         for (const ext of extracted) {
-          const extLabel = (ext.label || "").replace(/-/g, "-").toUpperCase().trim();
-          // Try exact match first, then prefix match (RT-01 matches RT-01 N)
+          const extLabel = (ext.label || "").toUpperCase().trim();
+          const extNum = labelNum(extLabel);
+
+          // 1. Exact match
           let match = updated.findIndex(a => a.label.toUpperCase().trim() === extLabel);
+          // 2. Numeric match — "Roof-R4" matches "ROOF 04" or "RT-04" (both → 4)
+          if (match === -1 && extNum !== null) {
+            match = updated.findIndex(a => labelNum(a.label) === extNum);
+          }
+          // 3. Prefix match (RT-01 matches RT-01 N)
           if (match === -1) {
-            // Try matching base label (e.g. extracted "RT-01" matches existing "RT-01")
             const baseLabel = extLabel.replace(/\s*N$/, "").trim();
             match = updated.findIndex(a => a.label.toUpperCase().trim() === baseLabel);
           }
