@@ -69,12 +69,14 @@ System selection guide:
 - 'bur': Built-Up Roofing — multiple plies of felt/bitumen
 - 'metal': Standing seam or metal panel roof
 - 'spf': Spray polyurethane foam
-- 'lam': Liquid Applied Membrane — IRMA/PRMA/inverted configuration where insulation is ABOVE the membrane. Labels like "Liquid Membrane Cold-Applied", "IRMA", "Inverted Roof Membrane Assembly", "Protected Roof Membrane". The insulation (XPS) sits ON TOP of the waterproofing membrane.
-- 'hydrotech': Use ONLY when drawing or spec explicitly names Hydrotech as the manufacturer.
+- 'lam': Liquid Applied Membrane — IRMA/PRMA/inverted configuration where insulation is ABOVE the membrane. Labels like "Liquid Membrane Cold-Applied", "IRMA", "Inverted Roof Membrane Assembly", "Protected Roof Membrane" (when no manufacturer named). The insulation (XPS) sits ON TOP of the waterproofing membrane.
+- 'hydrotech': Hydrotech Monolithic Membrane 6125® (MM6125®) — a hot-applied rubberized asphalt PMR/IRMA assembly. Use when the drawing or spec explicitly names Hydrotech, MM6125, Sika-Hydrotech, or Monolithic Membrane 6125. Also recognizable by Hydrotech-specific components: Hydroflex®, Hydrodrain®, Styrofoam™ insulation (by DuPont/Dow), Gardendrain®, Systemfilter®, Ultimate Assembly®, Garden Roof® Assembly, Blue Roof Assembly. Assembly order (deck to top): Concrete/Steel Deck → Surface Conditioner → MM6125 membrane → Hydroflex® protection sheet → Styrofoam™ XPS insulation → filter fabric/Stone Filter Fabric → overburden (pavers, ballast, growing media, concrete topping). For Hydrotech, insulation = 'xps' (Styrofoam™ R-5/inch). Surface depends on overburden: Ultimate Assembly® = 'pavers_pedestals', Garden Roof® = 'green_roof', stone ballast = 'pavers_ballast', Blue Roof = 'pavers_ballast', split slab/concrete topping = 'concrete_topping'.
 
 Key distinction — conventional vs inverted:
 - CONVENTIONAL (sbs/tpo/pvc/epdm/bur): insulation is BELOW the membrane, membrane is on top
-- INVERTED/IRMA (lam): membrane is on the deck, insulation (usually XPS) is ABOVE the membrane
+- INVERTED/IRMA (lam/hydrotech): membrane is on the deck, insulation (usually XPS) is ABOVE the membrane
+- Hydroflex® is a PROTECTION SHEET (not insulation, not membrane) — list in coverBoard and layers
+- Hydrodrain® / Gardendrain® are DRAINAGE COMPOSITES — list in layers only (not coverBoard)
 
 insulation: 'polyiso' | 'xps' | 'eps' | 'mineral_wool' | 'rigid' | 'vacuum' | 'none'
 
@@ -92,8 +94,10 @@ thickness: total PRIMARY insulation thickness in inches as a number string — r
 coverBoard: string — ALL non-membrane, non-primary-insulation layers in the assembly, listed from bottom to top, separated by ' + '. Capture EVERY such layer including substrate boards below the insulation, cover boards between insulation and membrane, and cementitious/concrete toppings above the insulation. Always include thickness when shown. Examples: '5/8" DensGlass Sheathing + 3" Cementitious Board', '1/2" DensDeck', '5/8" Gypsum Board + 3" Concrete Topping', '3" Cementitious Topping'. If only one such layer exists, list just that layer. Omit this field entirely only if NO such layers are present anywhere in the assembly.
 
 layers: string array — every layer in the assembly stack listed from bottom (deck) to top finish, one string per layer including thickness when shown. Capture ALL layers: substrate/sheathing boards, vapor retarders, each insulation layer, cover boards, the waterproofing membrane itself, and any finish above. Label architectural elements outside roofing scope with "(arch.)". Always include this field — use an empty array [] only when no layer information is present in the drawing. Examples:
-- Conventional assembly (ROOF 06): ["5/8\" DensGlass Sheathing", "7\" Rigid Insulation", "3\" Cementitious Board", "Waterproofing Membrane (Fully Adhered)", "Aluminum Panel (arch.)"]
-- IRMA/inverted assembly: ["Concrete Deck", "Waterproofing Membrane (Cold-Applied)", "Drainage Mat", "3\" XPS Insulation", "Filter Fabric", "Concrete Pavers on Pedestals"]
+- Conventional over concrete (ROOF 06): ["5/8\" DensGlass Sheathing", "7\" Rigid Insulation", "3\" Cementitious Board", "Waterproofing Membrane (Fully Adhered)", "Aluminum Panel (arch.)"]
+- Hydrotech PMR Ultimate Assembly: ["Concrete Deck", "Surface Conditioner", "MM6125 Membrane (215 mil)", "Hydroflex® Protection Sheet", "Styrofoam™ XPS Insulation", "Architectural Pavers on Pedestals"]
+- Hydrotech Garden Roof: ["Concrete Deck", "MM6125 Membrane", "Hydroflex® Protection Sheet", "Root Stop", "Gardendrain®", "Systemfilter®", "LiteTop® Growing Media", "Vegetation"]
+- Generic IRMA/inverted assembly: ["Concrete Deck", "Waterproofing Membrane (Cold-Applied)", "Drainage Mat", "3\" XPS Insulation", "Filter Fabric", "Concrete Pavers on Pedestals"]
 - Simple TPO: ["Steel Deck", "3\" Polyiso Insulation", "1/2\" DensDeck Cover Board", "TPO Membrane (Mechanically Attached)"]
 
 rValue: insulation R-value as a number if explicitly stated in the drawing (e.g. "R-39.2" → 39.2, "R-33 Min." → 33). Do NOT calculate — only extract if the drawing states it. Omit if not shown.
