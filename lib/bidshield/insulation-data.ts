@@ -10,6 +10,7 @@ export interface InsulationType {
 export const INSULATION_TYPES: InsulationType[] = [
   { id: "polyiso", label: "Polyisocyanurate (Polyiso)", rPerInch: 5.7 },
   { id: "xps", label: "XPS (Extruded Polystyrene)", rPerInch: 5.0 },
+  { id: "xps_high", label: "XPS — Plazamate XR (R-6.7/in, PMR)", rPerInch: 6.7 },
   { id: "eps", label: "EPS (Expanded Polystyrene)", rPerInch: 4.0 },
   { id: "mineral_wool", label: "Mineral Wool", rPerInch: 3.7 },
   { id: "rigid", label: "Rigid Board (type TBD)", rPerInch: 5.0 },
