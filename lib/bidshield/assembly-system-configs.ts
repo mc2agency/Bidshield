@@ -995,7 +995,7 @@ export const SMART_PRESETS: SmartPreset[] = [
     sectionValues: {
       deck: "Concrete Deck",
       membrane: "Cold fluid-applied waterproofing membrane",
-      protectionBoard: "Protection course / base sheet reinforcement",
+      protectionBoard: "Protection board / base sheet reinforcement",
       drainageMat: "Drainage mat as specified",
       insulation: "7\" XPS Plazamate XR (R-35)",
       filterFabric: true,

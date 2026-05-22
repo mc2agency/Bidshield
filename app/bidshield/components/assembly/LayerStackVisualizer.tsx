@@ -21,7 +21,7 @@ function getLayerStyle(text: string): { bg: string; color: string; borderColor: 
     return { bg: "#0a1f18", color: "#34d399", borderColor: "#0a3826" };
   if (/membrane|waterproof|tpo|pvc|epdm|sbs|app|fluid|mm6125|parapro|tremproof|bitumen|hydrotech/i.test(t))
     return { bg: "#0a2626", color: "#2dd4bf", borderColor: "#0d6b6b" };
-  if (/protection sheet|protection board|hydroflex|protection course|ccw/i.test(t))
+  if (/protection sheet|protection board|hydroflex|ccw/i.test(t))
     return { bg: "#1a1e1e", color: "#94a3b8", borderColor: "#334155" };
   if (/cover board|densdeck|securock|gypsum board|dens/i.test(t))
     return { bg: "#1a1918", color: "#a1a1aa", borderColor: "#3f3f46" };
