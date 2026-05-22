@@ -56,7 +56,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
 
 Each assembly object must use ONLY these exact values:
 
-system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'lam' | 'hydrotech'
+system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'lam' | 'lam_irma' | 'hydrotech'
 
 Classify each assembly independently based on its OWN layer stack and drawing label — do NOT assume all assemblies use the same system.
 
@@ -69,20 +69,22 @@ System selection guide:
 - 'bur': Built-Up Roofing — multiple plies of felt/bitumen. Labels: "BUR", "built-up roofing", "4-ply", "gravel-surfaced", "smooth-surfaced BUR", "hot mopped". CSI Section 07 51 00. CRITICAL: "built-up" as a construction adjective does NOT mean BUR. Phrases like "Roof with Built-Up Rigid Insulation", "built-up assembly", "built-up layers", or "built-up insulation" describe stacked or layered construction — they are NOT BUR. Classify based on the membrane type in the layer stack, not the word "built-up". BUR requires explicit evidence of multiple felt/ply sheets with hot asphalt (bitumen) between them — if you don't see felt plies and asphalt, it is not BUR.
 - 'metal': Standing seam or structural metal panel roof where the metal IS the waterproofing element. Not for metal coping, fascia, or parapet cladding.
 - 'spf': Spray polyurethane foam. Always has a protective coating on top (silicone, acrylic, or urethane). Brand names: GacoRoofFoam F2733 + GacoFlex S20 silicone coating (Gaco/Holcim), NCFI EnduraTech. Labels: "SPF roofing", "spray foam", "polyurethane foam + coating". R-value ~6.5/inch.
-- 'lam': Liquid-Applied Membrane — any liquid-applied waterproofing, whether conventional or IRMA/inverted. Includes: hot-fluid rubberized asphalt (Tremco TREMproof 6100 — NOT Hydrotech), cold-applied fluid membranes ("Cold Fluid Applied Waterproofing Membrane", "Cold Applied Liquid Membrane"), PMMA systems (Siplast Parapro®, Paracoat®, Terapro®; Tremco AlphaGuard PUMA), polyurethane liquid membranes (Tremco AlphaGuard BIO/MT, Neogard, Vulkem 350, BASF MasterSeal TC), self-adhered rubberized asphalt (GCP BITUTHENE HRA — in IRMA config), Soprema COLPHENE SP. Also use for generic IRMA/PRMA/inverted assemblies where no manufacturer is named and no sheet membrane is identified. Labels: "Cold Fluid Applied Waterproofing Membrane", "Liquid Membrane Cold-Applied", "IRMA Roofing Assembly", "Inverted Roof Membrane Assembly", "Green Roofing Assembly" (with fluid membrane), "PMMA", "fluid-applied membrane", "Parapro", "AlphaGuard". CRITICAL: Cold fluid membrane on concrete deck under XPS with pavers = 'lam', surface = 'pavers_pedestals'. Sloped topping concrete BELOW membrane = substrate prep (layers only). Base sheet BELOW fluid membrane = reinforcement layer (layers only). Typical cold-fluid IRMA (deck to top): Concrete Deck → Sloped Topping Concrete → Base Sheet → Cold Fluid Applied Waterproofing Membrane → Drainage Mat → XPS Insulation → Filter Fabric → Pavers on Pedestals. Typical Parapro PMMA conventional (metal deck): Metal Deck → Paratherm Polyiso → Coverboard → Pro Base TS → Pro Fleece → Parapro® PMMA Membrane.
+- 'lam': Conventional liquid-applied membrane — membrane is ABOVE the insulation (not inverted). Use when: PMMA systems on metal or concrete deck where membrane sits on top of substrate/insulation (Parapro®, Paracoat®, Terapro®; Tremco AlphaGuard PUMA), polyurethane liquid membranes on balconies or podium decks (AlphaGuard BIO/MT, Neogard, Vulkem 350, BASF MasterSeal TC), any fluid-applied waterproofing where the layer order shows insulation BELOW the membrane. CRITICAL: Do NOT use 'lam' when the layer stack is inverted (membrane at deck → drainage mat → XPS → filter fabric → overburden) — use 'lam_irma' instead. Typical Parapro PMMA conventional (metal deck): Metal Deck → Paratherm Polyiso → Coverboard → Pro Base TS → Pro Fleece → Parapro® PMMA Roof Membrane.
+- 'lam_irma': IRMA/PMR cold-fluid liquid-applied — membrane is at the DECK level, insulation ABOVE the membrane (inverted/protected membrane roof). Use when: cold-applied fluid membranes on concrete deck with XPS + drainage mat + filter fabric above the membrane; "IRMA Roofing Assembly"; "Inverted Roof Membrane Assembly"; "Green Roofing Assembly" (with fluid membrane); generic IRMA/PRMA where no specific manufacturer is named; hot-fluid rubberized asphalt in IRMA config (Tremco TREMproof 6100 — NOT Hydrotech); self-adhered rubberized asphalt in IRMA config (GCP BITUTHENE HRA); Soprema COLPHENE SP in IRMA configuration. CRITICAL: If the layer stack shows membrane → drainage mat → XPS → filter fabric → overburden (pavers/concrete/green), use 'lam_irma'. Sloped topping concrete BELOW membrane = substrate prep (layers only). Base sheet BELOW fluid membrane = reinforcement layer (layers only). Typical cold-fluid IRMA: Concrete Deck → Sloped Topping Concrete → Base Sheet → Cold Fluid Applied Waterproofing Membrane → Drainage Mat → 7" XPS Insulation (R-35) → Filter Fabric → Pavers on Pedestals.
 - 'hydrotech': Hydrotech Monolithic Membrane 6125® (MM6125®) — hot-applied rubberized asphalt PMR/IRMA. Use ONLY when drawing names Hydrotech, MM6125, Sika-Hydrotech, or Monolithic Membrane 6125, OR shows Hydrotech-specific components: Hydroflex®, Hydrodrain®, Gardendrain®, Systemfilter®, LiteTop®, Ultimate Assembly®, Garden Roof® Assembly, Blue Roof Assembly. Assembly (deck to top): Concrete/Steel Deck → Surface Conditioner → MM6125 membrane → Hydroflex® protection sheet → Styrofoam™ XPS → filter fabric → overburden. Insulation = 'xps_high' when drawing names Styrofoam™ Plazamate™ XR (R-6.7/inch), otherwise 'xps' (R-5/inch). Surface: Ultimate Assembly® = 'pavers_pedestals', Garden Roof® = 'green_roof', stone ballast / Blue Roof = 'pavers_ballast', split slab = 'concrete_topping'.
 
 PRODUCT NAME → SYSTEM TYPE quick reference (when product appears without explicit system label):
 - "UltraPly", "RubberGard", "Sure-Weld", "Sure-Seal", "Sure-Flex", "EverGuard", "Sarnafil", "VersiWeld", "VersiGard", "VersiFlex", "TremPly", "FleeceBACK" → use membrane name to determine tpo/pvc/epdm
 - "SOPRALENE", "ELASTOPHENE", "COLPHENE", "COLPLY", "DynaBase", "DynaKap", "DynaPly", "Paradiene", "Paratech", "Parafor", "Veral", "Teranap" → 'sbs'
 - "Armourplast" → 'app' (torch-applied APP)
-- "Parapro", "Paracoat", "AlphaGuard", "TREMproof 6100", "Vulkem", "MasterSeal TC", "BITUTHENE HRA" → 'lam'
+- "Parapro", "Paracoat", "AlphaGuard", "Vulkem", "MasterSeal TC", "Neogard" → 'lam' (conventional, membrane above insulation)
+- "TREMproof 6100" (in IRMA config), "BITUTHENE HRA" (IRMA config), "COLPHENE SP" (IRMA config) → 'lam_irma'
 - "GacoRoofFoam", "GacoFlex" → 'spf'
 - "MM6125", "Hydroflex", "Hydrodrain", "Gardendrain" → 'hydrotech'
 
 Key distinction — conventional vs inverted/buried:
 - CONVENTIONAL (sbs/tpo/pvc/epdm/bur/lam-conventional): insulation is BELOW the membrane, membrane is topmost roofing layer
-- INVERTED/IRMA/BURIED (lam/hydrotech, Teranap-sbs): membrane is at the deck, insulation or overburden is ABOVE the membrane. Identifiable in section drawings by insulation appearing ABOVE the membrane callout.
+- INVERTED/IRMA/BURIED (lam_irma/hydrotech, Teranap-sbs): membrane is at the deck, insulation or overburden is ABOVE the membrane. Identifiable in section drawings by insulation appearing ABOVE the membrane callout. CRITICAL: conventional 'lam' is NOT inverted — it has insulation BELOW the membrane.
 - Hydroflex® = PROTECTION SHEET (not insulation, not membrane) → list in coverBoard and layers
 - Hydrodrain® / Gardendrain® / Enkadrain / Miradrain = DRAINAGE COMPOSITES → layers only (not coverBoard)
 - Parabase FS / Parabase Plus / DynaBase / base sheets = BASE SHEETS → layers (not primary insulation)
@@ -166,6 +168,8 @@ drawingDate: If a title block, stamp, or revision block shows a drawing date or 
 
 drawingRevision: If a title block or revision block shows a revision label or phase designation, extract it (e.g. "95% CD", "100% DD", "Rev 3", "Issued for Construction"). Set to null if not found.
 
+confidence: 0-100 integer — your confidence in the system classification for this assembly. 90+ if you clearly see the system type named on the drawing. 70-89 if you infer from product names or layer stack. 50-69 if uncertain due to limited info. Below 50 if mostly guessing. Include on every assembly.
+
 IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.`;
 
     const controller = new AbortController();
@@ -228,6 +232,7 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       vaporRetarder: z.boolean().nullable().optional(),
       protectionBoard: z.string().nullable().optional(),
       uValue: z.number().nullable().optional(),
+      confidence: z.number().min(0).max(100).nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
       assemblies: z.array(AssemblyItemSchema).default([]),

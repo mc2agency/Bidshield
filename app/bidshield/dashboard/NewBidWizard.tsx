@@ -29,7 +29,8 @@ const SYSTEMS = [
   { id: "bur", label: "Built-Up (BUR)", popular: false },
   { id: "metal", label: "Standing Seam Metal", popular: false },
   { id: "spf", label: "Spray Foam (SPF)", popular: false },
-  { id: "lam", label: "Liquid Applied Membrane (IRMA)", popular: false },
+  { id: "lam", label: "Liquid Applied Membrane", popular: false },
+  { id: "lam_irma", label: "Cold-Fluid IRMA / PMR", popular: false },
   { id: "hydrotech", label: "Hydrotech (IRMA)", popular: false },
   { id: "custom", label: "Custom / Other", popular: false },
 ];
@@ -126,6 +127,8 @@ interface AssemblyInput {
   attachmentMethod?: string;
   layers?: string[];
   sectionValues?: SectionValues;
+  confidence?: number;
+  extractedFromPdf?: boolean;
 }
 
 interface WizardData {
@@ -295,6 +298,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           attachmentMethod: a.attachmentMethod || undefined,
           layers: Array.isArray(a.layers) && a.layers.length > 0 ? a.layers : undefined,
           sectionValues,
+          confidence: typeof a.confidence === "number" ? a.confidence : undefined,
+          extractedFromPdf: true,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }

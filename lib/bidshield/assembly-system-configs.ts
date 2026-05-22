@@ -493,10 +493,47 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     },
   },
 
-  // ── IRMA / Liquid Applied Membrane ───────────────────────────────────────────
+  // ── Liquid Applied Membrane (Conventional) ───────────────────────────────────
   {
     systemId: "lam",
-    label: "Liquid Applied Membrane (IRMA)",
+    label: "Liquid Applied Membrane",
+    category: "Fluid-Applied",
+    icon: "💧",
+    requiredSections: ["deck", "membrane", "drainage", "flashing"],
+    optionalSections: ["vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "protectionBoard", "surfacing", "penetrations", "edgeConditions"],
+    defaultLayerOrder: ["deck", "vaporRetarder", "insulation", "taperedInsulation", "coverBoard", "membrane", "protectionBoard", "surfacing"],
+    validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
+      { sectionId: "membrane", message: "Liquid-applied membrane product not specified.", severity: "error" },
+      { sectionId: "drainage", message: "Drainage not specified — confirm drain type and overflow details.", severity: "warning" },
+    ],
+    scopeTemplate: [
+      "Prepare structural deck and substrate for liquid-applied membrane.",
+      "Install vapor retarder where required.",
+      "Install insulation ({insulation}) and cover board ({coverBoard}).",
+      "Install liquid-applied waterproofing membrane ({membrane}).",
+      "Install flashing, drains, and edge conditions.",
+    ],
+    metadata: {
+      assemblyType: "Conventional liquid-applied — membrane above substrate",
+      membraneExposure: "Exposed",
+      typicalInsulation: "Polyiso, XPS (below membrane)",
+      commonSurfaces: ["Exposed", "Pavers on pedestals", "Traffic coating"],
+      isProtectedMembrane: false,
+      isRecoverable: false,
+      greenRoofCompatible: false,
+      irmaCompatible: false,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: true,
+    },
+  },
+
+  // ── Cold-Fluid IRMA / PMR ─────────────────────────────────────────────────────
+  {
+    systemId: "lam_irma",
+    label: "Cold-Fluid IRMA / PMR",
     category: "Protected Membrane",
     icon: "🔷",
     requiredSections: ["deck", "membrane", "insulation", "drainageMat", "filterFabric", "drainage", "flashing"],
@@ -519,7 +556,7 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
       "Install overflow drains and flashing.",
     ],
     metadata: {
-      assemblyType: "Protected membrane — insulation above membrane",
+      assemblyType: "Protected membrane — insulation above membrane (IRMA/PMR)",
       membraneExposure: "Protected",
       typicalInsulation: "XPS (extruded polystyrene)",
       commonSurfaces: ["Concrete pavers on pedestals", "River ballast", "Green roof", "Concrete paving"],
@@ -889,8 +926,8 @@ interface DeckWarning {
 // Warnings to show when selected deck is incompatible or unusual for a given system
 const DECK_SYSTEM_WARNINGS: Record<string, Record<string, DeckWarning>> = {
   "Steel Deck": {
-    lam: {
-      message: "Liquid-applied IRMA systems are typically installed on concrete decks. Verify structural capacity and specify a primer compatible with steel substrate.",
+    lam_irma: {
+      message: "IRMA/PMR cold-fluid systems are typically installed on concrete decks. Verify structural capacity and specify a primer compatible with steel substrate.",
       severity: "warning",
     },
     hydrotech: {
@@ -904,7 +941,11 @@ const DECK_SYSTEM_WARNINGS: Record<string, Record<string, DeckWarning>> = {
       severity: "warning",
     },
     lam: {
-      message: "Fluid-applied IRMA/PMR systems are not compatible with wood substrates. Verify with manufacturer.",
+      message: "Fluid-applied membrane on wood substrate — verify manufacturer's surface preparation and primer requirements.",
+      severity: "info",
+    },
+    lam_irma: {
+      message: "IRMA/PMR cold-fluid systems are not compatible with wood substrates. Verify with manufacturer.",
       severity: "error",
     },
     hydrotech: {
@@ -929,8 +970,8 @@ const DECK_SYSTEM_WARNINGS: Record<string, Record<string, DeckWarning>> = {
     },
   },
   "Gypsum Deck": {
-    lam: {
-      message: "IRMA/fluid-applied systems are not typical on gypsum decks. Verify structural capacity and manufacturer compatibility.",
+    lam_irma: {
+      message: "IRMA/PMR cold-fluid systems are not typical on gypsum decks. Verify structural capacity and manufacturer compatibility.",
       severity: "warning",
     },
     hydrotech: {
@@ -943,9 +984,13 @@ const DECK_SYSTEM_WARNINGS: Record<string, Record<string, DeckWarning>> = {
       message: "Hot asphalt BUR not recommended on Tectum — verify fire resistance rating and hot asphalt adhesion.",
       severity: "warning",
     },
-    lam: {
-      message: "Fluid-applied waterproofing not typical on Tectum decks. Verify compatibility with manufacturer.",
+    lam_irma: {
+      message: "Cold-fluid IRMA/PMR waterproofing not typical on Tectum decks. Verify compatibility with manufacturer.",
       severity: "warning",
+    },
+    lam: {
+      message: "Fluid-applied membrane on Tectum/Cementwood — verify adhesion compatibility and primer requirements.",
+      severity: "info",
     },
     hydrotech: {
       message: "Hydrotech MM6125 is not designed for Tectum/Cementwood substrates.",
@@ -957,8 +1002,12 @@ const DECK_SYSTEM_WARNINGS: Record<string, Record<string, DeckWarning>> = {
     },
   },
   "Lightweight Concrete": {
+    lam_irma: {
+      message: "Verify that the LWIC substrate meets surface preparation and adhesion requirements for cold-fluid waterproofing.",
+      severity: "info",
+    },
     lam: {
-      message: "Verify that the lightweight concrete substrate meets surface preparation and adhesion requirements for fluid-applied waterproofing.",
+      message: "Verify that the lightweight concrete substrate meets surface preparation requirements for fluid-applied membrane.",
       severity: "info",
     },
     paver_ped: {
@@ -991,7 +1040,7 @@ export const SMART_PRESETS: SmartPreset[] = [
     id: "nyc_irma_plaza",
     label: "NYC IRMA Plaza Deck",
     description: "Cold fluid membrane · 7\" XPS · pedestal pavers",
-    systemId: "lam",
+    systemId: "lam_irma",
     sectionValues: {
       deck: "Concrete Deck",
       membrane: "Cold fluid-applied waterproofing membrane",
@@ -1045,9 +1094,8 @@ export const SMART_PRESETS: SmartPreset[] = [
     sectionValues: {
       deck: "Concrete Deck",
       membrane: "Siplast Parapro® PMMA liquid-applied membrane",
-      protectionBoard: "Pro Base TS + Pro Fleece reinforcement layer",
+      coverBoard: "Pro Base TS + Pro Fleece reinforcement layer",
       insulation: "2\" XPS thermal break where req.",
-      filterFabric: false,
       drainage: "Scupper or floor drain at low point",
       flashing: "PMMA-compatible flashing per manufacturer",
     },
@@ -1153,9 +1201,11 @@ export function mapAIResultToSectionValues(
   },
   systemId: string
 ): SectionValues {
-  const isProtected = ["lam", "hydrotech", "paver_ped", "paver_bal", "concrete", "green"].includes(systemId);
+  const isIrma = ["lam_irma", "hydrotech", "paver_ped", "paver_bal", "concrete", "green"].includes(systemId);
+  const isProtected = isIrma; // alias for readability
   const isBur = systemId === "bur";
   const isVegetated = systemId === "green";
+  const isConventionalLam = systemId === "lam";
 
   const insulation =
     ai.insulationType && ai.insulationThickness
@@ -1169,8 +1219,8 @@ export function mapAIResultToSectionValues(
     deck: deck ?? null,
     insulation: insulation ?? null,
     vaporRetarder: ai.vaporRetarder ?? null,
-    drainageMat: ai.drainageMat ? "Drainage mat" : null,
-    filterFabric: isProtected ? (ai.drainageMat ? true : null) : null,
+    drainageMat: isIrma && ai.drainageMat ? "Drainage mat" : null,
+    filterFabric: isIrma ? (ai.drainageMat ? true : null) : null,
   };
 
   if (isProtected) {
@@ -1185,11 +1235,17 @@ export function mapAIResultToSectionValues(
         : null) ||
       null;
     values.membrane =
-      ai.systemType === "lam"
-        ? "Cold fluid-applied waterproofing membrane"
-        : ai.systemType === "hydrotech"
+      systemId === "lam_irma"
+        ? (ai.layers?.find((l) => /fluid.applied|liquid.applied|waterproofing.*membrane|cold.applied/i.test(l)) || "Cold fluid-applied waterproofing membrane")
+        : systemId === "hydrotech"
         ? "Hydrotech MM6125"
         : null;
+  } else if (isConventionalLam) {
+    values.coverBoard = ai.coverBoard || null;
+    // For conventional lam, extract membrane name from layers if available
+    values.membrane =
+      ai.layers?.find((l) => /PMMA|Parapro|Paracoat|AlphaGuard|Vulkem|MasterSeal|liquid.applied|fluid.applied|waterproofing.*membrane/i.test(l)) ||
+      null;
   } else {
     values.coverBoard = ai.coverBoard || null;
     if (isBur) {
