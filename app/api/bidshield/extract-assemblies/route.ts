@@ -212,6 +212,12 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
     let data: any;
     try {
       data = JSON.parse(cleaned);
+      // Log assembly count to debug skipped assemblies
+      console.log("[extract-assemblies-success]", {
+        assemblyCount: data?.assemblies?.length || 0,
+        labels: data?.assemblies?.map((a: any) => a.label) || [],
+        userId,
+      });
     } catch (parseErr: any) {
       console.error("[extract-assemblies-parse-error]", {
         rawResponse: cleaned?.substring(0, 500),
