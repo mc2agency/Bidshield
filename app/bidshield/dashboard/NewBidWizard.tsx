@@ -131,6 +131,13 @@ interface AssemblyInput {
   sectionValues?: SectionValues;
   confidence?: number;
   extractedFromPdf?: boolean;
+  // ── Archetype metadata (Phase 4B/5A) — read-only, from extract-assemblies route ──
+  archetypeId?: string;
+  archetypeResolutionSource?: "explicit" | "mapped" | "fallback";
+  archetypeNeedsReview?: boolean;
+  archetypeFallbackReason?: string;
+  legacySystemType?: string;
+  legacySystemId?: string;
 }
 
 interface WizardData {
@@ -352,6 +359,13 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           sectionValues,
           confidence: typeof a.confidence === "number" ? a.confidence : undefined,
           extractedFromPdf: true,
+          // Archetype metadata from route — pass through as-is, read-only
+          archetypeId: a.archetypeId || undefined,
+          archetypeResolutionSource: a.archetypeResolutionSource || undefined,
+          archetypeNeedsReview: a.archetypeNeedsReview === true,
+          archetypeFallbackReason: a.archetypeFallbackReason || undefined,
+          legacySystemType: a.legacySystemType || undefined,
+          legacySystemId: a.legacySystemId || undefined,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
@@ -621,10 +635,38 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                   </div>
                   <div className="space-y-1 mb-3">
                     {pdfResults.map((r, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs px-2 py-1 rounded" style={{ background: "var(--bs-bg-card)" }}>
-                        <span className="font-bold" style={{ color: "var(--bs-text-primary)", minWidth: 40 }}>{r.label}</span>
-                        <span style={{ color: "var(--bs-text-secondary)" }}>{SYSTEMS.find(s => s.id === r.systemType)?.label || r.systemType}</span>
-                        {r.area && <span className="ml-auto font-medium" style={{ color: "var(--bs-teal)" }}>{r.area.toLocaleString()} SF</span>}
+                      <div key={i} className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2 text-xs px-2 py-1 rounded" style={{ background: "var(--bs-bg-card)" }}>
+                          <span className="font-bold" style={{ color: "var(--bs-text-primary)", minWidth: 40 }}>{r.label}</span>
+                          <span style={{ color: "var(--bs-text-secondary)" }}>{SYSTEMS.find(s => s.id === r.systemType)?.label || r.systemType}</span>
+                          {r.area && <span className="ml-auto font-medium" style={{ color: "var(--bs-teal)" }}>{r.area.toLocaleString()} SF</span>}
+                        </div>
+                        {/* Archetype metadata — read-only, Phase 5A */}
+                        {r.archetypeId && (
+                          <div className="flex flex-wrap items-center gap-1.5 px-2 pb-1">
+                            {r.archetypeNeedsReview ? (
+                              <span
+                                className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium"
+                                style={{ background: "var(--bs-red-dim, rgba(239,68,68,0.1))", color: "var(--bs-red, #ef4444)", border: "1px solid var(--bs-red-border, rgba(239,68,68,0.25))" }}
+                                title={r.archetypeFallbackReason}
+                              >
+                                ⚠ Assembly archetype needs review
+                              </span>
+                            ) : (
+                              <span
+                                className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium"
+                                style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
+                              >
+                                ✓ {r.archetypeId.replace(/_/g, " ")}
+                              </span>
+                            )}
+                            {r.archetypeResolutionSource === "fallback" && (
+                              <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>
+                                Unknown or unmapped system — classified as custom for review
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
