@@ -179,7 +179,10 @@ drawingDate: If a title block, stamp, or revision block shows a drawing date or 
 
 drawingRevision: If a title block or revision block shows a revision label or phase designation, extract it (e.g. "95% CD", "100% DD", "Rev 3", "Issued for Construction"). Set to null if not found.
 
-IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.`;
+IMPORTANT: 
+- If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.
+- If the drawing shows multiple assembly DETAILS (sectional drawings with callout labels like "ROOF 01", "ROOF 02", "ROOF 03"), extract EVERY detail as a separate assembly. Process the ENTIRE drawing from top to bottom.
+- Extract ALL assemblies visible on the page, regardless of layout (schedule, details, or mixed). Do not stop early.`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60_000);
