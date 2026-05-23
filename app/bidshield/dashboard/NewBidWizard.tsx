@@ -631,6 +631,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
+                        console.log("[NewBidWizard] Use These clicked, current step:", step, "pdfResults count:", pdfResults.length);
                         setAssemblies(pdfResults);
                         // Pre-expand layer stacks for all assemblies that have layers
                         setExpandedLayers(new Set(pdfResults.map((_, i) => i).filter(i => (pdfResults[i].layers?.length ?? 0) > 0)));
@@ -642,14 +643,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         if (totalArea > 0 && !sqft) setSqft(String(Math.round(totalArea)));
                         setPdfMode("link");
                         setPdfResults([]);
+                        console.log("[NewBidWizard] About to setStep(2)");
                         setStep(2); // Jump straight to assembly builder to review
+                        console.log("[NewBidWizard] setStep(2) called");
                       }}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                       style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
                     >
                       Use These &amp; Review Assemblies
                     </button>
-                    <button onClick={() => { setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
+                    <button onClick={() => { console.log("[NewBidWizard] Try Again clicked"); setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
                   </div>
                 </div>
               )}
