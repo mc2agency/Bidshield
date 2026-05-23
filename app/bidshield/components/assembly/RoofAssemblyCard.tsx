@@ -124,6 +124,11 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
       className="rounded-xl overflow-hidden"
       style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}
     >
+      {/* DEBUG — remove after V2 wiring confirmed */}
+      <div style={{ padding: "2px 8px", background: "#7f1d1d", borderRadius: "4px 4px 0 0", fontSize: 10, fontWeight: 700, color: "#fca5a5", letterSpacing: "0.08em", textAlign: "center" }}>
+        LEGACY CARD
+      </div>
+
       {/* Header */}
       <div
         className="flex items-center gap-2 px-4 py-3"

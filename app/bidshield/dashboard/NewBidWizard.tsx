@@ -5,6 +5,89 @@ import { INSULATION_TYPES, SURFACE_TYPES, THICKNESS_PRESETS, computeInsulationRV
 import { mapAIResultToSectionValues, classifyAssemblySystem, normalizeAssemblySignals, SectionValues } from "@/lib/bidshield/assembly-system-configs";
 import { RoofSystemSelector } from "@/app/bidshield/components/assembly/RoofSystemSelector";
 import { RoofAssemblyCard } from "@/app/bidshield/components/assembly/RoofAssemblyCard";
+import { SECTION_DEFS } from "@/lib/bidshield/assembly-system-configs";
+
+// ─── V2 inline types ──────────────────────────────────────────────────────────
+
+interface V2Item {
+  drawingAssemblyId: string;
+  displayName?: string | null;
+  archetypeId: string;
+  confidence: number;
+  needsReview: boolean;
+  extractedLayers: string[];
+  requiredSectionsSnapshot: string[];
+  optionalSectionsSnapshot: string[];
+  hiddenSectionsSnapshot: string[];
+  sectionValues: Record<string, string | boolean | undefined>;
+}
+
+// ─── V2InlineCard ─────────────────────────────────────────────────────────────
+// Renders a V2 extraction item from snapshots. No legacy imports.
+// Shown in the wizard preview step instead of RoofAssemblyCard.
+
+function V2InlineCard({ item }: { item: V2Item }) {
+  const archLabel = item.archetypeId
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+  const heading = item.displayName
+    ? `${item.drawingAssemblyId} — ${item.displayName}`
+    : item.drawingAssemblyId;
+  return (
+    <div
+      style={{
+        background: "var(--bs-bg-card, #1a202c)",
+        border: "1.5px solid var(--bs-border, #2d3748)",
+        borderRadius: 8,
+        padding: "14px 18px",
+        marginBottom: 10,
+      }}
+    >
+      {/* DEBUG badge */}
+      <div style={{ padding: "2px 8px", marginBottom: 8, background: "#14532d", borderRadius: 4, fontSize: 10, fontWeight: 700, color: "#4ade80", letterSpacing: "0.08em", textAlign: "center" }}>
+        V2 SNAPSHOT CARD
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary, #e2e8f0)", textTransform: "uppercase", marginBottom: 4 }}>
+        {heading}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <span style={{
+          padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 600,
+          background: item.needsReview ? "rgba(239,68,68,0.15)" : "rgba(45,212,191,0.12)",
+          color: item.needsReview ? "#ef4444" : "var(--bs-teal, #2dd4bf)",
+          border: `1px solid ${item.needsReview ? "rgba(239,68,68,0.3)" : "rgba(45,212,191,0.3)"}`,
+        }}>
+          {item.needsReview ? `⚠ needs review — ${archLabel}` : `✔ ${archLabel}`}
+        </span>
+        <span style={{ fontSize: 11, color: "var(--bs-text-dim, #718096)" }}>
+          {Math.round(item.confidence * 100)}%
+        </span>
+      </div>
+      {item.requiredSectionsSnapshot.length > 0 && (
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--bs-teal, #2dd4bf)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>
+            Sections
+          </div>
+          {item.requiredSectionsSnapshot.map((id) => {
+            const def = SECTION_DEFS[id as keyof typeof SECTION_DEFS];
+            return def ? (
+              <div key={id} style={{ fontSize: 11, color: "var(--bs-text-secondary, #a0aec0)", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <span style={{ color: "var(--bs-teal, #2dd4bf)", marginRight: 4 }}>•</span>
+                {def.label}
+              </div>
+            ) : null;
+          })}
+        </div>
+      )}
+      {item.needsReview && item.extractedLayers.length === 0 && (
+        <div style={{ marginTop: 6, fontSize: 11, color: "#ef4444", fontStyle: "italic" }}>
+          No layers extracted — needs manual review
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Project types that determine what BidShield pre-configures ──
 const PROJECT_TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -217,6 +300,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [pdfError, setPdfError] = useState("");
   const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
   const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string; drawingDate?: string; drawingRevision?: string }>({});
+  // V2 extraction items — populated when V2 route succeeds, replaces pdfResults for display
+  const [v2Items, setV2Items] = useState<V2Item[]>([]);
   const [expandedLayers, setExpandedLayers] = useState<Set<number>>(new Set());
   // Takeoff schedule upload state
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
@@ -251,6 +336,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
     if (file.type !== "application/pdf") { setPdfError("Please select a PDF file."); setPdfMode("error"); return; }
     setPdfMode("loading");
     setPdfError("");
+    setV2Items([]);
     try {
       const buf = await file.arrayBuffer();
       const bytes = new Uint8Array(buf);
@@ -265,6 +351,56 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         reader.onerror = () => reject(new Error("FileReader failed"));
         reader.readAsDataURL(new Blob([bytes], { type: "application/pdf" }));
       });
+
+      // ── Try V2 route first ────────────────────────────────────────────────
+      // V2 returns archetypeId + requiredSectionsSnapshot — no legacy system config needed.
+      // projectId is omitted here (wizard runs before project creation) — V2 route
+      // skips Convex persistence when projectId is absent.
+      let v2Ok = false;
+      try {
+        const v2Res = await fetch("/api/bidshield/v2/extract-assemblies-v2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pdfBase64: base64, fileName: file.name }),
+        });
+        if (v2Res.ok) {
+          const v2Data = await v2Res.json();
+          const v2Mapped: V2Item[] = (v2Data.items || []).map((item: any) => ({
+            drawingAssemblyId: item.drawingAssemblyId ?? "",
+            displayName: item.displayName ?? null,
+            archetypeId: item.archetypeId ?? "custom",
+            confidence: typeof item.confidence === "number" ? item.confidence : 0,
+            needsReview: item.needsReview === true,
+            extractedLayers: Array.isArray(item.layers) ? item.layers : [],
+            requiredSectionsSnapshot: Array.isArray(item.requiredSectionsSnapshot) ? item.requiredSectionsSnapshot : [],
+            optionalSectionsSnapshot: Array.isArray(item.optionalSectionsSnapshot) ? item.optionalSectionsSnapshot : [],
+            hiddenSectionsSnapshot: Array.isArray(item.hiddenSectionsSnapshot) ? item.hiddenSectionsSnapshot : [],
+            sectionValues: {},
+          }));
+          if (v2Mapped.length > 0) {
+            setV2Items(v2Mapped);
+            // Also populate legacy assemblies from V2 for wizard submit (backwards compat)
+            const v2AsSystems = Array.from(new Set(v2Mapped.map((i) => i.archetypeId).filter(Boolean)));
+            if (v2AsSystems.length > 0) setSystems(v2AsSystems);
+            if (v2Data.deckType) setDeck(v2Data.deckType);
+            const meta: typeof pdfMeta = {};
+            if (v2Data.deckType) meta.deckType = v2Data.deckType;
+            if (v2Data.projectName) meta.projectName = v2Data.projectName;
+            if (v2Data.location) meta.location = v2Data.location;
+            if (v2Data.drawingDate) meta.drawingDate = v2Data.drawingDate;
+            if (v2Data.drawingRevision) meta.drawingRevision = v2Data.drawingRevision;
+            setPdfMeta(meta);
+            setPdfMode("preview");
+            v2Ok = true;
+          }
+        }
+      } catch (_v2Err) {
+        // V2 failed — fall through to legacy route below
+      }
+
+      if (v2Ok) return;
+
+      // ── Legacy fallback ───────────────────────────────────────────────────
       const res = await fetch("/api/bidshield/extract-assemblies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -627,7 +763,39 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                 </div>
               )}
 
-              {pdfMode === "preview" && pdfResults.length > 0 && (
+              {/* ── V2 preview (new path) ── */}
+              {pdfMode === "preview" && v2Items.length > 0 && (
+                <div className="mb-5 rounded-xl p-4" style={{ border: "1px solid var(--bs-teal-border)", background: "var(--bs-teal-dim)" }}>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--bs-teal)" }}>
+                    V2 Extraction — {v2Items.length} assembl{v2Items.length === 1 ? "y" : "ies"} detected
+                    {pdfMeta.deckType && <span className="normal-case"> · {DECKS.find(d => d.id === pdfMeta.deckType)?.label || pdfMeta.deckType} deck</span>}
+                  </div>
+                  <div className="mb-3">
+                    {v2Items.map((item, i) => (
+                      <V2InlineCard key={i} item={item} />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
+                        if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+                        if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
+                        if (pdfMeta.drawingRevision && !drawingRevision) setDrawingRevision(pdfMeta.drawingRevision);
+                        setPdfMode("link");
+                      }}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+                      style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
+                    >
+                      Use These Assemblies
+                    </button>
+                    <button onClick={() => { setV2Items([]); setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Legacy preview fallback (shown only when V2 not available) ── */}
+              {pdfMode === "preview" && v2Items.length === 0 && pdfResults.length > 0 && (
                 <div className="mb-5 rounded-xl p-4" style={{ border: "1px solid var(--bs-teal-border)", background: "var(--bs-teal-dim)" }}>
                   <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-teal)" }}>
                     Detected {pdfResults.length} assembl{pdfResults.length === 1 ? "y" : "ies"}
@@ -641,41 +809,13 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                           <span style={{ color: "var(--bs-text-secondary)" }}>{SYSTEMS.find(s => s.id === r.systemType)?.label || r.systemType}</span>
                           {r.area && <span className="ml-auto font-medium" style={{ color: "var(--bs-teal)" }}>{r.area.toLocaleString()} SF</span>}
                         </div>
-                        {/* Archetype metadata — read-only, Phase 5A */}
-                        {r.archetypeId && (
-                          <div className="flex flex-wrap items-center gap-1.5 px-2 pb-1">
-                            {r.archetypeNeedsReview ? (
-                              <span
-                                className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium"
-                                style={{ background: "var(--bs-red-dim, rgba(239,68,68,0.1))", color: "var(--bs-red, #ef4444)", border: "1px solid var(--bs-red-border, rgba(239,68,68,0.25))" }}
-                                title={r.archetypeFallbackReason}
-                              >
-                                ⚠ Assembly archetype needs review
-                              </span>
-                            ) : (
-                              <span
-                                className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium"
-                                style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
-                              >
-                                ✓ {r.archetypeId.replace(/_/g, " ")}
-                              </span>
-                            )}
-                            {r.archetypeResolutionSource === "fallback" && (
-                              <span className="text-xs" style={{ color: "var(--bs-text-dim)" }}>
-                                Unknown or unmapped system — classified as custom for review
-                              </span>
-                            )}
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
-                        console.log("[NewBidWizard] Use These clicked, current step:", step, "pdfResults count:", pdfResults.length);
                         setAssemblies(pdfResults);
-                        // Pre-expand layer stacks for all assemblies that have layers
                         setExpandedLayers(new Set(pdfResults.map((_, i) => i).filter(i => (pdfResults[i].layers?.length ?? 0) > 0)));
                         if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
                         if (pdfMeta.location && !location) setLocation(pdfMeta.location);
@@ -685,16 +825,14 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         if (totalArea > 0 && !sqft) setSqft(String(Math.round(totalArea)));
                         setPdfMode("link");
                         setPdfResults([]);
-                        console.log("[NewBidWizard] About to setStep(2)");
-                        setStep(2); // Jump straight to assembly builder to review
-                        console.log("[NewBidWizard] setStep(2) called");
+                        setStep(2);
                       }}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                       style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
                     >
                       Use These &amp; Review Assemblies
                     </button>
-                    <button onClick={() => { console.log("[NewBidWizard] Try Again clicked"); setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
+                    <button onClick={() => { setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
                   </div>
                 </div>
               )}

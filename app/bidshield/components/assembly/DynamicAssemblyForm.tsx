@@ -56,6 +56,10 @@ export function DynamicAssemblyForm({ systemConfig, sectionValues, onChange, war
 
   return (
     <div>
+      {/* DEBUG — remove after V2 wiring confirmed */}
+      <div style={{ padding: "2px 8px", marginBottom: 4, background: "#7f1d1d", borderRadius: 4, fontSize: 10, fontWeight: 700, color: "#fca5a5", letterSpacing: "0.08em", textAlign: "center" }}>
+        LEGACY FORM
+      </div>
       <div
         className="rounded-lg divide-y overflow-hidden"
         style={{ border: "1px solid var(--bs-border)" } as React.CSSProperties}

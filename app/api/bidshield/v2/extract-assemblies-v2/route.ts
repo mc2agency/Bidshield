@@ -227,9 +227,9 @@ export async function POST(req: NextRequest) {
     if (!validatePdfBase64(pdfBase64)) {
       return NextResponse.json({ error: "File must be a PDF" }, { status: 415 });
     }
-    if (!projectId) {
-      return NextResponse.json({ error: "projectId is required" }, { status: 400 });
-    }
+    // projectId is optional — when absent, skip Convex persistence and return
+    // extracted items in-memory only. Used by wizard (project not yet created).
+    const persistToConvex = !!projectId;
 
     // ── 1. Call Claude with V2 prompt ────────────────────────────────────────
     const controller = new AbortController();
@@ -323,8 +323,8 @@ export async function POST(req: NextRequest) {
 
     // Merge both sources
     const expectedLabels = new Set<string>([
-      ...labelsFromAiList,
-      ...labelsFromRegex,
+      ...Array.from(labelsFromAiList),
+      ...Array.from(labelsFromRegex),
     ]);
 
     // Labels already present in the extracted assemblies array
@@ -335,7 +335,7 @@ export async function POST(req: NextRequest) {
     );
 
     const missingLabels: string[] = [];
-    for (const label of expectedLabels) {
+    for (const label of Array.from(expectedLabels)) {
       if (!labelsInJson.has(label)) {
         missingLabels.push(label);
       }

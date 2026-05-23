@@ -210,6 +210,11 @@ function V2ReviewAssemblyCard({
         transition: "border-color 0.2s, opacity 0.2s",
       }}
     >
+      {/* DEBUG badge — confirms this is the V2 snapshot card, not the legacy card */}
+      <div style={{ padding: "2px 8px", marginBottom: 8, background: "#14532d", borderRadius: 4, fontSize: 10, fontWeight: 700, color: "#4ade80", letterSpacing: "0.08em", textAlign: "center" }}>
+        V2 SNAPSHOT CARD
+      </div>
+
       {/* Assembly ID + display name */}
       <div
         style={{
