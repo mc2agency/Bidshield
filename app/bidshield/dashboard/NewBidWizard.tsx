@@ -126,9 +126,14 @@ interface AssemblyInput {
   uValue?: number;
   attachmentMethod?: string;
   layers?: string[];
+  drainageMat?: boolean | null;
+  filterFabric?: boolean | null;
   sectionValues?: SectionValues;
   confidence?: number;
   extractedFromPdf?: boolean;
+  classificationAudit?: import("@/lib/bidshield/assembly-system-configs").ClassificationAudit;
+  thermalAudit?: import("@/lib/bidshield/assembly-system-configs").ThermalAudit;
+  rawExtraction?: import("@/lib/bidshield/assembly-system-configs").RawExtraction;
 }
 
 interface WizardData {
@@ -264,42 +269,41 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       const data = await res.json();
       if (!res.ok || data.error) { setPdfError(data.error || "Extraction failed"); setPdfMode("error"); return; }
       const mapped: AssemblyInput[] = (data.assemblies || []).map((a: any) => {
-        const insulationType = a.insulation || a.insulationType || "";
-        const insulationThickness = a.thickness?.replace(/"/g, "") || "";
-        const extractedRValue = typeof a.rValue === "number" ? a.rValue : undefined;
-        const computedRValue = !extractedRValue && insulationType && insulationThickness
-          ? computeInsulationRValue(insulationType, parseFloat(insulationThickness))
-          : undefined;
-        const systemId = a.system || a.systemType || "";
-        // Build section values from AI extraction
-        const sectionValues = mapAIResultToSectionValues({
-          systemType: systemId,
-          insulationType,
-          insulationThickness,
-          surfaceType: a.surface || a.surfaceType || "",
-          coverBoard: a.coverBoard || undefined,
-          drainageMat: a.drainageMat ?? false,
-          vaporRetarder: a.vaporRetarder ?? false,
-          protectionBoard: a.protectionBoard || undefined,
-          layers: Array.isArray(a.layers) ? a.layers : [],
-          deckType: a.deckType || data.deckType || undefined,
-        }, systemId);
+        const rawLayers: string[] = Array.isArray(a.layers) && a.layers.length > 0 ? a.layers : [];
+        // Canonical classification — layer signals beat AI system hint
+        const sectionResult = mapAIResultToSectionValues({
+          system: a.system || null,
+          insulation: a.insulation || a.insulationType || null,
+          thickness: a.thickness?.replace(/"/g, "") || null,
+          rValue: typeof a.rValue === "number" ? a.rValue : null,
+          surface: a.surface || a.surfaceType || null,
+          drainageMat: a.drainageMat ?? null,
+          filterFabric: a.filterFabric ?? null,
+          layers: rawLayers.length > 0 ? rawLayers : null,
+          deckType: a.deckType || data.deckType || null,
+          name: a.name || null,
+        });
         return {
           label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "00")}`,
           name: a.name || undefined,
-          systemType: systemId,
-          insulationType,
-          insulationThickness,
-          rValue: extractedRValue ?? computedRValue,
+          systemType: sectionResult.assemblySystem,          // classified result, not raw AI system
+          insulationType: sectionResult.insulationType || undefined,
+          insulationThickness: sectionResult.insulationThickness || undefined,
+          rValue: sectionResult.rValue ?? undefined,
           surfaceType: a.surface || a.surfaceType || "",
           coverBoard: a.coverBoard || undefined,
           area: typeof a.area === "number" ? a.area : undefined,
           uValue: typeof a.uValue === "number" ? a.uValue : undefined,
           attachmentMethod: a.attachmentMethod || undefined,
-          layers: Array.isArray(a.layers) && a.layers.length > 0 ? a.layers : undefined,
-          sectionValues,
+          layers: rawLayers.length > 0 ? rawLayers : undefined,
+          drainageMat: a.drainageMat ?? null,
+          filterFabric: a.filterFabric ?? null,
+          sectionValues: undefined,                           // not used — systemType drives UI config
           confidence: typeof a.confidence === "number" ? a.confidence : undefined,
           extractedFromPdf: true,
+          classificationAudit: sectionResult.classificationAudit,
+          thermalAudit: sectionResult.thermalAudit,
+          rawExtraction: sectionResult.rawExtraction,
         };
       });
       if (mapped.length === 0) { setPdfError("No assemblies found in this PDF."); setPdfMode("error"); return; }
@@ -935,14 +939,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       label: a.label,
                       name: a.name || undefined,
                       systemType: a.systemType,
-                      insulationType: a.insulationType || "",
-                      insulationThickness: a.insulationThickness || "",
+                      insulationType: a.insulationType || undefined,
+                      insulationThickness: a.insulationThickness || undefined,
                       rValue: a.rValue ?? undefined,
-                      surfaceType: a.surfaceType || "",
+                      surfaceType: a.surfaceType || undefined,
                       area: a.area ?? undefined,
                       uValue: a.uValue ?? undefined,
                       attachmentMethod: a.attachmentMethod ?? undefined,
                       layers: a.layers && a.layers.length > 0 ? a.layers : undefined,
+                      drainageMat: typeof a.drainageMat === "boolean" ? a.drainageMat : undefined,
+                      filterFabric: typeof a.filterFabric === "boolean" ? a.filterFabric : undefined,
                     }))
                   : undefined,
                 systemDescription: aiDescription || undefined,

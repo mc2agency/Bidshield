@@ -155,6 +155,7 @@ export default defineSchema({
       vaporRetarder: v.optional(v.boolean()),
       protectionBoard: v.optional(v.string()),
       drainageMat: v.optional(v.boolean()),
+      filterFabric: v.optional(v.boolean()),
       coverBoard: v.optional(v.string()),
       layers: v.optional(v.array(v.string())), // AI-extracted layer stack from deck to top
       aiDescription: v.optional(v.string()),   // per-assembly AI layer description

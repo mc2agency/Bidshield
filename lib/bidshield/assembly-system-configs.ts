@@ -4,12 +4,15 @@
  * Provides:
  *  - INSULATION_CODE_LABELS  — human-readable labels for insulation type codes
  *  - formatInsulationLabel   — normalised display string for an assembly's insulation
- *  - classifyAssemblySystem  — deterministic LAM vs LAM_IRMA classification
+ *  - classifyAssemblySystem  — membrane-type + IRMA-flag classifier (sbs_irma, app_irma, etc.)
+ *  - buildClassificationAudit — conflict detection between AI hint and detected system
  *  - validateAssembly        — overloaded: new ({system,...})→ValidationIssue[] and old (config,values)→ValidationResult[]
- *  - mapAIResultToSectionValues — overloaded: new (AIAssemblyResult)→AssemblySectionValues and old (ai,systemId)→SectionValues
+ *  - mapAIResultToSectionValues — canonical mapper (AIAssemblyResult)→AssemblySectionValues (no legacy path)
  *  - generateLayerStack, generateScope, getSystemConfig, getSystemBadges, getDeckCompatibilityWarning
- *  — All legacy Phase 2 types and configs (SectionId, RoofSystemConfig, ROOF_SYSTEM_CONFIGS, etc.)
+ *  — All Phase 2 types and configs (SectionId, RoofSystemConfig, ROOF_SYSTEM_CONFIGS, etc.)
  */
+
+import { computeInsulationRValue } from "@/lib/bidshield/insulation-data";
 
 // ─── Insulation label lookup ───────────────────────────────────────────────────
 
@@ -57,37 +60,116 @@ export function formatInsulationLabel(
 
 // ─── Assembly classification ───────────────────────────────────────────────────
 
-export type AssemblySystem = "lam" | "lam_irma";
+export type AssemblySystem =
+  | "lam" | "lam_irma"
+  | "sbs" | "sbs_irma" | "sbs_irma_green"
+  | "app" | "app_irma"
+  | "tpo" | "pvc" | "epdm" | "bur" | "metal" | "spf" | "hydrotech";
 
 export interface AssemblyClassificationInput {
-  /** Raw OCR / source text for the assembly (may include detail notes) */
   ocrText?: string;
-  /** True only when drainage mat is explicitly labeled / leader-lined in the drawing */
+  /** AI-extracted ordered layer descriptions (deck → top) */
+  layers?: string[] | null;
   drainageMat?: boolean | null;
-  /** True only when filter fabric is explicitly labeled / leader-lined in the drawing */
   filterFabric?: boolean | null;
+  surface?: string | null;
+  /** AI's system hint — used as tiebreaker only, never overrides layer signals */
+  aiSystem?: string | null;
+  drawingTitle?: string | null;
 }
 
-const IRMA_KEYWORDS = /\b(IRMA|PMR|inverted[\s-]roof|protected[\s-]membrane)\b/i;
+export interface ClassificationAudit {
+  titleSystem?: string;
+  detectedSystem?: string;
+  conflict?: boolean;
+  reason?: string;
+}
+
+export interface ThermalAudit {
+  insulationType?: string | null;
+  thickness?: string | null;
+  extractedR?: number | null;
+  calculatedR?: number | null;
+  conflict?: boolean;
+}
+
+export interface RawExtraction {
+  sourceSystem?: string | null;
+  drainageMat?: boolean | null;
+  filterFabric?: boolean | null;
+  layers?: string[] | null;
+  aiDescription?: string | null;
+}
+
+// Signal patterns — layer text is authoritative over assembly titles (domain rule)
+const SBS_SIGNALS = /modified.?bitumen|base.?ply|finish.?ply|\bSBS\b/i;
+const APP_SIGNALS = /\bAPP\b|torch.?applied/i;
+const IRMA_SIGNALS =
+  /\b(IRMA|PMR|inverted[\s-]roof|protected[\s-]membrane|drainage.?mat|filter.?fabric|pedestal|paver)\b/i;
+const GREEN_SIGNALS = /green.?roof|vegetation|sedum|tray|planted/i;
+
+// Kept for test backward compatibility
+const IRMA_KEYWORDS = IRMA_SIGNALS;
 
 /**
- * Classify a liquid-applied assembly as lam or lam_irma.
+ * Classify an assembly from its layer stack signals and explicit flags.
  *
- * Rules (in priority order):
- *  1. If drainageMat===true OR filterFabric===true  → lam_irma
- *  2. If ocrText matches IRMA keywords              → lam_irma
- *  3. Otherwise                                     → lam (conventional)
+ * Priority (domain rule — layers beat title):
+ *  SBS + IRMA + green → sbs_irma_green
+ *  SBS + IRMA          → sbs_irma
+ *  APP + IRMA          → app_irma
+ *  SBS only            → sbs
+ *  APP only            → app
+ *  IRMA only           → lam_irma
+ *  else                → aiSystem hint or lam
  */
-export function classifyAssemblySystem(
-  input: AssemblyClassificationInput,
-): AssemblySystem {
-  const { drainageMat, filterFabric, ocrText } = input;
+export function classifyAssemblySystem(input: AssemblyClassificationInput): AssemblySystem {
+  const { drainageMat, filterFabric, ocrText, layers, surface, aiSystem } = input;
 
-  if (drainageMat === true) return "lam_irma";
-  if (filterFabric === true) return "lam_irma";
-  if (ocrText && IRMA_KEYWORDS.test(ocrText)) return "lam_irma";
+  const allText = [ocrText, ...(layers ?? [])].filter(Boolean).join(" ");
 
+  const irmaFlag = drainageMat === true || filterFabric === true;
+
+  const hasSbs = SBS_SIGNALS.test(allText);
+  const hasApp = APP_SIGNALS.test(allText);
+  const hasIrma = irmaFlag || (allText.length > 0 && IRMA_SIGNALS.test(allText));
+  const hasGreen = GREEN_SIGNALS.test(allText) || surface === "green_roof";
+
+  if (hasSbs && hasIrma && hasGreen) return "sbs_irma_green";
+  if (hasSbs && hasIrma) return "sbs_irma";
+  if (hasApp && hasIrma) return "app_irma";
+  if (hasSbs) return "sbs";
+  if (hasApp) return "app";
+
+  // No modified-bitumen signals — use aiSystem hint for single-ply / BUR
+  const ai = aiSystem?.toLowerCase();
+  if (ai && ["tpo", "pvc", "epdm", "bur", "metal", "spf", "hydrotech"].includes(ai)) {
+    if (hasIrma) return "lam_irma";
+    return ai as AssemblySystem;
+  }
+
+  if (hasIrma) return "lam_irma";
   return "lam";
+}
+
+/** Compare AI hint vs detected result and surface any conflict. */
+export function buildClassificationAudit(
+  input: AssemblyClassificationInput,
+  detectedSystem: AssemblySystem,
+): ClassificationAudit {
+  const ai = input.aiSystem?.toLowerCase();
+  if (!ai || ai === detectedSystem) return { detectedSystem };
+  if (ai === "lam") return { detectedSystem }; // "lam" is ambiguous — not a conflict signal
+
+  const detectedBase = detectedSystem.replace(/_irma.*$/, "").replace(/_green$/, "");
+  if (ai === detectedBase) return { detectedSystem }; // same base type, different variant
+
+  return {
+    titleSystem: ai,
+    detectedSystem,
+    conflict: true,
+    reason: `AI/title suggests '${ai}' but layer stack indicates '${detectedSystem}'`,
+  };
 }
 
 // ─── New validation types ──────────────────────────────────────────────────────
@@ -116,24 +198,23 @@ export interface AIAssemblyResult {
   deckType?: string | null;
   drainageMat?: boolean | null;
   filterFabric?: boolean | null;
+  /** Ordered layer stack extracted by AI (deck → top) */
+  layers?: string[] | null;
 }
 
 /**
- * Normalised values ready for UI section population (new classification API).
+ * Normalised values ready for UI section population.
  */
 export interface AssemblySectionValues {
-  /** "lam" or "lam_irma" */
   assemblySystem: AssemblySystem;
-  /** Formatted insulation label e.g. '7" Rigid Insulation (R-35)' */
   insulationLabel: string | null;
-  /** Raw type code e.g. "xps", "rigid" */
   insulationType: string | null;
-  /** Raw thickness string e.g. "7" */
   insulationThickness: string | null;
-  /** Numeric R-value if present */
   rValue: number | null;
-  /** Intake-stage validation issues */
   validationIssues: ValidationIssue[];
+  classificationAudit: ClassificationAudit;
+  thermalAudit: ThermalAudit;
+  rawExtraction: RawExtraction;
 }
 
 // ─── Phase 2 types: SectionId, SectionDef, SectionValues ─────────────────────
@@ -982,6 +1063,134 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     },
   },
 
+  // ── SBS IRMA / PMR ───────────────────────────────────────────────────────────
+  {
+    systemId: "sbs_irma",
+    label: "SBS Mod-Bit IRMA / PMR",
+    category: "Protected Membrane",
+    icon: "🟫",
+    requiredSections: ["deck", "membrane", "insulation", "drainageMat", "filterFabric", "drainage", "flashing"],
+    optionalSections: ["vaporRetarder", "protectionBoard", "pedestals", "ballast", "ballastRestraint", "penetrations", "edgeConditions"],
+    defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "ballast", "pedestals"],
+    validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
+      { sectionId: "membrane", message: "SBS modified bitumen membrane not specified.", severity: "error" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA/PMR assembly.", severity: "error" },
+      { sectionId: "insulation", message: "Insulation above membrane not specified — required for IRMA.", severity: "error" },
+      { sectionId: "filterFabric", message: "Filter fabric should be installed above insulation in IRMA assemblies.", severity: "warning" },
+    ],
+    scopeTemplate: [
+      "Apply primer and install SBS modified bitumen base ply over structural deck.",
+      "Install SBS modified bitumen finish ply.",
+      "Install protection board ({protectionBoard}) above membrane.",
+      "Install drainage mat ({drainageMat}) above membrane assembly.",
+      "Install XPS insulation ({insulation}) above membrane.",
+      "Install filter fabric above insulation.",
+      "Install surface overburden (pavers / ballast).",
+      "Install overflow drains and flashing.",
+    ],
+    metadata: {
+      assemblyType: "Protected membrane — SBS modified bitumen IRMA/PMR",
+      membraneExposure: "Protected",
+      typicalInsulation: "XPS (extruded polystyrene)",
+      commonSurfaces: ["Concrete pavers on pedestals", "Roofblok pavers", "River ballast"],
+      isProtectedMembrane: true,
+      isRecoverable: true,
+      greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: true,
+    },
+  },
+
+  // ── SBS IRMA Green Roof ───────────────────────────────────────────────────────
+  {
+    systemId: "sbs_irma_green",
+    label: "SBS Mod-Bit IRMA Green Roof",
+    category: "Protected Membrane",
+    icon: "🌿",
+    requiredSections: ["deck", "membrane", "insulation", "drainageMat", "filterFabric", "rootBarrier", "drainageLayer", "growingMedia", "greenRoof", "drainage", "flashing"],
+    optionalSections: ["vaporRetarder", "protectionBoard", "irrigation", "penetrations", "edgeConditions"],
+    defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "rootBarrier", "drainageMat", "insulation", "filterFabric", "drainageLayer", "growingMedia", "greenRoof"],
+    validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
+      { sectionId: "membrane", message: "SBS modified bitumen membrane not specified.", severity: "error" },
+      { sectionId: "rootBarrier", message: "Root barrier required for vegetated assemblies.", severity: "error" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA green roof assembly.", severity: "error" },
+      { sectionId: "insulation", message: "Insulation above membrane not specified.", severity: "error" },
+      { sectionId: "growingMedia", message: "Growing media depth not specified.", severity: "warning" },
+    ],
+    scopeTemplate: [
+      "Apply primer and install SBS modified bitumen base ply + finish ply over structural deck.",
+      "Install root barrier / root-resistant sheet.",
+      "Install drainage composite mat ({drainageMat}).",
+      "Install XPS insulation ({insulation}) above membrane.",
+      "Install filter fabric above insulation.",
+      "Install drainage/aggregate layer.",
+      "Install growing media ({growingMedia}).",
+      "Install vegetated green roof trays ({greenRoof}).",
+      "Install overflow drains and flashing.",
+    ],
+    metadata: {
+      assemblyType: "Protected membrane — SBS mod-bit IRMA with vegetated overburden",
+      membraneExposure: "Protected",
+      typicalInsulation: "XPS (extruded polystyrene)",
+      commonSurfaces: ["Extensive green roof", "Pre-vegetated sedum trays", "Intensive planted"],
+      isProtectedMembrane: true,
+      isRecoverable: false,
+      greenRoofCompatible: true,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: true,
+    },
+  },
+
+  // ── APP IRMA / PMR ────────────────────────────────────────────────────────────
+  {
+    systemId: "app_irma",
+    label: "APP Mod-Bit IRMA / PMR",
+    category: "Protected Membrane",
+    icon: "🟫",
+    requiredSections: ["deck", "membrane", "insulation", "drainageMat", "filterFabric", "drainage", "flashing"],
+    optionalSections: ["vaporRetarder", "protectionBoard", "pedestals", "ballast", "ballastRestraint", "penetrations", "edgeConditions"],
+    defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "ballast", "pedestals"],
+    validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
+      { sectionId: "membrane", message: "APP modified bitumen membrane not specified.", severity: "error" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA/PMR assembly.", severity: "error" },
+      { sectionId: "insulation", message: "Insulation above membrane not specified — required for IRMA.", severity: "error" },
+      { sectionId: "filterFabric", message: "Filter fabric should be installed above insulation in IRMA assemblies.", severity: "warning" },
+    ],
+    scopeTemplate: [
+      "Apply primer and install APP modified bitumen base ply (torch-applied) over structural deck.",
+      "Install APP modified bitumen finish ply (torch-applied).",
+      "Install protection board ({protectionBoard}) above membrane.",
+      "Install drainage mat ({drainageMat}) above membrane assembly.",
+      "Install XPS insulation ({insulation}) above membrane.",
+      "Install filter fabric above insulation.",
+      "Install surface overburden (pavers / ballast).",
+      "Install overflow drains and flashing.",
+    ],
+    metadata: {
+      assemblyType: "Protected membrane — APP modified bitumen IRMA/PMR",
+      membraneExposure: "Protected",
+      typicalInsulation: "XPS (extruded polystyrene)",
+      commonSurfaces: ["Concrete pavers on pedestals", "River ballast"],
+      isProtectedMembrane: true,
+      isRecoverable: true,
+      greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: false,
+    },
+  },
+
   // ── Custom ────────────────────────────────────────────────────────────────────
   {
     systemId: "custom",
@@ -1382,132 +1591,82 @@ export function generateScope(
 }
 
 
-// mapAIResultToSectionValues — overloaded for backward compatibility.
-// New call: mapAIResultToSectionValues(ai: AIAssemblyResult, ocrText?: string) → AssemblySectionValues
-// Old call: mapAIResultToSectionValues(ai: {insulationType?,...}, systemId: string) → SectionValues
+/**
+ * Maps a raw AI extraction result to normalised section values.
+ * Single canonical function — no legacy path.
+ */
 export function mapAIResultToSectionValues(
   ai: AIAssemblyResult,
-  ocrText?: string
-): AssemblySectionValues;
-export function mapAIResultToSectionValues(
-  ai: {
-    systemType?: string;
-    insulationType?: string;
-    insulationThickness?: string;
-    surfaceType?: string;
-    coverBoard?: string;
-    drainageMat?: boolean;
-    vaporRetarder?: boolean;
-    protectionBoard?: string;
-    layers?: string[];
-    attachmentMethod?: string;
-    deckType?: string;
-  },
-  systemId: string
-): SectionValues;
-export function mapAIResultToSectionValues(
-  ai: any,
-  systemIdOrOcrText?: string
-): AssemblySectionValues | SectionValues {
-  // Detect legacy call by presence of insulationType field (only in old shape)
-  const isLegacy = "insulationType" in ai;
-
-  if (isLegacy) {
-    const systemId = systemIdOrOcrText as string ?? "";
-    const isIrma = ["lam_irma", "hydrotech", "paver_ped", "paver_bal", "concrete", "green"].includes(systemId);
-    const isProtected = isIrma;
-    const isBur = systemId === "bur";
-    const isVegetated = systemId === "green";
-    const isConventionalLam = systemId === "lam";
-
-    const insulation =
-      ai.insulationType && ai.insulationThickness
-        ? formatInsulationLabel(ai.insulationType, ai.insulationThickness, null)
-        : ai.insulationType
-        ? (INSULATION_CODE_LABELS[ai.insulationType] ?? ai.insulationType)
-        : ai.insulationThickness
-        ? ai.insulationThickness
-        : null;
-
-    const deck = ai.deckType ? (DECK_TYPE_MAP[ai.deckType] ?? null) : null;
-
-    const values: SectionValues = {
-      deck: deck ?? null,
-      insulation: insulation ?? null,
-      vaporRetarder: ai.vaporRetarder ?? null,
-      drainageMat: isIrma && ai.drainageMat ? "Drainage mat" : null,
-      filterFabric: isIrma ? (ai.drainageMat ? true : null) : null,
-    };
-
-    if (isProtected) {
-      values.protectionBoard =
-        ai.protectionBoard ||
-        (ai.coverBoard &&
-        !["DensDeck", "gypsum", "polyiso"].some((k: string) =>
-          ai.coverBoard?.toLowerCase().includes(k.toLowerCase())
-        )
-          ? ai.coverBoard
-          : null) ||
-        null;
-      values.membrane =
-        systemId === "lam_irma"
-          ? (ai.layers?.find((l: string) => /fluid.applied|liquid.applied|waterproofing.*membrane|cold.applied/i.test(l)) || "Cold fluid-applied waterproofing membrane")
-          : systemId === "hydrotech"
-          ? "Hydrotech MM6125"
-          : null;
-    } else if (isConventionalLam) {
-      values.coverBoard = ai.coverBoard || null;
-      values.membrane =
-        ai.layers?.find((l: string) => /PMMA|Parapro|Paracoat|AlphaGuard|Vulkem|MasterSeal|liquid.applied|fluid.applied|waterproofing.*membrane/i.test(l)) ||
-        null;
-    } else {
-      values.coverBoard = ai.coverBoard || null;
-      if (isBur) {
-        const burLayer = ai.layers?.find((l: string) => /ply|felt|interply|asphalt/i.test(l));
-        values.burPlies = burLayer || null;
-        const capLayer = ai.layers?.find((l: string) => /cap\s*sheet|mineral|granule/i.test(l));
-        values.capSheet = capLayer || null;
-      } else {
-        values.membrane = null;
-      }
-    }
-
-    if (isVegetated) {
-      values.rootBarrier = true;
-    }
-
-    return values;
-  }
-
-  // New call: (AIAssemblyResult, ocrText?) → AssemblySectionValues
-  const ocrText = systemIdOrOcrText;
-
-  // 1. Classify system
+  ocrText?: string,
+): AssemblySectionValues {
+  // 1. Classify using layer signals + explicit flags (layers beat AI system hint)
   const assemblySystem = classifyAssemblySystem({
     ocrText,
+    layers: ai.layers ?? undefined,
     drainageMat: ai.drainageMat,
     filterFabric: ai.filterFabric,
+    surface: ai.surface,
+    aiSystem: ai.system,
   });
 
-  // 2. Extract insulation fields
+  // 2. Classification audit — surface conflicts between AI hint and detected result
+  const classificationAudit = buildClassificationAudit(
+    { aiSystem: ai.system, layers: ai.layers, ocrText },
+    assemblySystem,
+  );
+
+  // 3. Insulation fields
   const insulationType = ai.insulation ?? null;
   const insulationThickness = ai.thickness ?? null;
-  const rValue = ai.rValue ?? null;
+  const extractedR = ai.rValue ?? null;
 
-  // 3. Format insulation label — never output "3 rigid" or "7 xps"
+  // 4. Thermal audit — compute expected R and flag conflicts
+  const calculatedR =
+    insulationType && insulationThickness
+      ? (() => {
+          const t = parseFloat(insulationThickness);
+          return isNaN(t) ? null : Math.round(computeInsulationRValue(insulationType, t) * 10) / 10;
+        })()
+      : null;
+  const thermalAudit: ThermalAudit = {
+    insulationType,
+    thickness: insulationThickness,
+    extractedR,
+    calculatedR,
+    conflict:
+      extractedR != null && calculatedR != null
+        ? Math.abs(extractedR - calculatedR) > calculatedR * 0.2
+        : false,
+  };
+
+  // 5. Format insulation label — never output "3 rigid" or "7 xps"
+  const rValue = extractedR ?? calculatedR ?? null;
   const insulationLabel =
     insulationType || insulationThickness
-      ? formatInsulationLabel(insulationType, insulationThickness, rValue)
+      ? formatInsulationLabel(insulationType, insulationThickness, extractedR)
       : null;
 
-  // 4. Validate
+  // 6. Validate
+  const isIrmaType =
+    assemblySystem === "lam_irma" ||
+    assemblySystem === "sbs_irma" ||
+    assemblySystem === "sbs_irma_green" ||
+    assemblySystem === "app_irma";
   const validationIssues = validateAssembly({
-    system: assemblySystem,
+    system: isIrmaType ? "lam_irma" : "lam",
     drainageMat: ai.drainageMat,
     filterFabric: ai.filterFabric,
-    insulationAboveMembrane:
-      assemblySystem === "lam_irma" ? true : undefined,
+    insulationAboveMembrane: isIrmaType ? true : undefined,
   });
+
+  // 7. Preserve raw extraction
+  const rawExtraction: RawExtraction = {
+    sourceSystem: ai.system ?? null,
+    drainageMat: ai.drainageMat ?? null,
+    filterFabric: ai.filterFabric ?? null,
+    layers: ai.layers ?? null,
+    aiDescription: null,
+  };
 
   return {
     assemblySystem,
@@ -1516,5 +1675,8 @@ export function mapAIResultToSectionValues(
     insulationThickness,
     rValue,
     validationIssues,
+    classificationAudit,
+    thermalAudit,
+    rawExtraction,
   };
 }

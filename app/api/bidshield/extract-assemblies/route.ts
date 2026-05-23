@@ -58,50 +58,40 @@ Each assembly object must use ONLY these exact values:
 
 system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'lam' | 'hydrotech'
 
-Classify each assembly independently based on its OWN layer stack and drawing label — do NOT assume all assemblies use the same system.
+Classify each assembly independently based on its OWN layer stack. Assembly titles are NOT authoritative for system type — the actual layers are.
 
 System selection guide:
 - 'tpo': TPO membrane (thermoplastic polyolefin), typically white/gray single-ply
 - 'pvc': PVC membrane, typically white single-ply
-- 'epdm': EPDM rubber membrane, typically black single-ply
-- 'sbs': SBS modified bitumen — sheet membrane, torch-applied or cold-applied, with polyiso or other insulation BELOW the membrane (conventional assembly). Labels like "Sheet Membrane Roofing System", "Modified Bitumen", "SBS".
-- 'app': APP modified bitumen — similar to SBS but torch-applied
-- 'bur': Built-Up Roofing — multiple plies of felt/bitumen
+- 'epdm': EPDM rubber membrane, typically black single-ply — ONLY when EPDM membrane is explicitly labeled
+- 'sbs': SBS modified bitumen — use for BOTH conventional AND IRMA/PMR assemblies whose waterproofing is modified bitumen base ply + finish ply. Labels: "Modified Bitumen", "SBS", "base ply + finish ply". For IRMA configuration set drainageMat:true / filterFabric:true.
+- 'app': APP modified bitumen — torch-applied. Use for both conventional and IRMA. For IRMA configuration set drainageMat:true / filterFabric:true.
+- 'bur': Built-Up Roofing — multiple plies of felt/bitumen (NOT modified bitumen sheet)
 - 'metal': Standing seam or metal panel roof
 - 'spf': Spray polyurethane foam
-- 'lam': Liquid Applied Membrane — Use for CONVENTIONAL liquid-applied assemblies (insulation BELOW membrane) OR for IRMA/inverted assemblies. Classification into lam vs lam_irma is determined post-extraction by drainageMat and filterFabric flags below.
+- 'lam': Liquid Applied Membrane — use ONLY when waterproofing is a fluid-applied liquid membrane (PMMA, polyurethane, cold-fluid, etc.) — NOT modified bitumen, NOT single-ply sheet
 - 'hydrotech': Use ONLY when drawing or spec explicitly names Hydrotech as the manufacturer.
 
-═══════════════════════════════════════════════════════════════
-CRITICAL: CONVENTIONAL vs IRMA CLASSIFICATION
-═══════════════════════════════════════════════════════════════
-
-The ONLY reliable signals for IRMA/PMR are:
-  1. drainageMat is explicitly labeled or leader-lined in the drawing
-  2. filterFabric is explicitly labeled or leader-lined in the drawing
-  3. The OCR text explicitly contains: IRMA, PMR, "inverted roof", or "protected membrane"
-
-DO NOT infer IRMA from membrane type alone.
-DO NOT invent drainageMat or filterFabric layers that are not explicitly visible.
-
-CONVENTIONAL LAM (lam — drainageMat: false, filterFabric: false):
-  Stack: deck → insulation → membrane → finish/cladding
-  Examples:
-    - Concrete Deck → DensGlass → 7" Rigid Insulation → Cementitious Board → Waterproofing Membrane → Aluminum Panel
-    - Built-up rigid insulation roof with liquid-applied waterproofing on top
-    - Aluminum panel cladding systems with waterproofing below cladding
-  Rules: drainageMat=false, filterFabric=false when none are labeled
-
-IRMA / PMR (lam — drainageMat: true and/or filterFabric: true):
-  Stack: deck → membrane → drainage → insulation → filter fabric → overburden
-  Examples:
-    - Concrete Deck → Waterproofing Membrane → Drainage Mat → XPS Insulation → Filter Fabric → Gravel → Concrete Pavement
-    - Plaza deck with paver ballast
-    - Green roof system
-  Rules: Only set drainageMat=true or filterFabric=true when explicitly labeled
+PRIORITY RULE: If layer stack shows "Modified Bitumen Base Ply" or "Modified Bitumen Finish Ply" — output system='sbs' regardless of what the assembly title says.
 
 ═══════════════════════════════════════════════════════════════
-EXAMPLE A — Roof 06 (CONVENTIONAL lam — NOT IRMA)
+IRMA / PMR CLASSIFICATION
+═══════════════════════════════════════════════════════════════
+
+IRMA / PMR stack geometry: membrane sits at deck level, insulation is ABOVE the membrane.
+  deck → primer → membrane → [protection board] → drainage mat → insulation → filter fabric → overburden
+
+The ONLY reliable signals for IRMA/PMR:
+  1. drainageMat is explicitly labeled or leader-lined
+  2. filterFabric is explicitly labeled or leader-lined
+  3. Text explicitly contains: IRMA, PMR, "inverted roof", or "protected membrane"
+
+DO NOT invent drainageMat or filterFabric that are not explicitly visible.
+
+For SBS/APP IRMA assemblies: output system='sbs' (or 'app') AND drainageMat:true AND/OR filterFabric:true.
+
+═══════════════════════════════════════════════════════════════
+EXAMPLE A — Conventional lam (liquid-applied, NOT IRMA)
 ═══════════════════════════════════════════════════════════════
 Drawing shows: Concrete Deck → DensGlass → 7" Rigid Insulation → Cementitious Board → Waterproofing Membrane → Aluminum Panel
 Correct output:
@@ -111,23 +101,41 @@ Correct output:
   "filterFabric": false,
   "insulation": "rigid",
   "thickness": "7",
-  "rValue": 35
+  "rValue": 35,
+  "layers": ["Concrete Deck","DensGlass Sheathing","7\" Rigid Insulation","Cementitious Board","Waterproofing Membrane","Aluminum Panel"]
 }
-Why: insulation is BELOW the membrane, no drainage mat labeled, no filter fabric labeled.
+Why: liquid-applied membrane, insulation BELOW membrane, no drainage mat.
 
 ═══════════════════════════════════════════════════════════════
-EXAMPLE B — Roof 05 (IRMA / PMR)
+EXAMPLE B — SBS IRMA (modified bitumen + IRMA geometry)
 ═══════════════════════════════════════════════════════════════
-Drawing shows: Concrete Deck → Waterproofing Membrane → Drainage Mat → Rigid Insulation → Filter Fabric → Gravel → Concrete Pavement
+Drawing shows: Concrete Slab → Primer → Modified Bitumen Base Ply → Modified Bitumen Finish Ply → 8" XPS → Drainage Mat → Pedestal Tabs → Precast Pavers
 Correct output:
 {
-  "system": "lam",
+  "system": "sbs",
   "drainageMat": true,
-  "filterFabric": true,
+  "filterFabric": false,
   "insulation": "xps",
-  "thickness": null
+  "thickness": "8",
+  "rValue": null,
+  "deckType": "concrete",
+  "layers": ["Concrete Slab","Manufacturer Primer","Modified Bitumen Base Ply","Modified Bitumen Finish Ply","8\" XPS","Drainage Mat","Pedestal Tabs","Precast Pavers"]
 }
-Why: drainage mat and filter fabric are explicitly labeled, insulation is above membrane.
+Why: modified bitumen plies → system='sbs'. Drainage mat explicitly labeled → drainageMat:true.
+
+═══════════════════════════════════════════════════════════════
+EXAMPLE C — Title says EPDM but layers show SBS (conflict case)
+═══════════════════════════════════════════════════════════════
+Assembly titled "Built-Up EPDM Roof" — layers show: Modified Bitumen Base Ply → Modified Bitumen Finish Ply → Protection Board → Polyiso
+Correct output:
+{
+  "system": "sbs",
+  "drainageMat": false,
+  "filterFabric": false,
+  "insulation": "polyiso",
+  "layers": ["Polyiso","Protection Board","Modified Bitumen Base Ply","Modified Bitumen Finish Ply"]
+}
+Why: Layer stack shows modified bitumen — output system='sbs'. Title is NOT authoritative.
 
 ═══════════════════════════════════════════════════════════════
 INSULATION THICKNESS EXTRACTION RULES
@@ -158,6 +166,8 @@ Use 'xps' only when XPS is explicitly named.
 
 drainageMat: true if drainage mat is EXPLICITLY labeled or leader-lined in the drawing. false otherwise. NEVER infer.
 filterFabric: true if filter fabric is EXPLICITLY labeled or leader-lined in the drawing. false otherwise. NEVER infer.
+
+layers: ordered array of layer names from deck (bottom) to top, exactly as labeled in the drawing. Include every distinct layer. Example: ["Concrete Slab","Primer","Modified Bitumen Base Ply","Modified Bitumen Finish Ply","8\" XPS","Drainage Mat","Pedestal Tabs","Precast Pavers"]. Set to null if no layer detail visible.
 
 surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating'
 
@@ -237,6 +247,8 @@ IMPORTANT: If the drawing contains a roof type takeoff schedule with area data, 
       // IRMA classification signals — only true when explicitly labeled in drawing
       drainageMat: z.boolean().nullable().optional(),
       filterFabric: z.boolean().nullable().optional(),
+      // Ordered layer stack from deck to top (used for classifier signal detection)
+      layers: z.array(z.string()).nullable().optional(),
     });
     const AssembliesResultSchema = z.object({
       assemblies: z.array(AssemblyItemSchema).default([]),
