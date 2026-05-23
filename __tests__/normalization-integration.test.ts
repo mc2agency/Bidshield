@@ -4,7 +4,7 @@
  * Verifies end-to-end flow from raw OCR → normalization → classification → audit storage
  */
 
-import { describe, test, expect } from "@jest/globals";
+import { describe, test, expect } from "vitest";
 import {
   normalizeAssemblySignals,
   type RawAssemblySignals,
