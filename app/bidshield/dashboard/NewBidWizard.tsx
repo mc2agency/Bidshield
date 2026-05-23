@@ -15,7 +15,14 @@ interface V2Item {
   archetypeId: string;
   confidence: number;
   needsReview: boolean;
+  /** Raw layers as extracted by AI */
   extractedLayers: string[];
+  /** Full resolved stack: baseStack + modifierStack, deduplicated bottom→top */
+  fullLayerStack: string[];
+  /** IRMA base stack or structural foundation layers */
+  baseStack: string[];
+  /** Overburden / finish modifier layers */
+  modifierStack: string[];
   requiredSectionsSnapshot: string[];
   optionalSectionsSnapshot: string[];
   hiddenSectionsSnapshot: string[];
@@ -64,23 +71,36 @@ function V2InlineCard({ item }: { item: V2Item }) {
           {Math.round(item.confidence * 100)}%
         </span>
       </div>
-      {item.requiredSectionsSnapshot.length > 0 && (
-        <div>
-          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--bs-teal, #2dd4bf)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>
-            Sections
-          </div>
-          {item.requiredSectionsSnapshot.map((id) => {
-            const def = SECTION_DEFS[id as keyof typeof SECTION_DEFS];
-            return def ? (
-              <div key={id} style={{ fontSize: 11, color: "var(--bs-text-secondary, #a0aec0)", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <span style={{ color: "var(--bs-teal, #2dd4bf)", marginRight: 4 }}>•</span>
-                {def.label}
+      {/* Full layer stack — base + modifier breakdown */}
+      {item.fullLayerStack.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          {item.baseStack.length > 0 && item.modifierStack.length > 0 && (
+            <div style={{ fontSize: 10, fontWeight: 600, color: "var(--bs-text-dim, #718096)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 3 }}>
+              Base assembly
+            </div>
+          )}
+          {(item.baseStack.length > 0 ? item.baseStack : item.fullLayerStack).map((layer, i) => (
+            <div key={i} style={{ fontSize: 11, color: "var(--bs-text-secondary, #a0aec0)", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ color: "var(--bs-teal, #2dd4bf)", fontSize: 9 }}>▸</span>
+              {layer}
+            </div>
+          ))}
+          {item.modifierStack.length > 0 && (
+            <>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--bs-teal, #2dd4bf)", textTransform: "uppercase", letterSpacing: "0.07em", marginTop: 8, marginBottom: 3 }}>
+                Overburden
               </div>
-            ) : null;
-          })}
+              {item.modifierStack.map((layer, i) => (
+                <div key={i} style={{ fontSize: 11, color: "var(--bs-text-secondary, #a0aec0)", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: "#f59e0b", fontSize: 9 }}>▸</span>
+                  {layer}
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
-      {item.needsReview && item.extractedLayers.length === 0 && (
+      {item.needsReview && item.fullLayerStack.length === 0 && (
         <div style={{ marginTop: 6, fontSize: 11, color: "#ef4444", fontStyle: "italic" }}>
           No layers extracted — needs manual review
         </div>
@@ -377,10 +397,13 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             confidence: typeof item.confidence === "number" ? item.confidence : 0,
             needsReview: item.needsReview === true,
             extractedLayers: Array.isArray(item.layers) ? item.layers : [],
+            fullLayerStack: Array.isArray(item.fullLayerStack) ? item.fullLayerStack : (Array.isArray(item.layers) ? item.layers : []),
+            baseStack: Array.isArray(item.baseStack) ? item.baseStack : [],
+            modifierStack: Array.isArray(item.modifierStack) ? item.modifierStack : [],
             requiredSectionsSnapshot: Array.isArray(item.requiredSectionsSnapshot) ? item.requiredSectionsSnapshot : [],
             optionalSectionsSnapshot: Array.isArray(item.optionalSectionsSnapshot) ? item.optionalSectionsSnapshot : [],
             hiddenSectionsSnapshot: Array.isArray(item.hiddenSectionsSnapshot) ? item.hiddenSectionsSnapshot : [],
-            sectionValues: {},
+            sectionValues: item.sectionValues && typeof item.sectionValues === "object" ? item.sectionValues : {},
           }));
           if (v2Mapped.length > 0) {
             setV2Items(v2Mapped);

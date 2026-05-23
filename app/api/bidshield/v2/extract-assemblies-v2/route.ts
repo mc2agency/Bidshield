@@ -8,6 +8,7 @@ import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
 import { classifyLayersV2 } from "@/lib/bidshield/archetype-scoring";
 import { archetypeIdToLegacy } from "@/lib/bidshield/archetype-compat";
+import { resolveFullLayerStack } from "@/lib/bidshield/assembly-layer-resolver";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -391,28 +392,50 @@ export async function POST(req: NextRequest) {
       displayName: string | null | undefined;
       sourceSheet: string | null | undefined;
       layers: string[];
+      fullLayerStack: string[];
+      baseStack: string[];
+      modifierStack: string[];
       archetypeId: string;
       archetypeVersion: number;
       confidence: number;
       needsReview: boolean;
       area: number | null | undefined;
       isPlaceholder: boolean;
+      sectionValues: Record<string, string | boolean | undefined>;
+      requiredSectionsSnapshot: string[];
+      optionalSectionsSnapshot: string[];
+      hiddenSectionsSnapshot: string[];
     }> = [];
 
     for (const { asm, classification } of classifiedAssemblies) {
       const isPlaceholder = asm.layers.length === 0 && classification.needsReview;
+
+      // Resolve full layer stack: base IRMA stack + overburden modifier
+      const resolved = resolveFullLayerStack(
+        asm.layers,
+        classification.archetypeId,
+        asm.surface ?? null,
+      );
+
       items.push({
         itemId: "", // populated below if persisting to Convex
         drawingAssemblyId: asm.drawingAssemblyId,
         displayName: asm.displayName,
         sourceSheet: asm.sourceSheet,
         layers: asm.layers,
+        fullLayerStack: resolved.fullLayerStack,
+        baseStack: resolved.baseStack,
+        modifierStack: resolved.modifierStack,
         archetypeId: classification.archetypeId,
         archetypeVersion: classification.archetypeVersion,
         confidence: classification.confidence,
         needsReview: classification.needsReview,
         area: asm.area,
         isPlaceholder,
+        sectionValues: resolved.sectionValues,
+        requiredSectionsSnapshot: classification.requiredSectionsSnapshot,
+        optionalSectionsSnapshot: classification.optionalSectionsSnapshot,
+        hiddenSectionsSnapshot: classification.hiddenSectionsSnapshot,
       });
     }
 
