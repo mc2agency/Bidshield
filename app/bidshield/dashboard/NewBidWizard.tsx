@@ -434,10 +434,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             sectionValues: item.sectionValues && typeof item.sectionValues === "object" ? item.sectionValues : {},
             area: typeof item.area === "number" ? item.area : null,
           }));
-          if (v2Mapped.length > 0) {
-            setV2Items(v2Mapped);
+          // Filter out non-roof assemblies (soffit/wall types like ST 01, ST 02)
+          const roofOnlyMapped = v2Mapped.filter(
+            item => !/^ST[\s\-]?\d/i.test(item.drawingAssemblyId)
+          );
+          if (roofOnlyMapped.length > 0) {
+            setV2Items(roofOnlyMapped);
             // Store full Convex-ready items for post-creation persistence
-            const persist: V2PersistItem[] = (v2Data.items || []).map((item: any) => ({
+            const persist: V2PersistItem[] = (v2Data.items || []).filter(
+              (item: any) => !/^ST[\s\-]?\d/i.test(item.drawingAssemblyId ?? "")
+            ).map((item: any) => ({
               drawingAssemblyId: item.drawingAssemblyId ?? "",
               displayName: item.displayName ?? null,
               sourceSheet: item.sourceSheet ?? null,
@@ -460,7 +466,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             setV2PersistItems(persist);
             setV2FileName(file.name);
             // Convert V2 items to AssemblyInput so onCreate always has roofAssemblies populated
-            const v2Assemblies: AssemblyInput[] = v2Mapped.map((item) => ({
+            const v2Assemblies: AssemblyInput[] = roofOnlyMapped.map((item) => ({
               label: item.drawingAssemblyId,
               name: item.displayName ?? undefined,
               systemType: archetypeIdToLegacy(item.archetypeId) || "custom",
@@ -479,7 +485,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             if (totalArea > 0) setSqft(String(Math.round(totalArea)));
             // Use legacy system IDs for the systems selector (not raw archetype IDs)
             const v2AsLegacySystems = Array.from(new Set(
-              v2Mapped.map((i) => archetypeIdToLegacy(i.archetypeId)).filter((s): s is string => !!s)
+              roofOnlyMapped.map((i) => archetypeIdToLegacy(i.archetypeId)).filter((s): s is string => !!s)
             ));
             if (v2AsLegacySystems.length > 0) setSystems(v2AsLegacySystems);
             if (v2Data.deckType) setDeck(v2Data.deckType);
