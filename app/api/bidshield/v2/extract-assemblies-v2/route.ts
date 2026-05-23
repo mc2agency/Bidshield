@@ -384,21 +384,7 @@ export async function POST(req: NextRequest) {
       userId,
     });
 
-    // ── 5. Persist to Convex ──────────────────────────────────────────────────
-    const convex = getConvex();
-
-    // 5a. Create the extraction run
-    // @ts-ignore — extractionV2 not yet in generated api.d.ts
-    const { runId } = await convex.mutation(
-      anyApi["bidshield/extractionV2"].createRun,
-      {
-        projectId: projectId as any,
-        userId,
-        sourceFileName: fileName ?? "upload.pdf",
-      },
-    );
-
-    // 5b. Create items for each classified assembly
+    // ── 5. Build items array (always) ─────────────────────────────────────────
     const items: Array<{
       itemId: string;
       drawingAssemblyId: string;
@@ -415,37 +401,8 @@ export async function POST(req: NextRequest) {
 
     for (const { asm, classification } of classifiedAssemblies) {
       const isPlaceholder = asm.layers.length === 0 && classification.needsReview;
-      const legacySystemId = archetypeIdToLegacy(classification.archetypeId);
-
-      // @ts-ignore — extractionV2 not yet in generated api.d.ts
-      const { itemId } = await convex.mutation(
-        anyApi["bidshield/extractionV2"].createItem,
-        {
-          runId: runId as any,
-          projectId: projectId as any,
-          userId,
-          drawingAssemblyId: asm.drawingAssemblyId,
-          displayName: asm.displayName ?? undefined,
-          sourceSheet: asm.sourceSheet ?? undefined,
-          originalExtractedText: asm.layers,
-          extractedLayers: asm.layers,
-          normalizedLayerTokens: classification.audit.normalizedLayerTokens,
-          archetypeId: classification.archetypeId,
-          archetypeVersion: classification.archetypeVersion,
-          confidence: classification.confidence,
-          needsReview: classification.needsReview,
-          classificationAudit: classification.audit,
-          sectionValues: {},
-          requiredSectionsSnapshot: classification.requiredSectionsSnapshot,
-          optionalSectionsSnapshot: classification.optionalSectionsSnapshot,
-          hiddenSectionsSnapshot: classification.hiddenSectionsSnapshot,
-          defaultLayerOrderSnapshot: classification.defaultLayerOrderSnapshot,
-          legacySystemId: legacySystemId ?? undefined,
-        },
-      );
-
       items.push({
-        itemId: itemId as string,
+        itemId: "", // populated below if persisting to Convex
         drawingAssemblyId: asm.drawingAssemblyId,
         displayName: asm.displayName,
         sourceSheet: asm.sourceSheet,
@@ -459,17 +416,67 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 5c. Complete the run
-    const needsReviewCount = classifiedAssemblies.filter(
-      (c) => c.classification.needsReview,
-    ).length;
+    // ── 5b. Persist to Convex only when projectId is present ──────────────────
+    let runId: string | null = null;
+    if (persistToConvex) {
+      const convex = getConvex();
 
-    // @ts-ignore — extractionV2 not yet in generated api.d.ts
-    await convex.mutation(anyApi["bidshield/extractionV2"].completeRun, {
-      runId: runId as any,
-      extractedCount: items.length,
-      needsReviewCount,
-    });
+      // Create the extraction run
+      // @ts-ignore — extractionV2 not yet in generated api.d.ts
+      const run = await convex.mutation(
+        anyApi["bidshield/extractionV2"].createRun,
+        {
+          projectId: projectId as any,
+          userId,
+          sourceFileName: fileName ?? "upload.pdf",
+        },
+      );
+      runId = run.runId as string;
+
+      // Create items in Convex and backfill itemIds
+      for (let i = 0; i < classifiedAssemblies.length; i++) {
+        const { asm, classification } = classifiedAssemblies[i];
+        const legacySystemId = archetypeIdToLegacy(classification.archetypeId);
+        // @ts-ignore — extractionV2 not yet in generated api.d.ts
+        const { itemId } = await convex.mutation(
+          anyApi["bidshield/extractionV2"].createItem,
+          {
+            runId: runId as any,
+            projectId: projectId as any,
+            userId,
+            drawingAssemblyId: asm.drawingAssemblyId,
+            displayName: asm.displayName ?? undefined,
+            sourceSheet: asm.sourceSheet ?? undefined,
+            originalExtractedText: asm.layers,
+            extractedLayers: asm.layers,
+            normalizedLayerTokens: classification.audit.normalizedLayerTokens,
+            archetypeId: classification.archetypeId,
+            archetypeVersion: classification.archetypeVersion,
+            confidence: classification.confidence,
+            needsReview: classification.needsReview,
+            classificationAudit: classification.audit,
+            sectionValues: {},
+            requiredSectionsSnapshot: classification.requiredSectionsSnapshot,
+            optionalSectionsSnapshot: classification.optionalSectionsSnapshot,
+            hiddenSectionsSnapshot: classification.hiddenSectionsSnapshot,
+            defaultLayerOrderSnapshot: classification.defaultLayerOrderSnapshot,
+            legacySystemId: legacySystemId ?? undefined,
+          },
+        );
+        items[i].itemId = itemId as string;
+      }
+
+      // Complete the run
+      const needsReviewCount = classifiedAssemblies.filter(
+        (c) => c.classification.needsReview,
+      ).length;
+      // @ts-ignore — extractionV2 not yet in generated api.d.ts
+      await convex.mutation(anyApi["bidshield/extractionV2"].completeRun, {
+        runId: runId as any,
+        extractedCount: items.length,
+        needsReviewCount,
+      });
+    }
 
     // ── 6. Return result ──────────────────────────────────────────────────────
     return NextResponse.json({
