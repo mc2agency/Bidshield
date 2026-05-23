@@ -4,10 +4,13 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import type { Id } from "@/convex/_generated/dataModel";
+import { SECTION_DEFS } from "@/lib/bidshield/assembly-system-configs";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+type SectionValues = Record<string, string | boolean | undefined>;
 
 type ExtractionItem = {
   _id: Id<"bidshield_assemblyExtractionItems">;
@@ -21,6 +24,8 @@ type ExtractionItem = {
   requiredSectionsSnapshot: string[];
   optionalSectionsSnapshot: string[];
   hiddenSectionsSnapshot: string[];
+  defaultLayerOrderSnapshot: string[];
+  sectionValues: SectionValues;
 };
 
 type ExtractionRun = {
@@ -31,9 +36,124 @@ type ExtractionRun = {
   status: string;
 };
 
-// ─── Assembly Card ────────────────────────────────────────────────────────────
+// ─── Section field renderer ───────────────────────────────────────────────────
+// Renders a single assembly section field from SECTION_DEFS.
+// Never imports or calls legacy RoofAssemblyCard, DynamicAssemblyForm,
+// SMART_PRESETS, roofSystemConfigs, or any legacy systemType/systemId config.
 
-function AssemblyCard({
+function SectionField({
+  sectionId,
+  value,
+  isRequired,
+}: {
+  sectionId: string;
+  value: string | boolean | undefined;
+  isRequired: boolean;
+}) {
+  const def = SECTION_DEFS[sectionId as keyof typeof SECTION_DEFS];
+  if (!def) return null;
+
+  const label = def.label;
+  const type = def.type;
+
+  const displayValue =
+    value === undefined || value === null || value === ""
+      ? null
+      : type === "boolean"
+      ? (value as boolean) === true
+        ? "Yes"
+        : "No"
+      : String(value);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 8,
+        padding: "6px 0",
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+      }}
+    >
+      {/* Required indicator */}
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          background: isRequired ? "var(--bs-teal, #2dd4bf)" : "rgba(113,128,150,0.4)",
+          marginTop: 6,
+          flexShrink: 0,
+        }}
+      />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: isRequired
+              ? "var(--bs-text-secondary, #a0aec0)"
+              : "var(--bs-text-dim, #718096)",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            lineHeight: 1.4,
+          }}
+        >
+          {label}
+          {isRequired && (
+            <span
+              style={{
+                marginLeft: 4,
+                fontSize: 9,
+                color: "var(--bs-teal, #2dd4bf)",
+                opacity: 0.7,
+              }}
+            >
+              REQUIRED
+            </span>
+          )}
+        </div>
+        {displayValue !== null ? (
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--bs-text-primary, #e2e8f0)",
+              marginTop: 2,
+              lineHeight: 1.5,
+            }}
+          >
+            {displayValue}
+          </div>
+        ) : (
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--bs-text-dim, #718096)",
+              fontStyle: "italic",
+              marginTop: 2,
+            }}
+          >
+            {type === "select"
+              ? "Not selected"
+              : type === "boolean"
+              ? "Not specified"
+              : "Not filled"}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── V2ReviewAssemblyCard ─────────────────────────────────────────────────────
+// Renders directly from V2 snapshot fields. Does NOT import or use:
+//   - RoofAssemblyCard
+//   - DynamicAssemblyForm
+//   - SMART_PRESETS
+//   - roofSystemConfigs
+//   - legacy systemType / systemId config lookup
+
+function V2ReviewAssemblyCard({
   item,
   onApprove,
   onReject,
@@ -42,6 +162,9 @@ function AssemblyCard({
   onApprove: (id: Id<"bidshield_assemblyExtractionItems">) => void;
   onReject: (id: Id<"bidshield_assemblyExtractionItems">) => void;
 }) {
+  const [showOptional, setShowOptional] = useState(false);
+  const [showLayers, setShowLayers] = useState(false);
+
   const isApproved = item.status === "approved";
   const isRejected = item.status === "rejected";
 
@@ -53,8 +176,27 @@ function AssemblyCard({
 
   const cardOpacity = isRejected ? 0.55 : 1;
 
-  const archLabel = item.archetypeId.replace(/_/g, " ");
-  const confidencePct = (item.confidence * 100).toFixed(0);
+  // Archetype display name: replace underscores with spaces, title-case
+  const archLabel = item.archetypeId
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
+  const confidencePct = Math.round(item.confidence * 100);
+
+  // Section visibility from snapshots — never from legacy config
+  const required: string[] = item.requiredSectionsSnapshot ?? [];
+  const optional: string[] = item.optionalSectionsSnapshot ?? [];
+  const hidden: string[] = item.hiddenSectionsSnapshot ?? [];
+  const sectionValues: SectionValues = item.sectionValues ?? {};
+
+  const hasRequired = required.length > 0;
+  const hasOptional = optional.length > 0;
+
+  // Heading: prefer displayName, fall back to drawingAssemblyId
+  const heading = item.displayName
+    ? `${item.drawingAssemblyId} — ${item.displayName}`
+    : item.drawingAssemblyId;
 
   return (
     <div
@@ -68,22 +210,22 @@ function AssemblyCard({
         transition: "border-color 0.2s, opacity 0.2s",
       }}
     >
-      {/* Assembly ID */}
+      {/* Assembly ID + display name */}
       <div
         style={{
           fontSize: 13,
           fontWeight: 700,
-          color: "var(--bs-text-dim, #718096)",
-          letterSpacing: "0.08em",
+          color: "var(--bs-text-primary, #e2e8f0)",
+          letterSpacing: "0.04em",
           textTransform: "uppercase",
           marginBottom: 6,
         }}
       >
-        {item.displayName ?? item.drawingAssemblyId}
+        {heading}
       </div>
 
-      {/* Archetype Badge */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      {/* Archetype Badge + confidence */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
         <span
           style={{
             display: "inline-flex",
@@ -107,120 +249,159 @@ function AssemblyCard({
           }}
         >
           {item.needsReview ? "⚠" : "✔"}{" "}
-          {item.needsReview ? `needs review (${archLabel})` : archLabel}
+          {item.needsReview ? `needs review — ${archLabel}` : archLabel}
         </span>
         <span
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: "var(--bs-text-dim, #718096)",
           }}
         >
-          {(item.confidence).toFixed(2)}
-          {" "}
-          <span style={{ fontSize: 10 }}>({confidencePct}%)</span>
+          {confidencePct}% confidence
         </span>
       </div>
 
-      {/* Layers */}
-      {item.extractedLayers && item.extractedLayers.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--bs-text-secondary, #a0aec0)",
-              textTransform: "uppercase",
-              letterSpacing: "0.07em",
-              marginBottom: 6,
-            }}
-          >
-            Layers:
-          </div>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-            {item.extractedLayers.map((layer, i) => (
-              <li
-                key={i}
-                style={{
-                  fontSize: 13,
-                  color: "var(--bs-text-primary, #e2e8f0)",
-                  lineHeight: 1.7,
-                  paddingLeft: 2,
-                }}
-              >
-                <span style={{ color: "var(--bs-teal, #2dd4bf)", marginRight: 6 }}>•</span>
-                {layer}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Required Sections */}
-      {item.requiredSectionsSnapshot && item.requiredSectionsSnapshot.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--bs-text-secondary, #a0aec0)",
-              textTransform: "uppercase",
-              letterSpacing: "0.07em",
-              marginBottom: 6,
-            }}
-          >
-            Required sections:
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--bs-teal, #2dd4bf)",
-              lineHeight: 1.8,
-            }}
-          >
-            {item.requiredSectionsSnapshot.join(" • ")}
-          </div>
-        </div>
-      )}
-
-      {/* Optional Sections */}
-      {item.optionalSectionsSnapshot && item.optionalSectionsSnapshot.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--bs-text-secondary, #a0aec0)",
-              textTransform: "uppercase",
-              letterSpacing: "0.07em",
-              marginBottom: 6,
-            }}
-          >
-            Optional sections:
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--bs-text-dim, #718096)",
-              lineHeight: 1.8,
-            }}
-          >
-            {item.optionalSectionsSnapshot.join(" • ")}
-          </div>
-        </div>
-      )}
-
-      {/* Hidden Sections (collapsed by default — debug only) */}
-      {item.hiddenSectionsSnapshot && item.hiddenSectionsSnapshot.length > 0 && (
+      {/* Required Sections — always shown */}
+      {hasRequired ? (
         <div style={{ marginBottom: 12 }}>
           <div
             style={{
-              fontSize: 10,
-              color: "var(--bs-text-dim, #718096)",
-              opacity: 0.6,
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--bs-teal, #2dd4bf)",
+              textTransform: "uppercase",
+              letterSpacing: "0.07em",
+              marginBottom: 8,
             }}
           >
-            Hidden: {item.hiddenSectionsSnapshot.join(", ")}
+            Assembly Sections
           </div>
+          <div>
+            {required.map((sectionId) => (
+              <SectionField
+                key={sectionId}
+                sectionId={sectionId}
+                value={sectionValues[sectionId]}
+                isRequired={true}
+              />
+            ))}
+          </div>
+        </div>
+      ) : item.needsReview ? (
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: 6,
+            background: "rgba(239,68,68,0.08)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--bs-red, #ef4444)",
+              lineHeight: 1.5,
+            }}
+          >
+            ⚠ Incomplete extraction — layer data missing. Review extracted layers below and classify manually.
+          </div>
+        </div>
+      ) : null}
+
+      {/* Optional Sections — collapsible */}
+      {hasOptional && (
+        <div style={{ marginBottom: 12 }}>
+          <button
+            onClick={() => setShowOptional((v) => !v)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: "4px 0",
+              cursor: "pointer",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--bs-text-dim, #718096)",
+              textTransform: "uppercase",
+              letterSpacing: "0.07em",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <span style={{ fontSize: 9 }}>{showOptional ? "▼" : "▶"}</span>
+            Optional sections ({optional.length})
+          </button>
+          {showOptional && (
+            <div style={{ marginTop: 6 }}>
+              {optional.map((sectionId) => (
+                <SectionField
+                  key={sectionId}
+                  sectionId={sectionId}
+                  value={sectionValues[sectionId]}
+                  isRequired={false}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hidden sections summary (debug — tiny) */}
+      {hidden.length > 0 && (
+        <div
+          style={{
+            fontSize: 10,
+            color: "var(--bs-text-dim, #718096)",
+            opacity: 0.5,
+            marginBottom: 10,
+          }}
+        >
+          Hidden: {hidden.join(", ")}
+        </div>
+      )}
+
+      {/* Extracted Layers — collapsible */}
+      {item.extractedLayers && item.extractedLayers.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <button
+            onClick={() => setShowLayers((v) => !v)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: "4px 0",
+              cursor: "pointer",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--bs-text-dim, #718096)",
+              textTransform: "uppercase",
+              letterSpacing: "0.07em",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <span style={{ fontSize: 9 }}>{showLayers ? "▼" : "▶"}</span>
+            Extracted layers ({item.extractedLayers.length})
+          </button>
+          {showLayers && (
+            <ul style={{ margin: "6px 0 0 0", padding: 0, listStyle: "none" }}>
+              {item.extractedLayers.map((layer, i) => (
+                <li
+                  key={i}
+                  style={{
+                    fontSize: 12,
+                    color: "var(--bs-text-primary, #e2e8f0)",
+                    lineHeight: 1.7,
+                    paddingLeft: 2,
+                  }}
+                >
+                  <span style={{ color: "var(--bs-teal, #2dd4bf)", marginRight: 6 }}>•</span>
+                  {layer}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -327,7 +508,9 @@ function V2ReviewContent({ runId }: { runId: string }) {
     );
   }
 
-  const needsReviewCount = items.filter((i) => i.needsReview).length;
+  const needsReviewCount = (items ?? []).filter((i) => i.needsReview).length;
+  const approvedCount = (items ?? []).filter((i) => i.status === "approved").length;
+  const totalCount = items?.length ?? 0;
 
   return (
     <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px" }}>
@@ -365,7 +548,7 @@ function V2ReviewContent({ runId }: { runId: string }) {
               {run.sourceFileName}
             </span>
             <span style={{ margin: "0 8px", color: "var(--bs-border, #2d3748)" }}>·</span>
-            {run.extractedCount} {run.extractedCount === 1 ? "assembly" : "assemblies"}
+            {totalCount} {totalCount === 1 ? "assembly" : "assemblies"}
             <span style={{ margin: "0 8px", color: "var(--bs-border, #2d3748)" }}>·</span>
             <span
               style={{
@@ -377,6 +560,12 @@ function V2ReviewContent({ runId }: { runId: string }) {
             >
               {needsReviewCount} need{needsReviewCount === 1 ? "s" : ""} review
             </span>
+            {approvedCount > 0 && (
+              <>
+                <span style={{ margin: "0 8px", color: "var(--bs-border, #2d3748)" }}>·</span>
+                <span style={{ color: "#22c55e" }}>{approvedCount} approved</span>
+              </>
+            )}
           </p>
         </div>
 
@@ -431,7 +620,7 @@ function V2ReviewContent({ runId }: { runId: string }) {
       </div>
 
       {/* Assembly Cards */}
-      {items.length === 0 ? (
+      {totalCount === 0 ? (
         <div
           style={{
             textAlign: "center",
@@ -443,8 +632,8 @@ function V2ReviewContent({ runId }: { runId: string }) {
           No assemblies extracted yet.
         </div>
       ) : (
-        items.map((item) => (
-          <AssemblyCard
+        (items ?? []).map((item) => (
+          <V2ReviewAssemblyCard
             key={item._id}
             item={item}
             onApprove={handleApprove}

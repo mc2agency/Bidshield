@@ -30,6 +30,11 @@ Extract ALL roof, wall, plaza, and cladding assemblies from this drawing sheet.
 
 Return ONLY valid JSON with no markdown:
 {
+  "allDrawingLabels": ["ROOF 01", "ROOF 02", "ROOF 03", "ROOF 04", "ROOF 05", "ROOF 06"],
+  "legendTitles": {
+    "ROOF 01": "PAVERS ON PEDESTAL IRMA ROOFING",
+    "ROOF 02": "GREEN ROOF ON IRMA ROOFING"
+  },
   "assemblies": [
     {
       "drawingAssemblyId": "ROOF 01",
@@ -54,6 +59,16 @@ Return ONLY valid JSON with no markdown:
   "drawingRevision": null
 }
 
+allDrawingLabels: REQUIRED. List EVERY drawing label found anywhere on this page —
+  in legends, schedules, section callouts, detail bubbles, title blocks.
+  Include ALL labels even if you cannot extract their full layer stack.
+  Format: "ROOF 01", "ROOF 02", etc. (normalized, with space and zero-padded number).
+  If the drawing shows "ROOF TYPE 01", normalize to "ROOF 01".
+  If the drawing shows "RT-01", normalize to "RT 01".
+
+legendTitles: Optional map of drawingAssemblyId → title from legend or schedule
+  (e.g. "PAVERS ON PEDESTAL IRMA ROOFING"). Include if visible on the sheet.
+
 surface values: exposed | pavers_pedestals | pavers_ballast | green_roof | walkpads | traffic_coating | concrete_pavement | panel
 
 SURFACE RULES:
@@ -66,16 +81,16 @@ SURFACE RULES:
 LAYER RULES:
 - layers: list EVERY labeled component from bottom (deck/substrate) to top (finish), in order
 - Include ALL layers explicitly labeled on the drawing — deck, insulation, membrane, drainage mat, filter fabric, protection board, pavers, ballast, concrete pavement, etc.
-- drawingAssemblyId: the exact label from the drawing (ROOF 01, ROOF 02, RT-01, etc.)
+- drawingAssemblyId: the exact label from the drawing (ROOF 01, ROOF 02, RT-01, etc.) — normalized with space
 - displayName: descriptive name from schedule if shown (IRMA PLAZA DECK, TERRACE ROOF, etc.)
 - area: SF if shown in schedule, otherwise omit
 
 EXTRACTION COVERAGE — CRITICAL:
-- Process the ENTIRE drawing page from top-left to bottom-right.
-- Start from ROOF 01 (or the first labeled assembly visible on the page).
+- Scan the ENTIRE drawing page from top-left to bottom-right.
+- First, populate allDrawingLabels with EVERY label you can see anywhere on the page.
+- Then extract layers for each assembly in allDrawingLabels.
 - Do NOT skip any assembly. Do NOT start from the middle of the drawing.
-- If the drawing contains ROOF 01, ROOF 02, ROOF 03, ROOF 04, ROOF 05, ROOF 06, return ALL SIX.
-- Every section detail or roof type label on the page must become an assembly entry.
+- Every section detail or roof type label on the page must appear in allDrawingLabels.
 - Up to 20 assemblies per sheet.`;
 
 // ─── Zod Schemas ──────────────────────────────────────────────────────────────
@@ -90,6 +105,8 @@ const V2AssemblySchema = z.object({
 });
 
 const V2ResultSchema = z.object({
+  allDrawingLabels: z.array(z.string()).default([]),
+  legendTitles: z.record(z.string(), z.string()).optional(),
   assemblies: z.array(V2AssemblySchema).default([]),
   deckType: z.string().nullable().optional(),
   projectName: z.string().nullable().optional(),
@@ -102,40 +119,71 @@ type V2Assembly = z.infer<typeof V2AssemblySchema>;
 
 // ─── Label post-processing ────────────────────────────────────────────────────
 //
-// Deterministic fallback: scan raw AI response text for drawing labels that
-// match common patterns (ROOF 01–ROOF 20, RT-01–RT-20, etc.). If any label
-// is found in the raw text but MISSING from the parsed JSON assemblies,
-// create a placeholder item with needsReview=true.
-// This prevents silent data loss when the AI truncates its own output.
+// Deterministic label recovery uses TWO sources:
+//
+// SOURCE A: allDrawingLabels from the AI JSON response.
+//   The prompt requires the AI to list every visible label before extracting
+//   layers. This catches labels the AI would otherwise silently skip.
+//
+// SOURCE B: Regex scan of the raw AI response text.
+//   Fallback in case allDrawingLabels is missing or incomplete. Scans the
+//   full raw text (including any preamble) for ROOF 01, ROOF TYPE 01, etc.
+//
+// Both sets are merged. Any label not in the assemblies array becomes a
+// placeholder with needsReview=true.
+//
+// This guarantees that if the drawing shows ROOF TYPE 01 through ROOF TYPE 06,
+// all six appear in the extraction result even if the AI only fully extracts
+// 4 of them.
 
-const DRAWING_LABEL_PATTERN = /\b((?:ROOF|RT|ROOF TYPE|R)[-\s]?0*([1-9][0-9]?))\b/gi;
+// Matches: ROOF 01, ROOF01, ROOF-01, ROOF TYPE 01, ROOF TYPE01, RT-01, RT 01
+const DRAWING_LABEL_PATTERN =
+  /\b((?:ROOF\s*TYPE|ROOF|RT)[-\s]?0*([1-9][0-9]?))\b/gi;
 
-function extractLabelsFromText(rawText: string): Set<string> {
+/** Normalise a raw matched label string to canonical form: "ROOF 01", "RT 01" */
+function normaliseLabelMatch(raw: string): string {
+  // Strip "TYPE" from "ROOF TYPE 01" → "ROOF 01"
+  let s = raw.replace(/ROOF\s*TYPE/i, "ROOF");
+  // Insert space between letters and digits: "ROOF01" → "ROOF 01"
+  s = s.replace(/([A-Za-z])(\d)/, "$1 $2");
+  // Collapse multiple separators: "ROOF  01", "ROOF-01" → "ROOF 01"
+  s = s.replace(/[-\s]+/, " ");
+  // Zero-pad the trailing number to 2 digits: "ROOF 1" → "ROOF 01"
+  s = s.replace(/(\d+)$/, (_, n) => String(parseInt(n, 10)).padStart(2, "0"));
+  return s.toUpperCase().trim();
+}
+
+/** Scan raw text for drawing label patterns (SOURCE B fallback). */
+export function extractLabelsFromText(rawText: string): Set<string> {
   const found = new Set<string>();
-  let match: RegExpExecArray | null;
   const re = new RegExp(DRAWING_LABEL_PATTERN.source, "gi");
+  let match: RegExpExecArray | null;
   while ((match = re.exec(rawText)) !== null) {
-    // Normalize all separator variants to a single space:
-    //   "ROOF01"  → "ROOF 01"
-    //   "ROOF-01" → "ROOF 01"
-    //   "ROOF 01" → "ROOF 01"
-    //   "RT01"    → "RT 01"
-    const raw = match[0];
-    // Insert space between trailing alpha chars and leading digits if absent
-    const spaced = raw.replace(/([A-Za-z])(\d)/, "$1 $2").replace(/[-\s]+/, " ");
-    const normalised = spaced
-      .replace(/0*(\d+)$/, (_, n) => String(n).padStart(2, "0"))
-      .toUpperCase()
-      .trim();
-    found.add(normalised);
+    found.add(normaliseLabelMatch(match[0]));
   }
   return found;
 }
 
-function buildPlaceholderAssembly(label: string): V2Assembly {
+/** Normalise every label in the AI-returned allDrawingLabels array (SOURCE A). */
+function normaliseAiLabelList(labels: string[]): Set<string> {
+  const out = new Set<string>();
+  for (const raw of labels) {
+    if (!raw) continue;
+    // Apply same normalisation used by regex scanner
+    const normalised = normaliseLabelMatch(raw);
+    if (normalised) out.add(normalised);
+  }
+  return out;
+}
+
+function buildPlaceholderAssembly(
+  label: string,
+  legendTitles?: Record<string, string>
+): V2Assembly {
+  const displayName = legendTitles?.[label] ?? undefined;
   return {
     drawingAssemblyId: label,
-    displayName: undefined,
+    displayName,
     sourceSheet: undefined,
     layers: [],
     surface: null,
@@ -201,7 +249,10 @@ export async function POST(req: NextRequest) {
                   type: "document",
                   source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
                 } as any,
-                { type: "text", text: "Extract ALL roof assemblies from this drawing. Return every labeled assembly including ROOF 01, ROOF 02, etc. Do not skip any." },
+                {
+                  type: "text",
+                  text: "First, list ALL drawing labels visible anywhere on this page in allDrawingLabels. Then extract layers for each assembly. Do not skip any label.",
+                },
               ],
             },
           ],
@@ -225,6 +276,7 @@ export async function POST(req: NextRequest) {
       rawData = JSON.parse(cleaned);
       console.log("[extract-assemblies-v2:parse-ok]", {
         assemblyCount: (rawData as any)?.assemblies?.length ?? 0,
+        allDrawingLabelsCount: (rawData as any)?.allDrawingLabels?.length ?? 0,
         userId,
       });
     } catch (parseErr: unknown) {
@@ -252,24 +304,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { deckType, projectName, location, drawingDate, drawingRevision } =
+    const { deckType, projectName, location, drawingDate, drawingRevision, legendTitles } =
       validated.data;
     let { assemblies } = validated.data;
 
-    // ── 3. Post-processing: label scan for missed assemblies ──────────────────
+    // ── 3. Deterministic label recovery ──────────────────────────────────────
     //
-    // Scan the raw AI response text for drawing labels. If a label appears in
-    // the raw text but is missing from the JSON output (AI silently truncated),
-    // create a placeholder item with needsReview=true.
-    const labelsInResponse = extractLabelsFromText(rawText);
+    // Merge SOURCE A (allDrawingLabels from AI JSON) and SOURCE B (regex scan
+    // of raw AI response text) to build a complete expected label set.
+    //
+    // Any label not present in the assemblies array gets a placeholder item.
+
+    // SOURCE A: AI-reported label list (most reliable — AI saw the full page)
+    const labelsFromAiList = normaliseAiLabelList(validated.data.allDrawingLabels);
+
+    // SOURCE B: Regex fallback scanning raw AI response preamble / echoes
+    const labelsFromRegex = extractLabelsFromText(rawText);
+
+    // Merge both sources
+    const expectedLabels = new Set<string>([
+      ...labelsFromAiList,
+      ...labelsFromRegex,
+    ]);
+
+    // Labels already present in the extracted assemblies array
     const labelsInJson = new Set(
       assemblies
-        .map((a) => a.drawingAssemblyId?.toUpperCase().trim())
+        .map((a) => normaliseLabelMatch(a.drawingAssemblyId))
         .filter(Boolean),
     );
 
     const missingLabels: string[] = [];
-    for (const label of labelsInResponse) {
+    for (const label of expectedLabels) {
       if (!labelsInJson.has(label)) {
         missingLabels.push(label);
       }
@@ -277,17 +343,25 @@ export async function POST(req: NextRequest) {
 
     if (missingLabels.length > 0) {
       console.warn("[extract-assemblies-v2:missing-labels]", {
-        found: Array.from(labelsInResponse),
+        sourceA: Array.from(labelsFromAiList),
+        sourceB: Array.from(labelsFromRegex),
         inJson: Array.from(labelsInJson),
         missing: missingLabels,
         userId,
       });
-      // Append placeholder items — sorted so ROOF 01 comes first
+      // Insert placeholders sorted before existing assemblies so ROOF 01 comes first
       const placeholders = missingLabels
         .sort()
-        .map(buildPlaceholderAssembly);
-      assemblies = [...assemblies, ...placeholders];
+        .map((label) => buildPlaceholderAssembly(label, legendTitles));
+      assemblies = [...placeholders, ...assemblies];
     }
+
+    // Sort all assemblies by drawingAssemblyId so ROOF 01 < ROOF 02 < ...
+    assemblies.sort((a, b) =>
+      (a.drawingAssemblyId ?? "").localeCompare(b.drawingAssemblyId ?? "", undefined, {
+        numeric: true,
+      })
+    );
 
     // ── 4. Classify each assembly via classifyLayersV2 ────────────────────────
     const classifiedAssemblies = assemblies.map((asm: V2Assembly) => {
@@ -341,8 +415,6 @@ export async function POST(req: NextRequest) {
 
     for (const { asm, classification } of classifiedAssemblies) {
       const isPlaceholder = asm.layers.length === 0 && classification.needsReview;
-      // Derive a legacy systemId so the legacy RoofAssemblyCard can render
-      // with a fallback config if this item is ever promoted to a project preset.
       const legacySystemId = archetypeIdToLegacy(classification.archetypeId);
 
       // @ts-ignore — extractionV2 not yet in generated api.d.ts
