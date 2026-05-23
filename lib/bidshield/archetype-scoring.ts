@@ -40,10 +40,38 @@ const ARCHETYPE_TOKEN_RULES: Record<
 > = {
   liquid_applied_irma: {
     requiredTokens: ["membrane", "drainageMat"],
-    bonusTokens: ["filterFabric", "insulationBoard", "pedestals", "pavers", "ballast"],
+    bonusTokens: ["filterFabric", "insulationBoard"],
     disqualifyTokens: ["basePly", "capSheet"],
-    keywords: ["irma", "pmr", "inverted roof", "protected membrane", "plaza deck", "pedestal", "ballast"],
-    disqualifyKeywords: ["concrete pavement", "cast-in-place", "concrete paving"],
+    keywords: ["irma", "pmr", "inverted roof", "protected membrane", "plaza deck"],
+    disqualifyKeywords: ["concrete pavement", "cast-in-place", "concrete paving", "pedestal", "ballast", "green roof", "vegetated"],
+  },
+
+  // ── IRMA sub-types — overburden-specific ─────────────────────────────────────
+  // These are scored first via priority ordering. The presence of semantic
+  // signals (pedestal/ballast/green roof) beats generic liquid_applied_irma.
+
+  pedestal_paver_irma: {
+    requiredTokens: ["membrane", "drainageMat", "pedestals"],
+    bonusTokens: ["filterFabric", "insulationBoard", "pavers"],
+    disqualifyTokens: ["basePly", "capSheet", "ballast", "greenRoof"],
+    keywords: ["pedestal", "pavers on pedestal", "wood tiles on pedestal", "adjustable pedestal", "pedestal system"],
+    disqualifyKeywords: ["concrete pavement", "cast-in-place", "green roof", "vegetated"],
+  },
+
+  green_roof_irma: {
+    requiredTokens: ["membrane", "drainageMat", "greenRoof"],
+    bonusTokens: ["filterFabric", "rootBarrier", "insulationBoard"],
+    disqualifyTokens: ["basePly", "capSheet", "pedestals", "ballast"],
+    keywords: ["green roof", "vegetated roof", "sustainable roof", "planting media", "root barrier", "growth medium", "growing media"],
+    disqualifyKeywords: ["concrete pavement", "cast-in-place", "pedestal", "ballast"],
+  },
+
+  ballast_paver_irma: {
+    requiredTokens: ["membrane", "drainageMat", "ballast"],
+    bonusTokens: ["filterFabric", "insulationBoard", "pavers"],
+    disqualifyTokens: ["basePly", "capSheet", "pedestals", "greenRoof"],
+    keywords: ["ballast", "paver ballast", "lock-down paver ballast", "concrete paver ballast", "river ballast"],
+    disqualifyKeywords: ["concrete pavement", "cast-in-place", "green roof", "vegetated", "pedestal"],
   },
   conventional_liquid_applied: {
     requiredTokens: ["membrane", "insulationBoard"],
@@ -365,59 +393,73 @@ export function classifyLayersV2(
     .filter((nl) => nl.canonicalToken !== null)
     .map((nl) => nl.confidence);
 
-  // ── Surface / label overrides (run FIRST) ──────────────────────────────────
+  // ── Semantic signal detection ─────────────────────────────────────────────
   //
-  // Concrete pavement: match surface hint OR any of:
-  //   - "cast-in-place", "cast in place", "CIP concrete"
-  //   - "concrete pavement", "concrete paving", "concrete slab", "plaza pavement"
-  //   - "gravel" or "aggregate" present AND "concrete" present in same assembly
-  //   - layers include both a drainageMat token AND any concrete-like text
-  const lowerAllText = allText.toLowerCase();
-  const hasConcretePavementText =
-    /concrete\s*pav(e|ing|ement)?/i.test(allText) ||
-    /cast[\s-]*in[\s-]*place/i.test(allText) ||
-    /\bcip\s+concrete\b/i.test(allText) ||
-    /plaza\s+pavement/i.test(allText) ||
-    /concrete\s+slab/i.test(allText);
+  // All detection is based on normalized canonical tokens or exact phrase
+  // matching against the combined layer text. No project-specific logic.
+  // Signal priority (highest first):
+  //   1. built_up_panel_assembly  (panel/DensGlass/cementitious board)
+  //   2. green_roof_irma          (green roof / vegetated / root barrier)
+  //   3. pedestal_paver_irma      (pedestal / pavers on pedestal)
+  //   4. ballast_paver_irma       (ballast / paver ballast — NOT concrete pavers)
+  //   5. concrete_pavement_roof   (exact phrase: concrete pavement / CIP)
+  //   6. Scoring engine for all remaining archetypes
 
-  // Gravel + drainage mat combination strongly suggests concrete pavement roof
-  // BUT: river ballast (pavers_ballast surface) ≠ concrete pavement.
-  // Only trigger when "concrete" explicitly appears in layer text alongside gravel.
-  const hasGravelLayer =
-    /\bgravel\b|\bgravel\s+layer\b|\baggregate\s+layer\b/i.test(allText);
-  const hasDrainageMat = canonicalTokens.includes("drainageMat" as CanonicalLayerToken);
-  const concreteHint = surfaceHint === "concrete_pavement";
+  const tokens = canonicalTokens;
 
-  const isConcretePavement =
-    concreteHint ||
-    hasConcretePavementText ||
-    // Gravel + drainage mat + any concrete word = concrete pavement assembly
-    (hasGravelLayer && hasDrainageMat && /concrete/i.test(allText));
-
+  // Panel: semantic signals — aluminum panel, DensGlass, cementitious board, curtain wall
+  // Must NOT have drainage mat or filter fabric (those indicate IRMA, not panel)
   const isPanelAssembly =
     surfaceHint === "panel" ||
-    /aluminum\s*panel|cladding\s*panel|curtain\s*wall|densglass.*panel|panel.*cladding/i.test(allText) ||
-    /dens[\s-]*glass|cementitious\s*board/i.test(allText) &&
-      !/drainage\s*mat|filter\s*fabric|drainageMat/i.test(allText);
+    (
+      (/aluminum[\s_-]?panel|cladding[\s_-]?panel|curtain[\s_-]?wall|metal[\s_-]?panel/i.test(allText) ||
+       /dens[\s-]?glass|cementitious[\s_-]?board/i.test(allText)) &&
+      !tokens.includes("drainageMat" as CanonicalLayerToken) &&
+      !tokens.includes("filterFabric" as CanonicalLayerToken)
+    );
 
-  if (isConcretePavement) {
-    const overrideId = "concrete_pavement_roof";
-    const confidence = 0.95;
+  // Green roof: semantic signals — green roof token, root barrier, vegetated, planting media
+  const isGreenRoof =
+    tokens.includes("greenRoof" as CanonicalLayerToken) ||
+    tokens.includes("rootBarrier" as CanonicalLayerToken) ||
+    /\bgreen[\s_-]?roof\b/i.test(allText) ||
+    /vegetated[\s_-]?roof/i.test(allText) ||
+    /planting[\s_-]?media|growth[\s_-]?medi/i.test(allText);
+
+  // Pedestal: semantic signals — pedestal token or phrase containing "pedestal"
+  // Disallow if ballast or green roof is primary signal
+  const hasPedestal =
+    tokens.includes("pedestals" as CanonicalLayerToken) ||
+    /\bpedestal/i.test(allText);
+
+  // Ballast: semantic signals — ballast token
+  // Covers: river ballast, paver ballast, lock-down paver ballast, concrete paver ballast
+  // Does NOT fire on "concrete pavement" alone (no ballast token there)
+  const hasBallast =
+    tokens.includes("ballast" as CanonicalLayerToken);
+
+  // Concrete pavement: EXACT phrase only.
+  // "concrete paver" / "concrete slab" / "concrete deck" do NOT trigger this.
+  // Required: drainageMat token present (prevents false positives from bare labels)
+  const hasDrainageMat = tokens.includes("drainageMat" as CanonicalLayerToken);
+  const hasExactConcretePavement =
+    surfaceHint === "concrete_pavement" ||
+    /\bconcrete[\s_-]?pavement\b/i.test(allText) ||
+    /cast[\s-]*in[\s-]*place[\s_-]?concrete/i.test(allText) ||
+    /\bcip[\s_-]?concrete[\s_-]?pav/i.test(allText) ||
+    /\bcip[\s_-]?pavement\b/i.test(allText);
+
+  // ── Priority overrides (checked in order, first match wins) ──────────────
+
+  function makeOverrideResult(overrideId: string, conf: number) {
     const snapshots = getSectionSnapshots(overrideId);
-
     return {
       archetypeId: overrideId,
       archetypeVersion: 2,
-      confidence,
-      needsReview: confidence < 0.55,
+      confidence: conf,
+      needsReview: conf < 0.55,
       audit: {
-        scoringBreakdown: {
-          layerScore: 0,
-          drainageMatScore: 0,
-          filterFabricScore: 0,
-          keywordScore: 0,
-          totalScore: 0,
-        },
+        scoringBreakdown: { layerScore: 0, drainageMatScore: 0, filterFabricScore: 0, keywordScore: 0, totalScore: 0 },
         matchedLayers: [],
         rejectedLayers: [],
         matchedKeywords: [],
@@ -431,36 +473,20 @@ export function classifyLayersV2(
     };
   }
 
-  if (isPanelAssembly) {
-    const overrideId = "built_up_panel_assembly";
-    const confidence = 0.92;
-    const snapshots = getSectionSnapshots(overrideId);
+  // 1. Panel assembly
+  if (isPanelAssembly) return makeOverrideResult("built_up_panel_assembly", 0.92);
 
-    return {
-      archetypeId: overrideId,
-      archetypeVersion: 2,
-      confidence,
-      needsReview: confidence < 0.55,
-      audit: {
-        scoringBreakdown: {
-          layerScore: 0,
-          drainageMatScore: 0,
-          filterFabricScore: 0,
-          keywordScore: 0,
-          totalScore: 0,
-        },
-        matchedLayers: [],
-        rejectedLayers: [],
-        matchedKeywords: [],
-        attemptedArchetypes: [],
-        normalizedLayerTokens,
-        unmatchedLayers,
-        normalizationConfidence,
-        timestamp,
-      },
-      ...snapshots,
-    };
-  }
+  // 2. Green roof IRMA (requires drainage mat to confirm IRMA stack)
+  if (isGreenRoof && hasDrainageMat) return makeOverrideResult("green_roof_irma", 0.93);
+
+  // 3. Pedestal paver IRMA (requires drainage mat to confirm IRMA stack)
+  if (hasPedestal && hasDrainageMat && !isGreenRoof) return makeOverrideResult("pedestal_paver_irma", 0.93);
+
+  // 4. Ballast paver IRMA (requires drainage mat to confirm IRMA stack)
+  if (hasBallast && hasDrainageMat && !hasPedestal && !isGreenRoof) return makeOverrideResult("ballast_paver_irma", 0.90);
+
+  // 5. Concrete pavement roof (exact phrase only)
+  if (hasExactConcretePavement) return makeOverrideResult("concrete_pavement_roof", 0.95);
 
   // ── Score all archetypes ───────────────────────────────────────────────────
   const attemptedArchetypes: AttemptedArchetype[] = [];

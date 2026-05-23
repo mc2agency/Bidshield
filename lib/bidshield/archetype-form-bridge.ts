@@ -89,6 +89,29 @@ export const ARCHETYPE_FORM_SCHEMAS: Record<string, ArchetypeFormSchema> = {
     hiddenSections: ["coverBoard", "burPlies", "capSheet", "surfacing", "growingMedia", "drainageLayer", "irrigation", "concretePavement", "reinforcement", "taperedInsulation", "gravelLayer"],
   },
 
+  // ── IRMA Sub-types (overburden-specific) ────────────────────────────────────
+
+  pedestal_paver_irma: {
+    archetypeId: "pedestal_paver_irma",
+    requiredSections: ["membrane", "insulation", "drainageMat", "filterFabric", "pedestals", "drainage", "flashing"],
+    optionalSections: ["deck", "vaporRetarder", "protectionBoard", "ballastRestraint", "penetrations", "edgeConditions"],
+    hiddenSections: ["coverBoard", "burPlies", "capSheet", "surfacing", "ballast", "greenRoof", "rootBarrier", "growingMedia", "drainageLayer", "irrigation", "concretePavement", "reinforcement", "taperedInsulation", "gravelLayer"],
+  },
+
+  green_roof_irma: {
+    archetypeId: "green_roof_irma",
+    requiredSections: ["membrane", "insulation", "drainageMat", "filterFabric", "rootBarrier", "greenRoof", "drainage"],
+    optionalSections: ["deck", "vaporRetarder", "protectionBoard", "growingMedia", "drainageLayer", "irrigation", "penetrations", "edgeConditions", "flashing"],
+    hiddenSections: ["coverBoard", "burPlies", "capSheet", "surfacing", "pedestals", "ballast", "ballastRestraint", "concretePavement", "reinforcement", "taperedInsulation", "gravelLayer"],
+  },
+
+  ballast_paver_irma: {
+    archetypeId: "ballast_paver_irma",
+    requiredSections: ["membrane", "insulation", "drainageMat", "filterFabric", "ballast", "drainage", "flashing"],
+    optionalSections: ["deck", "vaporRetarder", "protectionBoard", "ballastRestraint", "penetrations", "edgeConditions"],
+    hiddenSections: ["coverBoard", "burPlies", "capSheet", "surfacing", "pedestals", "greenRoof", "rootBarrier", "growingMedia", "drainageLayer", "irrigation", "concretePavement", "reinforcement", "taperedInsulation", "gravelLayer"],
+  },
+
   // ── Hardscape / Concrete Pavement ───────────────────────────────────────────
   //
   // hiddenSections includes: filterFabric, pedestals, ballast, ballastRestraint,
