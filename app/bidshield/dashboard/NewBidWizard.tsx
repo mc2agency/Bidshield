@@ -52,6 +52,17 @@ interface V2Item {
   area?: number | null;
 }
 
+// ─── V2 helpers ───────────────────────────────────────────────────────────────
+
+function archetypeToSurfaceType(archetypeId: string): string {
+  if (archetypeId === "pedestal_paver_irma") return "pavers_pedestals";
+  if (archetypeId === "green_roof_irma") return "green_roof";
+  if (archetypeId === "ballast_paver_irma") return "pavers_ballast";
+  if (archetypeId === "built_up_panel_assembly") return "aluminum_panel";
+  if (archetypeId === "concrete_pavement_roof") return "concrete_topping";
+  return "";
+}
+
 // ─── V2InlineCard ─────────────────────────────────────────────────────────────
 // Renders a V2 extraction item from snapshots. No legacy imports.
 // Shown in the wizard preview step instead of RoofAssemblyCard.
@@ -470,8 +481,14 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               label: item.drawingAssemblyId,
               name: item.displayName ?? undefined,
               systemType: archetypeIdToLegacy(item.archetypeId) || "custom",
-              insulationType: "",
-              insulationThickness: "",
+              insulationType: (item.sectionValues["insulationType"] as string) || "",
+              insulationThickness: (item.sectionValues["insulationThickness"] as string) || "",
+              rValue: (() => {
+                const t = (item.sectionValues["insulationType"] as string) || "";
+                const th = parseFloat((item.sectionValues["insulationThickness"] as string) || "0");
+                return t && th ? computeInsulationRValue(t, th) : undefined;
+              })(),
+              surfaceType: archetypeToSurfaceType(item.archetypeId),
               layers: item.extractedLayers.length > 0 ? item.extractedLayers : undefined,
               sectionValues: Object.keys(item.sectionValues).length > 0 ? item.sectionValues as SectionValues : undefined,
               area: typeof item.area === "number" ? item.area : undefined,

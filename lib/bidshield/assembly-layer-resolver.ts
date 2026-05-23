@@ -62,6 +62,22 @@ function extractInsulation(layers: string[]): string | undefined {
   return undefined;
 }
 
+/** Parse insulation type ID (for SetupTab dropdown) from an insulation layer string. */
+function parseInsulationTypeId(text: string): string | undefined {
+  if (/xps|extruded\s*poly(?:styrene)?/i.test(text)) return "xps";
+  if (/polyiso(?:cyanurate)?/i.test(text)) return "polyiso";
+  if (/\beps\b|expanded\s*poly/i.test(text)) return "eps";
+  if (/mineral\s*wool|rock\s*wool/i.test(text)) return "mineral_wool";
+  if (/vacuum/i.test(text)) return "vacuum";
+  return "rigid";
+}
+
+/** Parse insulation thickness in inches from a dimension-prefixed layer string. */
+function parseInsulationThicknessInches(text: string): string | undefined {
+  const m = text.match(/^(\d+(?:\.\d+)?)\s*(?:"|inch(?:es)?|in\b)/i);
+  return m ? m[1] : undefined;
+}
+
 /** Extract membrane spec. */
 function extractMembrane(layers: string[]): string | undefined {
   for (const l of layers) {
@@ -377,7 +393,13 @@ function buildSectionValues(
 
   switch (archetypeId) {
     case "pedestal_paver_irma": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       if (drainageMat) sv["drainageMat"] = drainageMat; else sv["drainageMat"] = "Drainage Mat";
       sv["filterFabric"] = true;
       const pedestals = extractPedestals(fullLayerStack);
@@ -388,7 +410,13 @@ function buildSectionValues(
       break;
     }
     case "green_roof_irma": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       if (drainageMat) sv["drainageMat"] = drainageMat; else sv["drainageMat"] = "Drainage Mat";
       sv["filterFabric"] = true;
       sv["rootBarrier"] = true;
@@ -400,7 +428,13 @@ function buildSectionValues(
       break;
     }
     case "ballast_paver_irma": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       if (drainageMat) sv["drainageMat"] = drainageMat; else sv["drainageMat"] = "Drainage Mat";
       sv["filterFabric"] = true;
       const ballast = extractBallast(fullLayerStack);
@@ -412,7 +446,13 @@ function buildSectionValues(
     }
     case "liquid_applied_irma":
     case "modified_bitumen_irma": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       if (drainageMat) sv["drainageMat"] = drainageMat; else sv["drainageMat"] = "Drainage Mat";
       sv["filterFabric"] = true;
       if (protectionBoard) sv["protectionBoard"] = protectionBoard;
@@ -421,7 +461,13 @@ function buildSectionValues(
       break;
     }
     case "concrete_pavement_roof": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       if (drainageMat) sv["drainageMat"] = drainageMat;
       if (protectionBoard) sv["protectionBoard"] = protectionBoard;
       const gravelLayer = extractGravelLayer(fullLayerStack);
@@ -433,7 +479,13 @@ function buildSectionValues(
       break;
     }
     case "built_up_panel_assembly": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       const coverBoard = extractCoverBoard(fullLayerStack);
       if (coverBoard) sv["coverBoard"] = coverBoard;
       const surfacing = extractSurfacing(fullLayerStack);
@@ -445,7 +497,13 @@ function buildSectionValues(
     case "single_ply_pvc":
     case "single_ply_epdm":
     case "modified_bitumen_sbs": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       const coverBoard = extractCoverBoard(fullLayerStack);
       if (coverBoard) sv["coverBoard"] = coverBoard;
       if (protectionBoard) sv["protectionBoard"] = protectionBoard;
@@ -454,7 +512,13 @@ function buildSectionValues(
       break;
     }
     case "conventional_liquid_applied": {
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       const coverBoard = extractCoverBoard(fullLayerStack);
       if (coverBoard) sv["coverBoard"] = coverBoard;
       if (protectionBoard) sv["protectionBoard"] = protectionBoard;
@@ -464,7 +528,13 @@ function buildSectionValues(
     }
     default: {
       // Custom / unknown — extract whatever we can
-      if (insulation) sv["insulation"] = insulation;
+      if (insulation) {
+        sv["insulation"] = insulation;
+        const iType = parseInsulationTypeId(insulation);
+        const iThick = parseInsulationThicknessInches(insulation);
+        if (iType) sv["insulationType"] = iType;
+        if (iThick) sv["insulationThickness"] = iThick;
+      }
       if (drainageMat) sv["drainageMat"] = drainageMat;
       if (drainage) sv["drainage"] = drainage;
       if (flashing) sv["flashing"] = flashing;
