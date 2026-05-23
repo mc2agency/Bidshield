@@ -1517,7 +1517,14 @@ export function validateAssembly(
     };
   const issues: ValidationIssue[] = [];
 
-  if (system === "lam") {
+  const isIrmaFamily =
+    system === "lam_irma" ||
+    system === "sbs_irma" ||
+    system === "sbs_irma_green" ||
+    system === "app_irma";
+
+  if (!isIrmaFamily) {
+    // Conventional systems — drainage is a soft review item only
     if (!drainageMat) {
       issues.push({
         severity: "info",
@@ -1528,31 +1535,169 @@ export function validateAssembly(
     return issues;
   }
 
-  if (system === "lam_irma") {
-    if (!drainageMat) {
-      issues.push({
-        severity: "error",
-        code: "lam_irma_missing_drainage_mat",
-        message: "IRMA/PMR assembly requires a drainage mat.",
-      });
-    }
-    if (!filterFabric) {
-      issues.push({
-        severity: "error",
-        code: "lam_irma_missing_filter_fabric",
-        message: "IRMA/PMR assembly requires a filter fabric layer.",
-      });
-    }
-    if (insulationAboveMembrane === false) {
-      issues.push({
-        severity: "error",
-        code: "lam_irma_insulation_position",
-        message: "IRMA/PMR assembly requires insulation above the waterproofing membrane.",
-      });
-    }
+  // IRMA-family rules (lam_irma, sbs_irma, sbs_irma_green, app_irma)
+  if (!drainageMat) {
+    issues.push({
+      severity: "error",
+      code: "lam_irma_missing_drainage_mat",
+      message: "IRMA/PMR assembly requires a drainage mat.",
+    });
+  }
+  if (!filterFabric) {
+    issues.push({
+      severity: "error",
+      code: "lam_irma_missing_filter_fabric",
+      message: "IRMA/PMR assembly requires a filter fabric layer.",
+    });
+  }
+  if (insulationAboveMembrane === false) {
+    issues.push({
+      severity: "error",
+      code: "lam_irma_insulation_position",
+      message: "IRMA/PMR assembly requires insulation above the waterproofing membrane.",
+    });
+  }
+  if (system === "sbs_irma_green") {
+    // Green roof — rootBarrier is an additional hard requirement
+    issues.push({
+      severity: "info",
+      code: "sbs_irma_green_root_barrier",
+      message: "Confirm root barrier / root-resistant sheet is specified above the membrane.",
+    });
   }
 
   return issues;
+}
+
+/**
+ * Build SectionValues from flat assembly fields.
+ * Used when sectionValues are absent (AI-extracted records, backward-compat).
+ * Safe to call on every render — pure function, no side effects.
+ */
+export function buildSectionValuesFromAssembly(assembly: {
+  systemType: string;
+  deckType?: string | null;
+  insulationType?: string | null;
+  insulationThickness?: string | null;
+  rValue?: number | null;
+  drainageMat?: boolean | null;
+  filterFabric?: boolean | null;
+  layers?: string[] | null;
+  surfaceType?: string | null;
+  coverBoard?: string | null;
+  protectionBoard?: string | null;
+  vaporRetarder?: boolean | null;
+}): SectionValues {
+  const {
+    systemType, deckType, insulationType, insulationThickness, rValue,
+    drainageMat, filterFabric, layers, surfaceType, coverBoard, protectionBoard, vaporRetarder,
+  } = assembly;
+
+  const deck = deckType ? (DECK_TYPE_MAP[deckType] ?? deckType) : null;
+
+  const insulation =
+    insulationType || insulationThickness
+      ? formatInsulationLabel(insulationType, insulationThickness, rValue)
+      : null;
+
+  const isIrma = systemType.includes("irma");
+  const isGreen = systemType.includes("green");
+  const isSbs = systemType === "sbs" || systemType.startsWith("sbs_");
+  const isApp = systemType === "app" || systemType.startsWith("app_");
+  const isConventionalLam = systemType === "lam";
+
+  const values: SectionValues = {
+    deck: deck ?? null,
+    insulation: insulation ?? null,
+    vaporRetarder: vaporRetarder ?? null,
+  };
+
+  if (isIrma) {
+    // Membrane — detect SBS/APP plies from layer stack
+    if (isSbs || isApp) {
+      const basePly = layers?.find((l) => /base.?ply/i.test(l));
+      const finishPly = layers?.find((l) => /finish.?ply/i.test(l));
+      if (basePly || finishPly) {
+        values.membrane = [basePly, finishPly].filter(Boolean).join(" + ");
+      } else {
+        values.membrane = isSbs
+          ? "Modified bitumen base ply + finish ply"
+          : "APP modified bitumen base ply + finish ply";
+      }
+    } else {
+      const liquidLayer = layers?.find((l) =>
+        /fluid.applied|liquid.applied|waterproof.*membrane|cold.applied/i.test(l)
+      );
+      values.membrane = liquidLayer ?? "Cold fluid-applied waterproofing membrane";
+    }
+
+    // Protection board
+    const detectedProtBoard = layers?.find((l) =>
+      /protection.?board|protection.?sheet|protection.?course/i.test(l)
+    );
+    values.protectionBoard = protectionBoard ?? detectedProtBoard ?? null;
+
+    // Drainage mat
+    values.drainageMat = drainageMat
+      ? (layers?.find((l) => /drainage.?mat|enkadrain|hydrodrain/i.test(l)) ?? "Drainage mat")
+      : null;
+
+    // Filter fabric
+    values.filterFabric = filterFabric ? true : null;
+
+    // Pedestals
+    const pedestalLayer = layers?.find((l) => /pedestal|tab/i.test(l));
+    if (pedestalLayer) values.pedestals = pedestalLayer;
+
+    // Overburden (pavers / ballast)
+    const paverLayer = layers?.find((l) => /paver|paving|roofblok/i.test(l));
+    const ballastLayer = layers?.find((l) => /\bgravel\b|ballast|river.?stone/i.test(l));
+    if (paverLayer) values.ballast = paverLayer;
+    else if (ballastLayer) values.ballast = ballastLayer;
+
+    // Green roof additions
+    if (isGreen) {
+      values.rootBarrier = true;
+      const trayLayer = layers?.find((l) => /tray|sedum|vegetat|green/i.test(l));
+      if (trayLayer) values.greenRoof = trayLayer;
+      const drainageLayer = layers?.find((l) => /drainage.?layer|aggregate|LECA/i.test(l));
+      if (drainageLayer) values.drainageLayer = drainageLayer;
+    }
+  } else if (isConventionalLam) {
+    const liquidLayer = layers?.find((l) =>
+      /fluid.applied|liquid.applied|waterproof.*membrane|cold.applied|PMMA|Parapro|Paracoat|AlphaGuard/i.test(l)
+    );
+    values.membrane = liquidLayer ?? null;
+    values.coverBoard = coverBoard ?? null;
+  } else if (isSbs || isApp) {
+    // Conventional SBS/APP
+    const basePly = layers?.find((l) => /base.?ply/i.test(l));
+    const finishPly = layers?.find((l) => /finish.?ply/i.test(l));
+    if (basePly || finishPly) {
+      values.membrane = [basePly, finishPly].filter(Boolean).join(" + ");
+    }
+    values.coverBoard =
+      coverBoard ??
+      layers?.find((l) => /cover.?board|protection.?board|DensDeck/i.test(l)) ??
+      null;
+  } else {
+    values.coverBoard = coverBoard ?? null;
+  }
+
+  // Surface (only for non-IRMA — IRMA surface is inferred from pavers/ballast above)
+  if (!isIrma && surfaceType) {
+    const surfaceMap: Record<string, string> = {
+      pavers_pedestals: "Pavers on Pedestals",
+      pavers_ballast: "Ballast Pavers",
+      green_roof: "Green Roof",
+      walkpads: "Walk Pads",
+      traffic_coating: "Traffic Coating",
+      exposed: "Exposed Membrane",
+    };
+    values.surfacing = surfaceMap[surfaceType] ?? surfaceType;
+  }
+
+  return values;
 }
 
 export function generateLayerStack(

@@ -5,9 +5,11 @@ import {
   validateAssembly,
   generateLayerStack,
   getDeckCompatibilityWarning,
+  buildSectionValuesFromAssembly,
   SectionValues,
   SectionId,
   ValidationResult,
+  ClassificationAudit,
   ROOF_SYSTEM_CONFIGS,
   SMART_PRESETS,
 } from "@/lib/bidshield/assembly-system-configs";
@@ -19,7 +21,6 @@ export interface AssemblyCardData {
   label: string;
   name?: string;
   systemType: string;
-  // Legacy fields (still used for backward compat)
   insulationType?: string;
   insulationThickness?: string;
   rValue?: number;
@@ -29,11 +30,12 @@ export interface AssemblyCardData {
   uValue?: number;
   attachmentMethod?: string;
   layers?: string[];
-  // New: section values (source of truth for system-specific data)
+  drainageMat?: boolean | null;
+  filterFabric?: boolean | null;
   sectionValues?: SectionValues;
-  // AI extraction metadata
-  confidence?: number;        // 0-100 AI classification confidence
-  extractedFromPdf?: boolean; // was this assembly extracted from a PDF
+  confidence?: number;
+  extractedFromPdf?: boolean;
+  classificationAudit?: ClassificationAudit;
 }
 
 interface Props {
@@ -48,13 +50,33 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
   const [presetsOpen, setPresetsOpen] = useState(false);
 
   const systemConfig = getSystemConfig(assembly.systemType);
-  const sectionValues = assembly.sectionValues ?? {};
+
+  // Auto-build sectionValues from flat fields when absent or empty
+  const hasExplicitSections =
+    assembly.sectionValues && Object.values(assembly.sectionValues).some(
+      (v) => v !== null && v !== undefined && v !== false && v !== ""
+    );
+  const sectionValues: SectionValues = hasExplicitSections
+    ? (assembly.sectionValues as SectionValues)
+    : buildSectionValuesFromAssembly({
+        systemType: assembly.systemType,
+        deckType: null,
+        insulationType: assembly.insulationType,
+        insulationThickness: assembly.insulationThickness,
+        rValue: assembly.rValue,
+        drainageMat: assembly.drainageMat,
+        filterFabric: assembly.filterFabric,
+        layers: assembly.layers,
+        surfaceType: assembly.surfaceType,
+        coverBoard: assembly.coverBoard,
+      });
 
   const updateSections = (updated: SectionValues) => {
     onChange({ ...assembly, sectionValues: updated });
   };
 
   const baseWarnings = systemConfig ? validateAssembly(systemConfig, sectionValues) : [];
+  const conflict = assembly.classificationAudit?.conflict;
 
   // Deck compatibility intelligence
   const deckValue = sectionValues.deck as string | null | undefined;
@@ -262,6 +284,29 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
           </div>
         </div>
       </div>
+
+      {/* Classification conflict banner */}
+      {conflict && assembly.classificationAudit && (
+        <div
+          className="mx-4 mb-0 mt-0 px-3 py-2 rounded-lg text-xs flex items-start gap-2"
+          style={{ background: "#451a03", border: "1px solid #92400e", color: "#fbbf24" }}
+        >
+          <span style={{ fontSize: 14, lineHeight: 1.2 }}>⚠</span>
+          <div>
+            <div className="font-semibold mb-0.5">Classification conflict — layer stack overrides title</div>
+            {assembly.classificationAudit.titleSystem && (
+              <div style={{ color: "#fde68a" }}>
+                Title: <span className="font-medium uppercase">{assembly.classificationAudit.titleSystem}</span>
+                {" · "}
+                Detected: <span className="font-medium uppercase">{assembly.classificationAudit.detectedSystem}</span>
+              </div>
+            )}
+            {assembly.classificationAudit.reason && (
+              <div className="mt-0.5" style={{ color: "#d97706" }}>{assembly.classificationAudit.reason}</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Dynamic sections */}
       <div className="px-4 pb-3">
