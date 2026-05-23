@@ -11,6 +11,14 @@
  *  — All legacy Phase 2 types and configs (SectionId, RoofSystemConfig, ROOF_SYSTEM_CONFIGS, etc.)
  */
 
+import {
+  normalizeLayer,
+  normalizeLayers,
+  hasCanonicalLayer,
+  type NormalizedLayer,
+  type CanonicalLayerToken,
+} from "./layer-normalization";
+
 // ─── Insulation label lookup ───────────────────────────────────────────────────
 
 export const INSULATION_CODE_LABELS: Record<string, string> = {
@@ -71,6 +79,10 @@ export interface SignalAuditEntry {
   raw: boolean | null;
   effective: boolean;
   source: "explicit" | "layers";
+  /** Normalized layers that matched this signal */
+  matchedLayers?: string[];
+  /** Confidence scores for matched layers */
+  matchConfidence?: number[];
 }
 
 export interface NormalizedAssemblySignals {
@@ -89,14 +101,11 @@ export interface NormalizedAssemblySignals {
   };
 }
 
-const LAYER_DRAINAGE_MAT    = /drainage[\s_-]?mat|enkadrain|drain[\s_-]?board|drainage[\s_-]?layer/i;
-const LAYER_FILTER_FABRIC   = /filter[\s_-]?fabric|geotextile|separation[\s_-]?fabric/i;
-const LAYER_GREEN_ROOF      = /green[\s_-]?tray|vegetation|growing[\s_-]?media|growth[\s_-]?media|root[\s_-]?barrier/i;
-const LAYER_PEDESTALS       = /pedestal[\s_-]?tabs?|pedestal[\s_-]?system/i;
-const LAYER_SBS_MEMBRANE    = /\bmodified[\s_-]?bitumen\b|\bmod[\s_-]?bit\b|\bSBS\b|\bAPP\b/i;
-
 /**
  * Normalise raw AI extraction signals against layer-text evidence.
+ * NOW USES CANONICAL LAYER NORMALIZATION for improved tolerance to
+ * terminology variation across architects and consultants.
+ *
  * The AI frequently returns drainageMat:false while listing "Drainage Mat"
  * in the layers array. This function treats explicit layer evidence as
  * authoritative over missing AI booleans.
@@ -105,19 +114,44 @@ const LAYER_SBS_MEMBRANE    = /\bmodified[\s_-]?bitumen\b|\bmod[\s_-]?bit\b|\bSB
  * be true — any logic error that violates this throws immediately.
  */
 export function normalizeAssemblySignals(raw: RawAssemblySignals): NormalizedAssemblySignals {
-  const layerText = Array.isArray(raw.layers) ? raw.layers.join(" ") : "";
+  const layers = Array.isArray(raw.layers) ? raw.layers : [];
+  
+  // Normalize all layers using the new canonical token system
+  const normalizationResult = normalizeLayers(layers);
+  const normalizedLayers = normalizationResult.normalizedLayers;
 
-  const drainageFromLayers  = LAYER_DRAINAGE_MAT.test(layerText);
-  const filterFromLayers    = LAYER_FILTER_FABRIC.test(layerText);
-  const greenFromLayers     = LAYER_GREEN_ROOF.test(layerText);
-  const pedestalsFromLayers = LAYER_PEDESTALS.test(layerText);
-  const sbsFromLayers       = LAYER_SBS_MEMBRANE.test(layerText);
+  // Check for canonical tokens instead of raw regex matching
+  const drainageMatLayers = normalizedLayers.filter(
+    (nl) => nl.canonicalToken === "drainageMat"
+  );
+  const filterFabricLayers = normalizedLayers.filter(
+    (nl) => nl.canonicalToken === "filterFabric"
+  );
+  const greenRoofLayers = normalizedLayers.filter(
+    (nl) => nl.canonicalToken === "greenRoof" || nl.canonicalToken === "rootBarrier"
+  );
+  const pedestalLayers = normalizedLayers.filter(
+    (nl) => nl.canonicalToken === "pedestals"
+  );
+  const membraneLayers = normalizedLayers.filter(
+    (nl) => nl.canonicalToken === "membrane"
+  );
 
-  const effectiveDrainageMat  = raw.drainageMat === true || drainageFromLayers;
+  // Check if membrane layers contain SBS/APP indicators in original text
+  const sbsFromLayers = membraneLayers.some((nl) =>
+    /\b(modified[\s_-]?bitumen|mod[\s_-]?bit|SBS|APP)\b/i.test(nl.originalText)
+  );
+
+  const drainageFromLayers = drainageMatLayers.length > 0;
+  const filterFromLayers = filterFabricLayers.length > 0;
+  const greenFromLayers = greenRoofLayers.length > 0;
+  const pedestalsFromLayers = pedestalLayers.length > 0;
+
+  const effectiveDrainageMat = raw.drainageMat === true || drainageFromLayers;
   const effectiveFilterFabric = raw.filterFabric === true || filterFromLayers;
-  const effectiveGreenRoof    = greenFromLayers;
-  const effectivePedestals    = pedestalsFromLayers;
-  const effectiveSbsMembrane  = sbsFromLayers;
+  const effectiveGreenRoof = greenFromLayers;
+  const effectivePedestals = pedestalsFromLayers;
+  const effectiveSbsMembrane = sbsFromLayers;
 
   // Hard assertion — layer evidence must never be silently dropped
   if (drainageFromLayers && !effectiveDrainageMat) {
@@ -132,7 +166,7 @@ export function normalizeAssemblySignals(raw: RawAssemblySignals): NormalizedAss
   }
 
   const drainageRaw = raw.drainageMat ?? null;
-  const filterRaw   = raw.filterFabric ?? null;
+  const filterRaw = raw.filterFabric ?? null;
 
   return {
     effectiveDrainageMat,
@@ -145,26 +179,36 @@ export function normalizeAssemblySignals(raw: RawAssemblySignals): NormalizedAss
         raw: drainageRaw,
         effective: effectiveDrainageMat,
         source: drainageFromLayers && !raw.drainageMat ? "layers" : "explicit",
+        matchedLayers: drainageMatLayers.map((nl) => nl.originalText),
+        matchConfidence: drainageMatLayers.map((nl) => nl.confidence),
       },
       filterFabric: {
         raw: filterRaw,
         effective: effectiveFilterFabric,
         source: filterFromLayers && !raw.filterFabric ? "layers" : "explicit",
+        matchedLayers: filterFabricLayers.map((nl) => nl.originalText),
+        matchConfidence: filterFabricLayers.map((nl) => nl.confidence),
       },
       greenRoof: {
         raw: null,
         effective: effectiveGreenRoof,
         source: greenFromLayers ? "layers" : "explicit",
+        matchedLayers: greenRoofLayers.map((nl) => nl.originalText),
+        matchConfidence: greenRoofLayers.map((nl) => nl.confidence),
       },
       pedestals: {
         raw: null,
         effective: effectivePedestals,
         source: pedestalsFromLayers ? "layers" : "explicit",
+        matchedLayers: pedestalLayers.map((nl) => nl.originalText),
+        matchConfidence: pedestalLayers.map((nl) => nl.confidence),
       },
       sbsMembrane: {
         raw: null,
         effective: effectiveSbsMembrane,
         source: sbsFromLayers ? "layers" : "explicit",
+        matchedLayers: membraneLayers.map((nl) => nl.originalText),
+        matchConfidence: membraneLayers.map((nl) => nl.confidence),
       },
     },
   };
@@ -287,7 +331,8 @@ export type SectionId =
   | "drainage"
   | "flashing"
   | "penetrations"
-  | "edgeConditions";
+  | "edgeConditions"
+  | "gravelLayer"; // NEW: Aggregate layer below concrete pavement (NOT ballast)
 
 export interface SectionDef {
   id: SectionId;
@@ -443,6 +488,13 @@ export const SECTION_DEFS: Record<SectionId, SectionDef> = {
     label: "Reinforcement",
     type: "text",
     placeholder: "e.g. #4 @ 12\" EW, WWF",
+  },
+  gravelLayer: {
+    id: "gravelLayer",
+    label: "Gravel / Aggregate Layer",
+    type: "text",
+    placeholder: "e.g. 2\" gravel layer, 4\" aggregate base",
+    helperText: "Aggregate layer used below concrete pavement assemblies (NOT ballast)",
   },
   drainage: {
     id: "drainage",
@@ -1564,6 +1616,14 @@ export interface ClassificationAudit {
   detectedType?: string;
   /** Short explanation shown in the banner, e.g. "Layer stack overrides title." */
   reason?: string;
+  /** Original extracted text from OCR before normalization */
+  originalExtractedText?: string[];
+  /** Normalized canonical layer tokens after synonym resolution */
+  normalizedLayerTokens?: string[];
+  /** Layers that couldn't be matched to canonical tokens */
+  unmatchedLayers?: string[];
+  /** Normalization confidence scores (0-1) per layer */
+  normalizationConfidence?: number[];
 }
 
 // ─── buildSectionValuesFromAssembly ───────────────────────────────────────────

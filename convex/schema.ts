@@ -912,7 +912,7 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_project_system", ["projectId", "systemType"]),
 
-  // ── Roof system configs (seeded once, drives dynamic form sections) ──
+  // ── Roof system configs (LEGACY — kept for backward compatibility) ──
   bidshield_roofSystemConfigs: defineTable({
     systemId: v.string(),
     label: v.string(),
@@ -941,4 +941,193 @@ export default defineSchema({
     seeded: v.optional(v.boolean()),
   })
     .index("by_systemId", ["systemId"]),
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // ASSEMBLY ARCHETYPE SYSTEM (Phase 1)
+  // ═════════════════════════════════════════════════════════════════════════════
+
+  // ── Assembly Archetypes (reusable assembly patterns) ──
+  bidshield_assemblyArchetypes: defineTable({
+    archetypeId: v.string(),
+    version: v.number(),
+    label: v.string(),
+    
+    category: v.union(
+      v.literal("Single-Ply"),
+      v.literal("Modified Bitumen"),
+      v.literal("BUR"),
+      v.literal("Protected Membrane"),
+      v.literal("Fluid-Applied"),
+      v.literal("Vegetated"),
+      v.literal("Overburden"),
+      v.literal("Hardscape"),
+      v.literal("Steep-Slope"),
+      v.literal("Custom")
+    ),
+    
+    icon: v.string(),
+    
+    requiredSections: v.array(v.string()),
+    optionalSections: v.array(v.string()),
+    hiddenSections: v.array(v.string()),
+    incompatibleSections: v.optional(v.array(v.string())),
+    
+    defaultLayerOrder: v.array(v.string()),
+    
+    validationRules: v.array(v.object({
+      sectionId: v.string(),
+      message: v.string(),
+      severity: v.union(v.literal("error"), v.literal("warning"), v.literal("info")),
+    })),
+    
+    scopeTemplate: v.array(v.string()),
+    
+    metadata: v.object({
+      assemblyType: v.string(),
+      membraneExposure: v.union(v.literal("Exposed"), v.literal("Protected"), v.literal("Buried")),
+      typicalInsulation: v.string(),
+      commonSurfaces: v.array(v.string()),
+      isProtectedMembrane: v.boolean(),
+      isRecoverable: v.boolean(),
+      greenRoofCompatible: v.boolean(),
+      irmaCompatible: v.boolean(),
+      highWindRated: v.optional(v.boolean()),
+      highTraffic: v.optional(v.boolean()),
+      solarCompatible: v.optional(v.boolean()),
+      coldApplied: v.optional(v.boolean()),
+      typicalSlope: v.optional(v.string()),
+    }),
+    
+    classificationHints: v.object({
+      requiredKeywords: v.optional(v.array(v.string())),
+      excludeKeywords: v.optional(v.array(v.string())),
+      requiredLayers: v.optional(v.array(v.string())),
+      excludeLayers: v.optional(v.array(v.string())),
+      requiresDrainageMat: v.optional(v.boolean()),
+      requiresFilterFabric: v.optional(v.boolean()),
+    }),
+    
+    deprecated: v.boolean(),
+    replacesArchetypeId: v.optional(v.string()),
+    
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_archetypeId", ["archetypeId"])
+    .index("by_archetypeId_version", ["archetypeId", "version"])
+    .index("by_category", ["category"])
+    .index("by_deprecated", ["deprecated"]),
+
+  // ── Project Assembly Presets (project-specific assembly instances) ──
+  bidshield_projectAssemblyPresets: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    
+    displayName: v.string(),
+    drawingAssemblyId: v.optional(v.string()),
+    
+    archetypeId: v.string(),
+    archetypeVersion: v.number(),
+    
+    // BACKWARD COMPATIBILITY: Keep legacy systemId
+    legacySystemId: v.optional(v.string()),
+    
+    sectionValues: v.any(),
+    
+    sourceSheet: v.optional(v.string()),
+    sourceDetail: v.optional(v.string()),
+    confidence: v.optional(v.number()),
+    
+    needsReview: v.boolean(),
+    
+    classificationAudit: v.optional(v.object({
+      conflict: v.boolean(),
+      titleLabel: v.optional(v.string()),
+      detectedType: v.optional(v.string()),
+      reason: v.optional(v.string()),
+      confidence: v.number(),
+      archetypeId: v.string(),
+      archetypeVersion: v.number(),
+      
+      scoringBreakdown: v.object({
+        layerScore: v.number(),
+        drainageMatScore: v.number(),
+        filterFabricScore: v.number(),
+        keywordScore: v.number(),
+        totalScore: v.number(),
+      }),
+      
+      matchedLayers: v.array(v.string()),
+      rejectedLayers: v.array(v.string()),
+      matchedKeywords: v.array(v.string()),
+      rejectedKeywords: v.array(v.string()),
+      
+      attemptedArchetypes: v.array(v.object({
+        archetypeId: v.string(),
+        score: v.number(),
+        reason: v.string(),
+        disqualified: v.boolean(),
+      })),
+      
+      originalExtractedText: v.optional(v.array(v.string())),
+      normalizedLayerTokens: v.optional(v.array(v.string())),
+      unmatchedLayers: v.optional(v.array(v.string())),
+      normalizationConfidence: v.optional(v.array(v.number())),
+      
+      timestamp: v.number(),
+    })),
+    
+    overrideRequiredSections: v.optional(v.array(v.string())),
+    overrideOptionalSections: v.optional(v.array(v.string())),
+    overrideHiddenSections: v.optional(v.array(v.string())),
+    
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_projectId", ["projectId"])
+    .index("by_userId", ["userId"])
+    .index("by_archetypeId", ["archetypeId"])
+    .index("by_needsReview", ["needsReview"])
+    .index("by_project_and_archetype", ["projectId", "archetypeId"])
+    .index("by_legacySystemId", ["legacySystemId"]),
+
+  // ── Custom Assembly Drafts (unclassified assemblies) ──
+  bidshield_customAssemblyDrafts: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    
+    displayName: v.string(),
+    
+    archetypeId: v.literal("custom"),
+    archetypeVersion: v.number(),
+    
+    inferredCategory: v.optional(v.string()),
+    
+    extractedLayers: v.array(v.string()),
+    
+    requiredSections: v.array(v.string()),
+    optionalSections: v.array(v.string()),
+    hiddenSections: v.array(v.string()),
+    defaultLayerOrder: v.array(v.string()),
+    validationRules: v.array(v.object({
+      sectionId: v.string(),
+      message: v.string(),
+      severity: v.union(v.literal("error"), v.literal("warning"), v.literal("info")),
+    })),
+    
+    sectionValues: v.any(),
+    
+    needsReview: v.literal(true),
+    
+    classificationAttempt: v.any(),
+    
+    canPromoteToArchetype: v.optional(v.boolean()),
+    promotedArchetypeId: v.optional(v.string()),
+    
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_projectId", ["projectId"])
+    .index("by_userId", ["userId"])
+    .index("by_canPromote", ["canPromoteToArchetype"]),
 });
