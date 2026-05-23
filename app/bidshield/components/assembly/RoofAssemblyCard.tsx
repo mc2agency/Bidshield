@@ -5,9 +5,11 @@ import {
   validateAssembly,
   generateLayerStack,
   getDeckCompatibilityWarning,
+  buildSectionValuesFromAssembly,
   SectionValues,
   SectionId,
   ValidationResult,
+  ClassificationAudit,
   ROOF_SYSTEM_CONFIGS,
   SMART_PRESETS,
 } from "@/lib/bidshield/assembly-system-configs";
@@ -25,6 +27,9 @@ export interface AssemblyCardData {
   rValue?: number;
   surfaceType?: string;
   coverBoard?: string;
+  deckType?: string;
+  drainageMat?: boolean | null;
+  filterFabric?: boolean | null;
   area?: number;
   uValue?: number;
   attachmentMethod?: string;
@@ -32,8 +37,9 @@ export interface AssemblyCardData {
   // New: section values (source of truth for system-specific data)
   sectionValues?: SectionValues;
   // AI extraction metadata
-  confidence?: number;        // 0-100 AI classification confidence
-  extractedFromPdf?: boolean; // was this assembly extracted from a PDF
+  confidence?: number;
+  extractedFromPdf?: boolean;
+  classificationAudit?: ClassificationAudit;
 }
 
 interface Props {
@@ -48,7 +54,17 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
   const [presetsOpen, setPresetsOpen] = useState(false);
 
   const systemConfig = getSystemConfig(assembly.systemType);
-  const sectionValues = assembly.sectionValues ?? {};
+
+  const sectionValues: SectionValues = assembly.sectionValues ?? buildSectionValuesFromAssembly({
+    systemType: assembly.systemType,
+    deckType: assembly.deckType,
+    insulationType: assembly.insulationType,
+    insulationThickness: assembly.insulationThickness,
+    rValue: assembly.rValue,
+    drainageMat: assembly.drainageMat,
+    filterFabric: assembly.filterFabric,
+    layers: assembly.layers,
+  });
 
   const updateSections = (updated: SectionValues) => {
     onChange({ ...assembly, sectionValues: updated });
@@ -218,6 +234,29 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
           </button>
         )}
       </div>
+
+      {/* Classification conflict banner */}
+      {assembly.classificationAudit?.conflict && (
+        <div
+          className="flex flex-col gap-0.5 px-4 py-2.5 text-xs"
+          style={{ background: "#431407", borderBottom: "1px solid #7c2d12", color: "#fb923c" }}
+        >
+          <span className="font-bold text-[11px]">⚠ Classification conflict</span>
+          {assembly.classificationAudit.titleLabel && (
+            <span style={{ color: "#fdba74" }}>
+              Title: <span style={{ color: "#fff7ed" }}>{assembly.classificationAudit.titleLabel}</span>
+            </span>
+          )}
+          {assembly.classificationAudit.detectedType && (
+            <span style={{ color: "#fdba74" }}>
+              Detected: <span style={{ color: "#fff7ed" }}>{assembly.classificationAudit.detectedType}</span>
+            </span>
+          )}
+          {assembly.classificationAudit.reason && (
+            <span style={{ color: "#fdba74" }}>{assembly.classificationAudit.reason}</span>
+          )}
+        </div>
+      )}
 
       {/* Area + name inputs */}
       <div className="px-4 pt-3">

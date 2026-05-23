@@ -57,7 +57,7 @@ export function formatInsulationLabel(
 
 // ─── Assembly classification ───────────────────────────────────────────────────
 
-export type AssemblySystem = "lam" | "lam_irma";
+export type AssemblySystem = "lam" | "lam_irma" | "sbs_irma" | "sbs_irma_green" | "app_irma";
 
 export interface AssemblyClassificationInput {
   /** Raw OCR / source text for the assembly (may include detail notes) */
@@ -982,6 +982,133 @@ export const ROOF_SYSTEM_CONFIGS: RoofSystemConfig[] = [
     },
   },
 
+  // ── SBS IRMA / PMR ───────────────────────────────────────────────────────────
+  {
+    systemId: "sbs_irma",
+    label: "SBS IRMA / PMR",
+    category: "Protected Membrane",
+    icon: "🟫",
+    requiredSections: ["deck", "membrane", "drainageMat", "insulation", "filterFabric", "drainage", "flashing"],
+    optionalSections: ["vaporRetarder", "protectionBoard", "pedestals", "ballast", "surfacing", "rootBarrier", "ballastRestraint", "penetrations", "edgeConditions"],
+    defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "pedestals", "surfacing"],
+    validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
+      { sectionId: "membrane", message: "SBS membrane not specified — required for IRMA.", severity: "error" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA assemblies.", severity: "error" },
+      { sectionId: "insulation", message: "Insulation above membrane not specified — required for IRMA.", severity: "error" },
+      { sectionId: "filterFabric", message: "Filter fabric should be installed above insulation in IRMA assemblies.", severity: "warning" },
+    ],
+    scopeTemplate: [
+      "Install SBS modified bitumen waterproofing membrane ({membrane}) over structural deck.",
+      "Install protection sheet/board ({protectionBoard}) above membrane.",
+      "Install drainage mat ({drainageMat}) above membrane assembly.",
+      "Install insulation ({insulation}) above membrane.",
+      "Install filter fabric above insulation.",
+      "Install surface overburden ({surfacing}).",
+      "Install overflow drains and flashing.",
+    ],
+    metadata: {
+      assemblyType: "SBS modified bitumen protected membrane (IRMA/PMR)",
+      membraneExposure: "Protected",
+      typicalInsulation: "XPS (extruded polystyrene)",
+      commonSurfaces: ["Concrete pavers on pedestals", "River ballast", "Concrete paving"],
+      isProtectedMembrane: true,
+      isRecoverable: true,
+      greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: false,
+    },
+  },
+
+  // ── APP IRMA / PMR ───────────────────────────────────────────────────────────
+  {
+    systemId: "app_irma",
+    label: "APP IRMA / PMR",
+    category: "Protected Membrane",
+    icon: "🟫",
+    requiredSections: ["deck", "membrane", "drainageMat", "insulation", "filterFabric", "drainage", "flashing"],
+    optionalSections: ["vaporRetarder", "protectionBoard", "pedestals", "ballast", "surfacing", "rootBarrier", "ballastRestraint", "penetrations", "edgeConditions"],
+    defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "protectionBoard", "drainageMat", "insulation", "filterFabric", "pedestals", "surfacing"],
+    validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
+      { sectionId: "membrane", message: "APP membrane not specified — required for IRMA.", severity: "error" },
+      { sectionId: "drainageMat", message: "Drainage mat required for IRMA assemblies.", severity: "error" },
+      { sectionId: "insulation", message: "Insulation above membrane not specified — required for IRMA.", severity: "error" },
+      { sectionId: "filterFabric", message: "Filter fabric should be installed above insulation in IRMA assemblies.", severity: "warning" },
+    ],
+    scopeTemplate: [
+      "Install APP modified bitumen waterproofing membrane ({membrane}) over structural deck.",
+      "Install protection sheet/board ({protectionBoard}) above membrane.",
+      "Install drainage mat ({drainageMat}) above membrane assembly.",
+      "Install insulation ({insulation}) above membrane.",
+      "Install filter fabric above insulation.",
+      "Install surface overburden ({surfacing}).",
+      "Install overflow drains and flashing.",
+    ],
+    metadata: {
+      assemblyType: "APP modified bitumen protected membrane (IRMA/PMR)",
+      membraneExposure: "Protected",
+      typicalInsulation: "XPS (extruded polystyrene)",
+      commonSurfaces: ["Concrete pavers on pedestals", "River ballast", "Concrete paving"],
+      isProtectedMembrane: true,
+      isRecoverable: true,
+      greenRoofCompatible: false,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: true,
+      solarCompatible: false,
+      coldApplied: false,
+    },
+  },
+
+  // ── SBS IRMA Green Roof ──────────────────────────────────────────────────────
+  {
+    systemId: "sbs_irma_green",
+    label: "SBS IRMA Green Roof",
+    category: "Vegetated Assembly",
+    icon: "🌿",
+    requiredSections: ["deck", "membrane", "rootBarrier", "drainageLayer", "filterFabric", "growingMedia", "greenRoof", "drainage", "flashing"],
+    optionalSections: ["vaporRetarder", "protectionBoard", "insulation", "drainageMat", "irrigation", "penetrations", "edgeConditions"],
+    defaultLayerOrder: ["deck", "vaporRetarder", "membrane", "rootBarrier", "protectionBoard", "insulation", "drainageMat", "drainageLayer", "filterFabric", "growingMedia", "greenRoof"],
+    validationRules: [
+      { sectionId: "deck", message: "Structural deck not selected — required for assembly validation.", severity: "error" },
+      { sectionId: "membrane", message: "SBS membrane not specified — required for IRMA green roof.", severity: "error" },
+      { sectionId: "rootBarrier", message: "Root barrier not specified — required for all vegetated assemblies.", severity: "error" },
+      { sectionId: "drainageLayer", message: "Drainage layer not specified — required for green roof.", severity: "error" },
+      { sectionId: "filterFabric", message: "Filter fabric not confirmed — required above drainage layer.", severity: "error" },
+      { sectionId: "growingMedia", message: "Growing media not specified.", severity: "warning" },
+      { sectionId: "greenRoof", message: "Vegetation type not specified.", severity: "warning" },
+    ],
+    scopeTemplate: [
+      "Install SBS modified bitumen waterproofing membrane ({membrane}).",
+      "Install root barrier above membrane.",
+      "Install protection board ({protectionBoard}).",
+      "Install drainage mat ({drainageMat}) and drainage layer ({drainageLayer}).",
+      "Install filter fabric above drainage layer.",
+      "Install growing media ({growingMedia}).",
+      "Install vegetation assembly ({greenRoof}).",
+      "Install irrigation system where required.",
+      "Install overflow drains and flashing.",
+    ],
+    metadata: {
+      assemblyType: "SBS modified bitumen with vegetated green roof (IRMA/PMR)",
+      membraneExposure: "Buried",
+      typicalInsulation: "XPS, Polyiso",
+      commonSurfaces: ["Sedum", "Grasses", "Intensive planted"],
+      isProtectedMembrane: true,
+      isRecoverable: false,
+      greenRoofCompatible: true,
+      irmaCompatible: true,
+      highWindRated: false,
+      highTraffic: false,
+      solarCompatible: false,
+      coldApplied: false,
+    },
+  },
+
   // ── Custom ────────────────────────────────────────────────────────────────────
   {
     systemId: "custom",
@@ -1262,6 +1389,116 @@ export const SMART_PRESETS: SmartPreset[] = [
 ];
 
 
+// ─── Classification audit ──────────────────────────────────────────────────────
+
+export interface ClassificationAudit {
+  /** True when the assembly title implies a different system than what the layer stack detected */
+  conflict: boolean;
+  /** Human-readable label from the assembly title, e.g. "Built-Up EPDM Roof" */
+  titleLabel?: string;
+  /** Detected membrane/system type, e.g. "Modified Bitumen" */
+  detectedType?: string;
+  /** Short explanation shown in the banner, e.g. "Layer stack overrides title." */
+  reason?: string;
+}
+
+// ─── buildSectionValuesFromAssembly ───────────────────────────────────────────
+
+export interface BuildSectionValuesInput {
+  systemType: string;
+  deckType?: string | null;
+  insulationType?: string | null;
+  insulationThickness?: string | null;
+  rValue?: number | null;
+  drainageMat?: boolean | string | null;
+  filterFabric?: boolean | null;
+  layers?: string[] | null;
+  rawExtraction?: Record<string, unknown> | null;
+}
+
+const SYSTEM_MEMBRANE_LABELS: Record<string, string> = {
+  sbs_irma: "Modified Bitumen",
+  sbs_irma_green: "Modified Bitumen",
+  app_irma: "APP Modified Bitumen",
+  lam_irma: "Cold fluid-applied waterproofing membrane",
+  hydrotech: "Hydrotech MM6125",
+  sbs: "SBS modified bitumen membrane",
+  app: "APP modified bitumen membrane",
+};
+
+/**
+ * Reconstructs SectionValues from raw assembly fields when sectionValues was not stored.
+ * Used as a backward-compatible fallback in RoofAssemblyCard.
+ */
+export function buildSectionValuesFromAssembly(input: BuildSectionValuesInput): SectionValues {
+  const {
+    systemType,
+    deckType,
+    insulationType,
+    insulationThickness,
+    rValue,
+    drainageMat,
+    filterFabric,
+    layers,
+    rawExtraction,
+  } = input;
+
+  const values: SectionValues = {};
+
+  if (deckType) {
+    values.deck = DECK_TYPE_MAP[deckType] ?? deckType;
+  }
+
+  if (insulationType || insulationThickness) {
+    values.insulation = formatInsulationLabel(insulationType, insulationThickness, rValue ?? null);
+  }
+
+  if (drainageMat === true) {
+    values.drainageMat = "Drainage Mat";
+  } else if (typeof drainageMat === "string" && drainageMat) {
+    values.drainageMat = drainageMat;
+  }
+
+  if (filterFabric === true) {
+    values.filterFabric = true;
+  }
+
+  const membraneLabel = SYSTEM_MEMBRANE_LABELS[systemType];
+  if (membraneLabel) {
+    values.membrane = membraneLabel;
+  }
+
+  if (systemType === "sbs_irma_green") {
+    values.rootBarrier = true;
+  }
+
+  if (layers && layers.length > 0) {
+    const pedestalLayer = layers.find((l) => /pedestal|buzon|DPH-?\d/i.test(l));
+    if (pedestalLayer) values.pedestals = pedestalLayer;
+
+    const paverLayer = layers.find((l) => /paver|precast/i.test(l));
+    if (paverLayer) values.surfacing = paverLayer;
+
+    const ballastLayer = layers.find((l) => /ballast|river[\s-]stone|gravel/i.test(l));
+    if (ballastLayer && !paverLayer) values.ballast = ballastLayer;
+
+    const greenLayer = layers.find((l) => /sedum|green[\s-]roof|vegetation|planted/i.test(l));
+    if (greenLayer) values.greenRoof = greenLayer;
+
+    const growingLayer = layers.find((l) => /growing[\s-]media|growing media|soil[\s-]substrate/i.test(l));
+    if (growingLayer) values.growingMedia = growingLayer;
+  }
+
+  const surface = rawExtraction?.surface as string | null | undefined;
+  if (surface) {
+    if (!values.surfacing && /paver|precast/i.test(surface)) values.surfacing = surface;
+    if (!values.ballast && /ballast|gravel/i.test(surface)) values.ballast = surface;
+    if (!values.greenRoof && /sedum|green|vegetation/i.test(surface)) values.greenRoof = surface;
+  }
+
+  return values;
+}
+
 // ─── Engine functions (pure — no Convex, instant) ─────────────────────────────
 
 // validateAssembly — overloaded for backward compatibility.
@@ -1308,7 +1545,14 @@ export function validateAssembly(
     };
   const issues: ValidationIssue[] = [];
 
-  if (system === "lam") {
+  // sbs_irma / app_irma → lam_irma rules
+  // sbs_irma_green → green roof rules
+  const effectiveSystem =
+    system === "sbs_irma" || system === "app_irma" ? "lam_irma" :
+    system === "sbs_irma_green" ? "green_irma" :
+    system;
+
+  if (effectiveSystem === "lam") {
     if (!drainageMat) {
       issues.push({
         severity: "info",
@@ -1319,7 +1563,7 @@ export function validateAssembly(
     return issues;
   }
 
-  if (system === "lam_irma") {
+  if (effectiveSystem === "lam_irma") {
     if (!drainageMat) {
       issues.push({
         severity: "error",
@@ -1341,6 +1585,18 @@ export function validateAssembly(
         message: "IRMA/PMR assembly requires insulation above the waterproofing membrane.",
       });
     }
+    return issues;
+  }
+
+  if (effectiveSystem === "green_irma") {
+    if (!filterFabric) {
+      issues.push({
+        severity: "error",
+        code: "green_irma_missing_filter_fabric",
+        message: "Green roof assembly requires a filter fabric layer above the drainage layer.",
+      });
+    }
+    return issues;
   }
 
   return issues;

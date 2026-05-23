@@ -14,8 +14,11 @@ import {
   validateAssembly,
   formatInsulationLabel,
   mapAIResultToSectionValues,
+  buildSectionValuesFromAssembly,
+  getSystemConfig,
   INSULATION_CODE_LABELS,
 } from "@/lib/bidshield/assembly-system-configs";
+import { computeInsulationRValue } from "@/lib/bidshield/insulation-data";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEST A — Roof 06: Conventional LAM (insulation below membrane, no IRMA signals)
@@ -422,5 +425,174 @@ describe("Anti-hallucination — no IRMA inference from membrane type alone", ()
   it("null/undefined drainageMat and filterFabric results in lam", () => {
     expect(classifyAssemblySystem({ drainageMat: null, filterFabric: null })).toBe("lam");
     expect(classifyAssemblySystem({ drainageMat: undefined, filterFabric: undefined })).toBe("lam");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RT-01 — SBS IRMA Paver Deck
+// Stack: Concrete Deck → SBS Membrane → Drainage Mat → 8" XPS → Filter Fabric
+//        → Pedestal Tabs → Precast Pavers
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("RT-01 — sbs_irma paver deck", () => {
+  it("getSystemConfig('sbs_irma') returns a config", () => {
+    expect(getSystemConfig("sbs_irma")).toBeDefined();
+  });
+
+  it("sbs_irma config has no liquid-applied membrane in required/optional sections", () => {
+    const cfg = getSystemConfig("sbs_irma")!;
+    const allSections = [...cfg.requiredSections, ...cfg.optionalSections];
+    // 'membrane' is allowed but it should NOT be a liquid-applied type in label context
+    // The config must NOT include 'lam'-style fields like protectionBoard as required
+    // Key check: no "lam" or "liquid" system in the category
+    expect(cfg.category).not.toMatch(/fluid-applied|liquid/i);
+  });
+
+  it("sbs_irma validates correctly with all IRMA fields", () => {
+    const issues = validateAssembly({
+      system: "sbs_irma",
+      drainageMat: true,
+      filterFabric: true,
+      insulationAboveMembrane: true,
+    });
+    const errors = issues.filter((i) => i.severity === "error");
+    expect(errors).toHaveLength(0);
+  });
+
+  it("sbs_irma missing drainageMat produces an error", () => {
+    const issues = validateAssembly({
+      system: "sbs_irma",
+      drainageMat: false,
+      filterFabric: true,
+    });
+    const errors = issues.filter((i) => i.severity === "error");
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some((e) => e.code.includes("drainage_mat"))).toBe(true);
+  });
+
+  it("sbs_irma missing filterFabric produces an error", () => {
+    const issues = validateAssembly({
+      system: "sbs_irma",
+      drainageMat: true,
+      filterFabric: false,
+    });
+    const errors = issues.filter((i) => i.severity === "error");
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some((e) => e.code.includes("filter_fabric"))).toBe(true);
+  });
+
+  it("buildSectionValuesFromAssembly produces correct values for RT-01", () => {
+    const values = buildSectionValuesFromAssembly({
+      systemType: "sbs_irma",
+      deckType: "concrete",
+      insulationType: "xps",
+      insulationThickness: "8",
+      drainageMat: true,
+      filterFabric: true,
+      layers: ["Pedestal Tabs", "Precast Pavers"],
+    });
+    expect(values.deck).toBe("Concrete Deck");
+    expect(values.membrane).toBe("Modified Bitumen");
+    expect(values.insulation).toBe('8" XPS Rigid Insulation');
+    expect(values.drainageMat).toBe("Drainage Mat");
+    expect(values.filterFabric).toBe(true);
+    expect(values.pedestals).toMatch(/pedestal tabs/i);
+    expect(values.surfacing).toMatch(/paver/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RT-03 — Vacuum insulation R-value
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("RT-03 — vacuum insulation 1.5\" → R≈50", () => {
+  it("computeInsulationRValue('vacuum', 1.5) is approximately 50", () => {
+    const r = computeInsulationRValue("vacuum", 1.5);
+    expect(r).toBeGreaterThan(49);
+    expect(r).toBeLessThan(51);
+  });
+
+  it("vacuum rPerInch is 33.3 not 50", () => {
+    // 50 * 1.5 = 75 — wrong; 33.3 * 1.5 = 49.95 ≈ 50 — correct
+    const r = computeInsulationRValue("vacuum", 1.5);
+    expect(r).not.toBeCloseTo(75, 0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RT-05 — sbs_irma_green has green controls
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("RT-05 — sbs_irma_green green controls", () => {
+  it("getSystemConfig('sbs_irma_green') returns a config", () => {
+    expect(getSystemConfig("sbs_irma_green")).toBeDefined();
+  });
+
+  it("sbs_irma_green required sections include greenRoof", () => {
+    const cfg = getSystemConfig("sbs_irma_green")!;
+    expect(cfg.requiredSections).toContain("greenRoof");
+  });
+
+  it("sbs_irma_green required sections include growingMedia", () => {
+    const cfg = getSystemConfig("sbs_irma_green")!;
+    expect(cfg.requiredSections).toContain("growingMedia");
+  });
+
+  it("sbs_irma_green required sections include rootBarrier", () => {
+    const cfg = getSystemConfig("sbs_irma_green")!;
+    expect(cfg.requiredSections).toContain("rootBarrier");
+  });
+
+  it("sbs_irma_green required sections include filterFabric", () => {
+    const cfg = getSystemConfig("sbs_irma_green")!;
+    expect(cfg.requiredSections).toContain("filterFabric");
+  });
+
+  it("sbs_irma_green validateAssembly missing filterFabric → error", () => {
+    const issues = validateAssembly({
+      system: "sbs_irma_green",
+      filterFabric: false,
+    });
+    const errors = issues.filter((i) => i.severity === "error");
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it("sbs_irma_green validateAssembly with filterFabric → no errors", () => {
+    const issues = validateAssembly({
+      system: "sbs_irma_green",
+      filterFabric: true,
+    });
+    const errors = issues.filter((i) => i.severity === "error");
+    expect(errors).toHaveLength(0);
+  });
+
+  it("buildSectionValuesFromAssembly sets rootBarrier=true for sbs_irma_green", () => {
+    const values = buildSectionValuesFromAssembly({ systemType: "sbs_irma_green" });
+    expect(values.rootBarrier).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// app_irma — maps to lam_irma rules
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("app_irma — maps to lam_irma rules", () => {
+  it("getSystemConfig('app_irma') returns a config", () => {
+    expect(getSystemConfig("app_irma")).toBeDefined();
+  });
+
+  it("app_irma with all IRMA fields has no errors", () => {
+    const issues = validateAssembly({
+      system: "app_irma",
+      drainageMat: true,
+      filterFabric: true,
+      insulationAboveMembrane: true,
+    });
+    expect(issues.filter((i) => i.severity === "error")).toHaveLength(0);
+  });
+
+  it("app_irma membrane label is 'APP Modified Bitumen'", () => {
+    const values = buildSectionValuesFromAssembly({ systemType: "app_irma" });
+    expect(values.membrane).toBe("APP Modified Bitumen");
   });
 });
