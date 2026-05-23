@@ -173,11 +173,53 @@ function AssemblyCard({
           <div
             style={{
               fontSize: 12,
-              color: "var(--bs-text-dim, #718096)",
+              color: "var(--bs-teal, #2dd4bf)",
               lineHeight: 1.8,
             }}
           >
             {item.requiredSectionsSnapshot.join(" • ")}
+          </div>
+        </div>
+      )}
+
+      {/* Optional Sections */}
+      {item.optionalSectionsSnapshot && item.optionalSectionsSnapshot.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--bs-text-secondary, #a0aec0)",
+              textTransform: "uppercase",
+              letterSpacing: "0.07em",
+              marginBottom: 6,
+            }}
+          >
+            Optional sections:
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--bs-text-dim, #718096)",
+              lineHeight: 1.8,
+            }}
+          >
+            {item.optionalSectionsSnapshot.join(" • ")}
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Sections (collapsed by default — debug only) */}
+      {item.hiddenSectionsSnapshot && item.hiddenSectionsSnapshot.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--bs-text-dim, #718096)",
+              opacity: 0.6,
+            }}
+          >
+            Hidden: {item.hiddenSectionsSnapshot.join(", ")}
           </div>
         </div>
       )}

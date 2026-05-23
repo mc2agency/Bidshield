@@ -7,6 +7,7 @@ import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
 import { classifyLayersV2 } from "@/lib/bidshield/archetype-scoring";
+import { archetypeIdToLegacy } from "@/lib/bidshield/archetype-compat";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -25,7 +26,7 @@ function getConvex(): ConvexHttpClient {
 // ─── V2 AI Prompt ─────────────────────────────────────────────────────────────
 
 const V2_SYSTEM_PROMPT = `You are a commercial roofing estimating assistant.
-Extract all roof, wall, plaza, and cladding assemblies from this drawing sheet.
+Extract ALL roof, wall, plaza, and cladding assemblies from this drawing sheet.
 
 Return ONLY valid JSON with no markdown:
 {
@@ -38,7 +39,7 @@ Return ONLY valid JSON with no markdown:
         "Structural Concrete Deck",
         "Waterproofing Membrane",
         "Drainage Mat",
-        "2\\" XPS Insulation",
+        "2\" XPS Insulation",
         "Filter Fabric",
         "River Ballast"
       ],
@@ -55,19 +56,26 @@ Return ONLY valid JSON with no markdown:
 
 surface values: exposed | pavers_pedestals | pavers_ballast | green_roof | walkpads | traffic_coating | concrete_pavement | panel
 
-RULES:
-- surface = concrete_pavement: top finish is cast-in-place concrete slab or concrete paving
-- surface = panel: top finish is aluminum panel, cladding panel, curtain wall panel, or similar
+SURFACE RULES:
+- surface = concrete_pavement: top finish is cast-in-place concrete slab, concrete pavement, CIP concrete, concrete paving, or plaza pavement
+- surface = panel: top finish is aluminum panel, cladding panel, curtain wall panel, or similar finish panel
+- surface = pavers_pedestals: top finish is concrete pavers on pedestal supports
+- surface = pavers_ballast: top finish is pavers on gravel or ballast
+- surface = green_roof: top finish is vegetation, growing media, sedum
+
+LAYER RULES:
 - layers: list EVERY labeled component from bottom (deck/substrate) to top (finish), in order
+- Include ALL layers explicitly labeled on the drawing — deck, insulation, membrane, drainage mat, filter fabric, protection board, pavers, ballast, concrete pavement, etc.
 - drawingAssemblyId: the exact label from the drawing (ROOF 01, ROOF 02, RT-01, etc.)
 - displayName: descriptive name from schedule if shown (IRMA PLAZA DECK, TERRACE ROOF, etc.)
 - area: SF if shown in schedule, otherwise omit
 
-EXTRACTION COVERAGE:
-- Start from ROOF 01 (or the first labeled assembly on the page). Do NOT skip any assembly.
-- If the drawing contains ROOF 01 through ROOF 06, return all six — starting with ROOF 01.
-- Do NOT stop early. Do NOT start from the middle of the drawing.
-- Process the ENTIRE drawing from top to bottom.
+EXTRACTION COVERAGE — CRITICAL:
+- Process the ENTIRE drawing page from top-left to bottom-right.
+- Start from ROOF 01 (or the first labeled assembly visible on the page).
+- Do NOT skip any assembly. Do NOT start from the middle of the drawing.
+- If the drawing contains ROOF 01, ROOF 02, ROOF 03, ROOF 04, ROOF 05, ROOF 06, return ALL SIX.
+- Every section detail or roof type label on the page must become an assembly entry.
 - Up to 20 assemblies per sheet.`;
 
 // ─── Zod Schemas ──────────────────────────────────────────────────────────────
@@ -91,6 +99,49 @@ const V2ResultSchema = z.object({
 });
 
 type V2Assembly = z.infer<typeof V2AssemblySchema>;
+
+// ─── Label post-processing ────────────────────────────────────────────────────
+//
+// Deterministic fallback: scan raw AI response text for drawing labels that
+// match common patterns (ROOF 01–ROOF 20, RT-01–RT-20, etc.). If any label
+// is found in the raw text but MISSING from the parsed JSON assemblies,
+// create a placeholder item with needsReview=true.
+// This prevents silent data loss when the AI truncates its own output.
+
+const DRAWING_LABEL_PATTERN = /\b((?:ROOF|RT|ROOF TYPE|R)[-\s]?0*([1-9][0-9]?))\b/gi;
+
+function extractLabelsFromText(rawText: string): Set<string> {
+  const found = new Set<string>();
+  let match: RegExpExecArray | null;
+  const re = new RegExp(DRAWING_LABEL_PATTERN.source, "gi");
+  while ((match = re.exec(rawText)) !== null) {
+    // Normalize all separator variants to a single space:
+    //   "ROOF01"  → "ROOF 01"
+    //   "ROOF-01" → "ROOF 01"
+    //   "ROOF 01" → "ROOF 01"
+    //   "RT01"    → "RT 01"
+    const raw = match[0];
+    // Insert space between trailing alpha chars and leading digits if absent
+    const spaced = raw.replace(/([A-Za-z])(\d)/, "$1 $2").replace(/[-\s]+/, " ");
+    const normalised = spaced
+      .replace(/0*(\d+)$/, (_, n) => String(n).padStart(2, "0"))
+      .toUpperCase()
+      .trim();
+    found.add(normalised);
+  }
+  return found;
+}
+
+function buildPlaceholderAssembly(label: string): V2Assembly {
+  return {
+    drawingAssemblyId: label,
+    displayName: undefined,
+    sourceSheet: undefined,
+    layers: [],
+    surface: null,
+    area: null,
+  };
+}
 
 // ─── Route handler ────────────────────────────────────────────────────────────
 
@@ -150,7 +201,7 @@ export async function POST(req: NextRequest) {
                   type: "document",
                   source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
                 } as any,
-                { type: "text", text: "Extract all roof assemblies from this drawing." },
+                { type: "text", text: "Extract ALL roof assemblies from this drawing. Return every labeled assembly including ROOF 01, ROOF 02, etc. Do not skip any." },
               ],
             },
           ],
@@ -201,10 +252,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { assemblies, deckType, projectName, location, drawingDate, drawingRevision } =
+    const { deckType, projectName, location, drawingDate, drawingRevision } =
       validated.data;
+    let { assemblies } = validated.data;
 
-    // ── 3. Classify each assembly via classifyLayersV2 ────────────────────────
+    // ── 3. Post-processing: label scan for missed assemblies ──────────────────
+    //
+    // Scan the raw AI response text for drawing labels. If a label appears in
+    // the raw text but is missing from the JSON output (AI silently truncated),
+    // create a placeholder item with needsReview=true.
+    const labelsInResponse = extractLabelsFromText(rawText);
+    const labelsInJson = new Set(
+      assemblies
+        .map((a) => a.drawingAssemblyId?.toUpperCase().trim())
+        .filter(Boolean),
+    );
+
+    const missingLabels: string[] = [];
+    for (const label of labelsInResponse) {
+      if (!labelsInJson.has(label)) {
+        missingLabels.push(label);
+      }
+    }
+
+    if (missingLabels.length > 0) {
+      console.warn("[extract-assemblies-v2:missing-labels]", {
+        found: Array.from(labelsInResponse),
+        inJson: Array.from(labelsInJson),
+        missing: missingLabels,
+        userId,
+      });
+      // Append placeholder items — sorted so ROOF 01 comes first
+      const placeholders = missingLabels
+        .sort()
+        .map(buildPlaceholderAssembly);
+      assemblies = [...assemblies, ...placeholders];
+    }
+
+    // ── 4. Classify each assembly via classifyLayersV2 ────────────────────────
     const classifiedAssemblies = assemblies.map((asm: V2Assembly) => {
       const classification = classifyLayersV2(
         asm.layers,
@@ -216,14 +301,19 @@ export async function POST(req: NextRequest) {
 
     console.log("[extract-assemblies-v2:classified]", {
       count: classifiedAssemblies.length,
-      archetypes: classifiedAssemblies.map((c) => c.classification.archetypeId),
+      archetypes: classifiedAssemblies.map((c) => ({
+        label: c.asm.drawingAssemblyId,
+        archetype: c.classification.archetypeId,
+        confidence: c.classification.confidence.toFixed(2),
+        needsReview: c.classification.needsReview,
+      })),
       userId,
     });
 
-    // ── 4. Persist to Convex ──────────────────────────────────────────────────
+    // ── 5. Persist to Convex ──────────────────────────────────────────────────
     const convex = getConvex();
 
-    // 4a. Create the extraction run
+    // 5a. Create the extraction run
     // @ts-ignore — extractionV2 not yet in generated api.d.ts
     const { runId } = await convex.mutation(
       anyApi["bidshield/extractionV2"].createRun,
@@ -234,7 +324,7 @@ export async function POST(req: NextRequest) {
       },
     );
 
-    // 4b. Create items for each classified assembly
+    // 5b. Create items for each classified assembly
     const items: Array<{
       itemId: string;
       drawingAssemblyId: string;
@@ -246,9 +336,15 @@ export async function POST(req: NextRequest) {
       confidence: number;
       needsReview: boolean;
       area: number | null | undefined;
+      isPlaceholder: boolean;
     }> = [];
 
     for (const { asm, classification } of classifiedAssemblies) {
+      const isPlaceholder = asm.layers.length === 0 && classification.needsReview;
+      // Derive a legacy systemId so the legacy RoofAssemblyCard can render
+      // with a fallback config if this item is ever promoted to a project preset.
+      const legacySystemId = archetypeIdToLegacy(classification.archetypeId);
+
       // @ts-ignore — extractionV2 not yet in generated api.d.ts
       const { itemId } = await convex.mutation(
         anyApi["bidshield/extractionV2"].createItem,
@@ -272,6 +368,7 @@ export async function POST(req: NextRequest) {
           optionalSectionsSnapshot: classification.optionalSectionsSnapshot,
           hiddenSectionsSnapshot: classification.hiddenSectionsSnapshot,
           defaultLayerOrderSnapshot: classification.defaultLayerOrderSnapshot,
+          legacySystemId: legacySystemId ?? undefined,
         },
       );
 
@@ -286,10 +383,11 @@ export async function POST(req: NextRequest) {
         confidence: classification.confidence,
         needsReview: classification.needsReview,
         area: asm.area,
+        isPlaceholder,
       });
     }
 
-    // 4c. Complete the run
+    // 5c. Complete the run
     const needsReviewCount = classifiedAssemblies.filter(
       (c) => c.classification.needsReview,
     ).length;
@@ -301,7 +399,7 @@ export async function POST(req: NextRequest) {
       needsReviewCount,
     });
 
-    // ── 5. Return result ──────────────────────────────────────────────────────
+    // ── 6. Return result ──────────────────────────────────────────────────────
     return NextResponse.json({
       runId,
       items,

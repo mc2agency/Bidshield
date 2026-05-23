@@ -366,12 +366,39 @@ export function classifyLayersV2(
     .map((nl) => nl.confidence);
 
   // ── Surface / label overrides (run FIRST) ──────────────────────────────────
+  //
+  // Concrete pavement: match surface hint OR any of:
+  //   - "cast-in-place", "cast in place", "CIP concrete"
+  //   - "concrete pavement", "concrete paving", "concrete slab", "plaza pavement"
+  //   - "gravel" or "aggregate" present AND "concrete" present in same assembly
+  //   - layers include both a drainageMat token AND any concrete-like text
+  const lowerAllText = allText.toLowerCase();
+  const hasConcretePavementText =
+    /concrete\s*pav(e|ing|ement)?/i.test(allText) ||
+    /cast[\s-]*in[\s-]*place/i.test(allText) ||
+    /\bcip\s+concrete\b/i.test(allText) ||
+    /plaza\s+pavement/i.test(allText) ||
+    /concrete\s+slab/i.test(allText);
+
+  // Gravel + drainage mat combination strongly suggests concrete pavement roof
+  // BUT: river ballast (pavers_ballast surface) ≠ concrete pavement.
+  // Only trigger when "concrete" explicitly appears in layer text alongside gravel.
+  const hasGravelLayer =
+    /\bgravel\b|\bgravel\s+layer\b|\baggregate\s+layer\b/i.test(allText);
+  const hasDrainageMat = canonicalTokens.includes("drainageMat" as CanonicalLayerToken);
+  const concreteHint = surfaceHint === "concrete_pavement";
+
   const isConcretePavement =
-    surfaceHint === "concrete_pavement" || /concrete\s*pav/i.test(allText);
+    concreteHint ||
+    hasConcretePavementText ||
+    // Gravel + drainage mat + any concrete word = concrete pavement assembly
+    (hasGravelLayer && hasDrainageMat && /concrete/i.test(allText));
 
   const isPanelAssembly =
     surfaceHint === "panel" ||
-    /aluminum\s*panel|cladding\s*panel|curtain\s*wall|densglass.*panel|panel.*cladding/i.test(allText);
+    /aluminum\s*panel|cladding\s*panel|curtain\s*wall|densglass.*panel|panel.*cladding/i.test(allText) ||
+    /dens[\s-]*glass|cementitious\s*board/i.test(allText) &&
+      !/drainage\s*mat|filter\s*fabric|drainageMat/i.test(allText);
 
   if (isConcretePavement) {
     const overrideId = "concrete_pavement_roof";
