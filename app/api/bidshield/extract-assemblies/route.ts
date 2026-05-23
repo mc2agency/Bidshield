@@ -4,6 +4,11 @@ import { auth } from "@clerk/nextjs/server";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { requireProSubscription } from "@/lib/requireProSubscription";
 import { z } from "zod";
+import { normalizeAssemblySignals, classifyAssemblySystem } from "@/lib/bidshield/assembly-system-configs";
+import {
+  resolveAssemblyArchetype,
+  formatArchetypeResolution,
+} from "@/lib/bidshield/archetype-compat";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -11,6 +16,86 @@ const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
 
 function validatePdfBase64(b64: string): boolean {
   return b64.startsWith("JVBE");
+}
+
+// ─── Archetype enrichment ─────────────────────────────────────────────────────
+
+/**
+ * Replicates the same systemType resolution the wizard does client-side,
+ * then appends archetype metadata to each assembly.
+ *
+ * Existing fields are NEVER modified — only new fields are added:
+ *   archetypeId               — resolved archetype (e.g. "liquid_applied_irma")
+ *   archetypeResolutionSource — "explicit" | "mapped" | "fallback"
+ *   archetypeNeedsReview      — true when no direct mapping found
+ *   archetypeFallbackReason   — human-readable explanation when fallback
+ *   legacySystemType          — the final classified systemType used for mapping
+ *   legacySystemId            — raw system from AI output (before IRMA classification)
+ */
+function enrichWithArchetypes(data: {
+  assemblies: Array<{
+    system?: string | null;
+    drainageMat?: boolean | null;
+    filterFabric?: boolean | null;
+    layers?: string[] | null;
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+}) {
+  const enrichedAssemblies = data.assemblies.map((assembly) => {
+    const rawSystemId = (assembly.system as string | null | undefined) ?? "";
+
+    // Mirror the wizard's IRMA resolution:
+    // 1. Normalize signals (layer text can override missing AI booleans)
+    const signals = normalizeAssemblySignals({
+      drainageMat: assembly.drainageMat ?? null,
+      filterFabric: assembly.filterFabric ?? null,
+      layers: Array.isArray(assembly.layers) ? assembly.layers : [],
+    });
+
+    // 2. Resolve base: if AI said "lam" but SBS layers detected, base is "sbs"
+    const effectiveBase =
+      rawSystemId === "lam" && signals.effectiveSbsMembrane ? "sbs" : rawSystemId;
+
+    // 3. Classify lam/sbs → lam_irma / sbs_irma / sbs_irma_green
+    const classifiedSystemType =
+      effectiveBase === "lam" || effectiveBase === "sbs"
+        ? classifyAssemblySystem({
+            baseSystem: effectiveBase,
+            drainageMat: signals.effectiveDrainageMat,
+            filterFabric: signals.effectiveFilterFabric,
+            greenRoof: signals.effectiveGreenRoof,
+          })
+        : rawSystemId;
+
+    // 4. Resolve archetype from the classified systemType
+    const resolution = resolveAssemblyArchetype({ systemType: classifiedSystemType });
+
+    // 5. Log for server-side audit trail
+    console.log("[extract-assemblies:archetype]", formatArchetypeResolution(resolution), {
+      label: assembly.label,
+      rawSystem: rawSystemId,
+      classifiedSystemType,
+    });
+
+    return {
+      ...assembly,
+      // ── New archetype fields (additive — do not replace existing) ──────────
+      archetypeId: resolution.archetypeId,
+      archetypeResolutionSource: resolution.source,
+      archetypeNeedsReview: resolution.needsReview,
+      ...(resolution.isFallback && {
+        archetypeFallbackReason: resolution.debugNote,
+      }),
+      legacySystemType: classifiedSystemType,
+      legacySystemId: rawSystemId || undefined,
+    };
+  });
+
+  return {
+    ...data,
+    assemblies: enrichedAssemblies,
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -264,7 +349,7 @@ IMPORTANT:
       return NextResponse.json({ error: "AI returned an unexpected response shape — please try again." }, { status: 422 });
     }
 
-    return NextResponse.json(validated.data);
+    return NextResponse.json(enrichWithArchetypes(validated.data));
   } catch (err: any) {
     console.error("extract-assemblies error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
