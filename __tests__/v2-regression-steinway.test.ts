@@ -347,7 +347,7 @@ describe("Bug 2: ROOF 05 concrete pavement classification", () => {
       "pavers_ballast",
       "ROOF 03",
     );
-    expect(result.archetypeId).toBe("liquid_applied_irma");
+    expect(result.archetypeId).toBe("ballast_paver_irma");
     expect(result.archetypeId).not.toBe("concrete_pavement_roof");
   });
 });
@@ -458,8 +458,8 @@ describe("End-to-end: Steinway sheet ROOF 01–06 all correct", () => {
     expect(results[1].archetypeId).toBe("modified_bitumen_sbs");
   });
 
-  test("ROOF 03 → liquid_applied_irma", () => {
-    expect(results[2].archetypeId).toBe("liquid_applied_irma");
+  test("ROOF 03 → ballast_paver_irma", () => {
+    expect(results[2].archetypeId).toBe("ballast_paver_irma");
   });
 
   test("ROOF 04 → conventional_liquid_applied", () => {

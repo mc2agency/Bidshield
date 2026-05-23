@@ -45,6 +45,9 @@ export type KnownArchetypeId =
   | "liquid_applied_irma"
   | "concrete_pavement_roof"
   | "built_up_panel_assembly"
+  | "pedestal_paver_irma"
+  | "green_roof_irma"
+  | "ballast_paver_irma"
   | "custom";
 
 export interface ArchetypeResolution {
@@ -143,6 +146,9 @@ export const ARCHETYPE_ID_TO_LEGACY_SYSTEM_ID: Partial<Record<KnownArchetypeId, 
   liquid_applied_irma: "lam_irma",
   concrete_pavement_roof: "concrete",
   built_up_panel_assembly: "panel",
+  pedestal_paver_irma: "lam_irma",
+  green_roof_irma: "sbs_irma_green",
+  ballast_paver_irma: "lam_irma",
   custom: "custom",
 };
 

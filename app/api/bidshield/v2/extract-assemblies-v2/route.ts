@@ -405,6 +405,9 @@ export async function POST(req: NextRequest) {
       requiredSectionsSnapshot: string[];
       optionalSectionsSnapshot: string[];
       hiddenSectionsSnapshot: string[];
+      classificationAudit: any;
+      normalizedLayerTokens: string[];
+      defaultLayerOrderSnapshot: string[];
     }> = [];
 
     for (const { asm, classification } of classifiedAssemblies) {
@@ -436,6 +439,9 @@ export async function POST(req: NextRequest) {
         requiredSectionsSnapshot: classification.requiredSectionsSnapshot,
         optionalSectionsSnapshot: classification.optionalSectionsSnapshot,
         hiddenSectionsSnapshot: classification.hiddenSectionsSnapshot,
+        classificationAudit: classification.audit,
+        normalizedLayerTokens: classification.audit.normalizedLayerTokens,
+        defaultLayerOrderSnapshot: classification.defaultLayerOrderSnapshot,
       });
     }
 

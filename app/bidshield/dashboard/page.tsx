@@ -710,6 +710,9 @@ function DashboardContent() {
   const updateProjectMut = useMutation(api.bidshield.updateProject);
   const deleteProjectMut = useMutation(api.bidshield.deleteProject);
   const convertToProjectMut = useMutation(api.bidInvites.convertToProject);
+  const createExtractionRun = useMutation(api.bidshield.createExtractionRunV2);
+  const createExtractionItem = useMutation(api.bidshield.createExtractionItemV2);
+  const completeExtractionRun = useMutation(api.bidshield.completeExtractionRunV2);
   const projects: BidProject[] = isDemo ? demoProjects : (convexProjects ?? []);
   const stats = isDemo ? demoStats : (convexStats ?? {
     activeProjects: 0, expiringQuotes: 0, openRFIs: 0, pipelineValue: 0,
@@ -836,10 +839,43 @@ function DashboardContent() {
       }
     }
     setShowNewProject(false);
+    // Persist V2 extraction items now that we have a projectId
+    let v2RunId: string | null = null;
+    if (np.v2ExtractionItems?.length) {
+      try {
+        const { runId } = await createExtractionRun({
+          projectId: projectId as Id<"bidshield_projects">,
+          userId,
+          sourceFileName: np.v2FileName ?? "upload.pdf",
+        });
+        v2RunId = runId as string;
+        for (const item of np.v2ExtractionItems) {
+          await createExtractionItem({
+            runId: v2RunId as Id<"bidshield_assemblyExtractionRuns">,
+            projectId: projectId as Id<"bidshield_projects">,
+            userId,
+            ...item,
+          });
+        }
+        await completeExtractionRun({
+          runId: v2RunId as Id<"bidshield_assemblyExtractionRuns">,
+          extractedCount: np.v2ExtractionItems.length,
+          needsReviewCount: np.v2ExtractionItems.filter((i: any) => i.needsReview).length,
+        });
+      } catch (e) {
+        console.error("[V2 persist error]", e);
+        // Non-fatal: project already created with roofAssemblies — skip V2 review
+        v2RunId = null;
+      }
+    }
     // Use full page navigation instead of router.push to ensure Clerk
     // re-initialises with a fresh JWT — soft navigations can hit the
     // middleware with an expired token when the user spent time in the wizard.
-    window.location.href = `/bidshield/dashboard/project?id=${projectId}`;
+    if (v2RunId) {
+      window.location.href = `/bidshield/dashboard/v2/review/${v2RunId}`;
+    } else {
+      window.location.href = `/bidshield/dashboard/project?id=${projectId}`;
+    }
   };
 
   const handleEditSetup = (id: Id<"bidshield_projects">) => {

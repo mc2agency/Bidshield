@@ -3,11 +3,33 @@
 import React, { useState, useEffect } from "react";
 import { INSULATION_TYPES, SURFACE_TYPES, THICKNESS_PRESETS, computeInsulationRValue } from "@/lib/bidshield/insulation-data";
 import { mapAIResultToSectionValues, classifyAssemblySystem, normalizeAssemblySignals, SectionValues } from "@/lib/bidshield/assembly-system-configs";
+import { archetypeIdToLegacy } from "@/lib/bidshield/archetype-compat";
 import { RoofSystemSelector } from "@/app/bidshield/components/assembly/RoofSystemSelector";
 import { RoofAssemblyCard } from "@/app/bidshield/components/assembly/RoofAssemblyCard";
 import { SECTION_DEFS } from "@/lib/bidshield/assembly-system-configs";
 
 // ─── V2 inline types ──────────────────────────────────────────────────────────
+
+interface V2PersistItem {
+  drawingAssemblyId: string;
+  displayName?: string | null;
+  sourceSheet?: string | null;
+  originalExtractedText: string[];
+  extractedLayers: string[];
+  normalizedLayerTokens: string[];
+  archetypeId: string;
+  archetypeVersion: number;
+  confidence: number;
+  needsReview: boolean;
+  classificationAudit: any;
+  sectionValues: Record<string, string | boolean | undefined>;
+  requiredSectionsSnapshot: string[];
+  optionalSectionsSnapshot: string[];
+  hiddenSectionsSnapshot: string[];
+  defaultLayerOrderSnapshot: string[];
+  legacySystemId?: string;
+  area?: number | null;
+}
 
 interface V2Item {
   drawingAssemblyId: string;
@@ -27,6 +49,7 @@ interface V2Item {
   optionalSectionsSnapshot: string[];
   hiddenSectionsSnapshot: string[];
   sectionValues: Record<string, string | boolean | undefined>;
+  area?: number | null;
 }
 
 // ─── V2InlineCard ─────────────────────────────────────────────────────────────
@@ -251,6 +274,8 @@ interface WizardData {
   gc: string; sqft: string; totalBidAmount: string; assemblies: string;
   roofAssemblies?: AssemblyInput[];
   systemDescription?: string;
+  v2ExtractionItems?: V2PersistItem[];
+  v2FileName?: string;
 }
 
 export interface EditProjectData {
@@ -322,6 +347,9 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string; drawingDate?: string; drawingRevision?: string }>({});
   // V2 extraction items — populated when V2 route succeeds, replaces pdfResults for display
   const [v2Items, setV2Items] = useState<V2Item[]>([]);
+  // Full Convex-ready items stored for post-creation persistence (includes classificationAudit etc.)
+  const [v2PersistItems, setV2PersistItems] = useState<V2PersistItem[]>([]);
+  const [v2FileName, setV2FileName] = useState<string>("");
   const [expandedLayers, setExpandedLayers] = useState<Set<number>>(new Set());
   // Takeoff schedule upload state
   const [takeoffMode, setTakeoffMode] = useState<"link" | "upload" | "loading" | "done" | "error">("link");
@@ -404,12 +432,56 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             optionalSectionsSnapshot: Array.isArray(item.optionalSectionsSnapshot) ? item.optionalSectionsSnapshot : [],
             hiddenSectionsSnapshot: Array.isArray(item.hiddenSectionsSnapshot) ? item.hiddenSectionsSnapshot : [],
             sectionValues: item.sectionValues && typeof item.sectionValues === "object" ? item.sectionValues : {},
+            area: typeof item.area === "number" ? item.area : null,
           }));
           if (v2Mapped.length > 0) {
             setV2Items(v2Mapped);
-            // Also populate legacy assemblies from V2 for wizard submit (backwards compat)
-            const v2AsSystems = Array.from(new Set(v2Mapped.map((i) => i.archetypeId).filter(Boolean)));
-            if (v2AsSystems.length > 0) setSystems(v2AsSystems);
+            // Store full Convex-ready items for post-creation persistence
+            const persist: V2PersistItem[] = (v2Data.items || []).map((item: any) => ({
+              drawingAssemblyId: item.drawingAssemblyId ?? "",
+              displayName: item.displayName ?? null,
+              sourceSheet: item.sourceSheet ?? null,
+              originalExtractedText: Array.isArray(item.layers) ? item.layers : [],
+              extractedLayers: Array.isArray(item.layers) ? item.layers : [],
+              normalizedLayerTokens: Array.isArray(item.normalizedLayerTokens) ? item.normalizedLayerTokens : [],
+              archetypeId: item.archetypeId ?? "custom",
+              archetypeVersion: typeof item.archetypeVersion === "number" ? item.archetypeVersion : 2,
+              confidence: typeof item.confidence === "number" ? item.confidence : 0,
+              needsReview: item.needsReview === true,
+              classificationAudit: item.classificationAudit ?? null,
+              sectionValues: item.sectionValues ?? {},
+              requiredSectionsSnapshot: Array.isArray(item.requiredSectionsSnapshot) ? item.requiredSectionsSnapshot : [],
+              optionalSectionsSnapshot: Array.isArray(item.optionalSectionsSnapshot) ? item.optionalSectionsSnapshot : [],
+              hiddenSectionsSnapshot: Array.isArray(item.hiddenSectionsSnapshot) ? item.hiddenSectionsSnapshot : [],
+              defaultLayerOrderSnapshot: Array.isArray(item.defaultLayerOrderSnapshot) ? item.defaultLayerOrderSnapshot : [],
+              legacySystemId: archetypeIdToLegacy(item.archetypeId ?? "") ?? undefined,
+              area: typeof item.area === "number" ? item.area : null,
+            }));
+            setV2PersistItems(persist);
+            setV2FileName(file.name);
+            // Convert V2 items to AssemblyInput so onCreate always has roofAssemblies populated
+            const v2Assemblies: AssemblyInput[] = v2Mapped.map((item) => ({
+              label: item.drawingAssemblyId,
+              name: item.displayName ?? undefined,
+              systemType: archetypeIdToLegacy(item.archetypeId) || "custom",
+              insulationType: "",
+              insulationThickness: "",
+              layers: item.extractedLayers.length > 0 ? item.extractedLayers : undefined,
+              sectionValues: Object.keys(item.sectionValues).length > 0 ? item.sectionValues as SectionValues : undefined,
+              area: typeof item.area === "number" ? item.area : undefined,
+              archetypeId: item.archetypeId,
+              archetypeNeedsReview: item.needsReview,
+              extractedFromPdf: true,
+              confidence: Math.round(item.confidence * 100),
+            }));
+            setAssemblies(v2Assemblies);
+            const totalArea = v2Assemblies.reduce((sum, a) => sum + (a.area || 0), 0);
+            if (totalArea > 0) setSqft(String(Math.round(totalArea)));
+            // Use legacy system IDs for the systems selector (not raw archetype IDs)
+            const v2AsLegacySystems = Array.from(new Set(
+              v2Mapped.map((i) => archetypeIdToLegacy(i.archetypeId)).filter((s): s is string => !!s)
+            ));
+            if (v2AsLegacySystems.length > 0) setSystems(v2AsLegacySystems);
             if (v2Data.deckType) setDeck(v2Data.deckType);
             const meta: typeof pdfMeta = {};
             if (v2Data.deckType) meta.deckType = v2Data.deckType;
@@ -1218,6 +1290,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                     }))
                   : undefined,
                 systemDescription: aiDescription || undefined,
+                v2ExtractionItems: v2PersistItems.length > 0 ? v2PersistItems : undefined,
+                v2FileName: v2FileName || undefined,
               });}}
               className="py-2.5 px-6 rounded-xl text-sm font-semibold transition-colors"
               style={{ background: "var(--bs-teal)", color: "#13151a" }}
