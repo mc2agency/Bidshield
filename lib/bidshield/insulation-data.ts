@@ -14,7 +14,7 @@ export const INSULATION_TYPES: InsulationType[] = [
   { id: "eps", label: "EPS (Expanded Polystyrene)", rPerInch: 4.0 },
   { id: "mineral_wool", label: "Mineral Wool", rPerInch: 3.7 },
   { id: "rigid", label: "Rigid Board (type TBD)", rPerInch: 5.0 },
-  { id: "vacuum", label: "Vacuum Insulated Panel (VIP)", rPerInch: 50.0 },
+  { id: "vacuum", label: "Vacuum Insulated Panel (VIP)", rPerInch: 33.3 },
 ];
 
 export interface SurfaceType {
