@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { INSULATION_TYPES, SURFACE_TYPES, THICKNESS_PRESETS, computeInsulationRValue } from "@/lib/bidshield/insulation-data";
-import { mapAIResultToSectionValues, SectionValues } from "@/lib/bidshield/assembly-system-configs";
+import { mapAIResultToSectionValues, classifyAssemblySystem, normalizeAssemblySignals, SectionValues } from "@/lib/bidshield/assembly-system-configs";
 import { RoofSystemSelector } from "@/app/bidshield/components/assembly/RoofSystemSelector";
 import { RoofAssemblyCard } from "@/app/bidshield/components/assembly/RoofAssemblyCard";
 
@@ -25,6 +25,8 @@ const SYSTEMS = [
   { id: "pvc", label: "PVC", popular: true },
   { id: "epdm", label: "EPDM", popular: true },
   { id: "sbs", label: "SBS Modified Bitumen", popular: false },
+  { id: "sbs_irma", label: "SBS IRMA / PMR", popular: false },
+  { id: "sbs_irma_green", label: "SBS IRMA Green Roof", popular: false },
   { id: "app", label: "APP Modified Bitumen", popular: false },
   { id: "bur", label: "Built-Up (BUR)", popular: false },
   { id: "metal", label: "Standing Seam Metal", popular: false },
@@ -270,24 +272,74 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
         const computedRValue = !extractedRValue && insulationType && insulationThickness
           ? computeInsulationRValue(insulationType, parseFloat(insulationThickness))
           : undefined;
-        const systemId = a.system || a.systemType || "";
+        const rawSystemId = a.system || a.systemType || "";
+
+        // STEP 1 — trace raw AI output before any classification
+        console.log("[BidShield extract]", {
+          label: a.label,
+          rawSystem: a.system,
+          drainageMat: a.drainageMat,
+          filterFabric: a.filterFabric,
+          layers: a.layers,
+        });
+
+        // Normalize signals: layer-text evidence overrides missing AI booleans.
+        // Never read a.drainageMat / a.filterFabric directly after this point.
+        const signals = normalizeAssemblySignals({
+          drainageMat: a.drainageMat,
+          filterFabric: a.filterFabric,
+          layers: a.layers,
+        });
+
+        // Resolve base system: AI returns "lam" for all IRMA stacks, but
+        // explicit Modified Bitumen / SBS layers mean the true base is "sbs".
+        const effectiveBase =
+          (rawSystemId === "lam" && signals.effectiveSbsMembrane) ? "sbs" : rawSystemId;
+
+        // STEP 2 — classify using ONLY normalized signals
+        const classifiedSystem =
+          (effectiveBase === "lam" || effectiveBase === "sbs")
+            ? classifyAssemblySystem({
+                baseSystem: effectiveBase,
+                drainageMat: signals.effectiveDrainageMat,
+                filterFabric: signals.effectiveFilterFabric,
+                greenRoof: signals.effectiveGreenRoof,
+              })
+            : rawSystemId;
+        const classifiedSystemId = classifiedSystem;
+
+        console.log("[BidShield classify]", {
+          label: a.label,
+          classifiedSystem,
+          rawSystem: a.system,
+          layers: a.layers,
+          signalAudit: signals.signalAudit,
+        });
+
         // Build section values from AI extraction
         const sectionValues = mapAIResultToSectionValues({
-          systemType: systemId,
+          systemType: classifiedSystemId,
           insulationType,
           insulationThickness,
           surfaceType: a.surface || a.surfaceType || "",
           coverBoard: a.coverBoard || undefined,
-          drainageMat: a.drainageMat ?? false,
+          drainageMat: signals.effectiveDrainageMat,
           vaporRetarder: a.vaporRetarder ?? false,
           protectionBoard: a.protectionBoard || undefined,
           layers: Array.isArray(a.layers) ? a.layers : [],
           deckType: a.deckType || data.deckType || undefined,
-        }, systemId);
+        }, classifiedSystemId);
+
+        // STEP 3 — trace final value before state write
+        console.log("[BidShield state write]", {
+          label: a.label,
+          systemType: classifiedSystemId,
+          layers: a.layers,
+        });
         return {
           label: a.label || `RT-${String(assemblies.length + 1).padStart(2, "00")}`,
           name: a.name || undefined,
-          systemType: systemId,
+          systemType: classifiedSystemId,
           insulationType,
           insulationThickness,
           rValue: extractedRValue ?? computedRValue,

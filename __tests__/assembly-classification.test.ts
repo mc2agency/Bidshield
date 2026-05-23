@@ -6,11 +6,14 @@
  *  B — Roof 05: IRMA/PMR assembly
  *  C — Backward compatibility: existing lam records
  *  D — Insulation normalization formatting
+ *  E — RT-01: SBS IRMA — drainage mat detected from layers, not AI boolean
+ *  F — RT-05: SBS IRMA Green Roof — filter fabric + green roof from layers
  */
 
 import { describe, it, expect } from "vitest";
 import {
   classifyAssemblySystem,
+  normalizeAssemblySignals,
   validateAssembly,
   formatInsulationLabel,
   mapAIResultToSectionValues,
@@ -594,5 +597,162 @@ describe("app_irma — maps to lam_irma rules", () => {
   it("app_irma membrane label is 'APP Modified Bitumen'", () => {
     const values = buildSectionValuesFromAssembly({ systemType: "app_irma" });
     expect(values.membrane).toBe("APP Modified Bitumen");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TEST E — RT-01: SBS IRMA — AI returns drainageMat:false but layers list
+// "Drainage Mat". normalizeAssemblySignals must override the AI boolean.
+// Stack: Modified Bitumen Base Ply → Modified Bitumen Finish Ply →
+//        Drainage Mat → 8" XPS → Pedestal Tabs → Precast Pavers
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Test E — RT-01 SBS IRMA (drainage mat from layers)", () => {
+  const rt01Layers = [
+    "Modified Bitumen Base Ply",
+    "Modified Bitumen Finish Ply",
+    "Drainage Mat",
+    '8" XPS',
+    "Pedestal Tabs",
+    "Precast Pavers",
+  ];
+
+  const rt01Signals = normalizeAssemblySignals({
+    drainageMat: false,   // AI missed the boolean
+    filterFabric: false,
+    layers: rt01Layers,
+  });
+
+  it("effectiveDrainageMat=true even when AI returns false", () => {
+    expect(rt01Signals.effectiveDrainageMat).toBe(true);
+  });
+
+  it("signalAudit.drainageMat.raw=false, source='layers'", () => {
+    expect(rt01Signals.signalAudit.drainageMat.raw).toBe(false);
+    expect(rt01Signals.signalAudit.drainageMat.source).toBe("layers");
+  });
+
+  it("effectiveSbsMembrane=true from 'Modified Bitumen' layer text", () => {
+    expect(rt01Signals.effectiveSbsMembrane).toBe(true);
+  });
+
+  it("effectivePedestals=true from 'Pedestal Tabs' layer text", () => {
+    expect(rt01Signals.effectivePedestals).toBe(true);
+  });
+
+  it("effectiveGreenRoof=false (no vegetation layers)", () => {
+    expect(rt01Signals.effectiveGreenRoof).toBe(false);
+  });
+
+  it("classifies as sbs_irma using normalized signals", () => {
+    const system = classifyAssemblySystem({
+      baseSystem: "sbs",                            // derived from effectiveSbsMembrane
+      drainageMat: rt01Signals.effectiveDrainageMat,
+      filterFabric: rt01Signals.effectiveFilterFabric,
+      greenRoof: rt01Signals.effectiveGreenRoof,
+    });
+    expect(system).toBe("sbs_irma");
+  });
+
+  it("never classifies as lam when drainage mat is in layers", () => {
+    const system = classifyAssemblySystem({
+      baseSystem: "sbs",
+      drainageMat: rt01Signals.effectiveDrainageMat,
+      filterFabric: rt01Signals.effectiveFilterFabric,
+      greenRoof: rt01Signals.effectiveGreenRoof,
+    });
+    expect(system).not.toBe("lam");
+    expect(system).not.toBe("lam_irma");
+  });
+
+  it("assertion does NOT throw when effectiveDrainageMat=true", () => {
+    // normalizeAssemblySignals must not throw when the effective value is correct
+    expect(() =>
+      normalizeAssemblySignals({ drainageMat: false, filterFabric: false, layers: rt01Layers })
+    ).not.toThrow();
+  });
+
+  it("enkadrain layer also triggers effectiveDrainageMat", () => {
+    const signals = normalizeAssemblySignals({
+      drainageMat: false,
+      layers: ["SBS Membrane", "Enkadrain 3000", "XPS Insulation"],
+    });
+    expect(signals.effectiveDrainageMat).toBe(true);
+    expect(signals.signalAudit.drainageMat.source).toBe("layers");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TEST F — RT-05: SBS IRMA Green Roof — AI returns filterFabric:false but
+// layers contain Filter Fabric + vegetation indicators.
+// normalizeAssemblySignals must elevate both signals.
+// Stack: Modified Bitumen Base Ply → Modified Bitumen Finish Ply →
+//        Drainage Mat → XPS → Filter Fabric → Root Barrier →
+//        Growing Media → Vegetation Layer
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Test F — RT-05 SBS IRMA Green Roof (filter fabric + green from layers)", () => {
+  const rt05Layers = [
+    "Modified Bitumen Base Ply",
+    "Modified Bitumen Finish Ply",
+    "Drainage Mat",
+    "XPS Insulation",
+    "Filter Fabric",
+    "Root Barrier",
+    "Growing Media",
+    "Vegetation Layer",
+  ];
+
+  const rt05Signals = normalizeAssemblySignals({
+    drainageMat: false,   // AI missed
+    filterFabric: false,  // AI missed
+    layers: rt05Layers,
+  });
+
+  it("effectiveFilterFabric=true even when AI returns false", () => {
+    expect(rt05Signals.effectiveFilterFabric).toBe(true);
+  });
+
+  it("signalAudit.filterFabric.raw=false, source='layers'", () => {
+    expect(rt05Signals.signalAudit.filterFabric.raw).toBe(false);
+    expect(rt05Signals.signalAudit.filterFabric.source).toBe("layers");
+  });
+
+  it("effectiveGreenRoof=true from 'Root Barrier' + 'Growing Media' layers", () => {
+    expect(rt05Signals.effectiveGreenRoof).toBe(true);
+  });
+
+  it("effectiveDrainageMat=true from 'Drainage Mat' layer", () => {
+    expect(rt05Signals.effectiveDrainageMat).toBe(true);
+  });
+
+  it("effectiveSbsMembrane=true from 'Modified Bitumen' layers", () => {
+    expect(rt05Signals.effectiveSbsMembrane).toBe(true);
+  });
+
+  it("classifies as sbs_irma_green using normalized signals", () => {
+    const system = classifyAssemblySystem({
+      baseSystem: "sbs",
+      drainageMat: rt05Signals.effectiveDrainageMat,
+      filterFabric: rt05Signals.effectiveFilterFabric,
+      greenRoof: rt05Signals.effectiveGreenRoof,
+    });
+    expect(system).toBe("sbs_irma_green");
+  });
+
+  it("geotextile layer also triggers effectiveFilterFabric", () => {
+    const signals = normalizeAssemblySignals({
+      filterFabric: false,
+      layers: ["SBS Membrane", "XPS Insulation", "Geotextile Fabric"],
+    });
+    expect(signals.effectiveFilterFabric).toBe(true);
+    expect(signals.signalAudit.filterFabric.source).toBe("layers");
+  });
+
+  it("vegetation layer text triggers effectiveGreenRoof", () => {
+    const signals = normalizeAssemblySignals({
+      layers: ["SBS Membrane", "Drainage Mat", "XPS", "Filter Fabric", "vegetation tray system"],
+    });
+    expect(signals.effectiveGreenRoof).toBe(true);
   });
 });

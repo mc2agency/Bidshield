@@ -53,6 +53,23 @@ export function RoofAssemblyCard({ assembly, onChange, onRemove, showLayerStack 
   const [layersOpen, setLayersOpen] = useState(false);
   const [presetsOpen, setPresetsOpen] = useState(false);
 
+  // STEP 4 — trace systemType reaching render
+  console.log("[RoofAssemblyCard render]", {
+    label: assembly.label,
+    systemType: assembly.systemType,
+    layers: assembly.layers,
+    rawLayers: (assembly as any).rawExtraction?.layers,
+  });
+
+  // STEP 6 — TEMP ASSERT: catch IRMA assembly downgraded to lam
+  if (
+    assembly.label === "RT-01" &&
+    assembly.systemType === "lam" &&
+    assembly.layers?.some(l => /drainage[\s_-]?mat/i.test(l))
+  ) {
+    throw new Error("IRMA assembly downgraded to lam at render");
+  }
+
   const systemConfig = getSystemConfig(assembly.systemType);
 
   const sectionValues: SectionValues = assembly.sectionValues ?? buildSectionValuesFromAssembly({
