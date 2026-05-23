@@ -232,3 +232,16 @@ export {
   requirePro,
   resolveUserId,
 } from "./bidshield/_helpers";
+
+// V2 Assembly Engine
+export {
+  getRun as getExtractionRunV2,
+  listRunsForProject as listExtractionRunsV2,
+  getItemsForRun as getExtractionItemsV2,
+  createRun as createExtractionRunV2,
+  createItem as createExtractionItemV2,
+  completeRun as completeExtractionRunV2,
+  failRun as failExtractionRunV2,
+  updateItemStatus as updateExtractionItemStatusV2,
+  approveAllItems as approveAllExtractionItemsV2,
+} from "./bidshield/extractionV2";

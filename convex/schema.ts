@@ -1130,4 +1130,84 @@ export default defineSchema({
     .index("by_projectId", ["projectId"])
     .index("by_userId", ["userId"])
     .index("by_canPromote", ["canPromoteToArchetype"]),
+
+  // ── V2 Assembly Extraction Runs ──
+  bidshield_assemblyExtractionRuns: defineTable({
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    sourceFileName: v.string(),
+    sourceFileId: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("processing"),
+      v.literal("complete"),
+      v.literal("failed"),
+    ),
+    extractedCount: v.number(),
+    needsReviewCount: v.number(),
+    errorMessage: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_projectId", ["projectId"])
+    .index("by_userId", ["userId"])
+    .index("by_status", ["status"]),
+
+  // ── V2 Assembly Extraction Items ──
+  bidshield_assemblyExtractionItems: defineTable({
+    runId: v.id("bidshield_assemblyExtractionRuns"),
+    projectId: v.id("bidshield_projects"),
+    userId: v.string(),
+    drawingAssemblyId: v.string(),
+    displayName: v.optional(v.string()),
+    sourceSheet: v.optional(v.string()),
+    sourceDetail: v.optional(v.string()),
+    originalExtractedText: v.array(v.string()),
+    extractedLayers: v.array(v.string()),
+    normalizedLayerTokens: v.array(v.string()),
+    archetypeId: v.string(),
+    archetypeVersion: v.number(),
+    confidence: v.number(),
+    needsReview: v.boolean(),
+    classificationAudit: v.object({
+      scoringBreakdown: v.object({
+        layerScore: v.number(),
+        drainageMatScore: v.number(),
+        filterFabricScore: v.number(),
+        keywordScore: v.number(),
+        totalScore: v.number(),
+      }),
+      matchedLayers: v.array(v.string()),
+      rejectedLayers: v.array(v.string()),
+      matchedKeywords: v.array(v.string()),
+      attemptedArchetypes: v.array(v.object({
+        archetypeId: v.string(),
+        score: v.number(),
+        reason: v.string(),
+        disqualified: v.boolean(),
+      })),
+      normalizedLayerTokens: v.array(v.string()),
+      unmatchedLayers: v.array(v.string()),
+      normalizationConfidence: v.array(v.number()),
+      timestamp: v.number(),
+    }),
+    sectionValues: v.any(),
+    requiredSectionsSnapshot: v.array(v.string()),
+    optionalSectionsSnapshot: v.array(v.string()),
+    hiddenSectionsSnapshot: v.array(v.string()),
+    defaultLayerOrderSnapshot: v.array(v.string()),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("approved"),
+      v.literal("rejected"),
+    ),
+    legacySystemId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_runId", ["runId"])
+    .index("by_projectId", ["projectId"])
+    .index("by_userId", ["userId"])
+    .index("by_status", ["status"])
+    .index("by_run_and_status", ["runId", "status"]),
 });

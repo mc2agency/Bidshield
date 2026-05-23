@@ -35,6 +35,7 @@ function validatePdfBase64(b64: string): boolean {
 function enrichWithArchetypes(data: {
   assemblies: Array<{
     system?: string | null;
+    surface?: string | null;
     drainageMat?: boolean | null;
     filterFabric?: boolean | null;
     layers?: string[] | null;
@@ -44,6 +45,33 @@ function enrichWithArchetypes(data: {
 }) {
   const enrichedAssemblies = data.assemblies.map((assembly) => {
     const rawSystemId = (assembly.system as string | null | undefined) ?? "";
+
+    // ── Concrete pavement override (must run BEFORE lam_irma resolution) ──────
+    // If the top finish is concrete pavement, this is always concrete_pavement_roof
+    // regardless of whether drainageMat/filterFabric are set.
+    const surfaceField = (assembly.surface as string | null | undefined) ?? "";
+    const layerText = Array.isArray(assembly.layers)
+      ? assembly.layers.join(" ")
+      : "";
+    const isConcretePayement =
+      surfaceField === "concrete_pavement" ||
+      /concrete\s*pav/i.test(layerText);
+
+    if (isConcretePayement) {
+      console.log("[extract-assemblies:archetype] concrete_pavement_roof override", {
+        label: assembly.label,
+        rawSystem: rawSystemId,
+        surface: surfaceField,
+      });
+      return {
+        ...assembly,
+        archetypeId: "concrete_pavement_roof" as const,
+        archetypeResolutionSource: "mapped" as const,
+        archetypeNeedsReview: false,
+        legacySystemType: "lam_irma",
+        legacySystemId: rawSystemId || undefined,
+      };
+    }
 
     // Mirror the wizard's IRMA resolution:
     // 1. Normalize signals (layer text can override missing AI booleans)
@@ -141,7 +169,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
 
 Each assembly object must use ONLY these exact values:
 
-system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'lam' | 'hydrotech'
+system: 'tpo' | 'pvc' | 'epdm' | 'sbs' | 'app' | 'bur' | 'metal' | 'spf' | 'lam' | 'hydrotech' | 'panel'
 
 Classify each assembly independently based on its OWN layer stack and drawing label — do NOT assume all assemblies use the same system.
 
@@ -156,6 +184,7 @@ System selection guide:
 - 'spf': Spray polyurethane foam
 - 'lam': Liquid Applied Membrane — Use for CONVENTIONAL liquid-applied assemblies (insulation BELOW membrane) OR for IRMA/inverted assemblies. Classification into lam vs lam_irma is determined post-extraction by drainageMat and filterFabric flags below.
 - 'hydrotech': Use ONLY when drawing or spec explicitly names Hydrotech as the manufacturer.
+- 'panel': Use for wall/cladding/soffit assemblies with waterproofing below a panel finish. NOT a standard roof membrane system. Stack: deck/substrate → insulation → waterproofing membrane → cladding panel. Example: DensGlass → rigid insulation → cementitious board → waterproofing → aluminum panel.
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL: CONVENTIONAL vs IRMA CLASSIFICATION
@@ -170,12 +199,12 @@ DO NOT infer IRMA from membrane type alone.
 DO NOT invent drainageMat or filterFabric layers that are not explicitly visible.
 
 CONVENTIONAL LAM (lam — drainageMat: false, filterFabric: false):
-  Stack: deck → insulation → membrane → finish/cladding
+  Stack: deck → insulation → membrane → exposed finish (NOT a cladding panel)
   Examples:
-    - Concrete Deck → DensGlass → 7" Rigid Insulation → Cementitious Board → Waterproofing Membrane → Aluminum Panel
     - Built-up rigid insulation roof with liquid-applied waterproofing on top
-    - Aluminum panel cladding systems with waterproofing below cladding
+    - Waterproofing membrane with traffic coating or topping (no drainage mat)
   Rules: drainageMat=false, filterFabric=false when none are labeled
+  NOTE: If the assembly ends with an aluminum panel, cladding panel, or curtain wall panel, use system='panel' instead.
 
 IRMA / PMR (lam — drainageMat: true and/or filterFabric: true):
   Stack: deck → membrane → drainage → insulation → filter fabric → overburden
@@ -186,33 +215,34 @@ IRMA / PMR (lam — drainageMat: true and/or filterFabric: true):
   Rules: Only set drainageMat=true or filterFabric=true when explicitly labeled
 
 ═══════════════════════════════════════════════════════════════
-EXAMPLE A — Roof 06 (CONVENTIONAL lam — NOT IRMA)
+EXAMPLE A — Roof 06 (PANEL cladding assembly — NOT IRMA)
 ═══════════════════════════════════════════════════════════════
-Drawing shows: Concrete Deck → DensGlass → 7" Rigid Insulation → Cementitious Board → Waterproofing Membrane → Aluminum Panel
+Drawing shows: Concrete Deck → DensGlass → 7\" Rigid Insulation → Cementitious Board → Waterproofing Membrane → Aluminum Panel
 Correct output:
 {
-  "system": "lam",
+  "system": "panel",
   "drainageMat": false,
   "filterFabric": false,
   "insulation": "rigid",
   "thickness": "7",
   "rValue": 35
 }
-Why: insulation is BELOW the membrane, no drainage mat labeled, no filter fabric labeled.
+Why: This is a cladding/wall panel assembly with waterproofing below aluminum panels. Use system='panel', NOT 'lam'.
 
 ═══════════════════════════════════════════════════════════════
-EXAMPLE B — Roof 05 (IRMA / PMR)
+EXAMPLE B — Roof 05 (IRMA / PMR with concrete pavement finish)
 ═══════════════════════════════════════════════════════════════
 Drawing shows: Concrete Deck → Waterproofing Membrane → Drainage Mat → Rigid Insulation → Filter Fabric → Gravel → Concrete Pavement
 Correct output:
 {
   "system": "lam",
+  "surface": "concrete_pavement",
   "drainageMat": true,
   "filterFabric": true,
   "insulation": "xps",
   "thickness": null
 }
-Why: drainage mat and filter fabric are explicitly labeled, insulation is above membrane.
+Why: drainage mat and filter fabric are explicitly labeled, insulation is above membrane. The top finish is cast-in-place concrete pavement → surface='concrete_pavement'.
 
 ═══════════════════════════════════════════════════════════════
 INSULATION THICKNESS EXTRACTION RULES
@@ -244,9 +274,11 @@ Use 'xps' only when XPS is explicitly named.
 drainageMat: true if drainage mat is EXPLICITLY labeled or leader-lined in the drawing. false otherwise. NEVER infer.
 filterFabric: true if filter fabric is EXPLICITLY labeled or leader-lined in the drawing. false otherwise. NEVER infer.
 
-surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating'
+surface: 'exposed' | 'pavers_pedestals' | 'pavers_ballast' | 'green_roof' | 'walkpads' | 'traffic_coating' | 'concrete_pavement'
 
-label: use label from drawing (RT-1, RT-2, RT-01, RT-02) if shown, otherwise RT-01, RT-02, etc. Max 10 assemblies.
+Use surface='concrete_pavement' when the top finish layer is a cast-in-place concrete slab, concrete paving, or concrete pavement.
+
+label: use label from drawing (RT-1, RT-2, RT-01, RT-02) if shown, otherwise RT-01, RT-02, etc. Up to 20 assemblies.
 
 area: number in SF if a roof type takeoff schedule, region area, or area table is present. Include sub-areas (e.g. RT-01 and RT-01 N) as separate entries. Omit if no area data found.
 
@@ -266,7 +298,7 @@ drawingRevision: If a title block or revision block shows a revision label or ph
 
 IMPORTANT: 
 - If the drawing contains a roof type takeoff schedule with area data, extract EVERY row including sub-areas (e.g. RT-01, RT-01 N as separate entries). Preserve the exact labels from the schedule.
-- If the drawing shows multiple assembly DETAILS (sectional drawings with callout labels like "ROOF 01", "ROOF 02", "ROOF 03"), extract EVERY detail as a separate assembly. Process the ENTIRE drawing from top to bottom.
+- If the drawing shows multiple assembly DETAILS (sectional drawings with callout labels like "ROOF 01", "ROOF 02", "ROOF 03"), extract EVERY detail as a separate assembly. Process the ENTIRE drawing from top to bottom. Start from ROOF 01 (or the first labeled assembly on the page). Do NOT skip any assembly. Do NOT start from the middle of the drawing. For example, if the drawing contains ROOF 01, ROOF 02, ROOF 03, ROOF 04, ROOF 05, and ROOF 06, you must return all six — starting with ROOF 01 and ending with ROOF 06.
 - Extract ALL assemblies visible on the page, regardless of layout (schedule, details, or mixed). Do not stop early.`;
 
     const controller = new AbortController();

@@ -30,6 +30,7 @@ export type LegacySystemId =
   | "concrete"
   | "metal"
   | "spf"
+  | "panel"
   | "custom"
   | (string & {}); // allow unknown strings, fall through to custom
 
@@ -119,6 +120,9 @@ export const LEGACY_SYSTEM_ID_MAP: Record<string, KnownArchetypeId> = {
   metal: "custom",   // Metal panel — planned Phase 5 archetype
   spf: "custom",     // Spray polyurethane foam — planned Phase 5 archetype
 
+  // ── Cladding / wall panel assembly ─────────────────────────────────────────
+  panel: "built_up_panel_assembly",
+
   // ── Explicit fallback ───────────────────────────────────────────────────────
   custom: "custom",
 };
@@ -138,7 +142,7 @@ export const ARCHETYPE_ID_TO_LEGACY_SYSTEM_ID: Partial<Record<KnownArchetypeId, 
   conventional_liquid_applied: "lam",
   liquid_applied_irma: "lam_irma",
   concrete_pavement_roof: "concrete",
-  built_up_panel_assembly: "custom",
+  built_up_panel_assembly: "panel",
   custom: "custom",
 };
 

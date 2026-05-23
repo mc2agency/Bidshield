@@ -162,8 +162,8 @@ describe("archetypeIdToLegacy", () => {
   test("null → undefined", () => {
     expect(archetypeIdToLegacy(null)).toBeUndefined();
   });
-  test("built_up_panel_assembly → custom (no direct legacy equivalent)", () => {
-    expect(archetypeIdToLegacy("built_up_panel_assembly")).toBe("custom");
+  test("built_up_panel_assembly → panel (cladding panel legacy system)", () => {
+    expect(archetypeIdToLegacy("built_up_panel_assembly")).toBe("panel");
   });
   test("complete coverage of ARCHETYPE_ID_TO_LEGACY_SYSTEM_ID", () => {
     for (const [archetypeId, expectedLegacy] of Object.entries(ARCHETYPE_ID_TO_LEGACY_SYSTEM_ID)) {

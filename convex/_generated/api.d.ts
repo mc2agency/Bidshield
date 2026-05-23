@@ -21,6 +21,7 @@ import type * as bidshield_checklist from "../bidshield/checklist.js";
 import type * as bidshield_customAssemblyDrafts from "../bidshield/customAssemblyDrafts.js";
 import type * as bidshield_datasheets from "../bidshield/datasheets.js";
 import type * as bidshield_decisions from "../bidshield/decisions.js";
+import type * as bidshield_extractionV2 from "../bidshield/extractionV2.js";
 import type * as bidshield_gcBidForms from "../bidshield/gcBidForms.js";
 import type * as bidshield_gcItems from "../bidshield/gcItems.js";
 import type * as bidshield_labor from "../bidshield/labor.js";
@@ -74,6 +75,7 @@ declare const fullApi: ApiFromModules<{
   "bidshield/customAssemblyDrafts": typeof bidshield_customAssemblyDrafts;
   "bidshield/datasheets": typeof bidshield_datasheets;
   "bidshield/decisions": typeof bidshield_decisions;
+  "bidshield/extractionV2": typeof bidshield_extractionV2;
   "bidshield/gcBidForms": typeof bidshield_gcBidForms;
   "bidshield/gcItems": typeof bidshield_gcItems;
   "bidshield/labor": typeof bidshield_labor;
