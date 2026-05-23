@@ -783,11 +783,12 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
                         if (pdfMeta.drawingRevision && !drawingRevision) setDrawingRevision(pdfMeta.drawingRevision);
                         setPdfMode("link");
+                        setStep(2);
                       }}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                       style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
                     >
-                      Use These Assemblies
+                      Use These &amp; Review Assemblies
                     </button>
                     <button onClick={() => { setV2Items([]); setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
                   </div>
@@ -872,18 +873,26 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               <p className="text-sm mb-3" style={{ color: "var(--bs-text-muted)" }}>Review and edit insulation, surface, and area details. Optional — you can skip this.</p>
 
               <div className="space-y-3">
-                {assemblies.map((a, idx) => (
-                  <RoofAssemblyCard
-                    key={idx}
-                    assembly={a}
-                    onChange={(updated) => {
-                      const next = [...assemblies];
-                      next[idx] = updated;
-                      setAssemblies(next);
-                    }}
-                    onRemove={assemblies.length > 1 ? () => setAssemblies(assemblies.filter((_, i) => i !== idx)) : undefined}
-                  />
-                ))}
+                {v2Items.length > 0 ? (
+                  // V2 extraction succeeded — render V2 cards, no legacy conversion
+                  v2Items.map((item, i) => (
+                    <V2InlineCard key={i} item={item} />
+                  ))
+                ) : (
+                  // Legacy path — render editable RoofAssemblyCard forms
+                  assemblies.map((a, idx) => (
+                    <RoofAssemblyCard
+                      key={idx}
+                      assembly={a}
+                      onChange={(updated) => {
+                        const next = [...assemblies];
+                        next[idx] = updated;
+                        setAssemblies(next);
+                      }}
+                      onRemove={assemblies.length > 1 ? () => setAssemblies(assemblies.filter((_, i) => i !== idx)) : undefined}
+                    />
+                  ))
+                )}
               </div>
 
               {assemblies.some(a => a.area) && (
