@@ -363,6 +363,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pdfBase64: base64, fileName: file.name }),
         });
+        if (!v2Res.ok) {
+          // Log reason so it's visible in browser console during testing
+          const errBody = await v2Res.json().catch(() => ({}));
+          console.warn("[V2 extract] route returned", v2Res.status, errBody?.error ?? "");
+        }
         if (v2Res.ok) {
           const v2Data = await v2Res.json();
           const v2Mapped: V2Item[] = (v2Data.items || []).map((item: any) => ({

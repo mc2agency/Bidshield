@@ -20,9 +20,18 @@ function getConvex(): ConvexHttpClient {
   return new ConvexHttpClient(url);
 }
 
+// Comma-separated Clerk user IDs that always bypass the Pro gate (e.g. founder accounts).
+// Set OWNER_CLERK_IDS in Vercel env vars. Never expires, no subscription check needed.
+const OWNER_IDS = new Set(
+  (process.env.OWNER_CLERK_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean)
+);
+
 export async function requireProSubscription(
   clerkId: string
 ): Promise<NextResponse | null> {
+  // Founder / owner accounts always pass — no subscription check
+  if (OWNER_IDS.has(clerkId)) return null;
+
   try {
     const convex = getConvex();
     // @ts-ignore TS2589: Convex internal API generics hit type-depth limit with Zod v4
