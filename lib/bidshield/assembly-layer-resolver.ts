@@ -69,6 +69,16 @@ function parseInsulationTypeId(text: string): string | undefined {
   if (/\beps\b|expanded\s*poly/i.test(text)) return "eps";
   if (/mineral\s*wool|rock\s*wool/i.test(text)) return "mineral_wool";
   if (/vacuum/i.test(text)) return "vacuum";
+  // Derive type from R-per-inch value when no explicit material keyword
+  // e.g. "Rigid Insulation R-5 Per Inch" → xps, "Polyisocyanurate R-5.7 Per Inch" → polyiso
+  const rMatch = text.match(/R[\s-]?(\d+(?:\.\d+)?)\s*(?:per\s*inch|\/in)/i);
+  if (rMatch) {
+    const r = parseFloat(rMatch[1]);
+    if (Math.abs(r - 6.7) < 0.15) return "xps_high";
+    if (Math.abs(r - 5.7) < 0.15) return "polyiso";
+    if (Math.abs(r - 5.0) < 0.15) return "xps";
+    if (Math.abs(r - 4.0) < 0.15) return "eps";
+  }
   return "rigid";
 }
 

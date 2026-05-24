@@ -428,15 +428,16 @@ export function classifyLayersV2(
 
   // Pedestal: semantic signals — pedestal token or phrase containing "pedestal"
   // Disallow if ballast or green roof is primary signal
+  // "pavers" in allText (from displayName or layers) → pedestal, unless ballast/roofblok signals present
   const hasPedestal =
     tokens.includes("pedestals" as CanonicalLayerToken) ||
-    /\bpedestal/i.test(allText);
+    /\bpedestal/i.test(allText) ||
+    (/\bpavers?\b/i.test(allText) && !/\bballast\b|\broofblok\b/i.test(allText));
 
-  // Ballast: semantic signals — ballast token
-  // Covers: river ballast, paver ballast, lock-down paver ballast, concrete paver ballast
-  // Does NOT fire on "concrete pavement" alone (no ballast token there)
+  // Ballast: canonical token OR keyword in allText (covers surfaceHint "pavers_ballast" and ROOFBLOK)
   const hasBallast =
-    tokens.includes("ballast" as CanonicalLayerToken);
+    tokens.includes("ballast" as CanonicalLayerToken) ||
+    /\bballast\b|\broofblok\b/i.test(allText);
 
   // Concrete pavement: EXACT phrase only.
   // "concrete paver" / "concrete slab" / "concrete deck" do NOT trigger this.

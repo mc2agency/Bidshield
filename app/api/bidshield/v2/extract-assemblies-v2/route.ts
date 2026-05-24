@@ -50,7 +50,8 @@ Return ONLY valid JSON with no markdown:
         "River Ballast"
       ],
       "surface": "pavers_ballast",
-      "area": 4500
+      "area": 4500,
+      "insulationThicknessInches": 2
     }
   ],
   "deckType": "concrete",
@@ -76,15 +77,17 @@ SURFACE RULES:
 - surface = concrete_pavement: top finish is cast-in-place concrete slab, concrete pavement, CIP concrete, concrete paving, or plaza pavement
 - surface = panel: top finish is aluminum panel, cladding panel, curtain wall panel, or similar finish panel
 - surface = pavers_pedestals: top finish is concrete pavers on pedestal supports
-- surface = pavers_ballast: top finish is pavers on gravel or ballast
+- surface = pavers_ballast: top finish is pavers on gravel, ballast, or ROOFBLOK lock-down pavers
 - surface = green_roof: top finish is vegetation, growing media, sedum
 
 LAYER RULES:
 - layers: list EVERY labeled component from bottom (deck/substrate) to top (finish), in order
 - Include ALL layers explicitly labeled on the drawing — deck, insulation, membrane, drainage mat, filter fabric, protection board, pavers, ballast, concrete pavement, etc.
+- Always preserve numeric dimensions in insulation layer names when visible (e.g., '8" RIGID INS. (XPS, R-5/IN.)' not 'Rigid Insulation R-5 Per Inch')
 - drawingAssemblyId: the exact label from the drawing (ROOF 01, ROOF 02, RT-01, etc.) — normalized with space
 - displayName: descriptive name from schedule if shown (IRMA PLAZA DECK, TERRACE ROOF, etc.)
 - area: SF if shown in schedule, otherwise omit
+- insulationThicknessInches: numeric thickness of the insulation layer in inches from the layer schedule or detail (e.g., 8 from '8" XPS', 3.5 from '3.5" polyiso'). Null if not labeled.
 
 EXTRACTION COVERAGE — CRITICAL:
 - Scan the ENTIRE drawing page from top-left to bottom-right.
@@ -103,6 +106,7 @@ const V2AssemblySchema = z.object({
   layers: z.array(z.string()).default([]),
   surface: z.string().nullable().optional(),
   area: z.number().nullable().optional(),
+  insulationThicknessInches: z.number().nullable().optional(),
 });
 
 const V2ResultSchema = z.object({
@@ -369,7 +373,7 @@ export async function POST(req: NextRequest) {
       const classification = classifyLayersV2(
         asm.layers,
         asm.surface ?? null,
-        asm.drawingAssemblyId ?? null,
+        [asm.displayName, asm.drawingAssemblyId].filter(Boolean).join(" ") || null,
       );
       return { asm, classification };
     });
@@ -419,6 +423,11 @@ export async function POST(req: NextRequest) {
         classification.archetypeId,
         asm.surface ?? null,
       );
+
+      // Supplement sectionValues with AI-extracted insulation thickness when text parsing misses it
+      if (asm.insulationThicknessInches != null && !resolved.sectionValues["insulationThickness"]) {
+        resolved.sectionValues["insulationThickness"] = String(asm.insulationThicknessInches);
+      }
 
       items.push({
         itemId: "", // populated below if persisting to Convex
