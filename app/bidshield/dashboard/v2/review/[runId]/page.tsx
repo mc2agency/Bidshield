@@ -30,6 +30,7 @@ type ExtractionItem = {
 
 type ExtractionRun = {
   _id: Id<"bidshield_assemblyExtractionRuns">;
+  projectId: Id<"bidshield_projects">;
   sourceFileName: string;
   extractedCount: number;
   needsReviewCount: number;
@@ -477,9 +478,10 @@ function V2ReviewContent({ runId }: { runId: string }) {
     updateStatus({ itemId, status: "rejected" });
   }
 
-  function handleApproveAll() {
-    if (!runId) return;
-    approveAll({ runId: runId as Id<"bidshield_assemblyExtractionRuns"> });
+  async function handleApproveAll() {
+    if (!runId || !run) return;
+    await approveAll({ runId: runId as Id<"bidshield_assemblyExtractionRuns"> });
+    window.location.href = `/bidshield/dashboard/project?id=${run.projectId}`;
   }
 
   if (isLoading) {
