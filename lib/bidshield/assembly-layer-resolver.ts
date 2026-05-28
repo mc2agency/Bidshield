@@ -82,10 +82,17 @@ function parseInsulationTypeId(text: string): string | undefined {
   return "rigid";
 }
 
-/** Parse insulation thickness in inches from a dimension-prefixed layer string. */
+/** Parse insulation thickness in inches from a layer string.
+ *  Matches at the start (e.g., '8" XPS') OR inline (e.g., 'XPS Insulation, 4" thick'). */
 function parseInsulationThicknessInches(text: string): string | undefined {
-  const m = text.match(/^(\d+(?:\.\d+)?)\s*(?:"|inch(?:es)?|in\b)/i);
-  return m ? m[1] : undefined;
+  // Prefer leading dimension: '8" XPS', '4\" Rigid Insulation'
+  const leading = text.match(/^(\d+(?:\.\d+)?)\s*(?:"|inch(?:es)?|in\b)/i);
+  if (leading) return leading[1];
+  // Fallback: dimension anywhere in the string before a unit marker
+  // Catches: 'Rigid Insulation, 8" thick', 'XPS 3.5"', 'Insulation (4 inch)'
+  const inline = text.match(/\b(\d+(?:\.\d+)?)\s*(?:"|inch(?:es)?)\b/i);
+  if (inline) return inline[1];
+  return undefined;
 }
 
 /** Extract membrane spec. */

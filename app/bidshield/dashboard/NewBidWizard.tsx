@@ -75,6 +75,8 @@ function V2InlineCard({ item }: { item: V2Item }) {
   const heading = item.displayName
     ? `${item.drawingAssemblyId} — ${item.displayName}`
     : item.drawingAssemblyId;
+  const insulationType = item.sectionValues["insulationType"] as string | undefined;
+  const insulationThickness = item.sectionValues["insulationThickness"] as string | undefined;
   return (
     <div
       style={{
@@ -85,14 +87,17 @@ function V2InlineCard({ item }: { item: V2Item }) {
         marginBottom: 10,
       }}
     >
-      {/* DEBUG badge */}
-      <div style={{ padding: "2px 8px", marginBottom: 8, background: "#14532d", borderRadius: 4, fontSize: 10, fontWeight: 700, color: "#4ade80", letterSpacing: "0.08em", textAlign: "center" }}>
-        V2 SNAPSHOT CARD
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary, #e2e8f0)", textTransform: "uppercase" }}>
+          {heading}
+        </div>
+        {item.area != null && (
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-teal, #2dd4bf)", whiteSpace: "nowrap", flexShrink: 0 }}>
+            {item.area.toLocaleString()} SF
+          </span>
+        )}
       </div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary, #e2e8f0)", textTransform: "uppercase", marginBottom: 4 }}>
-        {heading}
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
         <span style={{
           padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 600,
           background: item.needsReview ? "rgba(239,68,68,0.15)" : "rgba(45,212,191,0.12)",
@@ -104,6 +109,11 @@ function V2InlineCard({ item }: { item: V2Item }) {
         <span style={{ fontSize: 11, color: "var(--bs-text-dim, #718096)" }}>
           {Math.round(item.confidence * 100)}%
         </span>
+        {insulationType && (
+          <span style={{ fontSize: 11, color: "var(--bs-text-dim, #718096)" }}>
+            {insulationType.toUpperCase()}{insulationThickness ? ` ${insulationThickness}"` : ""}
+          </span>
+        )}
       </div>
       {/* Full layer stack — base + modifier breakdown */}
       {item.fullLayerStack.length > 0 && (
@@ -355,7 +365,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   const [pdfMode, setPdfMode] = useState<"link" | "upload" | "loading" | "preview" | "error">("link");
   const [pdfError, setPdfError] = useState("");
   const [pdfResults, setPdfResults] = useState<AssemblyInput[]>([]);
-  const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string; drawingDate?: string; drawingRevision?: string }>({});
+  const [pdfMeta, setPdfMeta] = useState<{ deckType?: string; projectName?: string; location?: string; gc?: string; drawingDate?: string; drawingRevision?: string }>({});
   // V2 extraction items — populated when V2 route succeeds, replaces pdfResults for display
   const [v2Items, setV2Items] = useState<V2Item[]>([]);
   // Full Convex-ready items stored for post-creation persistence (includes classificationAudit etc.)
@@ -510,6 +520,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             if (v2Data.deckType) meta.deckType = v2Data.deckType;
             if (v2Data.projectName) meta.projectName = v2Data.projectName;
             if (v2Data.location) meta.location = v2Data.location;
+            if (v2Data.gc) meta.gc = v2Data.gc;
             if (v2Data.drawingDate) meta.drawingDate = v2Data.drawingDate;
             if (v2Data.drawingRevision) meta.drawingRevision = v2Data.drawingRevision;
             setPdfMeta(meta);
@@ -889,10 +900,21 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               {/* ── V2 preview (new path) ── */}
               {pdfMode === "preview" && v2Items.length > 0 && (
                 <div className="mb-5 rounded-xl p-4" style={{ border: "1px solid var(--bs-teal-border)", background: "var(--bs-teal-dim)" }}>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--bs-teal)" }}>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--bs-teal)" }}>
                     V2 Extraction — {v2Items.length} assembl{v2Items.length === 1 ? "y" : "ies"} detected
                     {pdfMeta.deckType && <span className="normal-case"> · {DECKS.find(d => d.id === pdfMeta.deckType)?.label || pdfMeta.deckType} deck</span>}
                   </div>
+                  {/* Extracted job info banner */}
+                  {(pdfMeta.projectName || pdfMeta.location || pdfMeta.gc || pdfMeta.drawingDate) && (
+                    <div className="mb-3 px-3 py-2 rounded-lg" style={{ background: "rgba(45,212,191,0.06)", border: "1px solid rgba(45,212,191,0.2)", fontSize: 11, color: "var(--bs-text-secondary)" }}>
+                      <span className="font-semibold" style={{ color: "var(--bs-teal)" }}>Extracted from drawing: </span>
+                      {pdfMeta.projectName && <span>{pdfMeta.projectName}</span>}
+                      {pdfMeta.location && <span>{pdfMeta.projectName ? " · " : ""}{pdfMeta.location}</span>}
+                      {pdfMeta.gc && <span> · GC: {pdfMeta.gc}</span>}
+                      {pdfMeta.drawingDate && <span> · {pdfMeta.drawingDate}</span>}
+                      {pdfMeta.drawingRevision && <span> ({pdfMeta.drawingRevision})</span>}
+                    </div>
+                  )}
                   <div className="mb-3">
                     {v2Items.map((item, i) => (
                       <V2InlineCard key={i} item={item} />
@@ -903,6 +925,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                       onClick={() => {
                         if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
                         if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+                        if (pdfMeta.gc && !gc) setGc(pdfMeta.gc);
                         if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
                         if (pdfMeta.drawingRevision && !drawingRevision) setDrawingRevision(pdfMeta.drawingRevision);
                         setPdfMode("link");
@@ -943,6 +966,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         setExpandedLayers(new Set(pdfResults.map((_, i) => i).filter(i => (pdfResults[i].layers?.length ?? 0) > 0)));
                         if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
                         if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+                        if (pdfMeta.gc && !gc) setGc(pdfMeta.gc);
                         if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
                         if (pdfMeta.drawingRevision && !drawingRevision) setDrawingRevision(pdfMeta.drawingRevision);
                         const totalArea = pdfResults.reduce((sum, a) => sum + (a.area || 0), 0);

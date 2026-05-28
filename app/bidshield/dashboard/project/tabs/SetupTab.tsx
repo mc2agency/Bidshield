@@ -1184,12 +1184,19 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                   border: "1px solid var(--bs-border)",
                 }}
               >
-                <input
-                  value={a.label}
-                  onChange={(e) => updateAssembly(idx, "label", e.target.value)}
-                  className="font-bold"
-                  style={{ ...inputStyle, padding: "4px 6px", fontWeight: 700, fontSize: 13, width: "100%", border: "none", background: "transparent" }}
-                />
+                <div className="flex flex-col gap-0.5">
+                  <input
+                    value={a.label}
+                    onChange={(e) => updateAssembly(idx, "label", e.target.value)}
+                    className="font-bold"
+                    style={{ ...inputStyle, padding: "4px 6px", fontWeight: 700, fontSize: 13, width: "100%", border: "none", background: "transparent" }}
+                  />
+                  {a.name && (
+                    <span style={{ fontSize: 9, color: "var(--bs-text-dim)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={a.name}>
+                      {a.name}
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-col">
                 {a.systemType && !SYSTEMS.find(s => s.id === a.systemType) ? (
                   <div className="flex items-center gap-1">

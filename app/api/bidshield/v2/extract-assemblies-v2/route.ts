@@ -55,10 +55,11 @@ Return ONLY valid JSON with no markdown:
     }
   ],
   "deckType": "concrete",
-  "projectName": null,
-  "location": null,
-  "drawingDate": null,
-  "drawingRevision": null
+  "projectName": "Arverne Building D",
+  "location": "Arverne, NY",
+  "gc": "Skanska USA Building",
+  "drawingDate": "2025-11-15",
+  "drawingRevision": "95% CD"
 }
 
 allDrawingLabels: REQUIRED. List EVERY drawing label found anywhere on this page —
@@ -86,8 +87,15 @@ LAYER RULES:
 - Always preserve numeric dimensions in insulation layer names when visible (e.g., '8" RIGID INS. (XPS, R-5/IN.)' not 'Rigid Insulation R-5 Per Inch')
 - drawingAssemblyId: the exact label from the drawing (ROOF 01, ROOF 02, RT-01, etc.) — normalized with space
 - displayName: descriptive name from schedule if shown (IRMA PLAZA DECK, TERRACE ROOF, etc.)
-- area: SF if shown in schedule, otherwise omit
+- area: SF area of this specific assembly if labeled in the schedule (e.g. 4,500 SF for ROOF 01) — omit or null if not shown per-assembly
 - insulationThicknessInches: numeric thickness of the insulation layer in inches from the layer schedule or detail (e.g., 8 from '8" XPS', 3.5 from '3.5" polyiso'). Null if not labeled.
+
+PROJECT INFO (from title block or drawing header — null if not visible):
+- projectName: building or project name from title block (e.g. "Arverne Building D", "Meridian Office Tower")
+- location: city and state from title block (e.g. "Brooklyn, NY", "Charlotte, NC")
+- gc: general contractor name if shown on drawing (e.g. "Skanska USA Building", "Turner Construction")
+- drawingDate: date on drawing set in ISO format YYYY-MM-DD (e.g. "2025-11-15"). Also accept "Nov 15, 2025" → "2025-11-15".
+- drawingRevision: revision label (e.g. "95% CD", "Rev 3", "For Construction")
 
 EXTRACTION COVERAGE — CRITICAL:
 - Scan the ENTIRE drawing page from top-left to bottom-right.
@@ -116,6 +124,7 @@ const V2ResultSchema = z.object({
   deckType: z.string().nullable().optional(),
   projectName: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
+  gc: z.string().nullable().optional(),
   drawingDate: z.string().nullable().optional(),
   drawingRevision: z.string().nullable().optional(),
 });
@@ -309,7 +318,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { deckType, projectName, location, drawingDate, drawingRevision, legendTitles } =
+    const { deckType, projectName, location, gc, drawingDate, drawingRevision, legendTitles } =
       validated.data;
     let { assemblies } = validated.data;
 
@@ -523,6 +532,7 @@ export async function POST(req: NextRequest) {
       deckType: deckType ?? null,
       projectName: projectName ?? null,
       location: location ?? null,
+      gc: gc ?? null,
       drawingDate: drawingDate ?? null,
       drawingRevision: drawingRevision ?? null,
     });
