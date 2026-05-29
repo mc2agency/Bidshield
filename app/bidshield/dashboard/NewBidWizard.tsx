@@ -63,11 +63,28 @@ function archetypeToSurfaceType(archetypeId: string): string {
   return "";
 }
 
+// Paver/ballast IRMA archetypes describe the overburden, not the membrane —
+// archetypeIdToLegacy maps them to cold-fluid IRMA by default. When the
+// extracted layers show Modified Bitumen / SBS plies (and no cold-fluid /
+// liquid-applied membrane), the true waterproofing is SBS, so use sbs_irma.
+function resolveIrmaLegacySystem(archetypeId: string, layers: string[]): string {
+  const base = archetypeIdToLegacy(archetypeId) || "custom";
+  if (archetypeId !== "pedestal_paver_irma" && archetypeId !== "ballast_paver_irma") {
+    return base;
+  }
+  const text = layers.join(" ").toLowerCase();
+  const hasModBit = /modified bitumen|mod\.?\s*bit|\bsbs\b|\bapp\b/.test(text);
+  const hasColdFluid = /cold[\s-]?fluid|liquid[\s-]?applied|fluid[\s-]?applied/.test(text);
+  if (hasModBit && !hasColdFluid) return "sbs_irma";
+  return base;
+}
+
 // ─── V2InlineCard ─────────────────────────────────────────────────────────────
 // Renders a V2 extraction item from snapshots. No legacy imports.
 // Shown in the wizard preview step instead of RoofAssemblyCard.
 
-function V2InlineCard({ item }: { item: V2Item }) {
+function V2InlineCard({ item, areaOverride }: { item: V2Item; areaOverride?: number | null }) {
+  const area = areaOverride != null ? areaOverride : item.area;
   const archLabel = item.archetypeId
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -94,9 +111,9 @@ function V2InlineCard({ item }: { item: V2Item }) {
         <div style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary, #e2e8f0)", textTransform: "uppercase" }}>
           {heading}
         </div>
-        {item.area != null && (
+        {area != null && (
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-teal, #2dd4bf)", whiteSpace: "nowrap", flexShrink: 0 }}>
-            {item.area.toLocaleString()} SF
+            {area.toLocaleString()} SF
           </span>
         )}
       </div>
@@ -504,7 +521,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             const v2Assemblies: AssemblyInput[] = roofOnlyMapped.map((item) => ({
               label: item.drawingAssemblyId,
               name: item.displayName ?? undefined,
-              systemType: archetypeIdToLegacy(item.archetypeId) || "custom",
+              systemType: resolveIrmaLegacySystem(item.archetypeId, item.extractedLayers),
               insulationType: (item.sectionValues["insulationType"] as string) || "",
               insulationThickness: (item.sectionValues["insulationThickness"] as string) || "",
               rValue: (() => {
@@ -528,7 +545,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
             if (totalArea > 0) setSqft(String(Math.round(totalArea)));
             // Use legacy system IDs for the systems selector (not raw archetype IDs)
             const v2AsLegacySystems = Array.from(new Set(
-              roofOnlyMapped.map((i) => archetypeIdToLegacy(i.archetypeId)).filter((s): s is string => !!s)
+              roofOnlyMapped.map((i) => resolveIrmaLegacySystem(i.archetypeId, i.extractedLayers)).filter((s): s is string => !!s && s !== "custom")
             ));
             if (v2AsLegacySystems.length > 0) setSystems(v2AsLegacySystems);
             if (v2Data.deckType) setDeck(v2Data.deckType);
@@ -1039,7 +1056,13 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                 {v2Items.length > 0 ? (
                   // V2 extraction succeeded — render V2 cards, no legacy conversion
                   v2Items.map((item, i) => (
-                    <V2InlineCard key={i} item={item} />
+                    <V2InlineCard
+                      key={i}
+                      item={item}
+                      areaOverride={
+                        assemblies.find((a) => a.label === item.drawingAssemblyId)?.area ?? item.area
+                      }
+                    />
                   ))
                 ) : (
                   // Legacy path — render editable RoofAssemblyCard forms
