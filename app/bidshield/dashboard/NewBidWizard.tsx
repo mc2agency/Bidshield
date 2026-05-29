@@ -77,6 +77,9 @@ function V2InlineCard({ item }: { item: V2Item }) {
     : item.drawingAssemblyId;
   const insulationType = item.sectionValues["insulationType"] as string | undefined;
   const insulationThickness = item.sectionValues["insulationThickness"] as string | undefined;
+  const rValue = insulationType && insulationThickness
+    ? computeInsulationRValue(insulationType, parseFloat(insulationThickness))
+    : undefined;
   return (
     <div
       style={{
@@ -112,6 +115,15 @@ function V2InlineCard({ item }: { item: V2Item }) {
         {insulationType && (
           <span style={{ fontSize: 11, color: "var(--bs-text-dim, #718096)" }}>
             {insulationType.toUpperCase()}{insulationThickness ? ` ${insulationThickness}"` : ""}
+          </span>
+        )}
+        {rValue != null && rValue > 0 && (
+          <span style={{
+            padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 600,
+            background: "rgba(96,165,250,0.12)", color: "#60a5fa",
+            border: "1px solid rgba(96,165,250,0.3)",
+          }}>
+            R-{Math.round(rValue * 10) / 10}
           </span>
         )}
       </div>
@@ -275,6 +287,8 @@ interface AssemblyInput {
   uValue?: number;
   attachmentMethod?: string;
   layers?: string[];
+  baseStack?: string[];
+  modifierStack?: string[];
   sectionValues?: SectionValues;
   confidence?: number;
   extractedFromPdf?: boolean;
@@ -500,6 +514,8 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               })(),
               surfaceType: archetypeToSurfaceType(item.archetypeId),
               layers: item.extractedLayers.length > 0 ? item.extractedLayers : undefined,
+              baseStack: item.baseStack.length > 0 ? item.baseStack : undefined,
+              modifierStack: item.modifierStack.length > 0 ? item.modifierStack : undefined,
               sectionValues: Object.keys(item.sectionValues).length > 0 ? item.sectionValues as SectionValues : undefined,
               area: typeof item.area === "number" ? item.area : undefined,
               archetypeId: item.archetypeId,

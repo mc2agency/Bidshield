@@ -13,6 +13,7 @@ import {
   THICKNESS_PRESETS,
   computeInsulationRValue,
 } from "@/lib/bidshield/insulation-data";
+import { resolveFullLayerStack } from "@/lib/bidshield/assembly-layer-resolver";
 
 const SYSTEMS = [
   { id: "tpo", label: "TPO" },
@@ -54,6 +55,10 @@ interface AssemblyRow {
   surfaceType: string;
   area: number | null;
   uValue: number | null;
+  layers?: string[];
+  baseStack?: string[];
+  modifierStack?: string[];
+  archetypeId?: string;
 }
 
 function systemLabel(id: string) {
@@ -261,6 +266,29 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
   const [asmSaved, setAsmSaved] = useState(false);
   const [asmError, setAsmError] = useState("");
   const [areaWarning, setAreaWarning] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+  const toggleRowExpanded = (idx: number) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  // Resolve the base/overburden layer split for a row: prefer persisted stacks,
+  // else re-derive from raw layers + archetypeId via the shared resolver.
+  const getRowStacks = (a: AssemblyRow): { baseStack: string[]; modifierStack: string[] } => {
+    if ((a.baseStack && a.baseStack.length > 0) || (a.modifierStack && a.modifierStack.length > 0)) {
+      return { baseStack: a.baseStack ?? [], modifierStack: a.modifierStack ?? [] };
+    }
+    if (a.layers && a.layers.length > 0) {
+      const resolved = resolveFullLayerStack(a.layers, a.archetypeId ?? "", a.surfaceType || null);
+      return { baseStack: resolved.baseStack, modifierStack: resolved.modifierStack };
+    }
+    return { baseStack: [], modifierStack: [] };
+  };
 
   useEffect(() => {
     if (!project) return;
@@ -276,6 +304,10 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           surfaceType: a.surfaceType || "",
           area: a.area ?? null,
           uValue: a.uValue ?? null,
+          layers: Array.isArray(a.layers) ? a.layers : undefined,
+          baseStack: Array.isArray(a.baseStack) ? a.baseStack : undefined,
+          modifierStack: Array.isArray(a.modifierStack) ? a.modifierStack : undefined,
+          archetypeId: a.archetypeId || undefined,
         }))
       );
     } else if (project.assemblies && project.assemblies.length > 0) {
@@ -379,6 +411,10 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           if (a.surfaceType) obj.surfaceType = a.surfaceType;
           if (a.area != null) obj.area = a.area;
           if (a.uValue != null) obj.uValue = a.uValue;
+          if (a.layers && a.layers.length > 0) obj.layers = a.layers;
+          if (a.baseStack && a.baseStack.length > 0) obj.baseStack = a.baseStack;
+          if (a.modifierStack && a.modifierStack.length > 0) obj.modifierStack = a.modifierStack;
+          if (a.archetypeId) obj.archetypeId = a.archetypeId;
           return obj;
         });
       await updateProject({
@@ -1174,9 +1210,13 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             </div>
 
             {/* Assembly rows */}
-            {assemblies.map((a, idx) => (
+            {assemblies.map((a, idx) => {
+              const { baseStack, modifierStack } = getRowStacks(a);
+              const hasLayers = baseStack.length > 0 || modifierStack.length > 0;
+              const isExpanded = expandedRows.has(idx);
+              return (
+              <div key={idx}>
               <div
-                key={idx}
                 className="grid gap-2 px-3 py-2.5 rounded-lg mb-1.5 items-center"
                 style={{
                   gridTemplateColumns: "70px 1fr 1fr 90px 70px 90px 1fr 40px",
@@ -1185,12 +1225,26 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                 }}
               >
                 <div className="flex flex-col gap-0.5">
-                  <input
-                    value={a.label}
-                    onChange={(e) => updateAssembly(idx, "label", e.target.value)}
-                    className="font-bold"
-                    style={{ ...inputStyle, padding: "4px 6px", fontWeight: 700, fontSize: 13, width: "100%", border: "none", background: "transparent" }}
-                  />
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => hasLayers && toggleRowExpanded(idx)}
+                      title={hasLayers ? (isExpanded ? "Hide layers" : "Show layers") : "No layer detail"}
+                      style={{
+                        background: "none", border: "none", padding: 0, lineHeight: 1, flexShrink: 0,
+                        cursor: hasLayers ? "pointer" : "default",
+                        color: hasLayers ? "var(--bs-text-muted)" : "transparent",
+                        transform: isExpanded ? "rotate(90deg)" : "none",
+                        transition: "transform 0.12s",
+                        fontSize: 11,
+                      }}
+                    >▶</button>
+                    <input
+                      value={a.label}
+                      onChange={(e) => updateAssembly(idx, "label", e.target.value)}
+                      className="font-bold"
+                      style={{ ...inputStyle, padding: "4px 6px", fontWeight: 700, fontSize: 13, width: "100%", border: "none", background: "transparent" }}
+                    />
+                  </div>
                   {a.name && (
                     <span style={{ fontSize: 9, color: "var(--bs-text-dim)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={a.name}>
                       {a.name}
@@ -1318,7 +1372,43 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                   &times;
                 </button>
               </div>
-            ))}
+
+              {isExpanded && hasLayers && (
+                <div
+                  className="px-4 py-3 mb-1.5 rounded-lg"
+                  style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", marginLeft: 24 }}
+                >
+                  {baseStack.length > 0 && (
+                    <>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 3 }}>
+                        Base assembly
+                      </div>
+                      {baseStack.map((layer, i) => (
+                        <div key={i} style={{ fontSize: 11, color: "var(--bs-text-secondary, #a0aec0)", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ color: "var(--bs-teal, #2dd4bf)", fontSize: 9 }}>▸</span>
+                          {layer}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {modifierStack.length > 0 && (
+                    <>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: "var(--bs-teal, #2dd4bf)", textTransform: "uppercase", letterSpacing: "0.07em", marginTop: 8, marginBottom: 3 }}>
+                        Overburden
+                      </div>
+                      {modifierStack.map((layer, i) => (
+                        <div key={i} style={{ fontSize: 11, color: "var(--bs-text-secondary, #a0aec0)", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ color: "#f59e0b", fontSize: 9 }}>▸</span>
+                          {layer}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+              </div>
+              );
+            })}
 
             {assemblies.some((a) => a.area) && (() => {
               const totalAssemblyArea = assemblies.reduce((sum, a) => sum + (a.area || 0), 0);

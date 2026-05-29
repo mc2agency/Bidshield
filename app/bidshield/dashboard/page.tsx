@@ -808,6 +808,9 @@ function DashboardContent() {
       ...(a.area != null ? { area: a.area } : {}),
       ...(a.uValue != null ? { uValue: a.uValue } : {}),
       ...(a.layers && a.layers.length > 0 ? { layers: a.layers } : {}),
+      ...(a.baseStack && a.baseStack.length > 0 ? { baseStack: a.baseStack } : {}),
+      ...(a.modifierStack && a.modifierStack.length > 0 ? { modifierStack: a.modifierStack } : {}),
+      ...(a.archetypeId ? { archetypeId: a.archetypeId } : {}),
     }));
     let projectId: string;
     try {
