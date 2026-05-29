@@ -950,8 +950,65 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                   )}
                   <div className="mb-3">
                     {v2Items.map((item, i) => (
-                      <V2InlineCard key={i} item={item} />
+                      <V2InlineCard
+                        key={i}
+                        item={item}
+                        areaOverride={
+                          assemblies.find((a) => a.label === item.drawingAssemblyId)?.area ?? item.area
+                        }
+                      />
                     ))}
+                  </div>
+                  {assemblies.some((a) => a.area) && (
+                    <div className="text-right mb-3 text-xs font-semibold" style={{ color: "var(--bs-teal)" }}>
+                      Total: {assemblies.reduce((sum, a) => sum + (a.area || 0), 0).toLocaleString()} SF
+                    </div>
+                  )}
+                  {/* Takeoff schedule upload — populate per-assembly areas before review */}
+                  <div className="mb-3">
+                    {takeoffMode === "link" && (
+                      <button
+                        onClick={() => setTakeoffMode("upload")}
+                        className="text-xs"
+                        style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                      >
+                        <span style={{ textDecoration: "underline", textUnderlineOffset: 2 }}>
+                          {assemblies.some((a) => a.area) ? "Re-upload takeoff schedule for areas" : "Upload takeoff schedule for areas"}
+                        </span>
+                      </button>
+                    )}
+                    {takeoffMode === "upload" && (
+                      <div
+                        className="rounded-xl p-4 text-center"
+                        style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)" }}
+                        onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                        onDrop={e => { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f) handleTakeoffFile(f); }}
+                      >
+                        <p className="text-xs mb-2" style={{ color: "var(--bs-text-muted)" }}>Drop a takeoff schedule PDF to add area (SF) to each assembly</p>
+                        <label className="inline-block text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+                          Choose file
+                          <input type="file" accept=".pdf,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleTakeoffFile(f); }} />
+                        </label>
+                        <button onClick={() => setTakeoffMode("link")} className="block mx-auto mt-2 text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Cancel</button>
+                      </div>
+                    )}
+                    {takeoffMode === "loading" && (
+                      <div className="rounded-xl p-4 text-center" style={{ border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
+                        <div className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin w-4 h-4" style={{ color: "var(--bs-teal)" }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                          <span className="text-xs" style={{ color: "var(--bs-text-muted)" }}>Extracting areas from takeoff schedule...</span>
+                        </div>
+                      </div>
+                    )}
+                    {takeoffMode === "done" && (
+                      <span className="text-xs font-medium" style={{ color: "var(--bs-teal)" }}>Areas merged!</span>
+                    )}
+                    {takeoffMode === "error" && (
+                      <div className="rounded-xl p-3 text-center" style={{ border: "1px solid var(--bs-red-border)", background: "var(--bs-red-dim)" }}>
+                        <p className="text-xs font-medium mb-1" style={{ color: "var(--bs-red)" }}>{takeoffError}</p>
+                        <button onClick={() => setTakeoffMode("upload")} className="text-xs font-medium" style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Try Again</button>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <button
