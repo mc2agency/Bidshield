@@ -678,6 +678,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
       if (data.deckType) meta.deckType = data.deckType;
       if (data.projectName) meta.projectName = data.projectName;
       if (data.location) meta.location = data.location;
+      if (data.gc) meta.gc = data.gc;
       if (data.drawingDate) meta.drawingDate = data.drawingDate;
       if (data.drawingRevision) meta.drawingRevision = data.drawingRevision;
       setPdfMeta(meta);
@@ -692,6 +693,9 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
 
   const handleTakeoffFile = async (file: File) => {
     if (file.type !== "application/pdf") { setTakeoffError("Please select a PDF file."); setTakeoffMode("error"); return; }
+    // In the V2 flow the assembly list is already complete from the drawings,
+    // so only merge areas into existing rows — never add new ones (avoids dupes).
+    const mergeOnly = v2Items.length > 0;
     setTakeoffMode("loading");
     setTakeoffError("");
     try {
@@ -753,8 +757,11 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               uValue: uValue ?? updated[match].uValue,
               name: name || updated[match].name,
             };
-          } else if (area) {
-            // Add as new assembly if it has area data
+          } else if (area && !mergeOnly) {
+            // Add as new assembly if it has area data.
+            // Skipped in mergeOnly mode (V2 flow): the assembly list is already
+            // complete from the drawings, so unmatched takeoff rows would
+            // otherwise create duplicates.
             updated.push({
               label: ext.label || `RT-${String(updated.length + 1).padStart(2, "0")}`,
               name,

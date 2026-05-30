@@ -10,6 +10,10 @@ import { classifyLayersV2 } from "@/lib/bidshield/archetype-scoring";
 import { archetypeIdToLegacy } from "@/lib/bidshield/archetype-compat";
 import { resolveFullLayerStack } from "@/lib/bidshield/assembly-layer-resolver";
 
+// AI PDF extraction is slow — give it the full Fluid Compute window so it
+// doesn't time out and silently fall back to the legacy route.
+export const maxDuration = 300;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));

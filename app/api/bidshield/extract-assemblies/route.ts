@@ -10,6 +10,9 @@ import {
   formatArchetypeResolution,
 } from "@/lib/bidshield/archetype-compat";
 
+// AI PDF extraction is slow — give it the full Fluid Compute window.
+export const maxDuration = 300;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const MAX_BASE64_CHARS = Math.ceil(20 * 1024 * 1024 * (4 / 3));
@@ -163,6 +166,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this structur
   "deckType": "steel" | "concrete" | "wood" | "lightweight" | "gypsum" | "tectum" | null,
   "projectName": "string or null if not found",
   "location": "string or null if not found",
+  "gc": "string or null — general contractor name if shown on the drawing (e.g. 'Skanska USA Building', 'Turner Construction')",
   "drawingDate": "string or null — date shown on drawing title block (YYYY-MM-DD if parseable, otherwise as-is)",
   "drawingRevision": "string or null — revision label from title block (e.g. '95% CD', 'Rev 3', '100% DD')"
 }
@@ -292,6 +296,8 @@ projectName: If a title block shows a building/project name, extract it. Set to 
 
 location: If a title block shows an address or location, extract it. Set to null if not found.
 
+gc: If a title block, cover sheet, or stamp shows a general contractor / construction manager name, extract it. Set to null if not found.
+
 drawingDate: If a title block, stamp, or revision block shows a drawing date or issue date, extract it. Format as YYYY-MM-DD if the date is parseable, otherwise return as-is (e.g. "03/15/2026"). Set to null if not found.
 
 drawingRevision: If a title block or revision block shows a revision label or phase designation, extract it (e.g. "95% CD", "100% DD", "Rev 3", "Issued for Construction"). Set to null if not found.
@@ -369,6 +375,7 @@ IMPORTANT:
       deckType: z.string().nullable().optional(),
       projectName: z.string().nullable().optional(),
       location: z.string().nullable().optional(),
+      gc: z.string().nullable().optional(),
       drawingDate: z.string().nullable().optional(),
       drawingRevision: z.string().nullable().optional(),
     });
