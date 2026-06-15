@@ -12,9 +12,10 @@ import { getRoofSystem, getRoofSystemByAssembly } from "@/lib/bidshield/roof-sys
 import { detectScopePricingConflicts } from "@/lib/bidshield/scopePricingConflicts";
 
 import type { TabId } from "./tab-types";
+import { PHASES, getPhaseIndex } from "./tab-types";
 import {
   ChecklistTab, ValidatorTab,
-  SetupTab, EstimateTab, DocumentsTab, BidQualsTab,
+  SetupTab, EstimateTab, DocumentsTab, BidQualsTab, SubmissionTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -28,20 +29,19 @@ function NavIcon({ paths }: { paths: React.ReactNode }) {
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
   setup:     <><path d="M8 2v2M8 12v2M2 8h2M12 8h2M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/></>,
-  checklist: <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
-  estimate:  <><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
-  bidquals:  <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M6 8.5l1 1 2-2M6 11h3M9 3v3h3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></>,
-  documents: <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M9 3v3h3" stroke="currentColor" strokeWidth="1.1"/></>,
+  documents: <><path d="M4 3h5l3 3v7a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M6 8h4M6 11h3M9 3v3h3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></>,
+  checklist: <><path d="M4 3h8a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M5.5 8l2 2 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></>,
   validate:  <><path d="M8 2l1.8 3.6L14 6.5l-3 2.9.7 4.1L8 11.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinejoin="round"/></>,
+  submit:    <><path d="M8 2v9M5 8l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 13h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></>,
 };
 
+// 5 preflight phases — drives the overview card grid and breadcrumb
 const BROWSE_ITEMS: { id: TabId; label: string; shortLabel?: string }[] = [
-  { id: "setup",     label: "Setup" },
-  { id: "checklist", label: "Checklist" },
-  { id: "estimate",  label: "Pricing" },
-  { id: "bidquals",  label: "Bid Quals" },
-  { id: "documents", label: "Documents" },
+  { id: "setup",     label: "Intake" },
+  { id: "documents", label: "Read" },
+  { id: "checklist", label: "Verify" },
   { id: "validate",  label: "Validate" },
+  { id: "submit",    label: "Submit" },
 ];
 
 function scoreDot(s: number): string {
@@ -61,15 +61,14 @@ function ProjectDetail() {
   const { userId } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
   const [expandedCard, setExpandedCard] = useState<TabId | null>(null);
-  // Map legacy tab IDs to the new 5-view structure
+  // Map legacy/sub-tab IDs to the 5-phase preflight structure
   const navigateTab = useCallback((tab: TabId) => {
-    // If a child component navigates to a legacy sub-tab, route to the parent view
-    const estimateSubTabs: TabId[] = ["takeoff", "materials", "pricing", "labor", "generalconditions"];
     const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "quotes"];
-    const validateSubTabs: TabId[] = ["validator", "decisions"];
-    if (estimateSubTabs.includes(tab)) { setActiveTab("estimate"); return; }
+    const validateSubTabs: TabId[] = ["validator", "decisions", "bidquals"];
+    const legacyEstimateTabs: TabId[] = ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"];
     if (documentSubTabs.includes(tab)) { setActiveTab("documents"); return; }
     if (validateSubTabs.includes(tab)) { setActiveTab("validate"); return; }
+    if (legacyEstimateTabs.includes(tab)) { setActiveTab("validate"); return; }
     if (tab === "overview") { setActiveTab("setup"); return; }
     setActiveTab(tab);
   }, []);
@@ -99,7 +98,7 @@ function ProjectDetail() {
 
   // ── Keyboard shortcuts (L-17) ──────────────────────────────────────────────
   const TAB_ORDER: TabId[] = useMemo(() => [
-    "setup", "checklist", "estimate", "bidquals", "documents", "validate",
+    "setup", "documents", "checklist", "validate", "submit",
   ], []);
 
   useEffect(() => {
@@ -397,13 +396,20 @@ function ProjectDetail() {
   const bqTotal = isDemo ? 3 : bqRaw.length;
   const bqConfirmed = Math.max(0, bqTotal - bqUnconfirmed);
 
+  // Phase scores for the 5 preflight phases
   const phaseScore: Record<string, number | null> = {
-    setup:     scores.checklist > 0 || scores.takeoff > 0 || scores.materials > 0 ? 100 : null,
-    checklist: scores.checklist,
-    estimate:  Math.round((scores.takeoff + scores.materials + (scores.pricing ?? 0) + (scores as any).labor) / 4),
-    bidquals:  bqTotal > 0 ? Math.round((bqConfirmed / bqTotal) * 100) : null,
+    // INTAKE: has the project been configured?
+    setup:     (projectData as any)?.grossRoofArea > 0 || (projectData as any)?.assemblies?.length > 0 ? 100 : null,
+    // READ: scope, addenda, RFIs addressed
     documents: Math.round((scores.scope + scores.addenda + scores.rfis) / 3),
-    validate:  readinessScore,
+    // VERIFY: checklist completion
+    checklist: scores.checklist,
+    // VALIDATE: readiness score blended with bid quals
+    validate:  bqTotal > 0
+      ? Math.round((readinessScore + Math.round((bqConfirmed / bqTotal) * 100)) / 2)
+      : readinessScore,
+    // SUBMIT: not scored — presence of a submission record = done
+    submit:    null,
   };
 
   return (
@@ -559,6 +565,41 @@ function ProjectDetail() {
           <main className="flex-1 overflow-auto min-w-0" style={{ background: "var(--bs-bg-page)" }}>
             {activeTab ? (
               <>
+                {/* Phase progress stepper — sticky top nav showing 5-phase preflight position */}
+                <div className="sticky top-0 z-30 flex overflow-x-auto scrollbar-none" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
+                  {PHASES.map((phase, idx) => {
+                    const isActive = getPhaseIndex(activeTab) === idx;
+                    const pScore = phaseScore[phase.id];
+                    return (
+                      <button
+                        key={phase.id}
+                        onClick={() => navigateTab(phase.defaultTab as TabId)}
+                        className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider whitespace-nowrap transition-colors cursor-pointer flex-shrink-0 focus-visible:outline-none"
+                        style={{
+                          color: isActive ? "var(--bs-teal)" : "var(--bs-text-dim)",
+                          background: "none",
+                          outline: "none",
+                          padding: "10px 16px 8px",
+                          borderTop: "none", borderLeft: "none", borderRight: "none",
+                          borderBottom: isActive ? "2px solid var(--bs-teal)" : "2px solid transparent",
+                        }}
+                      >
+                        <span style={{ fontSize: 9, fontWeight: 700, marginRight: 2, opacity: 0.5 }}>{idx + 1}</span>
+                        {phase.shortLabel}
+                        {pScore !== null && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 9999,
+                            background: pScore >= 90 ? "var(--bs-teal-dim)" : pScore > 0 ? "var(--bs-amber-dim)" : "rgba(255,255,255,0.05)",
+                            color: pScore >= 90 ? "var(--bs-teal)" : pScore > 0 ? "var(--bs-amber)" : "var(--bs-text-dim)",
+                          }}>
+                            {pScore >= 90 ? "✓" : `${pScore}%`}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 {/* Mobile-only back button */}
                 <div className="px-6 pt-3 lg:hidden">
                   <button
@@ -573,12 +614,13 @@ function ProjectDetail() {
                   </button>
                 </div>
                 <div className="p-6">
-                  {activeTab === "setup"     && <TabErrorBoundary tabLabel="Setup"><SetupTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "checklist" && <TabErrorBoundary tabLabel="Checklist"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "documents" && <TabErrorBoundary tabLabel="Documents"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "setup"     && <TabErrorBoundary tabLabel="Intake"><SetupTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "documents" && <TabErrorBoundary tabLabel="Read"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "checklist" && <TabErrorBoundary tabLabel="Verify"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
                   {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "submit"    && <TabErrorBoundary tabLabel="Submit"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
+                  {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
                 </div>
               </>
             ) : (
@@ -665,7 +707,7 @@ function ProjectDetail() {
                   const top = actionItems[0];
                   const isNew = actionItems.length > 0 && readinessScore === 0;
                   if (!top && readinessScore === 0) {
-                    // Brand-new project, no action items computed yet
+                    // Brand-new project — start at INTAKE
                     return (
                       <button
                         onClick={() => openTab("setup")}
@@ -673,8 +715,8 @@ function ProjectDetail() {
                         style={{ background: "var(--bs-teal-dim)", borderRadius: 12, padding: "16px 20px", border: "1px solid var(--bs-teal-border)", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
                       >
                         <div>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--bs-teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Start here</div>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>Set up your project — add assemblies, system type & roof area</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--bs-teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Step 1 · Intake</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>Start here — upload your specs or drawings to kick off the preflight</div>
                         </div>
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)" style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
                       </button>
@@ -683,13 +725,13 @@ function ProjectDetail() {
                   if (!top && readinessScore >= 80) {
                     return (
                       <button
-                        onClick={() => openTab("validate")}
+                        onClick={() => openTab("submit")}
                         className="w-full text-left cursor-pointer transition-all duration-150 hover:opacity-90 active:scale-[0.99]"
                         style={{ background: "var(--bs-teal-dim)", borderRadius: 12, padding: "16px 20px", border: "1px solid var(--bs-teal-border)", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
                       >
                         <div>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--bs-teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Bid ready</div>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>Your bid is {readinessScore}% ready — validate and export your submission</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--bs-teal)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Step 5 · Submit</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--bs-text-primary)" }}>Preflight complete — {readinessScore}% ready. Log your bid submission.</div>
                         </div>
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)" style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
                       </button>
@@ -765,70 +807,63 @@ function ProjectDetail() {
                   };
 
                   const cardLines: Record<string, [string, string]> = {
+                    // INTAKE
                     setup: asmCount > 0
-                      ? [`${asmCount} assembl${asmCount !== 1 ? "ies" : "y"} configured`, sysName ?? firstAsmName ?? "Tap to review details"]
-                      : ["No assemblies defined yet", "Add your system type & deck info"],
-                    checklist: clTotal > 0
-                      ? [
-                          `${clDone} of ${clTotal} items complete`,
-                          clDone === clTotal ? "All done!" : nextClPhase ? `Next: ${PHASE_NAMES[nextClPhase] ?? nextClPhase}` : `${clTotal - clDone} remaining`,
-                        ]
-                      : ["135 items across 18 phases", "Tap to start the bid review"],
-                    estimate: [
-                      takenOff > 0 ? `${takenOff.toLocaleString()} SF taken off` : "No takeoff yet",
-                      mats.length > 0
-                        ? (matUnpriced > 0 ? `${matUnpriced} material${matUnpriced !== 1 ? "s" : ""} need pricing` : `${mats.length} materials priced`)
-                        : "No materials added yet",
-                    ],
-                    bidquals: bqTotal > 0
-                      ? [
-                          `${bqConfirmed} of ${bqTotal} items confirmed`,
-                          bqUnconfirmed > 0 ? `${bqUnconfirmed} need confirmation` : "All items confirmed",
-                        ]
-                      : ["No GC bid form uploaded yet", "Upload to extract Exhibit A items"],
+                      ? [`${asmCount} assembl${asmCount !== 1 ? "ies" : "y"} recognized`, sysName ?? firstAsmName ?? "Review & confirm assemblies"]
+                      : ["Upload specs or drawings", "AI will extract roof assemblies for you"],
+                    // READ
                     documents: [
                       scTotal > 0
                         ? (scUnaddressed > 0 ? `${scUnaddressed} of ${scTotal} scope items to address` : `All ${scTotal} scope items addressed`)
-                        : "Scope not started",
+                        : "Scope not started — upload specs",
                       [
                         rPending > 0 ? `${rPending} RFI${rPending !== 1 ? "s" : ""} pending` : null,
-                        adNotRepriced > 0 ? `${adNotRepriced} addend${adNotRepriced !== 1 ? "a" : "um"} to reprice` : null,
-                      ].filter(Boolean).join(" · ") || "No open RFIs or addenda",
+                        adNotRepriced > 0 ? `${adNotRepriced} addend${adNotRepriced !== 1 ? "a" : "um"} unresolved` : null,
+                      ].filter(Boolean).join(" · ") || (ad.length > 0 ? `${ad.length} addend${ad.length !== 1 ? "a" : "um"} reviewed` : "No open RFIs or addenda"),
                     ],
+                    // VERIFY
+                    checklist: clTotal > 0
+                      ? [
+                          `${clDone} of ${clTotal} items checked`,
+                          clDone === clTotal ? "All clear!" : nextClPhase ? `Next: ${PHASE_NAMES[nextClPhase] ?? nextClPhase}` : `${clTotal - clDone} remaining`,
+                        ]
+                      : ["95+ preflight checklist items", "Tap to start the bid review"],
+                    // VALIDATE
                     validate: [
                       `${readinessScore}% bid readiness`,
-                      blockerCount > 0
-                        ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""} to fix first`
-                        : warnCount > 0 ? `${warnCount} item${warnCount !== 1 ? "s" : ""} to review`
-                        : passCount > 0 ? "Ready to export" : "Complete other sections first",
+                      bqTotal > 0
+                        ? (bqUnconfirmed > 0 ? `${bqUnconfirmed} bid qual item${bqUnconfirmed !== 1 ? "s" : ""} need confirmation` : `${bqTotal} bid quals confirmed`)
+                        : blockerCount > 0 ? `${blockerCount} blocker${blockerCount !== 1 ? "s" : ""} to resolve` : warnCount > 0 ? `${warnCount} item${warnCount !== 1 ? "s" : ""} to review` : "Upload GC bid form to extract quals",
+                    ],
+                    // SUBMIT
+                    submit: [
+                      "Log your submission",
+                      "Record method, confirmation # & timestamp",
                     ],
                   };
 
                   const cardStat: Record<string, string> = {
                     setup:     asmCount > 0 ? `${asmCount}` : "—",
-                    checklist: clTotal > 0 ? `${clDone}/${clTotal}` : "135",
-                    estimate:  takenOff > 0 ? takenOff.toLocaleString() : "0",
-                    bidquals:  bqTotal > 0 ? `${bqConfirmed}/${bqTotal}` : "—",
                     documents: scTotal > 0 ? `${Math.round(((scTotal - scUnaddressed) / scTotal) * 100)}%` : "—",
+                    checklist: clTotal > 0 ? `${clDone}/${clTotal}` : "95+",
                     validate:  `${readinessScore}%`,
+                    submit:    "→",
                   };
 
                   const cardStatLabel: Record<string, string> = {
                     setup:     asmCount !== 1 ? "assemblies" : "assembly",
-                    checklist: clTotal > 0 ? "items done" : "items total",
-                    estimate:  "SF",
-                    bidquals:  bqTotal > 0 ? "confirmed" : "items",
                     documents: scTotal > 0 ? "scope addressed" : "scope items",
+                    checklist: clTotal > 0 ? "items verified" : "items total",
                     validate:  "bid readiness",
+                    submit:    "submit",
                   };
 
                   const cardCta: Record<string, string> = {
-                    setup: "Set up project →",
-                    checklist: "Work checklist →",
-                    estimate: "Build your price →",
-                    bidquals: "Prepare bid quals →",
-                    documents: "Review documents →",
-                    validate: "Validate & export →",
+                    setup:     "Set up & upload →",
+                    documents: "Review docs →",
+                    checklist: "Run preflight →",
+                    validate:  "Validate bid →",
+                    submit:    "Log submission →",
                   };
 
                   return (
@@ -926,11 +961,10 @@ function ProjectDetail() {
                         <div>
                           <TabErrorBoundary tabLabel={BROWSE_ITEMS.find(b => b.id === expandedCard)?.label ?? expandedCard}>
                             {expandedCard === "setup"     && <SetupTab {...tabProps} />}
-                            {expandedCard === "checklist" && <ChecklistTab {...tabProps} />}
-                            {expandedCard === "estimate"  && <EstimateTab {...tabProps} />}
-                            {expandedCard === "bidquals"  && <BidQualsTab {...tabProps} />}
                             {expandedCard === "documents" && <DocumentsTab {...tabProps} />}
+                            {expandedCard === "checklist" && <ChecklistTab {...tabProps} />}
                             {expandedCard === "validate"  && <ValidatorTab {...tabProps} />}
+                            {expandedCard === "submit"    && <SubmissionTab {...tabProps} />}
                           </TabErrorBoundary>
                         </div>
                       </div>

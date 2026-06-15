@@ -1,20 +1,21 @@
-// ── BidShield Workflow Architecture ──
-// 6 views that mirror the real bid-prep process:
-//   1. Setup → project info, spec upload, assemblies
-//   2. Checklist → 18-phase QA pre-flight check
-//   3. Pricing → takeoff + materials + labor + gen. conds + pricing summary
-//   4. Bid Quals → GC Exhibit A, bid form items, exclusions, clarifications
-//   5. Documents → scope review, addenda, RFIs, vendor quotes
-//   6. Validate → readiness scoring & export
+// ── BidShield Preflight Architecture ──
+// 5 phases that mirror the bid submission preflight process:
+//   1. INTAKE  → create project, upload specs/drawings, assembly recognition
+//   2. READ    → scope extraction, addenda tracking, RFIs, vendor quotes
+//   3. VERIFY  → checklist — confirm scope items, 95+ preflight checks
+//   4. VALIDATE → bid quals + readiness scoring, blocker resolution
+//   5. SUBMIT  → log the submission, confirmation tracking
 
 export type TabId =
   | "setup"
   | "checklist"
-  | "estimate"
   | "documents"
   | "validate"
+  | "bidquals"
+  | "submit"
   // Legacy tab IDs kept for internal sub-tab routing / onNavigateTab compatibility
   | "overview"
+  | "estimate"
   | "takeoff"
   | "pricing"
   | "materials"
@@ -25,7 +26,6 @@ export type TabId =
   | "labor"
   | "generalconditions"
   | "validator"
-  | "bidquals"
   | "decisions";
 
 export type TabBadge = {
@@ -58,8 +58,8 @@ export interface TabProps {
   };
 }
 
-// ── Phase definitions (simplified) ──
-export type PhaseId = "setup" | "checklist" | "estimate" | "documents" | "validate";
+// ── Phase definitions ──
+export type PhaseId = "setup" | "documents" | "checklist" | "validate" | "submit";
 
 export interface Phase {
   id: PhaseId;
@@ -72,11 +72,11 @@ export interface Phase {
 export const CROSS_PHASE_TABS: TabId[] = [];
 
 export const PHASES: Phase[] = [
-  { id: "setup",     label: "Project Setup", shortLabel: "Setup",      tabs: ["setup"], defaultTab: "setup" },
-  { id: "checklist", label: "Checklist",     shortLabel: "Checklist",  tabs: ["checklist"], defaultTab: "checklist" },
-  { id: "estimate",  label: "Pricing",       shortLabel: "Pricing",    tabs: ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"], defaultTab: "estimate" },
-  { id: "documents", label: "Documents",     shortLabel: "Docs",       tabs: ["documents", "scope", "addenda", "rfis", "quotes"], defaultTab: "documents" },
-  { id: "validate",  label: "Validate",      shortLabel: "Validate",   tabs: ["validate", "validator", "decisions"], defaultTab: "validate" },
+  { id: "setup",     label: "Intake",   shortLabel: "INTAKE",   tabs: ["setup"], defaultTab: "setup" },
+  { id: "documents", label: "Read",     shortLabel: "READ",     tabs: ["documents", "scope", "addenda", "rfis", "quotes"], defaultTab: "documents" },
+  { id: "checklist", label: "Verify",   shortLabel: "VERIFY",   tabs: ["checklist"], defaultTab: "checklist" },
+  { id: "validate",  label: "Validate", shortLabel: "VALIDATE", tabs: ["validate", "validator", "decisions", "bidquals"], defaultTab: "validate" },
+  { id: "submit",    label: "Submit",   shortLabel: "SUBMIT",   tabs: ["submit"], defaultTab: "submit" },
 ];
 
 export function getPhaseForTab(tabId: TabId): Phase | undefined {
