@@ -474,6 +474,21 @@ export function classifyLayersV2(
     };
   }
 
+  // 0. Surface-hint-only overrides for placeholder assemblies (no layers extracted).
+  //    When the AI returned a legendTitle (e.g. "GREEN ROOF ON IRMA ROOFING") but
+  //    ran out of tokens before extracting layers, the route infers a surfaceHint
+  //    from the display name. Classify the archetype from that hint alone at medium
+  //    confidence (0.65) so the card shows the right system type, still flagged for
+  //    manual layer verification.
+  if (rawLayers.length === 0 && surfaceHint) {
+    if (surfaceHint === "green_roof") return makeOverrideResult("green_roof_irma", 0.65);
+    if (surfaceHint === "pavers_pedestals") return makeOverrideResult("pedestal_paver_irma", 0.65);
+    if (surfaceHint === "pavers_ballast") return makeOverrideResult("ballast_paver_irma", 0.65);
+    if (surfaceHint === "concrete_pavement") return makeOverrideResult("concrete_pavement_roof", 0.65);
+    if (surfaceHint === "traffic_coating") return makeOverrideResult("concrete_pavement_roof", 0.65);
+    if (surfaceHint === "panel") return makeOverrideResult("built_up_panel_assembly", 0.65);
+  }
+
   // 1. Panel assembly
   if (isPanelAssembly) return makeOverrideResult("built_up_panel_assembly", 0.92);
 

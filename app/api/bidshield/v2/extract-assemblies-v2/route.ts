@@ -200,17 +200,34 @@ function normaliseAiLabelList(labels: string[]): Set<string> {
   return out;
 }
 
+/**
+ * Infer a surface type from a legend display name so classifyLayersV2 can
+ * correctly classify placeholder assemblies (no layers extracted) whose
+ * display names clearly describe the overburden system.
+ */
+function inferSurfaceFromTitle(title: string): string | null {
+  const t = title.toUpperCase();
+  if (/PEDESTAL|PAVER.{0,10}PEDESTAL|WOOD.{0,10}TILE|DECK.{0,10}TILE/.test(t)) return "pavers_pedestals";
+  if (/GREEN\s*ROOF|VEGETATION|SEDUM|GROWING\s*MEDIA/.test(t)) return "green_roof";
+  if (/PAVER.{0,10}BALLAST|BALLAST.{0,10}PAVER|ROOFBLOK/.test(t)) return "pavers_ballast";
+  if (/CONCRETE\s*PAV|CIP\s*CONCRETE|PLAZA\s*PAVE|CONC\.\s*PAV/.test(t)) return "concrete_pavement";
+  if (/TRAFFIC|VEHICULAR/.test(t)) return "traffic_coating";
+  if (/PANEL|CLADDING|CURTAIN\s*WALL/.test(t)) return "panel";
+  return null;
+}
+
 function buildPlaceholderAssembly(
   label: string,
   legendTitles?: Record<string, string>
 ): V2Assembly {
   const displayName = legendTitles?.[label] ?? undefined;
+  const surface = displayName ? inferSurfaceFromTitle(displayName) : null;
   return {
     drawingAssemblyId: label,
     displayName,
     sourceSheet: undefined,
     layers: [],
-    surface: null,
+    surface,
     area: null,
   };
 }
