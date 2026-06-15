@@ -314,54 +314,49 @@ export default function HomepageContent() {
 
               {/* Left — copy */}
               <div>
-                {/* Live badge */}
+                {/* Badge */}
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs text-slate-400 mb-8">
                   <span className="relative flex h-1.5 w-1.5 shrink-0">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                   </span>
-                  Built for Commercial Roofing Estimators
+                  Early Access · Limited Spots · Commercial Roofing Estimators
                 </div>
 
                 {/* Headline — Barlow Condensed */}
                 <h1 className="bs-display text-[clamp(3.5rem,8vw,5.5rem)] font-bold uppercase leading-[0.9] mb-6">
-                  Every Bid.
-                  <br />
-                  Every Phase.
+                  Submit Every Bid
                   <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
-                    Every Time.
+                    With Confidence.
                   </span>
                 </h1>
 
                 <p className="text-lg text-slate-300 mb-8 max-w-lg leading-relaxed">
-                  BidShield is the pre-submission bid review platform for commercial roofing estimators. 18 phases, AI scope gap detection, and systematic QA from first plan review to final submission.
+                  BidShield is the last thing you do before a bid goes out. AI-powered scope verification, addenda tracking, and a systematic preflight checklist — so nothing gets missed on deadline day.
                 </p>
 
-                {/* CTAs */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-12">
-                  <Link
-                    href="/sign-up"
-                    className="inline-flex items-center justify-center px-7 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-200"
-                  >
-                    Start 14-Day Free Trial — No Card
-                    <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </Link>
-                  <Link
-                    href="/bidshield/demo"
-                    className="inline-flex items-center justify-center px-7 py-3.5 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white rounded-xl font-semibold text-sm transition-all duration-200"
-                  >
-                    See Live Demo
-                  </Link>
+                {/* Waitlist email capture */}
+                <div className="mb-4">
+                  <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
                 </div>
+                <p className="text-xs text-slate-500 mb-10">No credit card. No commitments. We&apos;ll reach out with access details.</p>
+
+                <Link
+                  href="/bidshield/demo"
+                  className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                  </svg>
+                  See the live demo first
+                </Link>
 
                 {/* Stats row */}
-                <div className="grid grid-cols-3 gap-0 pt-8 border-t border-white/5">
+                <div className="grid grid-cols-3 gap-0 pt-8 mt-10 border-t border-white/5">
                   {[
-                    { n: '18', label: 'Bid Phases' },
-                    { n: '135', label: 'Checklist Items' },
+                    { n: '5', label: 'Preflight Phases' },
+                    { n: '95+', label: 'Checklist Items' },
                     { n: '12yr', label: 'Field Experience' },
                   ].map(({ n, label }, i) => (
                     <div key={label} className={`${i > 0 ? 'pl-6 border-l border-white/5 ml-6' : ''}`}>
@@ -503,23 +498,15 @@ export default function HomepageContent() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <Reveal>
               <div className="rounded-2xl border border-slate-700 p-10 sm:p-14" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #0a1628 100%)' }}>
-                <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest bs-mono mb-4">Pricing</div>
+                <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest bs-mono mb-4">Early Access</div>
                 <h2 className="bs-display text-5xl font-bold text-white uppercase mb-4">
-                  Simple <span className="text-emerald-400">Pricing.</span>
-                  <br />Zero Complexity.
+                  Join the <span className="text-emerald-400">Waitlist.</span>
+                  <br />Shape the Product.
                 </h2>
                 <p className="text-lg text-slate-400 mb-8 max-w-xl">
-                  Free plan for one project. Pro at $249/mo — or $208/mo on annual. 14-day free trial, no card required.
+                  We&apos;re inviting a small group of commercial roofing estimators to help shape BidShield before public launch. Early access is free.
                 </p>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Link
-                    href="/bidshield/pricing"
-                    className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all duration-200"
-                  >
-                    See Pricing & Start Free Trial →
-                  </Link>
-                  <div className="text-sm text-slate-300">Free plan available · No card required · Cancel anytime</div>
-                </div>
+                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
               </div>
             </Reveal>
           </div>
@@ -537,12 +524,12 @@ export default function HomepageContent() {
                 </svg>
               </div>
               <h2 className="bs-display text-4xl font-bold text-white uppercase mb-3">
-                Get the Free Bid-Day Checklist
+                Get Early Access
               </h2>
               <p className="text-slate-400 mb-8 max-w-xl mx-auto">
-                The 18-phase workflow professional estimators run before every submission — scope verification, material reconciliation, and addenda checks.
+                Be first in line when BidShield opens. We&apos;re working with a small group of estimators before public launch — if that&apos;s you, request your spot.
               </p>
-              <EmailCapture />
+              <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
             </Reveal>
           </div>
         </section>
@@ -571,15 +558,12 @@ export default function HomepageContent() {
                 </span>
               </h2>
               <p className="text-lg text-slate-300 mb-10 max-w-xl mx-auto">
-                Material Reconciliation, Labor Verification, Scope tracking, GC Bid Forms — every part of your pre-submission QA process in one place, from first plan review to final submission.
+                Scope gaps, missed addenda, unresolved RFIs — BidShield catches them before your number goes out the door. Join the waitlist and be first to use it.
               </p>
-              <Link
-                href="/sign-up"
-                className="inline-flex items-center justify-center px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-200"
-              >
-                Start 14-Day Free Trial — No Card Required
-              </Link>
-              <p className="text-xs mt-4" style={{ color: "#4A5A70" }}>No credit card · Cancel anytime · 14-day money-back guarantee</p>
+              <div className="max-w-md mx-auto">
+                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
+              </div>
+              <p className="text-xs mt-4" style={{ color: "#4A5A70" }}>No credit card · No commitments · Early access is free</p>
             </Reveal>
           </div>
         </section>
