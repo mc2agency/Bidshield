@@ -805,6 +805,16 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
   }, [step, systems]);
   // Note: assemblies is intentionally not in the dep array to avoid re-seeding
 
+  // Auto-fill project info fields from PDF extraction metadata as soon as it arrives
+  useEffect(() => {
+    if (pdfMeta.projectName && !name) setName(pdfMeta.projectName);
+    if (pdfMeta.location && !location) setLocation(pdfMeta.location);
+    if (pdfMeta.gc && !gc) setGc(pdfMeta.gc);
+    if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
+    if (pdfMeta.drawingRevision && !drawingRevision) setDrawingRevision(pdfMeta.drawingRevision);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pdfMeta]);
+
   // Fire AI description when entering step 4
   useEffect(() => {
     if (step !== 4) return;
@@ -1026,12 +1036,12 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                         if (pdfMeta.drawingDate && !drawingDate) setDrawingDate(pdfMeta.drawingDate);
                         if (pdfMeta.drawingRevision && !drawingRevision) setDrawingRevision(pdfMeta.drawingRevision);
                         setPdfMode("link");
-                        setStep(2);
+                        setStep(3);
                       }}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                       style={{ background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: "pointer" }}
                     >
-                      Use These &amp; Review Assemblies
+                      Use These &amp; Continue
                     </button>
                     <button onClick={() => { setV2Items([]); setPdfMode("upload"); setPdfResults([]); }} className="text-xs" style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer" }}>Try Again</button>
                   </div>
