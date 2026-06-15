@@ -154,15 +154,21 @@ type V2Assembly = z.infer<typeof V2AssemblySchema>;
 // all six appear in the extraction result even if the AI only fully extracts
 // 4 of them.
 
-// Matches: ROOF 01, ROOF01, ROOF-01, ROOF TYPE 01, ROOF TYPE01, RT-01, RT 01
+// Matches common drawing assembly label formats:
+//   ROOF 01, ROOF01, ROOF-01, ROOF TYPE 01, ROOF TYPE01
+//   RT-01, RT 01
+//   R-01, R 01, R01
+//   RF-01, RF 01, RF01
+//   TYPE 01, TYPE01, TYPE-01
+//   ASSEMBLY 01, ASSEMBLY01, ASSEMBLY-01
 const DRAWING_LABEL_PATTERN =
-  /\b((?:ROOF\s*TYPE|ROOF|RT)[-\s]?0*([1-9][0-9]?))\b/gi;
+  /\b((?:ROOF\s*TYPE|ASSEMBLY|ROOF|RF|RT|R|TYPE)[-\s]?0*([1-9][0-9]?))\b/gi;
 
 /** Normalise a raw matched label string to canonical form: "ROOF 01", "RT 01" */
 function normaliseLabelMatch(raw: string): string {
-  // Strip "TYPE" from "ROOF TYPE 01" → "ROOF 01"
+  // Strip "TYPE" suffix from "ROOF TYPE 01" → "ROOF 01"
   let s = raw.replace(/ROOF\s*TYPE/i, "ROOF");
-  // Insert space between letters and digits: "ROOF01" → "ROOF 01"
+  // Insert space between letters and digits: "ROOF01" → "ROOF 01", "RT01" → "RT 01"
   s = s.replace(/([A-Za-z])(\d)/, "$1 $2");
   // Collapse multiple separators: "ROOF  01", "ROOF-01" → "ROOF 01"
   s = s.replace(/[-\s]+/, " ");
@@ -256,8 +262,8 @@ export async function POST(req: NextRequest) {
     try {
       message = await client.messages.create(
         {
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 4096,
+          model: "claude-sonnet-4-6",
+          max_tokens: 8192,
           system: V2_SYSTEM_PROMPT,
           messages: [
             {
