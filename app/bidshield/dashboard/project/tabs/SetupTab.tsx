@@ -1248,12 +1248,14 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             </button>
           </div>
         ) : (
+          <div style={{ overflowX: "auto", marginLeft: -4, marginRight: -4, paddingLeft: 4, paddingRight: 4 }}>
           <>
             {/* Table header */}
             <div
               className="grid gap-2 px-3 pb-2 mb-1"
               style={{
                 gridTemplateColumns: "70px 1fr 1fr 90px 70px 90px 1fr 40px",
+                minWidth: 620,
                 fontSize: 11,
                 fontWeight: 600,
                 color: "var(--bs-text-dim)",
@@ -1282,6 +1284,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                 className="grid gap-2 px-3 py-2.5 rounded-lg mb-1.5 items-center"
                 style={{
                   gridTemplateColumns: "70px 1fr 1fr 90px 70px 90px 1fr 40px",
+                  minWidth: 620,
                   background: "var(--bs-bg-card)",
                   border: "1px solid var(--bs-border)",
                 }}
@@ -1518,6 +1521,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               + Add Assembly
             </button>
           </>
+          </div>
         )}
       </div>
 

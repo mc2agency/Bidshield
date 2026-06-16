@@ -727,11 +727,20 @@ function ProjectDetail() {
 
                 {/* Assembly summary strip */}
                 {(() => {
-                  const assemblies = (projectData as any)?.assemblies as any[] | undefined;
-                  if (!assemblies?.length && !sys) return null;
-                  const items = assemblies?.length
-                    ? assemblies
-                    : [{ archetype: sys?.name ?? "Roof System", area: grossArea ?? null, systemType: sysId ?? null }];
+                  // Prefer roofAssemblies (detailed objects) over assemblies (legacy string array)
+                  const roofAssemblies = (projectData as any)?.roofAssemblies as any[] | undefined;
+                  const assembliesLegacy = (projectData as any)?.assemblies as any[] | undefined;
+                  const hasDetailed = roofAssemblies && roofAssemblies.length > 0;
+                  if (!hasDetailed && !assembliesLegacy?.length && !sys) return null;
+                  const rawItems = hasDetailed ? roofAssemblies
+                    : assembliesLegacy?.length ? assembliesLegacy
+                    : [{ label: sys?.name ?? "Roof System", systemType: sysId ?? null, area: grossArea ?? null }];
+                  const items = rawItems!.map((a: any) => {
+                    if (typeof a === "string") return { displayName: a, area: null };
+                    const syslabel = a.systemType ? getRoofSystem(a.systemType)?.name : null;
+                    const displayName = a.name || a.archetype || syslabel || a.label || "Assembly";
+                    return { ...a, displayName };
+                  });
                   return (
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 8 }}>
@@ -744,8 +753,9 @@ function ProjectDetail() {
                               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                             </div>
                             <div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>{a.archetype ?? a.label ?? "Assembly"}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>{a.displayName}</div>
                               {a.area && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{Number(a.area).toLocaleString()} SF</div>}
+                              {!a.area && a.label && a.label !== a.displayName && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{a.label}</div>}
                             </div>
                           </div>
                         ))}
