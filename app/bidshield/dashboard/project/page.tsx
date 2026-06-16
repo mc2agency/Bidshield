@@ -746,25 +746,29 @@ function ProjectDetail() {
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 8 }}>
                         {items.length === 1 ? "Roof System" : `${items.length} Roof Assemblies`}
                       </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {items.map((a: any, i: number) => (
-                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--bs-bg-card)", border: "1px solid var(--bs-teal-border)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                            <div style={{ width: 28, height: 28, borderRadius: 7, background: "var(--bs-teal-dim)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {items.slice(0, 3).map((a: any, i: number) => (
+                          <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", borderRadius: 20, padding: "5px 10px 5px 7px" }}>
+                            <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--bs-bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <svg width="10" height="10" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                             </div>
-                            <div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>{a.displayName}</div>
-                              {a.area && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{Number(a.area).toLocaleString()} SF</div>}
-                              {!a.area && a.label && a.label !== a.displayName && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{a.label}</div>}
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)", whiteSpace: "nowrap", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis" }}>{a.displayName}</div>
+                              {(a.area || (a.label && a.label !== a.displayName)) && (
+                                <div style={{ fontSize: 9, color: "var(--bs-text-dim)", marginTop: 1 }}>{a.area ? `${Number(a.area).toLocaleString()} SF` : a.label}</div>
+                              )}
                             </div>
                           </div>
                         ))}
+                        {items.length > 3 && (
+                          <div style={{ display: "inline-flex", alignItems: "center", background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", borderRadius: 20, padding: "5px 10px", fontSize: 11, fontWeight: 600, color: "var(--bs-text-dim)" }}>
+                            +{items.length - 3} more
+                          </div>
+                        )}
                         {dpsf !== null && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                            <div>
-                              <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginBottom: 1 }}>Bid Rate</div>
-                              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>${dpsf}/SF</div>
-                            </div>
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 20, padding: "5px 10px" }}>
+                            <span style={{ fontSize: 9, color: "var(--bs-text-dim)" }}>Rate</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>${dpsf}/SF</span>
                           </div>
                         )}
                       </div>
@@ -937,7 +941,8 @@ function ProjectDetail() {
                   };
 
                   return (
-                    <div style={{ display: "flex", alignItems: "stretch", background: "var(--bs-bg-card)", borderRadius: 14, border: "1px solid var(--bs-border)", overflow: "hidden", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 6px 16px rgba(0,0,0,0.05)" }}>
+                    <div style={{ borderRadius: 14, border: "1px solid var(--bs-border)", overflow: "hidden", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 6px 16px rgba(0,0,0,0.05)", overflowX: "auto" }}>
+                    <div style={{ display: "flex", alignItems: "stretch", background: "var(--bs-bg-card)", minWidth: 560 }}>
                       {BROWSE_ITEMS.map(({ id, label }, mapIdx) => {
                         const score = (phaseScore[id] ?? 0) as number;
                         const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
@@ -975,6 +980,7 @@ function ProjectDetail() {
                           </React.Fragment>
                         );
                       })}
+                    </div>
                     </div>
                   );
                 })()}
