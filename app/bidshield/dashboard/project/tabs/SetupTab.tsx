@@ -915,9 +915,70 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     paddingRight: 28,
   };
 
+  // Derive completion status for 4-step tracker
+  const stepsDone = [
+    !!(info.name && info.bidDate),
+    !!(bidSource.bidType || bidSource.bidContactName),
+    assemblies.length > 0,
+    specMode === "done" || (projectSpecs?.length ?? 0) > 0,
+  ];
+  const stepsCompleted = stepsDone.filter(Boolean).length;
+
   return (
     <div className="flex flex-col gap-5">
       {proGateModal}
+
+      {/* ── Intake progress tracker ── */}
+      <div style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 14, padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary)" }}>
+            Intake Progress
+          </span>
+          <span style={{ fontSize: 11, color: stepsCompleted === 4 ? "var(--bs-teal)" : "var(--bs-text-dim)", fontWeight: 600 }}>
+            {stepsCompleted} of 4 complete
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+          {[
+            { label: "Project Info", detail: "Name, GC, dates" },
+            { label: "Bid Source", detail: "Type & contact" },
+            { label: "Assemblies", detail: "Roof systems" },
+            { label: "Spec Upload", detail: "AI extraction" },
+          ].map((step, i) => {
+            const done = stepsDone[i];
+            const color = done ? "var(--bs-teal)" : "var(--bs-text-dim)";
+            return (
+              <div key={i} style={{ flex: 1, display: "flex", alignItems: "center", minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: "50%", background: done ? "var(--bs-teal)" : "var(--bs-bg-elevated)", border: `2px solid ${color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {done
+                        ? <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke="#13151a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        : <span style={{ fontSize: 8, fontWeight: 800, color: "var(--bs-text-dim)", lineHeight: 1 }}>{i + 1}</span>
+                      }
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: done ? "var(--bs-teal)" : "var(--bs-text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{step.label}</div>
+                      <div style={{ fontSize: 9, color: "var(--bs-text-dim)", whiteSpace: "nowrap" }}>{step.detail}</div>
+                    </div>
+                  </div>
+                </div>
+                {i < 3 && (
+                  <div style={{ width: 24, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="var(--bs-border)" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {stepsCompleted < 4 && (
+          <div style={{ marginTop: 12, height: 4, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${(stepsCompleted / 4) * 100}%`, background: "var(--bs-teal)", borderRadius: 9999, transition: "width 0.6s" }} />
+          </div>
+        )}
+      </div>
+
       {/* ── Project Info ── */}
       <div style={cardStyle}>
         <div className="flex items-center justify-between mb-5">
@@ -1187,12 +1248,14 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
             </button>
           </div>
         ) : (
+          <div style={{ overflowX: "auto", marginLeft: -4, marginRight: -4, paddingLeft: 4, paddingRight: 4 }}>
           <>
             {/* Table header */}
             <div
               className="grid gap-2 px-3 pb-2 mb-1"
               style={{
                 gridTemplateColumns: "70px 1fr 1fr 90px 70px 90px 1fr 40px",
+                minWidth: 620,
                 fontSize: 11,
                 fontWeight: 600,
                 color: "var(--bs-text-dim)",
@@ -1221,6 +1284,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                 className="grid gap-2 px-3 py-2.5 rounded-lg mb-1.5 items-center"
                 style={{
                   gridTemplateColumns: "70px 1fr 1fr 90px 70px 90px 1fr 40px",
+                  minWidth: 620,
                   background: "var(--bs-bg-card)",
                   border: "1px solid var(--bs-border)",
                 }}
@@ -1457,6 +1521,7 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
               + Add Assembly
             </button>
           </>
+          </div>
         )}
       </div>
 

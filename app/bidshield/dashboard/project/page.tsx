@@ -668,64 +668,79 @@ function ProjectDetail() {
               /* Overview — full-width card grid */
               <div className="p-6">
 
-                {/* Hero row: deadline + readiness */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                  {/* Bid deadline */}
-                  <div style={{
-                    background: msUntilBid !== null && msUntilBid <= 0 ? "var(--bs-red-dim)" : msUntilBid !== null && hoursUntilBid! <= 4 ? "var(--bs-red-dim)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "var(--bs-bg-card)",
-                    borderRadius: 12, padding: "16px 20px",
-                    border: `1px solid ${msUntilBid !== null && msUntilBid <= 0 ? "var(--bs-red-border)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber-border)" : "var(--bs-border)"}`,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04)",
-                  }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Bid Deadline</div>
-                    <div style={{ fontSize: 26, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1, letterSpacing: "-0.02em", color: msUntilBid !== null && (msUntilBid <= 0 || hoursUntilBid! <= 4) ? "var(--bs-red)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-text-primary)" }}>
-                      {msUntilBid === null ? "—" : msUntilBid <= 0 ? "Past due" : formatCountdown(msUntilBid)}
+                {/* Stats bar — all key project metrics in one horizontal strip */}
+                <div style={{ display: "flex", alignItems: "stretch", background: "var(--bs-bg-card)", borderRadius: 14, border: "1px solid var(--bs-border)", overflow: "hidden", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 6px 16px rgba(0,0,0,0.05)" }}>
+                  {/* Deadline cell */}
+                  <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)", background: msUntilBid !== null && msUntilBid <= 0 ? "var(--bs-red-dim)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "transparent" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Bid Deadline</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: msUntilBid !== null && (msUntilBid <= 0 || hoursUntilBid! <= 4) ? "var(--bs-red)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-text-primary)" }}>
+                      {msUntilBid === null ? "—" : msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d` : formatCountdown(msUntilBid)}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--bs-text-dim)", marginTop: 4 }}>
-                      {projectData?.bidDate ? (() => { const t = (projectData as any)?.bidTime as string | undefined; const d = new Date(`${projectData.bidDate}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }); return t ? `${d} at ${t}` : d; })() : "No deadline set"}
+                    <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>
+                      {projectData?.bidDate ? (() => { const t = (projectData as any)?.bidTime as string | undefined; const d = new Date(`${projectData.bidDate}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" }); return t ? `${d} · ${t}` : d; })() : "No deadline set"}
                     </div>
                   </div>
-
-                  {/* Readiness score */}
-                  <div style={{ background: "var(--bs-bg-card)", borderRadius: 12, padding: "16px 20px", border: "1px solid var(--bs-border)", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04)" }}>
-                    <div style={{ width: 72, height: 72, borderRadius: "50%", background: "var(--bs-bg-elevated)", border: `4px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 18, fontWeight: 800, color: readinessColor }}>{readinessScore}%</span>
+                  {/* Readiness cell */}
+                  <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)", display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--bs-bg-elevated)", border: `3px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-primary)" }}>Bid Readiness</div>
-                      <div style={{ fontSize: 12, color: "var(--bs-text-dim)", marginTop: 2 }}>
-                        {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""} to fix` : warnCount > 0 ? `${warnCount} warning${warnCount > 1 ? "s" : ""} to review` : passCount > 0 ? "Looking good" : "Get started below"}
-                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary)" }}>Readiness</div>
+                      <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 2 }}>{blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : warnCount > 0 ? `${warnCount} to review` : passCount > 0 ? "On track" : "Get started"}</div>
                     </div>
                   </div>
-
-                  {/* Action items summary / all clear */}
-                  {actionItems.length === 0 ? (
-                    <div style={{ background: "var(--bs-teal-dim)", borderRadius: 12, padding: "16px 20px", border: "1px solid var(--bs-teal-border)", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04)" }}>
-                      <svg width={28} height={28} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-teal)" }}>Ready to submit</div>
-                        <button onClick={() => navigateTab("validator")} style={{ fontSize: 12, color: "var(--bs-teal)", background: "none", border: "none", cursor: "pointer", padding: 0, marginTop: 2 }}>Review & Export →</button>
-                      </div>
+                  {/* Roof area cell */}
+                  {grossArea ? (
+                    <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Roof Area</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>{Number(grossArea).toLocaleString()}</div>
+                      <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>sq. ft.</div>
                     </div>
-                  ) : (
-                    <div style={{ background: blockerCount > 0 ? "var(--bs-red-dim)" : "var(--bs-amber-dim)", borderRadius: 12, padding: "16px 20px", border: `1px solid ${blockerCount > 0 ? "var(--bs-red-border)" : "var(--bs-amber-border)"}`, boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04)" }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Needs Attention</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: blockerCount > 0 ? "var(--bs-red)" : "var(--bs-amber)", lineHeight: 1 }}>{actionItems.length}</div>
-                      <div style={{ fontSize: 12, color: "var(--bs-text-dim)", marginTop: 4 }}>
-                        {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}, ` : ""}{warnCount > 0 ? `${warnCount} warning${warnCount > 1 ? "s" : ""}` : ""}
+                  ) : null}
+                  {/* Bid amount cell */}
+                  {bidAmt ? (
+                    <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Bid Amount</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>
+                        {bidAmt >= 1_000_000 ? `$${(bidAmt / 1_000_000).toFixed(1)}M` : `$${Math.round(bidAmt / 1_000)}k`}
                       </div>
+                      {dpsf && <div style={{ fontSize: 10, color: "var(--bs-teal)", marginTop: 4 }}>${dpsf}/SF</div>}
                     </div>
-                  )}
+                  ) : null}
+                  {/* Status cell */}
+                  <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, background: blockerCount > 0 ? "var(--bs-red-dim)" : actionItems.length > 0 ? "var(--bs-amber-dim)" : readinessScore > 0 ? "var(--bs-teal-dim)" : "transparent" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Status</div>
+                    {actionItems.length === 0 ? (
+                      <>
+                        <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-teal)" }}>✓</div>
+                        <div style={{ fontSize: 10, color: "var(--bs-teal)", marginTop: 4 }}>Ready to submit</div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums", color: blockerCount > 0 ? "var(--bs-red)" : "var(--bs-amber)" }}>{actionItems.length}</div>
+                        <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>{blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : `${actionItems.length} item${actionItems.length > 1 ? "s" : ""}`}</div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Assembly summary strip */}
                 {(() => {
-                  const assemblies = (projectData as any)?.assemblies as any[] | undefined;
-                  if (!assemblies?.length && !sys) return null;
-                  const items = assemblies?.length
-                    ? assemblies
-                    : [{ archetype: sys?.name ?? "Roof System", area: grossArea ?? null, systemType: sysId ?? null }];
+                  // Prefer roofAssemblies (detailed objects) over assemblies (legacy string array)
+                  const roofAssemblies = (projectData as any)?.roofAssemblies as any[] | undefined;
+                  const assembliesLegacy = (projectData as any)?.assemblies as any[] | undefined;
+                  const hasDetailed = roofAssemblies && roofAssemblies.length > 0;
+                  if (!hasDetailed && !assembliesLegacy?.length && !sys) return null;
+                  const rawItems = hasDetailed ? roofAssemblies
+                    : assembliesLegacy?.length ? assembliesLegacy
+                    : [{ label: sys?.name ?? "Roof System", systemType: sysId ?? null, area: grossArea ?? null }];
+                  const items = rawItems!.map((a: any) => {
+                    if (typeof a === "string") return { displayName: a, area: null };
+                    const syslabel = a.systemType ? getRoofSystem(a.systemType)?.name : null;
+                    const displayName = a.name || a.archetype || syslabel || a.label || "Assembly";
+                    return { ...a, displayName };
+                  });
                   return (
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 8 }}>
@@ -738,8 +753,9 @@ function ProjectDetail() {
                               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                             </div>
                             <div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>{a.archetype ?? a.label ?? "Assembly"}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>{a.displayName}</div>
                               {a.area && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{Number(a.area).toLocaleString()} SF</div>}
+                              {!a.area && a.label && a.label !== a.displayName && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{a.label}</div>}
                             </div>
                           </div>
                         ))}
@@ -921,71 +937,45 @@ function ProjectDetail() {
                   };
 
                   return (
-                    <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {BROWSE_ITEMS.map(({ id, label }) => {
+                    <div style={{ display: "flex", alignItems: "stretch", background: "var(--bs-bg-card)", borderRadius: 14, border: "1px solid var(--bs-border)", overflow: "hidden", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 6px 16px rgba(0,0,0,0.05)" }}>
+                      {BROWSE_ITEMS.map(({ id, label }, mapIdx) => {
                         const score = (phaseScore[id] ?? 0) as number;
                         const hasBlocker = actionItems.some(a => a.tab === id && a.level === "blocker");
                         const hasWarning = actionItems.some(a => a.tab === id && a.level === "warning");
                         const scoreColor = hasBlocker ? "var(--bs-red)" : hasWarning ? "var(--bs-amber)" : score >= 75 ? "var(--bs-teal)" : score > 0 ? "var(--bs-amber)" : "var(--bs-text-dim)";
-                        const badgeBg = hasBlocker ? "var(--bs-red-dim)" : hasWarning ? "var(--bs-amber-dim)" : score >= 75 ? "var(--bs-teal-dim)" : "var(--bs-bg-elevated)";
-                        const badgeBorder = hasBlocker ? "var(--bs-red-border)" : hasWarning ? "var(--bs-amber-border)" : score >= 75 ? "var(--bs-teal-border)" : "var(--bs-border)";
-                        const badgeLabel = hasBlocker ? "Fix needed" : hasWarning ? "Review" : score >= 75 ? "Good" : score > 0 ? "In progress" : "Not started";
-                        const [line1, line2] = cardLines[id] ?? ["", ""];
+                        const isDone = score >= 90 && !hasBlocker;
                         return (
-                          <button
-                            key={id}
-                            onClick={() => navigateTab(id)}
-                            className="text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer"
-                            style={{ background: "var(--bs-bg-card)", borderRadius: 14, padding: 0, border: "1px solid var(--bs-border)", display: "flex", flexDirection: "column", gap: 0, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04)" }}
-                          >
-                            {/* Status stripe */}
-                            <div style={{ height: 4, width: "100%", flexShrink: 0, background: hasBlocker ? "var(--bs-red)" : hasWarning ? "var(--bs-amber)" : score >= 75 ? "var(--bs-teal)" : score > 0 ? "var(--bs-amber)" : "var(--bs-border)" }} />
-                            <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", flex: 1 }}>
-                            {/* Card header */}
-                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ width: 34, height: 34, borderRadius: 9, background: badgeBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: scoreColor }}>
-                                    {NAV_ICONS[id]}
-                                  </svg>
+                          <React.Fragment key={id}>
+                            {mapIdx > 0 && <div style={{ width: 1, background: "var(--bs-border)", flexShrink: 0 }} />}
+                            <button
+                              onClick={() => navigateTab(id)}
+                              className="transition-all duration-150 cursor-pointer"
+                              style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", padding: 0, background: "none", border: "none", textAlign: "left" }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.025)"}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "none"}
+                            >
+                              <div style={{ height: 4, width: "100%", flexShrink: 0, background: hasBlocker ? "var(--bs-red)" : hasWarning ? "var(--bs-amber)" : score >= 75 ? "var(--bs-teal)" : score > 0 ? "var(--bs-amber)" : "var(--bs-border)" }} />
+                              <div style={{ padding: "14px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+                                  <div style={{ width: 20, height: 20, borderRadius: "50%", background: isDone ? "var(--bs-teal)" : "var(--bs-bg-elevated)", border: `2px solid ${scoreColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                    {isDone
+                                      ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke="#13151a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                      : <span style={{ fontSize: 9, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>{mapIdx + 1}</span>
+                                    }
+                                  </div>
+                                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: score > 0 || isDone ? scoreColor : "var(--bs-text-dim)" }}>{label}</span>
                                 </div>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)" }}>{label}</div>
+                                <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: scoreColor, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em", marginBottom: 3 }}>{cardStat[id]}</div>
+                                <div style={{ fontSize: 10, color: "var(--bs-text-dim)", paddingBottom: 12 }}>{cardStatLabel[id]}</div>
+                                <div style={{ height: 4, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden", marginTop: "auto" }}>
+                                  <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999, transition: "width 0.6s" }} />
+                                </div>
                               </div>
-                              <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 6, whiteSpace: "nowrap", background: badgeBg, color: scoreColor, border: `1px solid ${badgeBorder}` }}>
-                                {badgeLabel}
-                              </span>
-                            </div>
-
-                            {/* Big stat */}
-                            <div style={{ marginBottom: 2 }}>
-                              <span style={{ fontSize: 32, fontWeight: 800, lineHeight: 1, color: scoreColor, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
-                                {cardStat[id]}
-                              </span>
-                              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--bs-text-dim)", marginLeft: 5 }}>
-                                {cardStatLabel[id]}
-                              </span>
-                            </div>
-
-                            {/* Sub-line */}
-                            <div style={{ fontSize: 11, color: "var(--bs-text-dim)", lineHeight: 1.4, minHeight: 16, marginBottom: 12 }}>{line2}</div>
-
-                            {/* Progress bar */}
-                            <div style={{ height: 6, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden", marginBottom: 10 }}>
-                              <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999, transition: "width 0.6s" }} />
-                            </div>
-
-                            {/* CTA */}
-                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)", display: "flex", alignItems: "center", gap: 3 }}>
-                              {cardCta[id] ?? "Open →"}
-                            </div>
-                            </div>
-                          </button>
+                            </button>
+                          </React.Fragment>
                         );
                       })}
                     </div>
-
-                    </>
                   );
                 })()}
 
