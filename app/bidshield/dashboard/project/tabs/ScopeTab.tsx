@@ -442,26 +442,80 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
     });
   }, [isDemo, isValidConvexId, userId, projectId, project, initScope]);
 
-  // Empty state
+  // Empty state — document-first design
   if (items.length === 0 && !isDemo) {
+    const hasSpec = (projectSpecs?.length ?? 0) > 0;
     return (
-      <div className="text-center py-16">
+      <div className="flex flex-col items-center py-12 px-6 max-w-lg mx-auto">
+        {/* Primary path: scan from document */}
         <div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-          style={{ background: "var(--bs-bg-elevated)" }}
+          className="w-full rounded-2xl p-6 mb-4 text-center"
+          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-teal-border)", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" />
-          </svg>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bs-teal-dim)" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bs-teal)" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+          </div>
+          <h3 className="text-base font-semibold mb-1" style={{ color: "var(--bs-text-primary)" }}>
+            {hasSpec ? "Scan your spec for scope" : "Upload Exhibit A or spec section"}
+          </h3>
+          <p className="text-xs mb-5" style={{ color: "var(--bs-text-muted)", lineHeight: 1.5 }}>
+            {hasSpec
+              ? "We'll extract what's included, excluded, and by-others directly from your uploaded document."
+              : "Upload your Exhibit A or spec section and we'll extract scope items automatically — what's included, excluded, and by others."}
+          </p>
+          {hasSpec ? (
+            <button
+              onClick={() => { setAlignPanelOpen(true); runAlignmentScan(); }}
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+              style={{ background: "var(--bs-teal)", color: "#13151a", border: "none" }}
+            >
+              Scan Uploaded Spec →
+            </button>
+          ) : (
+            <label
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer"
+              style={{ background: "var(--bs-teal)", color: "#13151a" }}
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+              Upload & Scan Document
+              <input
+                ref={alignFileRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleScanAlignment(f); }}
+              />
+            </label>
+          )}
         </div>
-        <h3 className="text-lg font-medium mb-2" style={{ color: "var(--bs-text-primary)" }}>No scope items yet</h3>
-        <p className="text-sm mb-6" style={{ color: "var(--bs-text-muted)" }}>Generate 40 common roofing scope items to review</p>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 w-full mb-4">
+          <div style={{ flex: 1, height: 1, background: "var(--bs-border)" }} />
+          <span style={{ fontSize: 11, color: "var(--bs-text-dim)", whiteSpace: "nowrap" }}>or start from a template</span>
+          <div style={{ flex: 1, height: 1, background: "var(--bs-border)" }} />
+        </div>
+
+        {/* Secondary path: standard template */}
         <button
           onClick={handleInitialize}
-          className="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-          style={{ background: "var(--bs-teal)", color: "#13151a" }}
+          className="w-full rounded-xl px-5 py-3 text-sm font-medium transition-colors cursor-pointer text-left flex items-center gap-3"
+          style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)" }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"}
         >
-          Generate Scope Items
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--bs-bg-elevated)" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bs-text-dim)" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--bs-text-secondary)" }}>Use standard roofing template</div>
+            <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginTop: 1 }}>40 common scope items to review and customize</div>
+          </div>
+          <svg className="ml-auto shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-text-dim)"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
         </button>
       </div>
     );

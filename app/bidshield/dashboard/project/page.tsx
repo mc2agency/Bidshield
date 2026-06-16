@@ -530,6 +530,65 @@ function ProjectDetail() {
               </button>
             )}
           </div>
+          {/* Row 3: phase stepper — always visible, serves as persistent phase nav */}
+          <div style={{ display: "flex", borderTop: "1px solid var(--bs-border)", overflow: "hidden" }}>
+            {PHASES.map((phase, idx) => {
+              const isActive = activeTab ? getPhaseIndex(activeTab) === idx : false;
+              const pScore = phaseScore[phase.id];
+              const isDone = pScore !== null && pScore >= 90;
+              const hasProgress = pScore !== null && pScore > 0;
+              const hasBlockerPhase = actionItems.some(a => a.tab === phase.id && a.level === "blocker");
+              const scoreColor = hasBlockerPhase ? "var(--bs-red)" : isDone ? "var(--bs-teal)" : hasProgress ? "var(--bs-amber)" : "rgba(255,255,255,0.15)";
+              return (
+                <React.Fragment key={phase.id}>
+                  {idx > 0 && <div style={{ width: 1, background: "var(--bs-border)", flexShrink: 0 }} />}
+                  <button
+                    onClick={() => navigateTab(phase.defaultTab as TabId)}
+                    style={{
+                      flex: 1, minWidth: 0, display: "flex", flexDirection: "column",
+                      padding: 0, background: isActive ? "rgba(255,255,255,0.03)" : "none",
+                      border: "none", cursor: "pointer", textAlign: "left",
+                    }}
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.025)"; }}
+                    onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "none"; }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px 4px" }}>
+                      <div style={{
+                        width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
+                        background: isActive ? "var(--bs-teal)" : isDone ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.07)",
+                        border: `1.5px solid ${isActive ? "var(--bs-teal)" : hasBlockerPhase ? "var(--bs-red)" : isDone ? "var(--bs-teal)" : hasProgress ? "var(--bs-amber)" : "rgba(255,255,255,0.15)"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {isDone
+                          ? <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke={isActive ? "#13151a" : "var(--bs-teal)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          : <span style={{ fontSize: 8, fontWeight: 800, color: isActive ? "#13151a" : hasBlockerPhase ? "var(--bs-red)" : hasProgress ? "var(--bs-amber)" : "rgba(255,255,255,0.3)", lineHeight: 1 }}>{idx + 1}</span>
+                        }
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", color: isActive ? "var(--bs-teal)" : hasBlockerPhase ? "var(--bs-red)" : isDone ? "var(--bs-teal)" : "var(--bs-text-secondary)", whiteSpace: "nowrap", lineHeight: 1.2 }}>
+                          {phase.shortLabel}
+                        </div>
+                        <div className="hidden sm:block" style={{ fontSize: 9, color: "var(--bs-text-dim)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                          {phase.desc}
+                        </div>
+                      </div>
+                      {pScore !== null && pScore > 0 && !isDone && (
+                        <span style={{ fontSize: 9, fontWeight: 600, color: hasBlockerPhase ? "var(--bs-red)" : "var(--bs-amber)", flexShrink: 0 }}>
+                          {pScore}%
+                        </span>
+                      )}
+                    </div>
+                    {/* Score bar at bottom of each cell */}
+                    <div style={{ height: 2, background: "rgba(255,255,255,0.06)" }}>
+                      {pScore !== null && pScore > 0 && (
+                        <div style={{ height: "100%", width: `${pScore}%`, background: scoreColor, transition: "width 0.6s" }} />
+                      )}
+                    </div>
+                  </button>
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
 
         {/* Deadline warning banner */}
@@ -595,52 +654,6 @@ function ProjectDetail() {
           <main className="flex-1 overflow-auto min-w-0" style={{ background: "var(--bs-bg-page)" }}>
             {activeTab ? (
               <>
-                {/* Phase progress stepper — sticky top nav showing 5-phase preflight position */}
-                <div className="sticky top-0 z-30 flex overflow-x-auto scrollbar-none px-4" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)", gap: 0 }}>
-                  {PHASES.map((phase, idx) => {
-                    const isActive = getPhaseIndex(activeTab) === idx;
-                    const pScore = phaseScore[phase.id];
-                    const isDone = pScore !== null && pScore >= 90;
-                    const hasProgress = pScore !== null && pScore > 0;
-                    return (
-                      <button
-                        key={phase.id}
-                        onClick={() => navigateTab(phase.defaultTab as TabId)}
-                        className="flex items-center gap-2.5 whitespace-nowrap transition-all cursor-pointer flex-shrink-0 focus-visible:outline-none"
-                        style={{
-                          background: "none",
-                          outline: "none",
-                          padding: "11px 14px 9px",
-                          borderTop: "none", borderLeft: "none", borderRight: "none",
-                          borderBottom: isActive ? "2px solid var(--bs-teal)" : "2px solid transparent",
-                        }}
-                      >
-                        <div style={{
-                          width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
-                          background: isActive ? "var(--bs-teal)" : isDone ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.07)",
-                          border: `1.5px solid ${isActive ? "var(--bs-teal)" : isDone ? "var(--bs-teal)" : hasProgress ? "var(--bs-amber)" : "rgba(255,255,255,0.12)"}`,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                        }}>
-                          {isDone
-                            ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke={isActive ? "#13151a" : "var(--bs-teal)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            : <span style={{ fontSize: 9, fontWeight: 800, color: isActive ? "#13151a" : "var(--bs-text-dim)", lineHeight: 1 }}>{idx + 1}</span>
-                          }
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", color: isActive ? "var(--bs-teal)" : isDone ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
-                            {phase.shortLabel}
-                          </span>
-                          {pScore !== null && (
-                            <span style={{ fontSize: 9, fontWeight: 600, color: isDone ? "var(--bs-teal)" : hasProgress ? "var(--bs-amber)" : "var(--bs-text-dim)", lineHeight: 1 }}>
-                              {isDone ? "Complete" : `${pScore}%`}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
                 {/* Mobile-only back button */}
                 <div className="px-6 pt-3 lg:hidden">
                   <button

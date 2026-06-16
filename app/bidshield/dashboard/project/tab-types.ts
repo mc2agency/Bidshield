@@ -65,6 +65,7 @@ export interface Phase {
   id: PhaseId;
   label: string;
   shortLabel: string;
+  desc: string;
   tabs: TabId[];
   defaultTab: TabId;
 }
@@ -72,11 +73,11 @@ export interface Phase {
 export const CROSS_PHASE_TABS: TabId[] = [];
 
 export const PHASES: Phase[] = [
-  { id: "setup",     label: "Intake",   shortLabel: "INTAKE",   tabs: ["setup"], defaultTab: "setup" },
-  { id: "documents", label: "Read",     shortLabel: "READ",     tabs: ["documents", "scope", "addenda", "rfis", "quotes"], defaultTab: "documents" },
-  { id: "checklist", label: "Verify",   shortLabel: "VERIFY",   tabs: ["checklist"], defaultTab: "checklist" },
-  { id: "validate",  label: "Validate", shortLabel: "VALIDATE", tabs: ["validate", "validator", "decisions", "bidquals"], defaultTab: "validate" },
-  { id: "submit",    label: "Submit",   shortLabel: "SUBMIT",   tabs: ["submit"], defaultTab: "submit" },
+  { id: "setup",     label: "Intake",   shortLabel: "INTAKE",   desc: "Project info & assemblies",  tabs: ["setup"], defaultTab: "setup" },
+  { id: "documents", label: "Read",     shortLabel: "READ",     desc: "Specs, scope & documents",   tabs: ["documents", "scope", "addenda", "rfis", "quotes"], defaultTab: "documents" },
+  { id: "checklist", label: "Verify",   shortLabel: "VERIFY",   desc: "Preflight checklist",        tabs: ["checklist"], defaultTab: "checklist" },
+  { id: "validate",  label: "Validate", shortLabel: "VALIDATE", desc: "Risk & readiness",           tabs: ["validate", "validator", "decisions", "bidquals"], defaultTab: "validate" },
+  { id: "submit",    label: "Submit",   shortLabel: "SUBMIT",   desc: "Log submission",             tabs: ["submit"], defaultTab: "submit" },
 ];
 
 export function getPhaseForTab(tabId: TabId): Phase | undefined {

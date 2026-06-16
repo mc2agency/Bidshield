@@ -1310,9 +1310,9 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                       style={{ ...inputStyle, padding: "4px 6px", fontWeight: 700, fontSize: 13, width: "100%", border: "none", background: "transparent" }}
                     />
                   </div>
-                  {a.name && (
-                    <span style={{ fontSize: 9, color: "var(--bs-text-dim)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={a.name}>
-                      {a.name}
+                  {(a.name || a.archetype) && (
+                    <span style={{ fontSize: 9, color: "var(--bs-text-dim)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={a.name || a.archetype}>
+                      {a.name || a.archetype}
                     </span>
                   )}
                 </div>
