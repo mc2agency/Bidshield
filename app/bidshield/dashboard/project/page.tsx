@@ -495,7 +495,7 @@ function ProjectDetail() {
                   if (gc) chips.push(<span key="gc" style={chipBase}>{gc}</span>);
                   if (location) chips.push(<span key="loc" style={chipBase}>{location}</span>);
                   if (grossArea) chips.push(<span key="area" style={chipBase}>{Number(grossArea).toLocaleString()} SF</span>);
-                  if (sys) chips.push(<span key="sys" style={chipTeal}>{sys.label}</span>);
+                  if (sys) chips.push(<span key="sys" style={chipTeal}>{sys.name}</span>);
                   else if (firstAssembly?.archetype) chips.push(<span key="arch" style={chipTeal}>{firstAssembly.archetype}{assemblies!.length > 1 ? ` +${assemblies!.length - 1}` : ""}</span>);
                   if (chips.length === 0) return <button onClick={() => setActiveTab("setup")} style={{ fontSize: 10, color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Add project details →</button>;
                   return chips;
@@ -725,7 +725,7 @@ function ProjectDetail() {
                   if (!assemblies?.length && !sys) return null;
                   const items = assemblies?.length
                     ? assemblies
-                    : [{ archetype: sys?.label ?? "Roof System", area: grossArea ?? null, systemType: sysId ?? null }];
+                    : [{ archetype: sys?.name ?? "Roof System", area: grossArea ?? null, systemType: sysId ?? null }];
                   return (
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 8 }}>
