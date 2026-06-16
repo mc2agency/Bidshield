@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useCallback, useState, useEffect } from "react";
+import React, { Suspense, useMemo, useCallback, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
@@ -107,6 +107,8 @@ function ProjectDetail() {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target as HTMLElement)?.isContentEditable) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
+      // Backspace → block browser back-navigation when not in an input
+      if (e.key === "Backspace") { e.preventDefault(); return; }
       // ? → toggle shortcut help
       if (e.key === "?") { e.preventDefault(); setShowShortcuts(s => !s); return; }
       // Escape → close shortcut help or close modals
@@ -419,13 +421,9 @@ function ProjectDetail() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* ── PROJECT COMMAND BAR ── always visible, carries full context across all tabs */}
-        <div
-          className="shrink-0 px-5"
-          style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}
-        >
-          {/* Single row — breadcrumb + countdown + blocker */}
-          <div className="flex items-center gap-1.5 py-2.5">
-            {/* Back chevron: goes to project overview when on a tab, dashboard when on overview */}
+        <div className="shrink-0" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
+          {/* Row 1: slim breadcrumb */}
+          <div className="flex items-center gap-1.5 px-5 py-1.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             {activeTab ? (
               <button
                 onClick={() => setActiveTab(null)}
@@ -434,9 +432,7 @@ function ProjectDetail() {
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
               >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
               </button>
             ) : (
               <Link
@@ -446,9 +442,7 @@ function ProjectDetail() {
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
               >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
               </Link>
             )}
             <Link
@@ -472,30 +466,67 @@ function ProjectDetail() {
                 <span style={{ fontSize: 11, color: "var(--bs-text-dim)", fontWeight: 500 }}>{activeTabLabel}</span>
               </>
             )}
-
             <div className="flex-1" />
-
-            {msUntilBid !== null && (
-              <div style={{
-                fontSize: 10, fontWeight: 700,
-                padding: "2px 7px", borderRadius: 4,
-                background: msUntilBid <= 0 ? "var(--bs-red-dim)" : hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "var(--bs-teal-dim)",
-                color: msUntilBid <= 0 ? "var(--bs-red)" : hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-teal)",
-                fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
-              }}>
-                {msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d to bid` : formatCountdown(msUntilBid!)}
-              </div>
-            )}
             {blockerCount > 0 && (
               <button
                 onClick={() => navigateTab("validator")}
                 className="cursor-pointer"
-                style={{
-                  fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 4, border: "none", whiteSpace: "nowrap",
-                  background: "rgba(239,68,68,0.12)", color: "var(--bs-red)",
-                }}
+                style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 4, border: "none", whiteSpace: "nowrap", background: "rgba(239,68,68,0.12)", color: "var(--bs-red)" }}
               >
                 {blockerCount} blocker{blockerCount !== 1 ? "s" : ""}
+              </button>
+            )}
+          </div>
+          {/* Row 2: project identity — name + metadata chips + readiness ring + bid countdown */}
+          <div className="flex items-center gap-4 px-5 py-3">
+            <div className="flex-1 min-w-0">
+              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {projectData?.name ?? "Untitled Project"}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                {(() => {
+                  const gc = (projectData as any)?.gc as string | undefined;
+                  const location = (projectData as any)?.location as string | undefined;
+                  const assemblies = (projectData as any)?.assemblies as any[] | undefined;
+                  const firstAssembly = assemblies?.[0];
+                  const chipBase: React.CSSProperties = { fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", color: "var(--bs-text-muted)", whiteSpace: "nowrap" };
+                  const chipTeal: React.CSSProperties = { ...chipBase, background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" };
+                  const chips: React.ReactNode[] = [];
+                  if (gc) chips.push(<span key="gc" style={chipBase}>{gc}</span>);
+                  if (location) chips.push(<span key="loc" style={chipBase}>{location}</span>);
+                  if (grossArea) chips.push(<span key="area" style={chipBase}>{Number(grossArea).toLocaleString()} SF</span>);
+                  if (sys) chips.push(<span key="sys" style={chipTeal}>{sys.label}</span>);
+                  else if (firstAssembly?.archetype) chips.push(<span key="arch" style={chipTeal}>{firstAssembly.archetype}{assemblies!.length > 1 ? ` +${assemblies!.length - 1}` : ""}</span>);
+                  if (chips.length === 0) return <button onClick={() => setActiveTab("setup")} style={{ fontSize: 10, color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Add project details →</button>;
+                  return chips;
+                })()}
+              </div>
+            </div>
+            {/* Readiness ring */}
+            <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--bs-bg-elevated)", border: `3px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
+              </div>
+              <span style={{ fontSize: 9, fontWeight: 600, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Ready</span>
+            </div>
+            {/* Bid countdown */}
+            {msUntilBid !== null && (
+              <div style={{ flexShrink: 0, textAlign: "right", borderLeft: "1px solid var(--bs-border)", paddingLeft: 16 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: 1, letterSpacing: "-0.02em", color: msUntilBid <= 0 ? "var(--bs-red)" : hoursUntilBid! <= 4 ? "var(--bs-red)" : hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-text-primary)" }}>
+                  {msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d` : formatCountdown(msUntilBid)}
+                </div>
+                <div style={{ fontSize: 9, color: "var(--bs-text-dim)", marginTop: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {msUntilBid <= 0 ? "Overdue" : "To bid"}
+                </div>
+              </div>
+            )}
+            {!isDemo && (
+              <button
+                onClick={() => setActiveTab("setup")}
+                style={{ flexShrink: 0, color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex" }}
+                title="Edit project"
+              >
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" /></svg>
               </button>
             )}
           </div>
@@ -626,31 +657,6 @@ function ProjectDetail() {
               /* Overview — full-width card grid */
               <div className="p-6">
 
-                {/* Project title + back to dashboard */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                  <Link
-                    href={isDemo ? "/bidshield/dashboard?demo=true" : "/bidshield/dashboard"}
-                    style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "var(--bs-text-muted)", textDecoration: "none", padding: "6px 10px", borderRadius: 7, border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)", whiteSpace: "nowrap", flexShrink: 0 }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"}
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-                    All Projects
-                  </Link>
-                  <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.4px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {projectData?.name ?? "Project"}
-                  </h1>
-                  {!isDemo && (
-                    <button
-                      onClick={() => setActiveTab("setup")}
-                      style={{ color: "var(--bs-text-dim)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", flexShrink: 0 }}
-                      title="Edit project"
-                    >
-                      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" /></svg>
-                    </button>
-                  )}
-                </div>
-
                 {/* Hero row: deadline + readiness */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                   {/* Bid deadline */}
@@ -701,6 +707,43 @@ function ProjectDetail() {
                     </div>
                   )}
                 </div>
+
+                {/* Assembly summary strip */}
+                {(() => {
+                  const assemblies = (projectData as any)?.assemblies as any[] | undefined;
+                  if (!assemblies?.length && !sys) return null;
+                  const items = assemblies?.length
+                    ? assemblies
+                    : [{ archetype: sys?.label ?? "Roof System", area: grossArea ?? null, systemType: sysId ?? null }];
+                  return (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 8 }}>
+                        {items.length === 1 ? "Roof System" : `${items.length} Roof Assemblies`}
+                      </div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {items.map((a: any, i: number) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--bs-bg-card)", border: "1px solid var(--bs-teal-border)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                            <div style={{ width: 28, height: 28, borderRadius: 7, background: "var(--bs-teal-dim)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="var(--bs-teal)"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>{a.archetype ?? a.label ?? "Assembly"}</div>
+                              {a.area && <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 1 }}>{Number(a.area).toLocaleString()} SF</div>}
+                            </div>
+                          </div>
+                        ))}
+                        {dpsf !== null && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                            <div>
+                              <div style={{ fontSize: 11, color: "var(--bs-text-dim)", marginBottom: 1 }}>Bid Rate</div>
+                              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>${dpsf}/SF</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Next-step banner */}
                 {(() => {
