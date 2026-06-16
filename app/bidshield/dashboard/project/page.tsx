@@ -107,6 +107,8 @@ function ProjectDetail() {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (e.target as HTMLElement)?.isContentEditable) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
+      // Backspace → block browser back-navigation when not in an input
+      if (e.key === "Backspace") { e.preventDefault(); return; }
       // ? → toggle shortcut help
       if (e.key === "?") { e.preventDefault(); setShowShortcuts(s => !s); return; }
       // Escape → close shortcut help or close modals
