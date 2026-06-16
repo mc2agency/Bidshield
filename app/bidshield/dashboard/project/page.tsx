@@ -681,6 +681,47 @@ function ProjectDetail() {
               /* Overview — full-width card grid */
               <div className="p-6">
 
+                {/* Go/No-Go bid decision banner */}
+                {(() => {
+                  const hasBlockers = blockerCount > 0;
+                  const tightDeadline = daysUntilBid !== null && daysUntilBid <= 2 && readinessScore < 80;
+                  const isGo = !hasBlockers && readinessScore >= 80;
+                  const isNoGo = hasBlockers || readinessScore < 50 || tightDeadline;
+                  const label = isGo ? "GO" : isNoGo ? "NO-GO" : "CONDITIONAL";
+                  const accent = isGo ? "var(--bs-teal)" : isNoGo ? "var(--bs-red)" : "var(--bs-amber)";
+                  const dimBg = isGo ? "var(--bs-teal-dim)" : isNoGo ? "var(--bs-red-dim)" : "var(--bs-amber-dim)";
+                  const borderColor = isGo ? "var(--bs-teal-border)" : isNoGo ? "var(--bs-red-border)" : "var(--bs-amber-border)";
+                  const headline = isGo
+                    ? "Ready to bid"
+                    : isNoGo
+                    ? hasBlockers ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""} must be resolved` : tightDeadline ? `${daysUntilBid}d left — not ready` : "Address open items before bidding"
+                    : "Review open items before submitting";
+                  const sub = isGo
+                    ? actionItems.length > 0 ? `${actionItems.length} optional item${actionItems.length > 1 ? "s" : ""} to review` : "All critical items complete"
+                    : `${readinessScore}% readiness · ${actionItems.length} item${actionItems.length !== 1 ? "s" : ""} pending`;
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", marginBottom: 16, borderRadius: 12, border: `1px solid ${borderColor}`, background: dimBg }}>
+                      <div style={{ width: 48, height: 48, borderRadius: 10, flexShrink: 0, background: accent, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                        <span style={{ fontSize: 7, fontWeight: 800, color: "#13151a", letterSpacing: "0.1em", lineHeight: 1 }}>BID</span>
+                        <span style={{ fontSize: label === "CONDITIONAL" ? 7 : 11, fontWeight: 900, color: "#13151a", letterSpacing: "0.05em", lineHeight: 1 }}>{label}</span>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: accent, marginBottom: 2 }}>{headline}</div>
+                        <div style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>{sub}</div>
+                      </div>
+                      {!isGo && blockerCount > 0 && (
+                        <button
+                          onClick={() => navigateTab("checklist")}
+                          className="shrink-0 cursor-pointer"
+                          style={{ fontSize: 11, fontWeight: 600, padding: "6px 12px", borderRadius: 7, border: `1px solid ${borderColor}`, background: "none", color: accent, whiteSpace: "nowrap" }}
+                        >
+                          Fix blockers →
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* Stats bar — all key project metrics in one horizontal strip */}
                 <div style={{ display: "flex", alignItems: "stretch", background: "var(--bs-bg-card)", borderRadius: 14, border: "1px solid var(--bs-border)", overflow: "hidden", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 6px 16px rgba(0,0,0,0.05)" }}>
                   {/* Deadline cell */}
