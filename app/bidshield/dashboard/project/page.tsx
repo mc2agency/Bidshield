@@ -596,35 +596,46 @@ function ProjectDetail() {
             {activeTab ? (
               <>
                 {/* Phase progress stepper — sticky top nav showing 5-phase preflight position */}
-                <div className="sticky top-0 z-30 flex overflow-x-auto scrollbar-none" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
+                <div className="sticky top-0 z-30 flex overflow-x-auto scrollbar-none px-4" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)", gap: 0 }}>
                   {PHASES.map((phase, idx) => {
                     const isActive = getPhaseIndex(activeTab) === idx;
                     const pScore = phaseScore[phase.id];
+                    const isDone = pScore !== null && pScore >= 90;
+                    const hasProgress = pScore !== null && pScore > 0;
                     return (
                       <button
                         key={phase.id}
                         onClick={() => navigateTab(phase.defaultTab as TabId)}
-                        className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider whitespace-nowrap transition-colors cursor-pointer flex-shrink-0 focus-visible:outline-none"
+                        className="flex items-center gap-2.5 whitespace-nowrap transition-all cursor-pointer flex-shrink-0 focus-visible:outline-none"
                         style={{
-                          color: isActive ? "var(--bs-teal)" : "var(--bs-text-dim)",
                           background: "none",
                           outline: "none",
-                          padding: "10px 16px 8px",
+                          padding: "11px 14px 9px",
                           borderTop: "none", borderLeft: "none", borderRight: "none",
                           borderBottom: isActive ? "2px solid var(--bs-teal)" : "2px solid transparent",
                         }}
                       >
-                        <span style={{ fontSize: 9, fontWeight: 700, marginRight: 2, opacity: 0.5 }}>{idx + 1}</span>
-                        {phase.shortLabel}
-                        {pScore !== null && (
-                          <span style={{
-                            fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 9999,
-                            background: pScore >= 90 ? "var(--bs-teal-dim)" : pScore > 0 ? "var(--bs-amber-dim)" : "rgba(255,255,255,0.05)",
-                            color: pScore >= 90 ? "var(--bs-teal)" : pScore > 0 ? "var(--bs-amber)" : "var(--bs-text-dim)",
-                          }}>
-                            {pScore >= 90 ? "✓" : `${pScore}%`}
+                        <div style={{
+                          width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+                          background: isActive ? "var(--bs-teal)" : isDone ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.07)",
+                          border: `1.5px solid ${isActive ? "var(--bs-teal)" : isDone ? "var(--bs-teal)" : hasProgress ? "var(--bs-amber)" : "rgba(255,255,255,0.12)"}`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          {isDone
+                            ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke={isActive ? "#13151a" : "var(--bs-teal)"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            : <span style={{ fontSize: 9, fontWeight: 800, color: isActive ? "#13151a" : "var(--bs-text-dim)", lineHeight: 1 }}>{idx + 1}</span>
+                          }
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", color: isActive ? "var(--bs-teal)" : isDone ? "var(--bs-teal)" : "var(--bs-text-dim)" }}>
+                            {phase.shortLabel}
                           </span>
-                        )}
+                          {pScore !== null && (
+                            <span style={{ fontSize: 9, fontWeight: 600, color: isDone ? "var(--bs-teal)" : hasProgress ? "var(--bs-amber)" : "var(--bs-text-dim)", lineHeight: 1 }}>
+                              {isDone ? "Complete" : `${pScore}%`}
+                            </span>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
