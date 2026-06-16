@@ -132,6 +132,10 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
     api.bidshield.getChecklist,
     isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
   );
+  const scopeItems = useQuery(
+    api.bidshield.getScopeItems,
+    !isDemo && isValidConvexId ? { projectId: projectId as Id<"bidshield_projects"> } : "skip"
+  );
 
   // ── Section 1: Project Info ──
   const [info, setInfo] = useState({
@@ -2033,6 +2037,57 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
           </div>
         )}
       </div>
+
+        {/* ── Scope Status ── */}
+        {!isDemo && (() => {
+          const total = scopeItems?.length ?? 0;
+          const included = scopeItems?.filter((i: any) => i.status === "included").length ?? 0;
+          const excluded = scopeItems?.filter((i: any) => i.status === "excluded").length ?? 0;
+          const unaddressed = scopeItems?.filter((i: any) => i.status === "unaddressed").length ?? 0;
+          const hasScopeItems = total > 0;
+          return (
+            <div style={{ marginTop: 32 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--bs-text-primary)", margin: 0 }}>Scope of Work</h3>
+                {hasScopeItems && (
+                  <span style={{ fontSize: 10, color: "var(--bs-text-dim)" }}>{total} items</span>
+                )}
+              </div>
+              {hasScopeItems ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", borderRadius: 10, background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                  <div style={{ flex: 1, display: "flex", gap: 12 }}>
+                    {included > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--bs-teal)", flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: "var(--bs-teal)" }}>{included} included</span>
+                      </div>
+                    )}
+                    {excluded > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--bs-red)", flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: "var(--bs-red)" }}>{excluded} excluded</span>
+                      </div>
+                    )}
+                    {unaddressed > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--bs-text-dim)", flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>{unaddressed} unaddressed</span>
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Manage in READ →</span>
+                </div>
+              ) : (
+                <div style={{ padding: "14px 16px", borderRadius: 10, border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)", textAlign: "center" }}>
+                  <p style={{ fontSize: 12, color: "var(--bs-text-dim)", margin: "0 0 10px" }}>
+                    No scope items yet — upload your Exhibit A in READ to extract scope automatically
+                  </p>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)" }}>Go to READ → Scope</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
     </div>
   );
 }
