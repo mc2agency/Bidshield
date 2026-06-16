@@ -59,6 +59,7 @@ interface AssemblyRow {
   baseStack?: string[];
   modifierStack?: string[];
   archetypeId?: string;
+  archetype?: string;
 }
 
 function systemLabel(id: string) {
