@@ -67,11 +67,12 @@ function systemLabel(id: string) {
 
 // ── Styles ──
 const cardStyle = {
-  background: "var(--bs-bg-elevated)",
+  background: "var(--bs-bg-card)",
   border: "1px solid var(--bs-border)",
-  borderRadius: 12,
+  borderRadius: 14,
   padding: 24,
-  marginBottom: 20,
+  marginBottom: 16,
+  boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)",
 };
 const labelStyle = {
   fontSize: 12,
