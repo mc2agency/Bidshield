@@ -46,7 +46,7 @@ export interface TabProps {
   isPro?: boolean;
   project: any;
   userId?: string;
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: TabId) => void;
   onNavigateTab?: (tab: TabId) => void;
   cachedData?: {
     checklist?: any[];
