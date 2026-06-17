@@ -149,6 +149,7 @@ function ProjectDetail() {
   const unconfirmedGcFormCount = useQuery(api.bidshield.getUnconfirmedGcBidFormCount, !isDemo && isValidConvexId ? { projectId: projectIdParam as Id<"bidshield_projects"> } : "skip");
   const addDecision = useMutation(api.bidshield.addDecision);
   const subscription = useQuery(api.users.getUserSubscription, !isDemo && userId ? { clerkId: userId } : "skip");
+  const projectSpecs = useQuery(api.bidshield.projectSpecs.listByProject, !isDemo && isValidConvexId && userId ? { projectId: projectIdParam as Id<"bidshield_projects">, userId } : "skip");
   const isPro = isDemo || (subscription?.isPro ?? false);
 
   const projectData = isDemo
@@ -476,6 +477,13 @@ function ProjectDetail() {
                 {blockerCount} blocker{blockerCount !== 1 ? "s" : ""}
               </button>
             )}
+            <button
+              onClick={() => setShowShortcuts(s => !s)}
+              title="Keyboard shortcuts"
+              style={{ fontSize: 10, fontWeight: 600, padding: "1px 6px", borderRadius: 4, border: "1px solid var(--bs-border)", background: "none", color: "var(--bs-text-dim)", cursor: "pointer", fontFamily: "monospace", lineHeight: 1.6 }}
+            >
+              ?
+            </button>
           </div>
           {/* Row 2: project identity — name + metadata chips + readiness ring + bid countdown */}
           <div className="flex items-center gap-4 px-5 py-3">
@@ -762,20 +770,23 @@ function ProjectDetail() {
                       {dpsf && <div style={{ fontSize: 10, color: "var(--bs-teal)", marginTop: 4 }}>${dpsf}/SF</div>}
                     </div>
                   ) : null}
-                  {/* Status cell */}
-                  <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, background: blockerCount > 0 ? "var(--bs-red-dim)" : actionItems.length > 0 ? "var(--bs-amber-dim)" : readinessScore > 0 ? "var(--bs-teal-dim)" : "transparent" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Status</div>
-                    {actionItems.length === 0 ? (
-                      <>
-                        <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-teal)" }}>✓</div>
-                        <div style={{ fontSize: 10, color: "var(--bs-teal)", marginTop: 4 }}>Ready to submit</div>
-                      </>
-                    ) : (
-                      <>
-                        <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums", color: blockerCount > 0 ? "var(--bs-red)" : "var(--bs-amber)" }}>{actionItems.length}</div>
-                        <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>{blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : `${actionItems.length} item${actionItems.length > 1 ? "s" : ""}`}</div>
-                      </>
-                    )}
+                  {/* Docs cell — shown when specs are uploaded */}
+                  {(projectSpecs?.length ?? 0) > 0 && (
+                    <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Docs</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-teal)", fontVariantNumeric: "tabular-nums" }}>{projectSpecs?.length}</div>
+                      <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>uploaded</div>
+                    </div>
+                  )}
+                  {/* Readiness cell — replaces redundant Status cell */}
+                  <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, background: readinessScore >= 75 ? "var(--bs-teal-dim)" : readinessScore >= 40 ? "var(--bs-amber-dim)" : readinessScore > 0 ? "var(--bs-red-dim)" : "transparent" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Readiness</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums", color: readinessColor }}>
+                      {readinessScore > 0 ? `${readinessScore}%` : "—"}
+                    </div>
+                    <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>
+                      {readinessScore >= 75 ? "bid ready" : readinessScore >= 40 ? "in progress" : readinessScore > 0 ? "early stage" : "not started"}
+                    </div>
                   </div>
                 </div>
 
