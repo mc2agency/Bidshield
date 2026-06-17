@@ -378,7 +378,7 @@ function ProjectDetail() {
   const blockerCount = actionItems.filter(a => a.level === "blocker").length;
   const warnCount = actionItems.filter(a => a.level === "warning").length;
   const tabProps = {
-    projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigateTab: navigateTab,
+    projectId: projectIdParam, isDemo, isPro, project: projectData, userId: userId ?? undefined, onNavigate: navigateTab, onNavigateTab: navigateTab,
     cachedData: isDemo ? undefined : { checklist: checklist ?? undefined, quotes: quotes ?? undefined, rfis: rfis ?? undefined, addenda: addenda ?? undefined, projectMaterials: projectMaterials ?? undefined, scopeItems: scopeItems ?? undefined, takeoffSections: takeoffSections ?? undefined },
   };
   const activeTabLabel = BROWSE_ITEMS.find(b => b.id === activeTab)?.label;
@@ -887,6 +887,12 @@ function ProjectDetail() {
                   );
                 })()}
 
+                {/* Preflight Phases label */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--bs-text-dim)" }}>Preflight Phases</span>
+                  <span style={{ fontSize: 10, color: "var(--bs-text-dim)" }}>{BROWSE_ITEMS.filter(({ id }) => (phaseScore[id] ?? 0) >= 90).length}/{BROWSE_ITEMS.length} complete</span>
+                </div>
+
                 {/* Section card grid — data-driven stats */}
                 {(() => {
                   // Compute card-level stats from live Convex data
@@ -1025,7 +1031,10 @@ function ProjectDetail() {
                                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: score > 0 || isDone ? scoreColor : "var(--bs-text-dim)" }}>{label}</span>
                                 </div>
                                 <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: scoreColor, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em", marginBottom: 3 }}>{cardStat[id]}</div>
-                                <div style={{ fontSize: 10, color: "var(--bs-text-dim)", paddingBottom: 12 }}>{cardStatLabel[id]}</div>
+                                <div style={{ fontSize: 10, color: "var(--bs-text-dim)", paddingBottom: 4 }}>{cardStatLabel[id]}</div>
+                                <div style={{ fontSize: 9, color: "var(--bs-text-dim)", marginBottom: 4, fontStyle: "italic" }}>
+                                  {PHASES.find(p => p.id === id)?.desc ?? ""}
+                                </div>
                                 <div style={{ height: 4, background: "var(--bs-bg-elevated)", borderRadius: 9999, overflow: "hidden", marginTop: "auto" }}>
                                   <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999, transition: "width 0.6s" }} />
                                 </div>

@@ -113,7 +113,7 @@ const btnSecondary = {
   cursor: "pointer",
 };
 
-export default function SetupTab({ project, projectId, isDemo, userId }: TabProps) {
+export default function SetupTab({ project, projectId, isDemo, userId, onNavigate }: TabProps) {
   const { proGateModal, guardedFetch } = useProGate();
   // @ts-ignore TS2589: Convex API generics hit type-depth limit with Zod v4
   const updateProject = useMutation(api.bidshield.updateProject);
@@ -2054,7 +2054,12 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                 )}
               </div>
               {hasScopeItems ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", borderRadius: 10, background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)" }}>
+                <button
+                  onClick={() => onNavigate?.("documents")}
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", borderRadius: 10, background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-border)", width: "100%", cursor: onNavigate ? "pointer" : "default", textAlign: "left" }}
+                  onMouseEnter={e => { if (onNavigate) (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"; }}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
+                >
                   <div style={{ flex: 1, display: "flex", gap: 12 }}>
                     {included > 0 && (
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -2076,14 +2081,19 @@ export default function SetupTab({ project, projectId, isDemo, userId }: TabProp
                     )}
                   </div>
                   <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Manage in READ →</span>
-                </div>
+                </button>
               ) : (
-                <div style={{ padding: "14px 16px", borderRadius: 10, border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)", textAlign: "center" }}>
+                <button
+                  onClick={() => onNavigate?.("documents")}
+                  style={{ padding: "14px 16px", borderRadius: 10, border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)", textAlign: "center", width: "100%", cursor: onNavigate ? "pointer" : "default" }}
+                  onMouseEnter={e => { if (onNavigate) (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"; }}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
+                >
                   <p style={{ fontSize: 12, color: "var(--bs-text-dim)", margin: "0 0 10px" }}>
                     No scope items yet — upload your Exhibit A in READ to extract scope automatically
                   </p>
                   <span style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)" }}>Go to READ → Scope</span>
-                </div>
+                </button>
               )}
             </div>
           );
