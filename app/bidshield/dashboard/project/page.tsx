@@ -63,7 +63,7 @@ function ProjectDetail() {
   // Map legacy/sub-tab IDs to the 5-phase preflight structure
   const navigateTab = useCallback((tab: TabId) => {
     const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "quotes"];
-    const validateSubTabs: TabId[] = ["validator", "decisions", "bidquals"];
+    const validateSubTabs: TabId[] = ["validator", "decisions"];
     const legacyEstimateTabs: TabId[] = ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"];
     if (documentSubTabs.includes(tab)) { setActiveTab("documents"); return; }
     if (validateSubTabs.includes(tab)) { setActiveTab("validate"); return; }
