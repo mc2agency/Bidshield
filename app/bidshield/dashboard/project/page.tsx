@@ -734,14 +734,14 @@ function ProjectDetail() {
                       {projectData?.bidDate ? (() => { const t = (projectData as any)?.bidTime as string | undefined; const d = new Date(`${projectData.bidDate}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" }); return t ? `${d} · ${t}` : d; })() : "No deadline set"}
                     </div>
                   </div>
-                  {/* Readiness cell */}
-                  <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)", display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--bs-bg-elevated)", border: `3px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: readinessColor, fontVariantNumeric: "tabular-nums" }}>{readinessScore}%</span>
+                  {/* Open Items cell */}
+                  <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 4 }}>Open Items</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: actionItems.length > 0 ? (blockerCount > 0 ? "var(--bs-red)" : "var(--bs-amber)") : "var(--bs-teal)", fontVariantNumeric: "tabular-nums" }}>
+                      {actionItems.length > 0 ? actionItems.length : "✓"}
                     </div>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--bs-text-primary)" }}>Readiness</div>
-                      <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 2 }}>{blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : warnCount > 0 ? `${warnCount} to review` : passCount > 0 ? "On track" : "Get started"}</div>
+                    <div style={{ fontSize: 9, color: "var(--bs-text-dim)", marginTop: 3 }}>
+                      {blockerCount > 0 ? `${blockerCount} blocker${blockerCount > 1 ? "s" : ""}` : actionItems.length > 0 ? "need attention" : "all clear"}
                     </div>
                   </div>
                   {/* Roof area cell */}
@@ -1088,8 +1088,11 @@ function ProjectDetail() {
               style={{ background: "var(--bs-bg-secondary)", borderTop: "1px solid var(--bs-border)" }}
             >
               <div className="flex items-center gap-2">
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--bs-teal-dim)", border: `2px solid ${readinessColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: readinessColor }}>{readinessScore}%</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: blockerCount > 0 ? "var(--bs-red)" : readinessScore >= 80 ? "var(--bs-teal)" : "var(--bs-amber)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 6, fontWeight: 800, color: "#13151a", letterSpacing: "0.08em" }}>BID</span>
+                  <span style={{ fontSize: blockerCount > 0 ? 6 : readinessScore >= 80 ? 7 : 6, fontWeight: 900, color: "#13151a", lineHeight: 1 }}>
+                    {blockerCount > 0 ? "NO-GO" : readinessScore >= 80 ? "GO" : "COND."}
+                  </span>
                 </div>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "var(--bs-text-primary)" }}>Bid Readiness</div>
