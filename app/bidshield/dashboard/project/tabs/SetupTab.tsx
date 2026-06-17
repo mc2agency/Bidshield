@@ -123,6 +123,7 @@ export default function SetupTab({ project, projectId, isDemo, userId, onNavigat
   const clearProjectMaterials = useMutation(api.bidshield.clearProjectMaterials);
   const syncTakeoffToMaterials = useMutation(api.bidshield.syncTakeoffToMaterials);
   const updateChecklistItem = useMutation(api.bidshield.updateChecklistItem);
+  const initScopeItems = useMutation(api.bidshield.initScopeItems);
   const { user } = useUser();
   // System substitutions — loaded lazily, defaults to empty if unavailable
   const systemSubstitutions: { from: string; to: string }[] = [];
@@ -273,6 +274,7 @@ export default function SetupTab({ project, projectId, isDemo, userId, onNavigat
   const [asmError, setAsmError] = useState("");
   const [areaWarning, setAreaWarning] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [scopeInitializing, setScopeInitializing] = useState(false);
 
   const toggleRowExpanded = (idx: number) => {
     setExpandedRows((prev) => {
@@ -2083,17 +2085,38 @@ export default function SetupTab({ project, projectId, isDemo, userId, onNavigat
                   <span style={{ fontSize: 11, color: "var(--bs-text-dim)" }}>Manage in READ →</span>
                 </button>
               ) : (
-                <button
-                  onClick={() => onNavigate?.("documents")}
-                  style={{ padding: "14px 16px", borderRadius: 10, border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)", textAlign: "center", width: "100%", cursor: onNavigate ? "pointer" : "default" }}
-                  onMouseEnter={e => { if (onNavigate) (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"; }}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
-                >
-                  <p style={{ fontSize: 12, color: "var(--bs-text-dim)", margin: "0 0 10px" }}>
-                    No scope items yet — upload your project spec in READ to extract scope automatically
+                <div style={{ padding: "14px 16px", borderRadius: 10, border: "1px dashed var(--bs-border)", background: "var(--bs-bg-elevated)", textAlign: "center" }}>
+                  <p style={{ fontSize: 12, color: "var(--bs-text-dim)", margin: "0 0 12px" }}>
+                    No scope items yet. Generate the standard roofing scope checklist or go to READ to scan your spec.
                   </p>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)" }}>Go to READ → Scope</span>
-                </button>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+                    <button
+                      disabled={scopeInitializing || !isValidConvexId || !userId}
+                      onClick={async () => {
+                        if (!isValidConvexId || !userId) return;
+                        setScopeInitializing(true);
+                        try {
+                          const { getDynamicScopeItems } = await import("@/lib/bidshield/scope-defaults");
+                          const dynamicItems = getDynamicScopeItems(project);
+                          await initScopeItems({ projectId: projectId as any, userId, items: dynamicItems });
+                        } catch (e) {
+                          console.error("Failed to initialize scope:", e);
+                        } finally {
+                          setScopeInitializing(false);
+                        }
+                      }}
+                      style={{ fontSize: 12, fontWeight: 600, padding: "7px 16px", borderRadius: 8, background: "var(--bs-teal)", color: "#13151a", border: "none", cursor: scopeInitializing ? "not-allowed" : "pointer", opacity: scopeInitializing ? 0.6 : 1 }}
+                    >
+                      {scopeInitializing ? "Generating..." : "Generate Scope Items →"}
+                    </button>
+                    <button
+                      onClick={() => onNavigate?.("documents")}
+                      style={{ fontSize: 12, fontWeight: 500, padding: "7px 14px", borderRadius: 8, background: "transparent", color: "var(--bs-teal)", border: "1px solid var(--bs-teal)", cursor: "pointer" }}
+                    >
+                      Scan Spec in READ
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           );
