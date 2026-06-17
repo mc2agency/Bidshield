@@ -458,12 +458,12 @@ export default function ScopeTab({ projectId, isDemo, isPro, project, userId }: 
             </svg>
           </div>
           <h3 className="text-base font-semibold mb-1" style={{ color: "var(--bs-text-primary)" }}>
-            {hasSpec ? "Scan your spec for scope" : "Upload Exhibit A or spec section"}
+            {hasSpec ? "Scan your spec for scope" : "Upload your project spec"}
           </h3>
           <p className="text-xs mb-5" style={{ color: "var(--bs-text-muted)", lineHeight: 1.5 }}>
             {hasSpec
               ? "We'll extract what's included, excluded, and by-others directly from your uploaded document."
-              : "Upload your Exhibit A or spec section and we'll extract scope items automatically — what's included, excluded, and by others."}
+              : "Upload your spec section (Division 07 or project specs) and we'll extract scope items automatically — what's included, excluded, and by others."}
           </p>
           {hasSpec ? (
             <button
