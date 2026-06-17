@@ -2090,7 +2090,7 @@ export default function SetupTab({ project, projectId, isDemo, userId, onNavigat
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
                 >
                   <p style={{ fontSize: 12, color: "var(--bs-text-dim)", margin: "0 0 10px" }}>
-                    No scope items yet — upload your Exhibit A in READ to extract scope automatically
+                    No scope items yet — upload your project spec in READ to extract scope automatically
                   </p>
                   <span style={{ fontSize: 11, fontWeight: 600, color: "var(--bs-teal)" }}>Go to READ → Scope</span>
                 </button>
