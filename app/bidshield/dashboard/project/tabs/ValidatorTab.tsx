@@ -155,6 +155,15 @@ function worstStatus(items: ScoreItem[]): "pass" | "warn" | "fail" | "none" {
   return "pass";
 }
 
+// Hoisted to module scope (rerender-no-inline-components): pure function of `s`,
+// so it isn't re-created on every ValidatorTab render.
+function StatusIcon({ s }: { s: "pass" | "warn" | "fail" | "none" }) {
+  if (s === "pass") return <span style={{ color: "var(--bs-teal)" }}><IconCheck size={18} /></span>;
+  if (s === "warn") return <span style={{ color: "var(--bs-amber)" }}><IconWarn size={18} /></span>;
+  if (s === "fail") return <span style={{ color: "var(--bs-red)" }}><IconX size={18} /></span>;
+  return <div className="w-4 h-4 rounded-full" style={{ background: "var(--bs-border)" }} />;
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function ValidatorTab({ projectId, isDemo, isPro, project, userId, onNavigateTab }: TabProps) {
   const isValidConvexId = projectId && !projectId.startsWith("demo_");
@@ -336,15 +345,9 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
     grouped.get(key)!.push(item);
   }
 
-  // Status styling helpers
+  // Status styling helper (StatusIcon hoisted to module scope — see below)
   const statusBorderColor = (s: "pass" | "warn" | "fail" | "none") =>
     s === "pass" ? "var(--bs-teal)" : s === "warn" ? "var(--bs-amber)" : s === "fail" ? "var(--bs-red)" : "var(--bs-border)";
-  const StatusIcon = ({ s }: { s: "pass" | "warn" | "fail" | "none" }) => {
-    if (s === "pass") return <span style={{ color: "var(--bs-teal)" }}><IconCheck size={18} /></span>;
-    if (s === "warn") return <span style={{ color: "var(--bs-amber)" }}><IconWarn size={18} /></span>;
-    if (s === "fail") return <span style={{ color: "var(--bs-red)" }}><IconX size={18} /></span>;
-    return <div className="w-4 h-4 rounded-full" style={{ background: "var(--bs-border)" }} />;
-  };
 
   return (
     <div className="p-6 flex flex-col gap-5 w-full">

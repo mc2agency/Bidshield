@@ -582,6 +582,14 @@ function ProjectCard({ project, isDemo, onStatusChange, onDelete, onEdit, onEdit
 // ============================================================
 // RECENT ACTIVITY PANEL
 // ============================================================
+// Hoisted static color map (server-hoist-static / rerender) — never changes per render.
+const IC = {
+  flag:    { color: "var(--bs-amber)", bg: "var(--bs-amber-dim)" },
+  rfi:     { color: "var(--bs-blue)",  bg: "var(--bs-blue-dim)"  },
+  done:    { color: "var(--bs-teal)",  bg: "var(--bs-teal-dim)"  },
+  blocker: { color: "var(--bs-red)",   bg: "var(--bs-red-dim)"   },
+};
+
 function RecentActivityPanel({ projects }: { projects: BidProject[] }) {
   const now = Date.now();
   type Entry = { id: string; ts: number; label: string; sub: string; icon: "flag" | "rfi" | "done" | "blocker" };
@@ -608,12 +616,6 @@ function RecentActivityPanel({ projects }: { projects: BidProject[] }) {
     if (diff < 60) return `${diff}m ago`;
     if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
     return `${Math.floor(diff / 1440)}d ago`;
-  };
-  const IC = {
-    flag:    { color: "var(--bs-amber)", bg: "var(--bs-amber-dim)" },
-    rfi:     { color: "var(--bs-blue)",  bg: "var(--bs-blue-dim)"  },
-    done:    { color: "var(--bs-teal)",  bg: "var(--bs-teal-dim)"  },
-    blocker: { color: "var(--bs-red)",   bg: "var(--bs-red-dim)"   },
   };
   return (
     <div className="rounded-xl h-full" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
