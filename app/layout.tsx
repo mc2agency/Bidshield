@@ -85,7 +85,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Theme: read preference before paint to avoid flash */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('bidshield-theme');if(t==='dark'||t==='light'){document.documentElement.setAttribute('data-theme',t);return;}if(t==='system'||!t){var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',d?'dark':'light');}}catch(e){document.documentElement.setAttribute('data-theme','light');}})();` }} />
@@ -97,7 +97,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="BidShield" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* TODO: Add social profile URLs to sameAs once created, e.g. "https://www.linkedin.com/company/bidshield" */}
         <script
           type="application/ld+json"

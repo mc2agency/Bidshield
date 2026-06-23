@@ -446,6 +446,7 @@ export default function ValidatorTab({ projectId, isDemo, isPro, project, userId
                     <div className="flex items-start gap-3">
                       <IconX size={16} />
                       <div>
+                        <span className="bs-redline-tag">Gap caught</span>
                         <div className="text-sm font-medium" style={{ color: "var(--bs-text-secondary)" }}>{item.label}</div>
                         <div className="text-[12px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>{item.message}</div>
                       </div>

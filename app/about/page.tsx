@@ -13,19 +13,20 @@ export default function AboutPage() {
     <main className="min-h-screen">
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,.10)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.10)_1px,transparent_1px)] bg-[size:96px_96px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.04)_1px,transparent_1px)] bg-[size:24px_24px]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-block mb-4 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full text-sm font-semibold">
               About BidShield
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
+            <h1 className="text-pretty text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
               Your last line of defense
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">before you submit</span>
+              <span className="text-emerald-400">before you submit</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 max-w-3xl mx-auto">
-              BidShield is a pre-submission bid review platform that systematically checks every commercial roofing bid for scope gaps, addenda, mechanical items, and spec compliance — before it leaves your desk.
+              BidShield is a pre-submission bid review platform that systematically checks every commercial roofing bid for scope gaps, addenda, mechanical items, and spec compliance, before it leaves your desk.
             </p>
           </div>
         </div>

@@ -57,10 +57,10 @@ export default function EmailCapture({
 
   if (submitted) {
     return (
-      <div className={variant === 'banner' ? 'bg-emerald-50 border-y border-emerald-200 py-4' : 'rounded-2xl p-8 md:p-12 border border-emerald-500/20 bg-emerald-500/5'}>
+      <div role="status" aria-live="polite" className={variant === 'banner' ? 'bg-emerald-50 border-y border-emerald-200 py-4' : 'rounded-2xl p-8 md:p-12 border border-emerald-500/20 bg-emerald-500/5'}>
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/30 mb-4">
-            <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg aria-hidden="true" className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
             </svg>
           </div>
@@ -82,8 +82,14 @@ export default function EmailCapture({
             <span>{isWaitlist ? 'BidShield — Early Access' : 'FREE Estimating Checklist — Never miss a line item again'}</span>
           </div>
           <div className="flex gap-2 flex-1 sm:justify-end w-full sm:w-auto">
+            <label htmlFor="email-capture-banner" className="sr-only">Email address</label>
             <input
+              id="email-capture-banner"
+              name="email"
               type="email"
+              inputMode="email"
+              autoComplete="email"
+              spellCheck={false}
               placeholder={placeholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -95,7 +101,7 @@ export default function EmailCapture({
               disabled={loading}
               className="px-5 py-2 bg-white text-emerald-700 rounded-lg font-semibold hover:bg-emerald-50 transition-colors whitespace-nowrap disabled:opacity-60"
             >
-              {loading ? 'Saving...' : resolvedButton}
+              {loading ? 'Saving…' : resolvedButton}
             </button>
           </div>
         </form>
@@ -105,20 +111,26 @@ export default function EmailCapture({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+      <label htmlFor="email-capture" className="sr-only">Email address</label>
       <input
+        id="email-capture"
+        name="email"
         type="email"
+        inputMode="email"
+        autoComplete="email"
+        spellCheck={false}
         placeholder={placeholder}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
-        className="flex-1 px-4 py-3 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+        className="flex-1 px-4 py-3 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-transparent outline-none"
       />
       <button
         type="submit"
         disabled={loading}
-        className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-200 disabled:opacity-60 whitespace-nowrap"
+        className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-[box-shadow,transform] duration-200 disabled:opacity-60 whitespace-nowrap"
       >
-        {loading ? 'Saving...' : resolvedButton}
+        {loading ? 'Saving…' : resolvedButton}
       </button>
     </form>
   );

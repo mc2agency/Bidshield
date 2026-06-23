@@ -467,7 +467,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         )}
-        <main className="flex-1 min-w-0 overflow-auto p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
+        <main className="bs-blueprint-grid flex-1 min-w-0 overflow-auto p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
       </div>
 
       <MobileNav pathname={pathname} isDemo={isDemo} isPro={isPro} />
