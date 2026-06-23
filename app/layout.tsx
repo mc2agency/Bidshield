@@ -10,6 +10,7 @@
  */
 
 import type { Metadata } from "next";
+import { ViewTransition } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
@@ -181,7 +182,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <Providers>
           <Navigation />
-          {children}
+          <ViewTransition>{children}</ViewTransition>
           <FooterWrapper />
         </Providers>
         <Analytics />
