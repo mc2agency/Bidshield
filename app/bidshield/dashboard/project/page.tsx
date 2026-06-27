@@ -426,7 +426,7 @@ function ProjectDetail() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* ── PROJECT COMMAND BAR ── always visible, carries full context across all tabs */}
-        <div className="shrink-0" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
+        <div className="bs-command-bar shrink-0" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
           {/* Row 1: slim breadcrumb */}
           <div className="flex items-center gap-1.5 px-5 py-1.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             {activeTab ? (
@@ -492,7 +492,7 @@ function ProjectDetail() {
           {/* Row 2: project identity — name + metadata chips + readiness ring + bid countdown */}
           <div className="flex items-center gap-4 px-5 py-3">
             <div className="flex-1 min-w-0">
-              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div className="app-display" style={{ fontSize: 22, fontWeight: 700, color: "var(--bs-text-primary)", textTransform: "uppercase", letterSpacing: "0.01em", lineHeight: 1.05, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {projectData?.name ?? "Untitled Project"}
               </div>
               <div className="flex items-center gap-1.5 mt-1 flex-wrap">

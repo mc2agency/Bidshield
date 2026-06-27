@@ -260,6 +260,22 @@
   /* Active nav items use .bs-nav-item-active overrides below */
 }
 
+/* ── Command-bar scope — the project header is always navy, like the
+   sidebar, so its text tokens must stay light in BOTH themes. Without this,
+   light mode resolves --bs-text-* to near-black → invisible on navy. ── */
+.bs-command-bar {
+  --bs-bg-secondary: var(--navy-900);
+  --bs-bg-card:      var(--navy-700);
+  --bs-bg-elevated:  var(--navy-700);
+  --bs-border:       rgba(255,255,255,0.12);
+  --bs-border-hover: rgba(255,255,255,0.20);
+
+  --bs-text-primary:   #FFFFFF;
+  --bs-text-secondary: #D4E2F4;
+  --bs-text-muted:     #B6C4D8;
+  --bs-text-dim:       #8499B4;
+}
+
 /* ── Tailwind @theme ─────────────────────────────────────────── */
 @theme inline {
   --color-background: var(--background);
