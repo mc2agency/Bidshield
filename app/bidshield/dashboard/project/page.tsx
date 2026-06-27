@@ -1,6 +1,7 @@
 "use client";
 
-import React, { Suspense, useMemo, useCallback, useState, useEffect } from "react";
+import React, { Suspense, useMemo, useCallback, useState, useEffect, startTransition } from "react";
+import { ViewTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
@@ -65,11 +66,14 @@ function ProjectDetail() {
     const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "quotes"];
     const validateSubTabs: TabId[] = ["validator", "decisions"];
     const legacyEstimateTabs: TabId[] = ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"];
-    if (documentSubTabs.includes(tab)) { setActiveTab("documents"); return; }
-    if (validateSubTabs.includes(tab)) { setActiveTab("validate"); return; }
-    if (legacyEstimateTabs.includes(tab)) { setActiveTab("validate"); return; }
-    if (tab === "overview") { setActiveTab("setup"); return; }
-    setActiveTab(tab);
+    // Map legacy/sub-tab IDs to the 5-phase preflight structure. Each switch is
+    // committed inside startTransition so the content panel crossfades (lateral
+    // fade — pattern #3; see design-reference/skills/view-transitions.md).
+    if (documentSubTabs.includes(tab)) { startTransition((): void => { setActiveTab("documents"); }); return; }
+    if (validateSubTabs.includes(tab)) { startTransition((): void => { setActiveTab("validate"); }); return; }
+    if (legacyEstimateTabs.includes(tab)) { startTransition((): void => { setActiveTab("validate"); }); return; }
+    if (tab === "overview") { startTransition((): void => { setActiveTab("setup"); }); return; }
+    startTransition((): void => { setActiveTab(tab); });
   }, []);
   const updateProject = useMutation(api.bidshield.updateProject);
   const [editingBidInline, setEditingBidInline] = useState(false);
@@ -162,7 +166,7 @@ function ProjectDetail() {
         grossRoofArea: 68000, totalBidAmount: 1250000, materialCost: 612000, laborCost: 488000 }
     : project;
 
-  const openTab = useCallback((tab: TabId) => setActiveTab(tab), []);
+  const openTab = useCallback((tab: TabId) => startTransition((): void => { setActiveTab(tab); }), []);
 
   const saveBidInline = async () => {
     const val = parseFloat(bidInlineValue.replace(/[^0-9.]/g, ""));
@@ -684,15 +688,21 @@ function ProjectDetail() {
                     Back
                   </button>
                 </div>
-                <div className="p-6">
-                  {activeTab === "setup"     && <TabErrorBoundary tabLabel="Intake"><SetupTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "documents" && <TabErrorBoundary tabLabel="Read"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "checklist" && <TabErrorBoundary tabLabel="Verify"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "submit"    && <TabErrorBoundary tabLabel="Submit"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
-                </div>
+                {/* Lateral fade between phase/sub-tabs (pattern #3). The keyed
+                    wrapper makes each switch an exit+enter crossfade; the swap is
+                    committed via startTransition in navigateTab/openTab so React
+                    drives a view transition. */}
+                <ViewTransition>
+                  <div key={activeTab} className="p-6">
+                    {activeTab === "setup"     && <TabErrorBoundary tabLabel="Intake"><SetupTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "documents" && <TabErrorBoundary tabLabel="Read"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "checklist" && <TabErrorBoundary tabLabel="Verify"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "submit"    && <TabErrorBoundary tabLabel="Submit"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
+                  </div>
+                </ViewTransition>
               </>
             ) : (
               /* Overview — full-width card grid */

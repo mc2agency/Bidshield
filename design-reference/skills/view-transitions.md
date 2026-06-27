@@ -12,9 +12,12 @@ Skill: `vercel-react-view-transitions`. Pattern applied: **#5 Route change** ("g
 - Home → About nav (Link click) succeeds with no "Element type is invalid" errors; crossfade active.
 - `tsc` clean; 752 Vitest tests pass (run from project root).
 
-## Deferred to Step 5 (needs auth)
-- Lateral fade on `ProjectTabBar` phase/sub-tab switches (`default="none"` + bare fade — no directional slide, since tabs aren't hierarchical).
-- Shared-element morph from a dashboard project row → project detail (pattern #1), once the app screens are reachable for verification.
+## Step 5 — done
+- **Lateral fade on phase/sub-tab switches (pattern #3).** `app/bidshield/dashboard/project/page.tsx`: wrapped the tab content panel in `<ViewTransition>` keyed by `activeTab`, and routed tab switches through `startTransition` (`navigateTab` + `openTab`) so each swap drives a crossfade. Bare fade, no directional slide — tabs aren't hierarchical. Callbacks annotated `(): void` to avoid `startTransition`'s async-action inference.
+- Pre-existing `tsc` TS2589 on `useMutation(api.bidshield.updateProject)` (Convex generated-types depth) is unrelated — present on the clean tree before this change; `next build` is unaffected.
 
-## Note for Step 9
-`experimental.viewTransition` is experimental — confirm `next build` succeeds before merging (dev verified; production build not yet run).
+## Still deferred
+- Shared-element morph from a dashboard project row → project detail (pattern #1), once verifiable.
+
+## Note for Step 9 — resolved
+`experimental.viewTransition` production build verified: `next build` succeeds (`✓ viewTransition`, `✓ Compiled successfully`, 108/108 pages). Safe to merge.
