@@ -753,7 +753,7 @@ function ProjectDetail() {
                 <div style={{ display: "flex", alignItems: "stretch", background: "var(--bs-bg-card)", borderRadius: 14, border: "1px solid var(--bs-border)", overflow: "hidden", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 6px 16px rgba(0,0,0,0.05)" }}>
                   {/* Deadline cell */}
                   <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)", background: msUntilBid !== null && msUntilBid <= 0 ? "var(--bs-red-dim)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "transparent" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Bid Deadline</div>
+                    <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Bid Deadline</div>
                     <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: msUntilBid !== null && (msUntilBid <= 0 || hoursUntilBid! <= 4) ? "var(--bs-red)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-text-primary)" }}>
                       {msUntilBid === null ? "—" : msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d` : formatCountdown(msUntilBid)}
                     </div>
@@ -763,7 +763,7 @@ function ProjectDetail() {
                   </div>
                   {/* Open Items cell */}
                   <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 4 }}>Open Items</div>
+                    <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 4 }}>Open Items</div>
                     <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: actionItems.length > 0 ? (blockerCount > 0 ? "var(--bs-red)" : "var(--bs-amber)") : "var(--bs-teal)", fontVariantNumeric: "tabular-nums" }}>
                       {actionItems.length > 0 ? actionItems.length : "✓"}
                     </div>
@@ -774,7 +774,7 @@ function ProjectDetail() {
                   {/* Roof area cell */}
                   {grossArea ? (
                     <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Roof Area</div>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Roof Area</div>
                       <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>{Number(grossArea).toLocaleString()}</div>
                       <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>sq. ft.</div>
                     </div>
@@ -782,7 +782,7 @@ function ProjectDetail() {
                   {/* Bid amount cell */}
                   {bidAmt ? (
                     <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Bid Amount</div>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Bid Amount</div>
                       <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>
                         {bidAmt >= 1_000_000 ? `$${(bidAmt / 1_000_000).toFixed(1)}M` : `$${Math.round(bidAmt / 1_000)}k`}
                       </div>
@@ -792,14 +792,14 @@ function ProjectDetail() {
                   {/* Docs cell — shown when specs are uploaded */}
                   {(projectSpecs?.length ?? 0) > 0 && (
                     <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Docs</div>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Docs</div>
                       <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-teal)", fontVariantNumeric: "tabular-nums" }}>{projectSpecs?.length}</div>
                       <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>uploaded</div>
                     </div>
                   )}
                   {/* Readiness cell — replaces redundant Status cell */}
                   <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, background: readinessScore >= 75 ? "var(--bs-teal-dim)" : readinessScore >= 40 ? "var(--bs-amber-dim)" : readinessScore > 0 ? "var(--bs-red-dim)" : "transparent" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Readiness</div>
+                    <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Readiness</div>
                     <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums", color: readinessColor }}>
                       {readinessScore > 0 ? `${readinessScore}%` : "—"}
                     </div>
@@ -827,7 +827,7 @@ function ProjectDetail() {
                   });
                   return (
                     <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 8 }}>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 8 }}>
                         {items.length === 1 ? "Roof System" : `${items.length} Roof Assemblies`}
                       </div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
