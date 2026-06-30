@@ -9,7 +9,7 @@ import { track } from '@vercel/analytics';
 const PRO_FEATURES = [
   '## Core Workflow',
   'Unlimited active projects',
-  '134-item bid review checklist',
+  '135-item bid review checklist',
   'Scope tracker — Included / Excluded / By Others',
   'Takeoff & quantities reconciliation',
   '## Pricing & Costs',
@@ -40,7 +40,7 @@ const PRO_FEATURES = [
 
 const FREE_FEATURES = [
   '1 active project',
-  '134-item bid checklist',
+  '135-item bid checklist',
   'Scope tracker (read-only edits)',
   'Takeoff & Materials (read-only)',
   'RFIs & Addenda tracking',
