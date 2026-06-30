@@ -16,7 +16,7 @@ import type { TabId } from "./tab-types";
 import { PHASES, getPhaseIndex } from "./tab-types";
 import {
   ChecklistTab, ValidatorTab,
-  SetupTab, EstimateTab, DocumentsTab, BidQualsTab, SubmissionTab,
+  SetupTab, DocumentsTab, BidQualsTab, SubmissionTab,
 } from "./tabs";
 import TabErrorBoundary from "./TabErrorBoundary";
 
@@ -700,7 +700,7 @@ function ProjectDetail() {
                     {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
                     {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
                     {activeTab === "submit"    && <TabErrorBoundary tabLabel="Submit"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
-                    {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
+                    {/* EstimateTab hidden — BidShield is a QA tool, not an estimating platform */}
                   </div>
                 </ViewTransition>
               </>
