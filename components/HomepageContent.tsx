@@ -363,7 +363,7 @@ export default function HomepageContent() {
 
                 {/* Waitlist email capture */}
                 <div className="mb-4">
-                  <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
+                  <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
                 </div>
                 <p className="text-xs text-slate-500 mb-10">No credit card. No commitments. We&apos;ll reach out with access details.</p>
 
@@ -531,7 +531,7 @@ export default function HomepageContent() {
                 <p className="text-lg text-slate-400 mb-8 max-w-xl">
                   We&apos;re inviting a small group of commercial roofing estimators to help shape BidShield before public launch. Early access is free.
                 </p>
-                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
+                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
               </div>
             </Reveal>
           </div>
@@ -554,7 +554,7 @@ export default function HomepageContent() {
               <p className="text-slate-400 mb-8 max-w-xl mx-auto">
                 Be first in line when BidShield opens. We&apos;re working with a small group of estimators before public launch — if that&apos;s you, request your spot.
               </p>
-              <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
+              <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
             </Reveal>
           </div>
         </section>
@@ -583,10 +583,10 @@ export default function HomepageContent() {
                 </span>
               </h2>
               <p className="text-lg text-slate-300 mb-10 max-w-xl mx-auto">
-                Scope gaps, missed addenda, unresolved RFIs — BidShield catches them before your number goes out the door. Join the waitlist and be first to use it.
+                Scope gaps, missed addenda, unresolved RFIs — BidShield catches them before your number goes out the door. Try BidShield free — no credit card required.
               </p>
               <div className="max-w-md mx-auto">
-                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Request Early Access" />
+                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
               </div>
               <p className="text-xs mt-4" style={{ color: "#4A5A70" }}>No credit card · No commitments · Early access is free</p>
             </Reveal>

@@ -165,10 +165,10 @@ function NavAuthDesktop({ isDashboard, pathname }: { isDashboard: boolean; pathn
         Sign In
       </Link>
       <Link
-        href="/waitlist"
+        href="/sign-up"
         className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300"
       >
-        Request Access
+        Start Free Trial
       </Link>
     </>
   );
@@ -237,11 +237,11 @@ function NavAuthMobileMenu({ pathname, isDashboard, onClose }: { pathname: strin
         Sign In
       </Link>
       <Link
-        href="/waitlist"
+        href="/sign-up"
         className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg text-center font-semibold text-sm shadow-lg shadow-emerald-500/20"
         onClick={onClose}
       >
-        Request Access
+        Start Free Trial
       </Link>
     </>
   );
@@ -268,8 +268,8 @@ function StaticDesktopNav({ pathname }: { pathname: string }) {
       <Link href="/sign-in" className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
         Sign In
       </Link>
-      <Link href="/waitlist" className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300">
-        Request Access
+      <Link href="/sign-up" className="ml-1 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-300">
+        Start Free Trial
       </Link>
     </>
   );
@@ -319,11 +319,11 @@ function StaticMobileMenu({ pathname, onClose }: { pathname: string; onClose: ()
         Sign In
       </Link>
       <Link
-        href="/waitlist"
+        href="/sign-up"
         className="block mx-2 mt-4 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg text-center font-semibold text-sm shadow-lg shadow-emerald-500/20"
         onClick={onClose}
       >
-        Request Access
+        Start Free Trial
       </Link>
     </>
   );
