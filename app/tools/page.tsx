@@ -22,7 +22,7 @@ export default function ToolsPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
               Professional Estimating Tools
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">for Estimators</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-400">for Estimators</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 mb-8 max-w-3xl mx-auto">
               From beginner to advanced. Master the skills that take years on the job in weeks. All tools include hands-on projects and lifetime access.

@@ -63,7 +63,7 @@ export default function WaitlistPage() {
               <br />
               Check For
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-400">
                 Every Bid.
               </span>
             </h1>

@@ -79,7 +79,7 @@ function ChecklistTemplatesPanel({
       setTimeout(() => setTemplateFlash(null), 2500);
     } catch (e) {
       console.error("Failed to save template:", e);
-      setTemplateFlash("Failed to save template. Please try again.");
+      setTemplateFlash("Couldn't save the template. Check your connection and try again.");
       setTimeout(() => setTemplateFlash(null), 4000);
     } finally {
       setTemplateSaving(false);
@@ -137,7 +137,7 @@ function ChecklistTemplatesPanel({
             value={templateName}
             onChange={e => setTemplateName(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") handleSaveTemplate(); if (e.key === "Escape") setShowSaveTemplate(false); }}
-            placeholder="Template name..."
+            placeholder="Template name…"
             style={{ fontSize: 12, border: "1px solid var(--bs-border)", background: "var(--bs-bg-input)", color: "var(--bs-text-secondary)", borderRadius: 6, padding: "6px 8px", outline: "none", width: "100%" }}
           />
           <div style={{ display: "flex", gap: 6 }}>
@@ -146,7 +146,7 @@ function ChecklistTemplatesPanel({
               disabled={templateSaving || !templateName.trim()}
               style={{ flex: 1, fontSize: 12, fontWeight: 500, background: "var(--bs-teal)", color: "#13151a", border: "none", borderRadius: 6, padding: "6px 0", cursor: templateSaving || !templateName.trim() ? "not-allowed" : "pointer", opacity: templateSaving || !templateName.trim() ? 0.5 : 1 }}
             >
-              {templateSaving ? "Saving..." : "Save"}
+              {templateSaving ? "Saving…" : "Save"}
             </button>
             <button
               onClick={() => setShowSaveTemplate(false)}
@@ -179,7 +179,7 @@ function ChecklistTemplatesPanel({
                 title="Apply this template to the current project"
                 style={{ fontSize: 11, fontWeight: 500, color: "var(--bs-teal)", background: "var(--bs-teal-dim)", border: "1px solid var(--bs-teal-border)", borderRadius: 5, padding: "3px 8px", cursor: applyingTemplateId === tpl._id ? "wait" : "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
               >
-                {applyingTemplateId === tpl._id ? "..." : "Apply"}
+                {applyingTemplateId === tpl._id ? "…" : "Apply"}
               </button>
               <button
                 onClick={() => handleDeleteTemplate(tpl._id as Id<"bidshield_checklist_templates">)}
@@ -455,7 +455,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
               <button
                 key={id}
                 onClick={() => setFilter(id)}
-                className="cursor-pointer transition-all"
+                className="cursor-pointer transition-colors"
                 style={{
                   height: 36, padding: "0 16px", fontSize: 13, background: "none", border: "none",
                   borderBottom: filter === id ? `2px solid var(--bs-teal)` : "2px solid transparent",
@@ -558,7 +558,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className="shrink-0" style={{ fontSize: 12, color: "var(--bs-text-dim)" }}>{(phase as any).items.length} items · {stats.pct}%</span>
                         <div className="w-20 h-[3px] rounded-full overflow-hidden shrink-0" style={{ background: "rgba(255,255,255,0.06)" }}>
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${stats.pct}%`, background: pctColor }} />
+                          <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${stats.pct}%`, background: pctColor }} />
                         </div>
                       </div>
                     </div>
@@ -700,7 +700,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                   {!isEditingThisNote && (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, isFlagged ? "pending" : "warning"); }}
-                                      className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded text-[12px] transition-all cursor-pointer"
+                                      className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded text-[12px] transition-colors cursor-pointer"
                                       style={{ background: isFlagged ? "var(--bs-red-dim)" : "rgba(255,255,255,0.04)", color: isFlagged ? "var(--bs-red)" : "var(--bs-text-dim)", border: `1px solid ${isFlagged ? "var(--bs-red-border)" : "var(--bs-border)"}` }}
                                     >
                                       ⚑ Flag
@@ -709,7 +709,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                   {!isEditingThisNote && (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); setEditingNote(rowKey); setNoteText(note); }}
-                                      className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded text-[12px] transition-all cursor-pointer"
+                                      className="shrink-0 h-8 px-3 flex items-center gap-1.5 rounded text-[12px] transition-colors cursor-pointer"
                                       style={{ background: "rgba(255,255,255,0.04)", color: "var(--bs-text-dim)", border: "1px solid var(--bs-border)" }}
                                     >
                                       {note ? "Edit note" : "Note"}
@@ -719,21 +719,21 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                     <>
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "na"); }}
-                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap cursor-pointer"
+                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-colors whitespace-nowrap cursor-pointer"
                                         style={{ background: "rgba(255,255,255,0.04)", color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)" }}
                                       >
                                         N/A
                                       </button>
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "rfi"); }}
-                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap cursor-pointer"
+                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-colors whitespace-nowrap cursor-pointer"
                                         style={{ background: "var(--bs-blue-dim)", color: "var(--bs-blue)", border: "1px solid var(--bs-blue-border)" }}
                                       >
                                         ? RFI
                                       </button>
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "done"); }}
-                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap cursor-pointer"
+                                        className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-colors whitespace-nowrap cursor-pointer"
                                         style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}
                                       >
                                         Done
@@ -742,7 +742,7 @@ export default function ChecklistTab({ projectId, isDemo, project, onNavigateTab
                                   ) : (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); setStatus(phaseKey, item.id, "pending"); }}
-                                      className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
+                                      className="shrink-0 h-8 rounded text-[12px] font-medium px-4 transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
                                       style={{ background: status === "done" ? "var(--bs-teal-dim)" : "rgba(255,255,255,0.04)", color: status === "done" ? "var(--bs-teal)" : "var(--bs-text-dim)", border: "1px solid var(--bs-border)" }}
                                       title="Click to undo"
                                     >

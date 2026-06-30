@@ -31,7 +31,7 @@ export default function ProjectTabBar({
     <div className="sticky top-16 z-40" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
       <div className="max-w-7xl mx-auto">
         {/* Phase tabs row */}
-        <div className="flex overflow-x-auto scrollbar-none">
+        <div role="tablist" aria-label="Bid phases" className="flex overflow-x-auto scrollbar-none">
           {PHASES.map((phase, idx) => {
             const isActive = idx === activePhaseIdx;
             const status = phaseStatuses?.find(s => s.id === phase.id);
@@ -42,7 +42,9 @@ export default function ProjectTabBar({
               <button
                 key={phase.id}
                 onClick={() => onTabChange(phase.defaultTab)}
-                className="relative flex items-center gap-2 px-4 py-3 text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 focus-visible:outline-none cursor-pointer"
+                role="tab"
+                aria-selected={isActive}
+                className="focus-ring relative flex items-center gap-2 px-4 py-3 text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 cursor-pointer"
                 style={{
                   color: isActive ? "var(--bs-teal)" : "var(--bs-text-muted)",
                   borderBottom: isActive ? "2px solid var(--bs-teal)" : "2px solid transparent",
@@ -67,7 +69,7 @@ export default function ProjectTabBar({
 
         {/* Sub-tabs row */}
         {stageSubTabs.length > 1 && (
-          <div className="flex overflow-x-auto scrollbar-none" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-bg-primary)" }}>
+          <div role="tablist" aria-label="Sub-tabs" className="flex overflow-x-auto scrollbar-none" style={{ borderTop: "1px solid var(--bs-border)", background: "var(--bs-bg-primary)" }}>
             {stageSubTabs.map((tab) => {
               if (!tab) return null;
               const isTabActive = activeTab === tab.id;
@@ -75,7 +77,9 @@ export default function ProjectTabBar({
                 <button
                   key={tab.id}
                   onClick={() => onTabChange(tab.id)}
-                  className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none"
+                  role="tab"
+                  aria-selected={isTabActive}
+                  className="focus-ring flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium whitespace-nowrap transition-colors cursor-pointer"
                   style={{
                     color: isTabActive ? "var(--bs-teal)" : "var(--bs-text-dim)",
                     borderBottom: isTabActive ? "2px solid var(--bs-teal)" : "2px solid transparent",

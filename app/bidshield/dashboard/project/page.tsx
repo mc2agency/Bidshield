@@ -1,6 +1,7 @@
 "use client";
 
-import React, { Suspense, useMemo, useCallback, useState, useEffect } from "react";
+import React, { Suspense, useMemo, useCallback, useState, useEffect, startTransition } from "react";
+import { ViewTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
@@ -65,11 +66,14 @@ function ProjectDetail() {
     const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "quotes"];
     const validateSubTabs: TabId[] = ["validator", "decisions"];
     const legacyEstimateTabs: TabId[] = ["estimate", "takeoff", "materials", "pricing", "labor", "generalconditions"];
-    if (documentSubTabs.includes(tab)) { setActiveTab("documents"); return; }
-    if (validateSubTabs.includes(tab)) { setActiveTab("validate"); return; }
-    if (legacyEstimateTabs.includes(tab)) { setActiveTab("validate"); return; }
-    if (tab === "overview") { setActiveTab("setup"); return; }
-    setActiveTab(tab);
+    // Map legacy/sub-tab IDs to the 5-phase preflight structure. Each switch is
+    // committed inside startTransition so the content panel crossfades (lateral
+    // fade — pattern #3; see design-reference/skills/view-transitions.md).
+    if (documentSubTabs.includes(tab)) { startTransition((): void => { setActiveTab("documents"); }); return; }
+    if (validateSubTabs.includes(tab)) { startTransition((): void => { setActiveTab("validate"); }); return; }
+    if (legacyEstimateTabs.includes(tab)) { startTransition((): void => { setActiveTab("validate"); }); return; }
+    if (tab === "overview") { startTransition((): void => { setActiveTab("setup"); }); return; }
+    startTransition((): void => { setActiveTab(tab); });
   }, []);
   const updateProject = useMutation(api.bidshield.updateProject);
   const [editingBidInline, setEditingBidInline] = useState(false);
@@ -162,7 +166,7 @@ function ProjectDetail() {
         grossRoofArea: 68000, totalBidAmount: 1250000, materialCost: 612000, laborCost: 488000 }
     : project;
 
-  const openTab = useCallback((tab: TabId) => setActiveTab(tab), []);
+  const openTab = useCallback((tab: TabId) => startTransition((): void => { setActiveTab(tab); }), []);
 
   const saveBidInline = async () => {
     const val = parseFloat(bidInlineValue.replace(/[^0-9.]/g, ""));
@@ -422,7 +426,7 @@ function ProjectDetail() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* ── PROJECT COMMAND BAR ── always visible, carries full context across all tabs */}
-        <div className="shrink-0" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
+        <div className="bs-command-bar shrink-0" style={{ background: "var(--bs-bg-secondary)", borderBottom: "1px solid var(--bs-border)" }}>
           {/* Row 1: slim breadcrumb */}
           <div className="flex items-center gap-1.5 px-5 py-1.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             {activeTab ? (
@@ -488,7 +492,7 @@ function ProjectDetail() {
           {/* Row 2: project identity — name + metadata chips + readiness ring + bid countdown */}
           <div className="flex items-center gap-4 px-5 py-3">
             <div className="flex-1 min-w-0">
-              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--bs-text-primary)", letterSpacing: "-0.3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div className="app-display" style={{ fontSize: 22, fontWeight: 700, color: "var(--bs-text-primary)", textTransform: "uppercase", letterSpacing: "0.01em", lineHeight: 1.05, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {projectData?.name ?? "Untitled Project"}
               </div>
               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -684,15 +688,21 @@ function ProjectDetail() {
                     Back
                   </button>
                 </div>
-                <div className="p-6">
-                  {activeTab === "setup"     && <TabErrorBoundary tabLabel="Intake"><SetupTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "documents" && <TabErrorBoundary tabLabel="Read"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "checklist" && <TabErrorBoundary tabLabel="Verify"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "submit"    && <TabErrorBoundary tabLabel="Submit"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
-                  {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
-                </div>
+                {/* Lateral fade between phase/sub-tabs (pattern #3). The keyed
+                    wrapper makes each switch an exit+enter crossfade; the swap is
+                    committed via startTransition in navigateTab/openTab so React
+                    drives a view transition. */}
+                <ViewTransition>
+                  <div key={activeTab} className="p-6">
+                    {activeTab === "setup"     && <TabErrorBoundary tabLabel="Intake"><SetupTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "documents" && <TabErrorBoundary tabLabel="Read"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "checklist" && <TabErrorBoundary tabLabel="Verify"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "submit"    && <TabErrorBoundary tabLabel="Submit"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "estimate"  && <TabErrorBoundary tabLabel="Pricing"><EstimateTab {...tabProps} /></TabErrorBoundary>}
+                  </div>
+                </ViewTransition>
               </>
             ) : (
               /* Overview — full-width card grid */
@@ -743,7 +753,7 @@ function ProjectDetail() {
                 <div style={{ display: "flex", alignItems: "stretch", background: "var(--bs-bg-card)", borderRadius: 14, border: "1px solid var(--bs-border)", overflow: "hidden", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 6px 16px rgba(0,0,0,0.05)" }}>
                   {/* Deadline cell */}
                   <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)", background: msUntilBid !== null && msUntilBid <= 0 ? "var(--bs-red-dim)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber-dim)" : "transparent" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Bid Deadline</div>
+                    <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Bid Deadline</div>
                     <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", color: msUntilBid !== null && (msUntilBid <= 0 || hoursUntilBid! <= 4) ? "var(--bs-red)" : msUntilBid !== null && hoursUntilBid! <= 24 ? "var(--bs-amber)" : "var(--bs-text-primary)" }}>
                       {msUntilBid === null ? "—" : msUntilBid <= 0 ? "Past due" : (daysUntilBid ?? 0) > 1 ? `${daysUntilBid}d` : formatCountdown(msUntilBid)}
                     </div>
@@ -753,7 +763,7 @@ function ProjectDetail() {
                   </div>
                   {/* Open Items cell */}
                   <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 4 }}>Open Items</div>
+                    <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 4 }}>Open Items</div>
                     <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: actionItems.length > 0 ? (blockerCount > 0 ? "var(--bs-red)" : "var(--bs-amber)") : "var(--bs-teal)", fontVariantNumeric: "tabular-nums" }}>
                       {actionItems.length > 0 ? actionItems.length : "✓"}
                     </div>
@@ -764,7 +774,7 @@ function ProjectDetail() {
                   {/* Roof area cell */}
                   {grossArea ? (
                     <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Roof Area</div>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Roof Area</div>
                       <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>{Number(grossArea).toLocaleString()}</div>
                       <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>sq. ft.</div>
                     </div>
@@ -772,7 +782,7 @@ function ProjectDetail() {
                   {/* Bid amount cell */}
                   {bidAmt ? (
                     <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Bid Amount</div>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Bid Amount</div>
                       <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-text-primary)", fontVariantNumeric: "tabular-nums" }}>
                         {bidAmt >= 1_000_000 ? `$${(bidAmt / 1_000_000).toFixed(1)}M` : `$${Math.round(bidAmt / 1_000)}k`}
                       </div>
@@ -782,14 +792,14 @@ function ProjectDetail() {
                   {/* Docs cell — shown when specs are uploaded */}
                   {(projectSpecs?.length ?? 0) > 0 && (
                     <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, borderRight: "1px solid var(--bs-border)" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Docs</div>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Docs</div>
                       <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: "var(--bs-teal)", fontVariantNumeric: "tabular-nums" }}>{projectSpecs?.length}</div>
                       <div style={{ fontSize: 10, color: "var(--bs-text-dim)", marginTop: 4 }}>uploaded</div>
                     </div>
                   )}
                   {/* Readiness cell — replaces redundant Status cell */}
                   <div style={{ flex: "1 1 0", padding: "14px 18px", minWidth: 0, background: readinessScore >= 75 ? "var(--bs-teal-dim)" : readinessScore >= 40 ? "var(--bs-amber-dim)" : readinessScore > 0 ? "var(--bs-red-dim)" : "transparent" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Readiness</div>
+                    <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 5 }}>Readiness</div>
                     <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums", color: readinessColor }}>
                       {readinessScore > 0 ? `${readinessScore}%` : "—"}
                     </div>
@@ -817,7 +827,7 @@ function ProjectDetail() {
                   });
                   return (
                     <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--bs-text-dim)", marginBottom: 8 }}>
+                      <div className="bs-annotation" style={{ fontSize: 10, fontWeight: 700, color: "var(--bs-text-dim)", marginBottom: 8 }}>
                         {items.length === 1 ? "Roof System" : `${items.length} Roof Assemblies`}
                       </div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>

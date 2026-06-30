@@ -260,6 +260,22 @@
   /* Active nav items use .bs-nav-item-active overrides below */
 }
 
+/* ── Command-bar scope — the project header is always navy, like the
+   sidebar, so its text tokens must stay light in BOTH themes. Without this,
+   light mode resolves --bs-text-* to near-black → invisible on navy. ── */
+.bs-command-bar {
+  --bs-bg-secondary: var(--navy-900);
+  --bs-bg-card:      var(--navy-700);
+  --bs-bg-elevated:  var(--navy-700);
+  --bs-border:       rgba(255,255,255,0.12);
+  --bs-border-hover: rgba(255,255,255,0.20);
+
+  --bs-text-primary:   #FFFFFF;
+  --bs-text-secondary: #D4E2F4;
+  --bs-text-muted:     #B6C4D8;
+  --bs-text-dim:       #8499B4;
+}
+
 /* ── Tailwind @theme ─────────────────────────────────────────── */
 @theme inline {
   --color-background: var(--background);
@@ -269,6 +285,11 @@
 }
 
 /* ── Base ────────────────────────────────────────────────────── */
+/* color-scheme so native scrollbars/inputs match the theme (WIG) */
+:root,
+[data-theme="light"] { color-scheme: light; }
+[data-theme="dark"]  { color-scheme: dark; }
+
 body {
   background: var(--bs-bg-primary);
   color: var(--bs-text-secondary);
@@ -295,6 +316,12 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  /* Disable route view transitions for reduced-motion users (Step 7) */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 
@@ -462,3 +489,75 @@ body {
   letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   BLUEPRINT IDENTITY  — drafting/takeoff motif (additive layer)
+   Signature for BidShield: gridlines, mono dimension annotations,
+   redline "gap caught" callouts, hi-vis safety-amber warnings.
+   Accent discipline: green = pass/ready, hi-vis = warning,
+   red/redline = blocker/gap, blue (--bs-teal) = primary action.
+   ════════════════════════════════════════════════════════════════ */
+:root,
+[data-theme="light"] {
+  --bs-grid-line:        rgba(37,99,235,0.06);
+  --bs-grid-line-strong: rgba(37,99,235,0.10);
+  --bs-redline:          #DC2626;
+  --bs-redline-dim:      rgba(220,38,38,0.07);
+  --bs-annotation:       var(--text-mut);
+  --bs-hivis:            #F59E0B;            /* canonical warning */
+  --bs-hivis-dim:        var(--warn-50);
+}
+[data-theme="dark"] {
+  --bs-grid-line:        rgba(96,165,250,0.07);
+  --bs-grid-line-strong: rgba(96,165,250,0.12);
+  --bs-redline:          #F87171;
+  --bs-redline-dim:      rgba(248,113,113,0.10);
+  --bs-annotation:       var(--text-3);
+  --bs-hivis:            #FBBF24;
+  --bs-hivis-dim:        var(--warn-50);
+}
+
+/* Drafting-grid backdrop — the signature motif (apply to hero/section bg) */
+.bs-blueprint-grid {
+  background-image:
+    linear-gradient(var(--bs-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bs-grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.bs-blueprint-grid-fine {
+  background-image:
+    linear-gradient(var(--bs-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bs-grid-line) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Mono dimension annotation — reads like a takeoff sheet (SF, squares, due) */
+.bs-annotation {
+  font-family: var(--bs-font-mono);
+  font-size: var(--bs-font-size-xs);
+  letter-spacing: 0.3px;
+  color: var(--bs-annotation);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+/* Redline "gap caught" callout — the thing BidShield catches before the GC */
+.bs-redline {
+  border-left: 2px solid var(--bs-redline);
+  background: var(--bs-redline-dim);
+  font-family: var(--bs-font-mono);
+  font-size: var(--bs-font-size-sm);
+  color: var(--bs-text-secondary);
+  padding: 6px 10px;
+}
+.bs-redline-tag {
+  font-family: var(--bs-font-mono);
+  font-size: var(--bs-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--bs-redline);
+}
+
+/* Canonical warning surfaces — hi-vis safety amber */
+.bs-badge-hivis { background: var(--bs-hivis-dim); color: var(--bs-hivis); }
+.bs-alert-hivis { background: var(--bs-hivis-dim); border-left-color: var(--bs-hivis); }

@@ -64,7 +64,7 @@ function ContactPageContent() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
               Contact
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Us</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-400">Us</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300">
               Questions about our tools, templates, or BidShield Pro access? We&apos;re here to help.

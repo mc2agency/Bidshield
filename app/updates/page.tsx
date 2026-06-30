@@ -76,7 +76,7 @@ export default function UpdatesPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
               Product
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Updates</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-400">Updates</span>
             </h1>
             <p className="text-xl sm:text-2xl text-slate-300 max-w-3xl mx-auto">
               We continuously improve our tools based on user feedback and industry changes.

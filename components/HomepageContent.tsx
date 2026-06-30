@@ -36,7 +36,7 @@ function Reveal({ children, className = '', delay = 0 }: {
 // ── Hero app mockup ──────────────────────────────────────────────────────────
 function HeroMockup() {
   return (
-    <div className="relative">
+    <div className="relative" aria-hidden="true">
       {/* Ambient glow */}
       <div className="absolute -inset-6 bg-emerald-500/8 rounded-3xl blur-3xl pointer-events-none" />
       {/* Browser chrome */}
@@ -141,9 +141,13 @@ function HeroMockup() {
                 </div>
               ))}
             </div>
-            {/* Alert */}
-            <div className="mt-2 px-3 py-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 text-[9px] text-amber-400 font-mono">
-              ⚠ 2 addenda not confirmed · Phase 10
+            {/* Redline "gap caught" callout — the signature moment */}
+            <div className="mt-2 flex items-stretch gap-0 rounded-lg overflow-hidden border border-red-500/25 bg-red-500/[0.06]">
+              <div className="w-[2px] bg-red-500 shrink-0" />
+              <div className="px-3 py-1.5 font-mono text-[9px] leading-tight">
+                <span className="text-red-400 font-semibold uppercase tracking-wider">Gap caught</span>
+                <span className="text-slate-400"> · 2 addenda not confirmed · Phase 10</span>
+              </div>
             </div>
           </div>
         </div>
@@ -297,16 +301,37 @@ export default function HomepageContent() {
         {/*  HERO — 2-column with app mockup                           */}
         {/* ─────────────────────────────────────────────────────────── */}
         <section className="relative bg-slate-950 text-white overflow-hidden">
-          {/* Atmospheric background */}
+          {/* Blueprint drafting backdrop — the signature motif (bold) */}
           <div className="absolute inset-0 pointer-events-none">
-            {/* Fine grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.016)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.016)_1px,transparent_1px)] bg-[size:48px_48px]" />
+            {/* Coarse drafting grid (blueprint blue) — full strength */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,.16)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.16)_1px,transparent_1px)] bg-[size:120px_120px]" />
+            {/* Fine sub-grid */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
+            {/* Soft vignette so copy stays legible, grid still visible */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,transparent_0%,rgba(2,6,23,0.55)_70%)]" />
+
+            {/* Dimension annotation — top measurement run with end ticks */}
+            <div className="absolute top-10 left-8 right-8 hidden md:flex items-center gap-2 text-sky-400/50">
+              <span className="h-2.5 w-px bg-sky-400/50" />
+              <span className="flex-1 h-px bg-sky-400/30" />
+              <span className="bs-mono text-[10px] tracking-widest text-sky-400/70 px-2">42,800 SF · FIELD AREA</span>
+              <span className="flex-1 h-px bg-sky-400/30" />
+              <span className="h-2.5 w-px bg-sky-400/50" />
+            </div>
+
+            {/* Draftsman title block — bottom-right corner */}
+            <div className="absolute bottom-6 right-6 hidden lg:block bs-mono text-[10px] leading-tight text-sky-300/60 border border-sky-400/25 rounded-sm overflow-hidden">
+              <div className="px-3 py-1 border-b border-sky-400/20 bg-sky-400/[0.04] text-sky-300/80 tracking-widest">DWG&nbsp;·&nbsp;BID-QA-18</div>
+              <div className="grid grid-cols-2 divide-x divide-sky-400/20">
+                <div className="px-3 py-1">SCALE&nbsp;1:1</div>
+                <div className="px-3 py-1">REV&nbsp;C</div>
+              </div>
+            </div>
+
             {/* Top edge line */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
             {/* Left glow */}
-            <div className="absolute top-1/4 -left-32 w-[600px] h-[600px] bg-emerald-700/6 rounded-full blur-[120px]" />
-            {/* Right glow */}
-            <div className="absolute bottom-0 right-0 w-[400px] h-[500px] bg-teal-700/5 rounded-full blur-[100px]" />
+            <div className="absolute top-1/4 -left-32 w-[600px] h-[600px] bg-emerald-700/8 rounded-full blur-[120px]" />
           </div>
 
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
@@ -324,16 +349,16 @@ export default function HomepageContent() {
                 </div>
 
                 {/* Headline — Barlow Condensed */}
-                <h1 className="bs-display text-[clamp(3.5rem,8vw,5.5rem)] font-bold uppercase leading-[0.9] mb-6">
+                <h1 className="bs-display text-pretty text-[clamp(3.5rem,8vw,5.5rem)] font-bold uppercase leading-[0.9] mb-6">
                   Submit Every Bid
                   <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
+                  <span className="text-emerald-400">
                     With Confidence.
                   </span>
                 </h1>
 
                 <p className="text-lg text-slate-300 mb-8 max-w-lg leading-relaxed">
-                  BidShield is the last thing you do before a bid goes out. AI-powered scope verification, addenda tracking, and a systematic preflight checklist — so nothing gets missed on deadline day.
+                  BidShield is the last thing you do before a bid goes out. AI-powered scope verification, addenda tracking, and a systematic preflight checklist, so nothing gets missed on deadline day.
                 </p>
 
                 {/* Waitlist email capture */}
@@ -346,7 +371,7 @@ export default function HomepageContent() {
                   href="/bidshield/demo"
                   className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
                   </svg>
                   See the live demo first

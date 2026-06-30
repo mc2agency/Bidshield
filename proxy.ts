@@ -26,8 +26,14 @@ const isPublicRoute = createRouteMatcher([
   "/api/demo-email(.*)",
 ]);
 
+// Demo mode (?demo=true) is no-auth-by-design: the dashboard client layout
+// renders read-only demo data when isDemo, so skip the Clerk protect() that
+// would otherwise redirect to /sign-in (and loop if instance keys are stale).
+const isDemoRequest = (req: Request) =>
+  new URL(req.url).searchParams.get("demo") === "true";
+
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
+  if (!isPublicRoute(req) && !isDemoRequest(req)) {
     await auth.protect();
   }
 });

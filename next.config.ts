@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
   // instead of importing the entire package.
   experimental: {
     optimizePackageImports: ["lucide-react", "@heroicons/react"],
+    // Enables React's <ViewTransition> for animated route changes (Step 7).
+    viewTransition: true,
   },
 
   images: {
