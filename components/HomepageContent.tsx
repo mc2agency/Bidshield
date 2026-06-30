@@ -345,7 +345,7 @@ export default function HomepageContent() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                   </span>
-                  Early Access · Limited Spots · Commercial Roofing Estimators
+                  Now Open · Free Trial · Commercial Roofing Estimators
                 </div>
 
                 {/* Headline — Barlow Condensed */}
@@ -365,7 +365,7 @@ export default function HomepageContent() {
                 <div className="mb-4">
                   <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
                 </div>
-                <p className="text-xs text-slate-500 mb-10">No credit card. No commitments. We&apos;ll reach out with access details.</p>
+                <p className="text-xs text-slate-500 mb-10">No credit card. No commitments. Start free today.</p>
 
                 <Link
                   href="/bidshield/demo"
@@ -523,7 +523,7 @@ export default function HomepageContent() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <Reveal>
               <div className="rounded-2xl border border-slate-700 p-10 sm:p-14" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #0a1628 100%)' }}>
-                <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest bs-mono mb-4">Early Access</div>
+                <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest bs-mono mb-4">Free Trial</div>
                 <h2 className="bs-display text-5xl font-bold text-white uppercase mb-4">
                   Join the <span className="text-emerald-400">Waitlist.</span>
                   <br />Shape the Product.
@@ -549,7 +549,7 @@ export default function HomepageContent() {
                 </svg>
               </div>
               <h2 className="bs-display text-4xl font-bold text-white uppercase mb-3">
-                Get Early Access
+                >Start Free Trial<
               </h2>
               <p className="text-slate-400 mb-8 max-w-xl mx-auto">
                 Be first in line when BidShield opens. We&apos;re working with a small group of estimators before public launch — if that&apos;s you, request your spot.
