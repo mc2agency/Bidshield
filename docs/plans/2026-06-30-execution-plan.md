@@ -1,108 +1,120 @@
 # BidShield — Execution Plan
-**Date:** June 30, 2026
-**Goal:** Get from "app that exists" to "app that has paying users" in 60 days
+**Updated:** June 30, 2026
+**Goal:** Fix what's broken, then get paying users. In that order.
 **North Star:** docs/PRODUCT_STRATEGY.md
 
 ---
 
-## The Gap We're Filling
+## What We Know Now (From Research + Audit)
 
-Commercial roofing estimators use The EDGE + Bluebeam + Excel.
-None of those tools have a pre-submission QA layer.
-The only "tools" they have today are PDF checklists and sticky notes.
-BidShield is the first purpose-built bid preflight tool for commercial roofing.
+### The market gap is real
+- No dedicated bid preflight tool exists for commercial roofing
+- Estimators use The EDGE + Bluebeam + Excel — they don't need another estimating tool
+- They need a QA gate AFTER estimating is done
+- Single missed mechanical curb = $30K–$80K loss
+- $31B/year in rework from scope gaps
 
-**We don't need to build more. We need to focus and sell.**
+### The core is solid
+- 18-phase checklist is accurate and domain-specific
+- `scan-spec-alignment` AI is architecturally correct
+- `check-addendum-impact` is a direct research fit
+- Readiness score + go/no-go gate is the right pattern
+
+### What's broken or misaligned
+- Invalid model ID breaks core AI for all Pro users (P0)
+- Stripe bug means users can pay and not get Pro access (P0)
+- Free tier blocks users after no_award status (P0)
+- Onboarding emails silently failing (P0)
+- Validator scoring penalizes checklist-only users (Architecture)
+- Entry point requires re-entering data from The EDGE (Architecture)
+- Frontend positioning still says "estimating tool" in places (Cleanup)
 
 ---
 
-## Phase 1 — Clean Up (Week 1–2)
-*Goal: Make the app match the product strategy. No new features.*
+## Phase 1 — Fix What's Broken (Week 1–2)
+*Nothing else matters until the app actually works.*
 
-| Task | ID | Priority |
-|------|----|----------|
-| Hide estimating tabs from UI (EstimateTab, LaborTab, MaterialsTab, TakeoffTab, PricingTab, GeneralConditionsTab) | t_e484fe62 | 🔴 High |
-| Rewrite homepage copy — position as QA/preflight, not estimating | t_9fd8e4be | 🔴 High |
-| Add Calendly / booking link once account is created | t_aac4dc85 | 🟡 Medium |
-| Set up git coding conventions and branch naming | t_48029d25 | 🟢 Low |
-| Create project AGENTS.md for Hermes to work autonomously | t_21cf15e5 | 🟢 Low |
+### P0 — Breaks the app right now
+| Task | ID | Time |
+|------|----|------|
+| Fix invalid `claude-sonnet-4-6` model ID — breaks addendum AI + spec alignment | t_a6a5490a | 15 min |
+| Fix Stripe idempotency — users pay, don't get Pro | t_3a4c3fd4 | 30 min |
+| Fix `no_award` free tier blocker | t_a038cd4e | 15 min |
+| Fix RESEND_API_KEY silent email failure | t_5e6b1ea5 | 30 min |
+| Fix `extract-assemblies` max_tokens truncation | t_59b3d4c6 | 20 min |
 
-**Done when:** A roofing estimator lands on bidshield.co and immediately understands it's a bid QA tool, not estimating software.
+### Architecture — App feels wrong to real users
+| Task | ID | Time |
+|------|----|------|
+| Fix Validator scoring — remove estimating weight for checklist-only users | t_00d39041 | 1 hr |
+| Move EDGE/Excel import to project creation step 1 | t_61b40908 | 2 hr |
+| Deprecate estimating tables from readiness scoring | t_34830f4f | 1 hr |
+
+### Frontend cleanup — App says wrong things
+| Task | ID | Time |
+|------|----|------|
+| Fix About page — "as you build" → "after your bid is built" | t_3cfad422 | 15 min |
+| Fix About page — assembly suggestion → assembly verification | t_390b751c | 15 min |
+| Fix About page — "Input your takeoff" → audit language | t_81cf8e79 | 15 min |
+| Fix Footer — "workflow tool" → "preflight tool" | t_ea79afa0 | 10 min |
+| Fix Sign-up headline — "Start Building Today" is off-brand | t_44dad08a | 10 min |
+| Add "works alongside The EDGE/Bluebeam" to homepage + About | t_22a44a99 | 20 min |
+| Add dollar loss stat above fold on homepage | t_50345789 | 20 min |
+| Rename phases 11-15 to Verification/Audit language | t_73da59fd | 20 min |
+
+**Done when:** App works, Pro features work, new users get emails, checklist-only score is accurate.
 
 ---
 
 ## Phase 2 — Validate (Week 3–4)
-*Goal: Get 5–10 real commercial roofing estimators using the app on live bids.*
+*Get 5–10 real commercial roofing estimators using it on live bids.*
 
-| Task | Priority |
-|------|----------|
-| Find 10 commercial roofing estimators (LinkedIn, Reddit r/estimators, roofing associations) | 🔴 High |
-| Reach out with a direct, honest message — offer free access, ask for 30 min feedback | 🔴 High |
-| Set up a simple onboarding email sequence (Resend — already in stack) | 🟡 Medium |
-| Track who signs up and follows through vs. drops off | 🟡 Medium |
+| Task | ID |
+|------|----|
+| Find 10 commercial roofing estimators (Reddit r/estimators, roofing associations, LinkedIn) | t_ac62c2e9 |
+| Write outreach message — offer free access, ask for 30min feedback | t_277752d2 |
+| Set up onboarding email sequence via Resend | t_ce03969b |
+| Track signups — who completes a full review vs. drops off | t_b23001f1 |
 
-**Done when:** 5 estimators have run at least one real bid through BidShield.
+**Done when:** 5 estimators have run a real bid through BidShield.
 
 ---
 
 ## Phase 3 — Listen & Fix (Week 5–6)
-*Goal: Fix only what blocks real users. No feature additions.*
+*Fix only what blocks real users. No new features.*
 
-| Task | Priority |
-|------|----------|
-| Talk to the 5 users — what phase do they get stuck on? | 🔴 High |
-| Fix the top 3 friction points they identify | 🔴 High |
-| Verify AI addenda analysis works end-to-end on a real PDF | 🟡 Medium |
-| Fix validator tab — make pass/fail per-rule visible | 🟡 Medium |
-| Remove debug console.logs if any remain in production | 🟢 Low |
+| Task | ID |
+|------|----|
+| Interview 5 users — what phase do they get stuck on? | t_ec3d1d32 |
+| Fix top 3 friction points from user feedback | t_cf3fd9b7 |
+| Verify AI addenda analysis works end-to-end on a real PDF | t_e6c824e8 |
 
-**Done when:** Users can complete a full 18-phase bid review without hitting a wall.
+**Done when:** Users can complete a full 18-phase review without hitting a wall.
 
 ---
 
 ## Phase 4 — Charge (Week 7–8)
-*Goal: Convert at least 3 users to paid.*
+*Convert at least 3 users to paid.*
 
-| Task | Priority |
-|------|----------|
-| Confirm Stripe checkout works end-to-end (test a real transaction) | 🔴 High |
-| Email free users — explain the value, make the ask | 🔴 High |
-| Set pricing anchor: free tier (1 project) vs. Pro ($X/month, unlimited) | 🟡 Medium |
-| Create Calendly for demo calls (set up account first) | 🟡 Medium |
+| Task | ID |
+|------|----|
+| Test Stripe checkout end-to-end with a real transaction | t_e5347425 |
+| Email free users — explain value, make the paid upgrade ask | t_4fc6a376 |
+| Confirm pricing — free (1 project) vs Pro (unlimited) | t_7cb2e221 |
 
-**Done when:** 3 paying customers. That's proof the problem is real.
+**Done when:** 3 paying customers.
 
 ---
 
-## Hermes Automation Running in Background
-
+## Hermes Automation
 | Job | Schedule | Status |
 |-----|----------|--------|
 | Morning briefing with open kanban tasks | Daily 6am ET | ✅ Active |
-| (Future) Weekly outreach report | Weekly Monday | Pending |
-| (Future) Monitor r/estimators for leads | Daily | Pending |
 
 ---
 
-## What We Are NOT Doing
-
-- ❌ Building new features before getting 10 users
-- ❌ Adding more AI tools until core checklist is validated
-- ❌ Redesigning the UI
-- ❌ Building a mobile app
-- ❌ Adding more estimating features
-
----
-
-## Success Metrics
-
-| Week | Target |
-|------|--------|
-| Week 2 | App focused — estimating tabs hidden, homepage rewritten |
-| Week 4 | 5 real estimators using it on live bids |
-| Week 6 | Users can complete full 18-phase review without blockers |
-| Week 8 | 3 paying customers |
-
----
-
-*Review this plan every Monday. If something isn't moving, cut it or simplify it.*
+## Rules
+- Fix before sell — don't send users to a broken app
+- Don't build new features until Phase 3 feedback
+- Every task goes through kanban — nothing ad hoc
+- Check `docs/PRODUCT_STRATEGY.md` before any code change
