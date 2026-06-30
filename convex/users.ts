@@ -245,7 +245,7 @@ export const countActiveProjects = internalQuery({
       .collect();
 
     const active = projects.filter(
-      (p) => p.status !== "won" && p.status !== "lost" && p.status !== "no_bid"
+      (p) => p.status !== "won" && p.status !== "lost" && p.status !== "no_bid" && p.status !== "no_award"
     );
     return active.length;
   },

@@ -279,7 +279,7 @@ export async function POST(req: NextRequest) {
     try {
       message = await client.messages.create(
         {
-          model: "claude-sonnet-4-6",
+          model: "claude-sonnet-4-5-20251001",
           max_tokens: 8192,
           system: V2_SYSTEM_PROMPT,
           messages: [

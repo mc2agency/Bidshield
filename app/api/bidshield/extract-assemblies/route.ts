@@ -314,7 +314,7 @@ IMPORTANT:
       message = await client.messages.create(
         {
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 2048,
+          max_tokens: 4096,
           system: systemPrompt,
           messages: [
             {
@@ -333,6 +333,16 @@ IMPORTANT:
     }
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
+
+    // Guard against truncated responses — if model hit token limit, JSON will be incomplete
+    if (message.stop_reason === "max_tokens") {
+      console.warn("[extract-assemblies-truncated]", { userId, stop_reason: "max_tokens" });
+      return NextResponse.json(
+        { error: "Drawing too complex to extract in one pass. Try uploading a single page or a cropped assembly schedule." },
+        { status: 422 },
+      );
+    }
+
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
 
     let data: any;

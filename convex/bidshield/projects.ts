@@ -88,7 +88,7 @@ export const createProject = mutation({
         .query("bidshield_projects")
         .withIndex("by_user", (q) => q.eq("userId", args.userId))
         .collect();
-      const active = existing.filter((p) => p.status !== "won" && p.status !== "lost" && p.status !== "no_bid");
+      const active = existing.filter((p) => p.status !== "won" && p.status !== "lost" && p.status !== "no_bid" && p.status !== "no_award");
       if (active.length >= 1) throw new Error("Free plan limit: upgrade to Pro for unlimited projects");
     }
 

@@ -117,7 +117,7 @@ Return only the JSON array. No explanation, no markdown fences.`;
     try {
       message = await client.messages.create(
         {
-          model: "claude-sonnet-4-6",
+          model: "claude-sonnet-4-5-20251001",
           max_tokens: 8192,
           system: systemPrompt,
           messages: [

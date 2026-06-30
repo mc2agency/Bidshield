@@ -157,7 +157,7 @@ function getEmailContent(day: number, firstName: string): { subject: string; htm
             <li>All 8 Excel estimating templates</li>
           </ul>
           <div class="callout">
-            <p>One prevented scope gap on a $2M bid pays for <strong>16+ years</strong> of BidShield Pro at $149/month.</p>
+            <p>One prevented scope gap on a $2M bid pays for <strong>8+ years</strong> of BidShield Pro at $249/month.</p>
           </div>
           <a href="${PRICING_URL}" class="cta">Start 14-Day Free Trial — No Card Required</a>
           <p>Cancel anytime. Your data stays accessible until the end of your billing period.</p>

@@ -165,7 +165,7 @@ Return only the JSON object.`;
     try {
       message = await client.messages.create(
         {
-          model: "claude-sonnet-4-6",
+          model: "claude-sonnet-4-5-20251001",
           max_tokens: 8192,
           system: systemPrompt,
           messages: [{ role: "user", content: `Analyze this roofing scope and generate a labor breakdown:\n\n${description}` }],
