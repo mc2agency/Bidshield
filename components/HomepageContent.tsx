@@ -549,7 +549,7 @@ export default function HomepageContent() {
                 </svg>
               </div>
               <h2 className="bs-display text-4xl font-bold text-white uppercase mb-3">
-                >Start Free Trial<
+                Start Free Trial
               </h2>
               <p className="text-slate-400 mb-8 max-w-xl mx-auto">
                 Be first in line when BidShield opens. We&apos;re working with a small group of estimators before public launch — if that&apos;s you, request your spot.
