@@ -741,7 +741,7 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
                     borderLeft: "3px solid var(--bs-teal)",
                   }}
                 >
-                  BidShield runs a preflight check on your completed estimate — catching scope gaps before your bid goes out.
+                  The last thing you do before a bid goes out. BidShield is a preflight QA gate on top of The EDGE, Bluebeam, and Excel — it catches the scope gaps estimating software misses.
                 </p>
               )}
               <div className="space-y-4">

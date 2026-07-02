@@ -713,10 +713,10 @@ function ProjectDetail() {
                           >
                             <div className="flex-1">
                               <div className="text-sm font-semibold mb-1" style={{ color: "var(--bs-text-primary)" }}>
-                                Start here — this is your preflight checklist
+                                Start here — your preflight checklist
                               </div>
                               <div className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>
-                                Work through these items to catch scope gaps before your bid goes out. This VERIFY tab is the heart of your bid preflight — everything else supports it.
+                                Work through these items to catch the scope gaps estimating software misses, before your bid goes out. This VERIFY tab is the heart of your bid preflight.
                               </div>
                             </div>
                             <button
