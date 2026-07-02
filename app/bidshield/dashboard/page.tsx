@@ -898,8 +898,10 @@ function DashboardContent() {
         console.error("[V2 persist error]", e);
       }
     }
-    // Use full page navigation to ensure Clerk re-initialises with a fresh JWT
-    window.location.href = `/bidshield/dashboard/project?id=${projectId}`;
+    // Use full page navigation to ensure Clerk re-initialises with a fresh JWT.
+    // On the user's first project, pass welcome=1 so the project page opens on the
+    // VERIFY (checklist) tab with a "start here" callout.
+    window.location.href = `/bidshield/dashboard/project?id=${projectId}${isFirst ? "&welcome=1" : ""}`;
   };
 
   const handleEditSetup = (id: Id<"bidshield_projects">) => {
