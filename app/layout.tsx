@@ -4,7 +4,7 @@
  * BidShield is a bid quality-assurance platform for commercial subcontractors.
  * It helps estimators catch mistakes before they cost money.
  *
- * Core product: guided 5-phase bidding workflow with readiness scoring
+ * Core product: 18-phase bid preflight / QA gate with readiness scoring
  * Target: commercial roofing estimators (expandable to other trades)
  * Companion tool: sits alongside The EDGE / STACK / Excel
  */
@@ -33,11 +33,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
+    default: "BidShield — Bid Preflight & QA for Commercial Roofing Estimators",
     template: "%s | BidShield",
   },
-  description: "BidShield is the structured bid workflow tool for commercial roofing estimators. 18-phase checklist, Material Reconciliation, Labor Verification, and GC Bid Forms — from first plan review to final submission.",
-  keywords: ["commercial roofing bid checklist", "roofing bid workflow tool", "commercial roofing estimator software", "material reconciliation roofing", "labor verification roofing", "GC bid form prep", "roofing pre-submission review", "BidShield", "18-phase bid checklist roofing"],
+  description: "BidShield is the bid preflight tool for commercial roofing estimators — a pre-submission QA gate on top of The EDGE, Bluebeam, and Excel. An 18-phase, 135-item checklist that catches the scope gaps estimating software misses before your bid goes out.",
+  keywords: ["commercial roofing bid preflight", "bid preflight tool", "pre-submission bid review roofing", "commercial roofing bid QA", "scope gap detection", "material reconciliation roofing", "labor verification roofing", "GC bid form prep", "BidShield", "18-phase bid checklist roofing"],
   authors: [{ name: "BidShield" }],
   creator: "BidShield",
   publisher: "BidShield",
@@ -47,21 +47,21 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://www.bidshield.co",
     siteName: "BidShield",
-    title: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
-    description: "The structured workflow commercial roofing estimators run from first plan review to final submission. 18-phase checklist, AI material extraction, labor verification, and GC bid form prep.",
+    title: "BidShield — Bid Preflight & QA for Commercial Roofing Estimators",
+    description: "The pre-submission QA gate commercial roofing estimators run before a bid goes out — on top of The EDGE, Bluebeam, and Excel. 18-phase checklist that catches the scope gaps estimating software misses.",
     images: [
       {
         url: "/api/og",
         width: 1200,
         height: 630,
-        alt: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
+        alt: "BidShield — Bid Preflight & QA for Commercial Roofing Estimators",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BidShield — Bid Workflow Tool for Commercial Roofing Estimators",
-    description: "The structured workflow commercial roofing estimators run from first plan review to final submission. 18-phase checklist, AI material extraction, labor verification, and GC bid form prep.",
+    title: "BidShield — Bid Preflight & QA for Commercial Roofing Estimators",
+    description: "The pre-submission QA gate commercial roofing estimators run before a bid goes out — on top of The EDGE, Bluebeam, and Excel. 18-phase checklist that catches the scope gaps estimating software misses.",
     images: ["/api/og"],
   },
   robots: {
@@ -109,7 +109,7 @@ export default function RootLayout({
               "name": "BidShield",
               "url": "https://www.bidshield.co",
               "logo": "https://www.bidshield.co/bidshield-logo.jpg",
-              "description": "Bid workflow tool for commercial roofing estimators.",
+              "description": "Bid preflight tool for commercial roofing estimators.",
               "sameAs": [],
               "contactPoint": {
                 "@type": "ContactPoint",

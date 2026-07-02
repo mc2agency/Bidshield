@@ -51,7 +51,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
-              The bid workflow tool for commercial roofing estimators.
+              The bid preflight tool for commercial roofing estimators.
             </p>
             <div className="flex gap-4 pt-2">
               <a href="https://www.linkedin.com/company/bidshield" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors" aria-label="LinkedIn">

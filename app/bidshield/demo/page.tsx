@@ -3,8 +3,8 @@ import Link from "next/link";
 import DemoGate from "./DemoGate";
 
 export const metadata: Metadata = {
-  title: 'BidShield Demo — Live Bid Workflow Preview',
-  description: 'Try BidShield free — no sign-up required. Walk through the 18-phase bid workflow, Material Reconciliation, Labor Verification, and Bid Validator with real demo data.',
+  title: 'BidShield Demo — Live Bid Preflight Preview',
+  description: 'Try BidShield free — no sign-up required. Walk through the 18-phase bid preflight, Material Reconciliation, Labor Verification, and Bid Validator with real demo data.',
   alternates: { canonical: 'https://www.bidshield.co/bidshield/demo' },
 };
 
