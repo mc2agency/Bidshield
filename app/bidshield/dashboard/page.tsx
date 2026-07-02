@@ -181,23 +181,28 @@ function WelcomeCard({ onNewBid, onDismiss }: { onNewBid: () => void; onDismiss:
         onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"} aria-label="Dismiss">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
       </button>
-      <h2 className="text-xl font-bold mb-2" style={{ color: "var(--bs-text-primary)" }}>Welcome to BidShield</h2>
-      <p className="text-sm mb-6" style={{ color: "var(--bs-text-muted)" }}>Start your first bid review to catch what estimating software misses.</p>
+      <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--bs-text-primary)" }}>Catch what&apos;s missing before the bid goes out.</h2>
+      <p className="text-sm mb-6 max-w-md mx-auto" style={{ color: "var(--bs-text-muted)" }}>BidShield walks you through every phase of your bid — so nothing slips through before submission.</p>
+      <div className="flex flex-wrap justify-center gap-3 mb-7">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+          📋 134-item bid checklist
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+          🛡️ Validate score before you submit
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
+          📝 Decision log for PM &amp; boss review
+        </span>
+      </div>
       <button
         onClick={onNewBid}
         className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors cursor-pointer hover:opacity-90"
         style={{ background: "var(--bs-teal)", color: "#13151a", border: "none" }}
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-        + New Bid
+        + Start Your First Bid
       </button>
-      <div className="flex items-center justify-center flex-wrap gap-x-2 gap-y-1 mt-6 text-xs" style={{ color: "var(--bs-text-dim)" }}>
-        <span>1. Create a project</span>
-        <span style={{ color: "var(--bs-text-dim)", opacity: 0.6 }}>→</span>
-        <span>2. Run through the checklist</span>
-        <span style={{ color: "var(--bs-text-dim)", opacity: 0.6 }}>→</span>
-        <span>3. Validate before you submit</span>
-      </div>
+      <p className="text-xs mt-6" style={{ color: "var(--bs-text-dim)" }}>Built by a 12-year commercial roofing estimator. No generic construction software.</p>
     </div>
   );
 }

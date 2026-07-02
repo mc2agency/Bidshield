@@ -154,7 +154,7 @@ function HeroMockup() {
       </div>
       {/* Floating badge */}
       <div className="absolute -right-3 -bottom-3 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg shadow-emerald-500/40 whitespace-nowrap">
-        135 checks · 18 phases
+        135 checks · 17 phases
       </div>
     </div>
   );
@@ -411,7 +411,7 @@ export default function HomepageContent() {
                 <span className="text-emerald-400">Covers</span>
               </h2>
               <p className="text-lg text-slate-400 max-w-2xl">
-                The bid QA tool that catches scope gaps and roofing takeoff mistakes before they reach the GC. 18 phases, every discipline, every item.
+                The bid QA tool that catches scope gaps and roofing takeoff mistakes before they reach the GC. 17 phases, every discipline, every item.
               </p>
             </Reveal>
 

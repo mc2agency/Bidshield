@@ -27,6 +27,12 @@
   --navy-700: #1B3A5E;
   --navy-500: #2A547F;
 
+  /* Text on navy / dark surfaces — WCAG AA on #0F2A47 */
+  --on-dark-1: #FFFFFF;   /* primary    — 16:1 */
+  --on-dark-2: #C9D4E3;   /* secondary  — 10:1 */
+  --on-dark-3: #A6B5CB;   /* tertiary   —  7:1 */
+  --on-dark-4: #93A1B5;   /* muted min  — 5.5:1 */
+
   /* Brand accents */
   --blue:        #2563EB;
   --blue-700:    #1D4ED8;
@@ -251,13 +257,14 @@
   --bs-border:       rgba(255,255,255,0.1);
   --bs-border-hover: rgba(255,255,255,0.18);
 
-  --bs-text-primary:   #FFFFFF;
-  --bs-text-secondary: #D4E2F4;
-  --bs-text-muted:     #B6C4D8;
-  --bs-text-dim:       #6F839E;
+  --bs-text-primary:   var(--on-dark-1);  /* #FFFFFF  — 16:1 */
+  --bs-text-secondary: #D4E2F4;           /* ~11.6:1  — above --on-dark-2 */
+  --bs-text-muted:     var(--on-dark-3);  /* #A6B5CB —  7:1 */
+  --bs-text-dim:       var(--on-dark-4);  /* #93A1B5 — 5.5:1 */
 
-  /* Keep --bs-teal as blue so CTA buttons stay blue-on-navy (readable) */
-  /* Active nav items use .bs-nav-item-active overrides below */
+  /* Active nav bg on navy: dark tint instead of light-theme --bs-teal-dim */
+  --bs-teal-dim:    rgba(37,99,235,0.20);
+  --bs-teal-border: rgba(37,99,235,0.35);
 }
 
 /* ── Command-bar scope — the project header is always navy, like the
@@ -402,6 +409,14 @@ body {
 .bs-badge-danger  { background: var(--bs-red-dim);   color: var(--bs-red);   }
 .bs-badge-success { background: var(--bs-green-dim); color: var(--bs-green); }
 .bs-badge-info    { background: var(--bs-blue-dim);  color: var(--bs-blue);  }
+
+/* Status badges on dark/navy surfaces */
+.badge-on-dark         { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.badge-on-dark.pass    { background: rgba(52,211,153,0.20); color: #6EE7B7; }
+.badge-on-dark.warn    { background: rgba(251,191,36,0.20);  color: #FCD34D; }
+.badge-on-dark.danger  { background: rgba(248,113,113,0.20); color: #FCA5A5; }
+.badge-on-dark.info    { background: rgba(96,165,250,0.20);  color: #93C5FD; }
+.badge-on-dark.neutral { background: rgba(255,255,255,0.08); color: #C9D4E3; }
 
 .bs-pill {
   font-size: var(--bs-font-size-xs);

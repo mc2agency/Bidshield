@@ -7,7 +7,6 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { TabProps } from "../tab-types";
 import { useAiUsageLog } from "@/lib/bidshield/useAiUsageLog";
-import { parseEstimatingXlsx, groupByManufacturer, generatePricingEmailBody, type ManufacturerGroup } from "@/lib/bidshield/estimating-import";
 
 // ─── Line item + meta encoding ──────────────────────────────────────────────
 // products[] stores JSON-encoded line items: {m, u, p, n}
@@ -113,7 +112,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     api.bidshield.getQuotesWithProjects,
     !isDemo && userId ? { userId } : "skip"
   );
-  const vendors = useQuery(api.bidshield.getVendors, !isDemo && userId ? { userId } : "skip");
   const createQuoteMut = useMutation(api.bidshield.createQuote);
   const deleteQuoteMut = useMutation(api.bidshield.deleteQuote);
   const importQuoteMut = useMutation(api.bidshield.importQuoteToProject);
@@ -137,33 +135,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
   const [importSearch, setImportSearch] = useState("");
   const [importingId, setImportingId] = useState<string | null>(null);
 
-  // Import Estimate (.xlsx) state
-  const xlsxInputRef = useRef<HTMLInputElement>(null);
-  const [xlsxRawItems, setXlsxRawItems] = useState<import("@/lib/bidshield/estimating-import").EstimatingLineItem[]>([]);
-  const [itemGroupOverrides, setItemGroupOverrides] = useState<Record<string, string>>({});
-  const [xlsxFilename, setXlsxFilename] = useState("");
-  const [xlsxImporting, setXlsxImporting] = useState(false);
-  const [dismissedGroups, setDismissedGroups] = useState<Set<string>>(new Set());
-  const [selectedVendors, setSelectedVendors] = useState<Record<string, string[]>>({});
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [selectedItemKeys, setSelectedItemKeys] = useState<Set<string>>(new Set());
-  const [removedItemKeys, setRemovedItemKeys] = useState<Set<string>>(new Set());
-  const [bulkMoveTarget, setBulkMoveTarget] = useState("");
-  const [bulkVendorPick, setBulkVendorPick] = useState<Record<string, string>>({});
-  const [sessionCreatedQuoteIds, setSessionCreatedQuoteIds] = useState<string[]>([]);
-
-  // Derived manufacturer groups (reactive to per-item group overrides + removals)
-  const xlsxGroups = useMemo(() => {
-    if (xlsxRawItems.length === 0) return [];
-    const adjusted = xlsxRawItems
-      .filter(item => !removedItemKeys.has(`${item.manufacturer}::${item.description.toLowerCase().trim()}`))
-      .map(item => {
-        const _itemKey = `${item.manufacturer}::${item.description.toLowerCase().trim()}`;
-        const override = itemGroupOverrides[_itemKey];
-        return { ...item, _itemKey, manufacturer: override ?? item.manufacturer };
-      });
-    return groupByManufacturer(adjusted);
-  }, [xlsxRawItems, itemGroupOverrides, removedItemKeys]);
 
   // Quotes available to import = all user quotes not already in this project
   const importableQuotes = useMemo(() => {
@@ -199,113 +170,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
     }
   };
 
-  const handleXlsxImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setXlsxImporting(true);
-    setXlsxFilename(file.name);
-    setDismissedGroups(new Set());
-    setExpandedGroups(new Set());
-    setItemGroupOverrides({});
-    setSelectedItemKeys(new Set());
-    setRemovedItemKeys(new Set());
-    setBulkMoveTarget("");
-    setSessionCreatedQuoteIds([]);
-    try {
-      const buf = await file.arrayBuffer();
-      const items = await parseEstimatingXlsx(buf);
-      setXlsxRawItems(items);
-      // Auto-match vendors from initial groups
-      const groups = groupByManufacturer(items);
-      const autoSelected: Record<string, string[]> = {};
-      for (const g of groups) {
-        const match = (vendors as any[])?.find((v: any) =>
-          v.companyName?.toLowerCase().includes(g.manufacturer.toLowerCase().split(" ")[0]) ||
-          g.manufacturer.toLowerCase().includes((v.companyName ?? "").toLowerCase().split(" ")[0])
-        );
-        if (match) autoSelected[g.manufacturer] = [match._id];
-      }
-      setSelectedVendors(autoSelected);
-    } catch {
-      setXlsxRawItems([]);
-    } finally {
-      setXlsxImporting(false);
-      if (xlsxInputRef.current) xlsxInputRef.current.value = "";
-    }
-  };
-
-  const handleRequestPricing = async (group: ManufacturerGroup) => {
-    const projectName = (project as any)?.name ?? "Project";
-    const { subject, body } = generatePricingEmailBody(group.manufacturer, group.items, projectName);
-    const vendorIds = selectedVendors[group.manufacturer] ?? [];
-    const savedVendors = (vendors as any[] ?? []).filter((v: any) => vendorIds.includes(v._id));
-    const emails = savedVendors.map((v: any) => v.repEmail).filter(Boolean);
-    const products = group.items
-      .filter(i => i.description)
-      .map(i => JSON.stringify({ m: i.description, u: i.orderUnit, p: i.unitPrice, n: "" }));
-    if (!isDemo && userId) {
-      const createdIds: string[] = [];
-      // Create one quote record per selected vendor (or one generic if none selected)
-      if (savedVendors.length > 0) {
-        for (const v of savedVendors) {
-          const id = await createQuoteMut({
-            userId,
-            projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
-            vendorName: v.companyName ?? group.manufacturer,
-            vendorEmail: v.repEmail || undefined,
-            category: "system",
-            products,
-            status: "requested",
-          });
-          if (id) createdIds.push(String(id));
-        }
-      } else {
-        const id = await createQuoteMut({
-          userId,
-          projectId: isValidConvexId ? (projectId as Id<"bidshield_projects">) : undefined,
-          vendorName: group.manufacturer,
-          category: "system",
-          products,
-          status: "requested",
-        });
-        if (id) createdIds.push(String(id));
-      }
-      setSessionCreatedQuoteIds(prev => [...prev, ...createdIds]);
-    }
-    if (emails.length > 0) {
-      try {
-        const res = await fetch("/api/bidshield/send-pricing-request", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            vendorEmails: emails,
-            manufacturer: group.manufacturer,
-            items: group.items.filter(i => i.orderQty > 0).map(i => ({ name: i.description, qty: i.orderQty, unit: i.orderUnit })),
-            projectName,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Send failed");
-        notify(`Sent to ${data.sent} vendor${data.sent !== 1 ? "s" : ""}!`);
-      } catch (err: any) {
-        notify(`Email error: ${err.message ?? "Failed to send"}`);
-      }
-    } else {
-      notify(`Quote request created for ${group.manufacturer}`);
-    }
-    setDismissedGroups(prev => new Set([...prev, group.manufacturer]));
-  };
-
-  const handleBulkMove = () => {
-    if (!bulkMoveTarget) return;
-    setItemGroupOverrides(prev => {
-      const next = { ...prev };
-      for (const key of selectedItemKeys) next[key] = bulkMoveTarget;
-      return next;
-    });
-    setSelectedItemKeys(new Set());
-    setBulkMoveTarget("");
-  };
 
   // Scope analysis state (per-quote)
   const [analyzingQuoteId, setAnalyzingQuoteId] = useState<string | null>(null);
@@ -583,19 +447,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
           )}
           {!isDemo && (
             <>
-              <input ref={xlsxInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleXlsxImport} />
-              {isValidConvexId && (
-                <button
-                  onClick={() => xlsxInputRef.current?.click()}
-                  disabled={xlsxImporting}
-                  className="cursor-pointer transition-colors disabled:opacity-50"
-                  style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 8, border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", background: "var(--bs-bg-card)" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-card)"}
-                >
-                  {xlsxImporting ? "Parsing..." : "Import Materials"}
-                </button>
-              )}
               {isValidConvexId && (
                 <button onClick={() => { setImportSearch(""); setImportModal(true); }} className="cursor-pointer transition-colors" style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 8, border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", background: "var(--bs-bg-card)" }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bs-bg-elevated)"}
@@ -665,258 +516,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
         </div>
       )}
 
-      {/* Import Estimate panel */}
-      {xlsxRawItems.length > 0 && (() => {
-        const activeGroups = xlsxGroups.filter(g => !dismissedGroups.has(g.manufacturer));
-        const fmtQty = (n: number) => {
-          const r = Math.round(n * 1000) / 1000;
-          return r % 1 === 0 ? String(Math.round(r)) : r.toString();
-        };
-        const statusColors: Record<string, { bg: string; color: string; label: string }> = {
-          none:      { bg: "var(--bs-bg-elevated)", color: "var(--bs-text-dim)",   label: "No Quote" },
-          requested: { bg: "var(--bs-amber-dim)",   color: "var(--bs-amber)",      label: "Requested" },
-          received:  { bg: "var(--bs-blue-dim)",    color: "var(--bs-blue)",       label: "Received" },
-          valid:     { bg: "var(--bs-teal-dim)",    color: "var(--bs-teal)",       label: "Valid" },
-          expiring:  { bg: "var(--bs-amber-dim)",   color: "var(--bs-amber)",      label: "Expiring" },
-          expired:   { bg: "var(--bs-red-dim)",     color: "var(--bs-red)",        label: "Expired" },
-        };
-        return (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-muted)" }}>Pricing Outreach</span>
-                <span className="text-xs ml-2" style={{ color: "var(--bs-text-dim)" }}>{xlsxFilename}</span>
-              </div>
-              <button
-                onClick={async () => {
-                  if (sessionCreatedQuoteIds.length > 0 && userId) {
-                    await Promise.allSettled(
-                      sessionCreatedQuoteIds.map(id =>
-                        deleteQuoteMut({ quoteId: id as Id<"bidshield_quotes">, userId })
-                      )
-                    );
-                  }
-                  setSessionCreatedQuoteIds([]);
-                  setXlsxRawItems([]);
-                  setXlsxFilename("");
-                  setDismissedGroups(new Set());
-                  setSelectedVendors({});
-                  setExpandedGroups(new Set());
-                  setItemGroupOverrides({});
-                  setSelectedItemKeys(new Set());
-                  setRemovedItemKeys(new Set());
-                  setBulkMoveTarget("");
-                }}
-                className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
-                style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-red)"; el.style.borderColor = "var(--bs-red)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--bs-text-muted)"; el.style.borderColor = "var(--bs-border)"; }}
-              >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                Clear list
-              </button>
-            </div>
-            {activeGroups.length === 0 ? (
-              <div className="text-center py-4 text-xs rounded-xl" style={{ color: "var(--bs-text-muted)", border: "1px dashed var(--bs-border)" }}>
-                All groups handled — quote records created above.
-              </div>
-            ) : activeGroups.map(group => {
-              const groupQuote = resolvedQuotes.find((q: any) =>
-                q.vendorName?.toLowerCase().includes(group.manufacturer.toLowerCase().split(" ")[0]) ||
-                group.manufacturer.toLowerCase().includes((q.vendorName ?? "").toLowerCase().split(" ")[0])
-              );
-              const quoteStatus = groupQuote ? getEffectiveStatus(groupQuote) : "none";
-              const sc = statusColors[quoteStatus] ?? statusColors.none;
-              const isExpanded = expandedGroups.has(group.manufacturer);
-              const SHOW = 5;
-              const visibleItems = isExpanded ? group.items : group.items.slice(0, SHOW);
-              const hiddenCount = group.items.length - SHOW;
-              return (
-                <div key={group.manufacturer} className="rounded-xl overflow-hidden" style={{ background: "var(--bs-bg-card)", border: "1px solid var(--bs-border)" }}>
-                  {/* Header */}
-                  <div className="px-5 py-3.5 flex items-center gap-3" style={{ borderBottom: "1px solid var(--bs-border)" }}>
-                    <input
-                      type="checkbox"
-                      checked={group.items.length > 0 && group.items.every(i => selectedItemKeys.has((i as any)._itemKey))}
-                      onChange={e => {
-                        const keys = group.items.map(i => (i as any)._itemKey as string);
-                        setSelectedItemKeys(prev => {
-                          const next = new Set(prev);
-                          keys.forEach(k => e.target.checked ? next.add(k) : next.delete(k));
-                          return next;
-                        });
-                      }}
-                      style={{ width: 14, height: 14, cursor: "pointer", accentColor: "var(--bs-teal)", flexShrink: 0 }}
-                      title="Select all items in this group"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[15px] font-bold" style={{ color: "var(--bs-text-primary)" }}>{group.manufacturer}</div>
-                      <div className="text-[11px] mt-0.5" style={{ color: "var(--bs-text-muted)" }}>
-                        {group.items.length} item{group.items.length !== 1 ? "s" : ""} · ${group.subtotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0" style={{ background: sc.bg, color: sc.color }}>{sc.label}</span>
-                  </div>
-                  {/* Multi-vendor selector */}
-                  {(() => {
-                    const groupVendorIds: string[] = selectedVendors[group.manufacturer] ?? [];
-                    const groupVendors = (vendors as any[] ?? []).filter((v: any) => groupVendorIds.includes(v._id));
-                    const unselected = (vendors as any[] ?? []).filter((v: any) => !groupVendorIds.includes(v._id));
-                    const vendorList = vendors as any[] ?? [];
-                    return (
-                      <div className="px-5 py-2.5 flex flex-col gap-2" style={{ borderBottom: "1px solid var(--bs-border)", background: "var(--bs-bg-elevated)" }}>
-                        {/* Selected vendor chips */}
-                        <div className="flex items-center gap-2 flex-wrap min-h-[22px]">
-                          <span className="text-[11px] font-semibold shrink-0" style={{ color: "var(--bs-text-muted)" }}>Send to:</span>
-                          {groupVendors.map((v: any) => (
-                            <span key={v._id} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: "var(--bs-teal-dim)", color: "var(--bs-teal)", border: "1px solid var(--bs-teal-border)" }}>
-                              {v.companyName}
-                              <button
-                                onClick={() => setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: (prev[group.manufacturer] ?? []).filter(id => id !== v._id) }))}
-                                className="ml-0.5 leading-none transition-opacity hover:opacity-60 text-[12px]"
-                                title="Remove"
-                              >×</button>
-                            </span>
-                          ))}
-                          {groupVendors.length === 0 && vendorList.length > 0 && (
-                            <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>Pick vendors below ↓</span>
-                          )}
-                          {vendorList.length === 0 && (
-                            <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>No vendors saved — add them in the Vendors section</span>
-                          )}
-                        </div>
-                        {/* One-click vendor picker — selecting auto-adds as chip */}
-                        {unselected.length > 0 && (
-                          <select
-                            value=""
-                            onChange={e => {
-                              const id = e.target.value;
-                              if (!id) return;
-                              setSelectedVendors(prev => ({ ...prev, [group.manufacturer]: [...(prev[group.manufacturer] ?? []), id] }));
-                            }}
-                            className="text-[11px] rounded-md focus:outline-none w-full"
-                            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", padding: "5px 8px" }}
-                          >
-                            <option value="">+ Add vendor to this request…</option>
-                            {unselected.map((v: any) => (
-                              <option key={v._id} value={v._id}>
-                                {v.companyName}{v.repName ? ` — ${v.repName}` : ""}{v.repEmail ? ` · ${v.repEmail}` : ""}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                        {unselected.length === 0 && groupVendors.length > 0 && (
-                          <span className="text-[11px]" style={{ color: "var(--bs-text-dim)" }}>All vendors selected</span>
-                        )}
-                      </div>
-                    );
-                  })()}
-                  {/* Item rows */}
-                  <div>
-                    {visibleItems.map((item, i) => {
-                      const overrideKey = (item as any)._itemKey as string;
-                      const isSelected = selectedItemKeys.has(overrideKey);
-                      return (
-                        <div
-                          key={i}
-                          className="flex items-center px-5 py-2.5 gap-2.5"
-                          style={{
-                            borderBottom: "1px solid var(--bs-border)",
-                            background: isSelected ? "var(--bs-teal-dim)" : undefined,
-                            transition: "background 0.1s",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={e => setSelectedItemKeys(prev => {
-                              const next = new Set(prev);
-                              e.target.checked ? next.add(overrideKey) : next.delete(overrideKey);
-                              return next;
-                            })}
-                            style={{ width: 13, height: 13, cursor: "pointer", accentColor: "var(--bs-teal)", flexShrink: 0 }}
-                          />
-                          <span className="flex-1 text-[12px]" style={{ color: "var(--bs-text-primary)" }}>{item.description}</span>
-                          {item.orderQty > 0 && (
-                            <span className="text-[12px] tabular-nums font-medium shrink-0" style={{ color: "var(--bs-text-primary)" }}>{fmtQty(item.orderQty)}</span>
-                          )}
-                          <span className="text-[11px] w-10 shrink-0" style={{ color: "var(--bs-text-muted)" }}>{item.orderUnit}</span>
-                          <select
-                            value={itemGroupOverrides[overrideKey] ?? group.manufacturer}
-                            onChange={e => setItemGroupOverrides(prev => ({ ...prev, [overrideKey]: e.target.value }))}
-                            className="text-[11px] rounded focus:outline-none shrink-0"
-                            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-border)", color: "var(--bs-text-secondary)", padding: "3px 6px", maxWidth: 130 }}
-                            title="Move to group"
-                          >
-                            {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
-                          </select>
-                          <button
-                            onClick={() => {
-                              setRemovedItemKeys(prev => new Set([...prev, overrideKey]));
-                              setSelectedItemKeys(prev => { const next = new Set(prev); next.delete(overrideKey); return next; });
-                            }}
-                            className="text-[13px] leading-none transition-colors shrink-0 px-1"
-                            style={{ color: "var(--bs-text-dim)" }}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-red)"}
-                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
-                            title="Remove item"
-                          >✕</button>
-                        </div>
-                      );
-                    })}
-                    {hiddenCount > 0 && (
-                      <div className="px-5 py-2" style={{ borderBottom: "1px solid var(--bs-border)" }}>
-                        <button
-                          onClick={() => setExpandedGroups(prev => {
-                            const next = new Set(prev);
-                            isExpanded ? next.delete(group.manufacturer) : next.add(group.manufacturer);
-                            return next;
-                          })}
-                          className="text-[11px] transition-colors"
-                          style={{ color: "var(--bs-text-dim)" }}
-                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-dim)"}
-                        >
-                          {isExpanded ? "Show less" : `Show ${hiddenCount} more item${hiddenCount !== 1 ? "s" : ""}`}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {/* Actions */}
-                  <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ background: "var(--bs-bg-elevated)" }}>
-                    <button
-                      onClick={() => setDismissedGroups(prev => new Set([...prev, group.manufacturer]))}
-                      className="text-[12px] font-medium px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ color: "var(--bs-text-muted)", border: "1px solid var(--bs-border)", background: "var(--bs-bg-card)" }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-secondary)"}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-                    >
-                      Skip
-                    </button>
-                    <button
-                      onClick={() => handleRequestPricing(group)}
-                      className="text-[12px] font-semibold px-4 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-                      style={{ background: "var(--bs-teal)", color: "#13151a" }}
-                    >
-                      {(selectedVendors[group.manufacturer]?.length ?? 0) > 0 ? "Send to All Vendors" : "Request Pricing"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      })()}
-
-      {/* Section divider when both panels are visible */}
-      {xlsxRawItems.length > 0 && resolvedQuotes.length > 0 && (
-        <div className="flex items-center gap-3 my-1">
-          <div className="flex-1 h-px" style={{ background: "var(--bs-border)" }} />
-          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--bs-text-dim)" }}>Saved Quotes</span>
-          <div className="flex-1 h-px" style={{ background: "var(--bs-border)" }} />
-        </div>
-      )}
-
       {/* Quote cards */}
       {resolvedQuotes.length === 0 ? (
         <div className="text-center py-16 rounded-xl" style={{ border: "1px dashed var(--bs-border)" }}>
@@ -924,12 +523,7 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
             <svg className="w-6 h-6" style={{ color: "var(--bs-text-muted)" }} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
           </div>
           <div className="text-sm font-semibold mb-1" style={{ color: "var(--bs-text-secondary)" }}>No quotes yet</div>
-          <div className="text-xs mb-4" style={{ color: "var(--bs-text-muted)" }}>Upload a vendor PDF or add manually to start comparing pricing</div>
-          {!isDemo && (
-            <button onClick={openModal} className="px-5 py-2 text-sm font-semibold rounded-lg transition-opacity hover:opacity-90" style={{ background: "var(--bs-teal)", color: "#13151a" }}>
-              + Add First Quote
-            </button>
-          )}
+          <div className="text-xs" style={{ color: "var(--bs-text-muted)" }}>Upload a vendor PDF or add manually to start comparing pricing</div>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -1082,56 +676,6 @@ export default function QuotesTab({ projectId, isDemo, project, userId }: TabPro
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* Fixed floating bulk-move bar — stays visible when scrolled */}
-      {xlsxRawItems.length > 0 && selectedItemKeys.size > 0 && (
-        <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-3 rounded-2xl z-50 shadow-2xl flex-wrap"
-          style={{ background: "var(--bs-bg-elevated)", border: "1px solid var(--bs-teal-border)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}
-        >
-          <span className="text-[13px] font-bold" style={{ color: "var(--bs-teal)" }}>
-            {selectedItemKeys.size} item{selectedItemKeys.size !== 1 ? "s" : ""} selected
-          </span>
-          <span className="text-[12px]" style={{ color: "var(--bs-text-muted)" }}>→ Move to:</span>
-          <select
-            value={bulkMoveTarget}
-            onChange={e => setBulkMoveTarget(e.target.value)}
-            className="text-[13px] rounded-lg focus:outline-none"
-            style={{ background: "var(--bs-bg-input)", border: "1px solid var(--bs-teal-border)", color: "var(--bs-text-primary)", padding: "6px 10px", minWidth: 160 }}
-          >
-            <option value="">Select group…</option>
-            {xlsxGroups.map(g => <option key={g.manufacturer} value={g.manufacturer}>{g.manufacturer}</option>)}
-          </select>
-          <button
-            onClick={handleBulkMove}
-            disabled={!bulkMoveTarget}
-            className="text-[13px] font-semibold px-4 py-1.5 rounded-lg disabled:opacity-40 transition-opacity"
-            style={{ background: "var(--bs-teal)", color: "#13151a" }}
-          >
-            Move
-          </button>
-          <button
-            onClick={() => {
-              setRemovedItemKeys(prev => new Set([...prev, ...selectedItemKeys]));
-              setSelectedItemKeys(new Set());
-              setBulkMoveTarget("");
-            }}
-            className="text-[13px] font-semibold px-3 py-1.5 rounded-lg transition-colors"
-            style={{ background: "var(--bs-red-dim)", color: "var(--bs-red)", border: "1px solid var(--bs-red-border)" }}
-          >
-            Remove
-          </button>
-          <button
-            onClick={() => { setSelectedItemKeys(new Set()); setBulkMoveTarget(""); }}
-            className="text-[12px] transition-colors px-2"
-            style={{ color: "var(--bs-text-muted)" }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-primary)"}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--bs-text-muted)"}
-          >
-            ✕
-          </button>
         </div>
       )}
 

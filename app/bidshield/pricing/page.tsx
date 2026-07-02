@@ -129,7 +129,7 @@ export default function PricingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
-              18 phases. Every bid. Every time.
+              17 phases. Every bid. Every time.
             </h2>
             <p className="text-slate-600">
               The complete pre-submission workflow — from project setup through final validator score.

@@ -36,7 +36,7 @@ export default function StickyBar() {
             </svg>
           </div>
           <span className="text-sm font-bold text-slate-900 shrink-0">BidShield</span>
-          <span className="hidden sm:inline text-sm text-slate-400 truncate">— The 18-phase bid QA tool for commercial roofing</span>
+          <span className="hidden sm:inline text-sm text-slate-400 truncate">— The 17-phase bid QA tool for commercial roofing</span>
         </div>
         <a
           href={isSignedIn ? "/bidshield/dashboard" : "/sign-up?redirect=/bidshield/pricing"}

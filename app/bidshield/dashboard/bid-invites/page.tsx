@@ -106,16 +106,9 @@ function BidInvitesContent() {
             <Mail className="w-8 h-8 text-slate-400" />
           </div>
           <p className="text-slate-600 font-medium mb-2">No bid invites yet</p>
-          <p className="text-sm text-slate-500 mb-6">
+          <p className="text-sm text-slate-500">
             Add your first bid invite manually or import from email
           </p>
-          <button
-            onClick={() => setShowManualForm(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add First Bid Invite
-          </button>
         </div>
       ) : (
         <BidInvitesList invites={allInvites} />
