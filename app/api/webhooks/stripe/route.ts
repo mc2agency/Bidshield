@@ -38,12 +38,15 @@ export async function POST(request: NextRequest) {
 
   console.info('[stripe-webhook] received event', { type: event.type, id: event.id });
 
-  // P0-4: Idempotency guard — atomic check-and-insert in a single Convex mutation.
+  // P0-4: Idempotency guard — read-only check. We do NOT mark the event as
+  // processed until after the email send below succeeds, so a failed send leaves
+  // the event unprocessed and Stripe's retry can deliver the email.
   // Prevents duplicate email sends on Stripe retries (up to 3× over 3 days).
-  // Uses the same isWebhookEventProcessed mutation as the subscription webhook handler.
+  // Uses the same isWebhookEventProcessed check as the subscription webhook handler.
   const convex = getConvex();
   try {
-    const alreadyProcessed = await convex.mutation(api.users.isWebhookEventProcessed, {
+    // @ts-ignore TS2589: Convex API generics hit type-depth limit with Zod v4
+    const alreadyProcessed = await convex.query(api.users.isWebhookEventProcessed, {
       stripeEventId: event.id,
     });
     if (alreadyProcessed) {
@@ -75,7 +78,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Event was already marked as processed atomically above by isWebhookEventProcessed.
+  // Only reached when processing (incl. any email send) succeeded. Mark the event
+  // now so future Stripe retries are skipped by the idempotency check above.
+  await convex.mutation(api.users.markWebhookEventProcessed, {
+    stripeEventId: event.id,
+  });
 
   return NextResponse.json({ received: true });
 }

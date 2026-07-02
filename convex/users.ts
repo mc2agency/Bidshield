@@ -219,19 +219,34 @@ export const adminGetProjectsPaginated = query({
 // Idempotency guard for Stripe webhook events (M9).
 // Returns true if the event was already processed; inserts and returns false otherwise.
 // Call this at the start of each Stripe event handler before any writes.
-export const isWebhookEventProcessed = mutation({
+// Read-only idempotency check — returns true if this Stripe event was already
+// processed. Does NOT record anything; call markWebhookEventProcessed only after
+// the downstream write (e.g. updateBidShieldSubscription) has succeeded.
+export const isWebhookEventProcessed = query({
   args: { stripeEventId: v.string() },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("processedWebhooks")
       .withIndex("by_stripe_event_id", (q) => q.eq("stripeEventId", args.stripeEventId))
       .first();
-    if (existing) return true;
+    return existing !== null;
+  },
+});
+
+// Record that a Stripe event has been fully processed. Idempotent: safe to call
+// even if a concurrent request already inserted the same event id.
+export const markWebhookEventProcessed = mutation({
+  args: { stripeEventId: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("processedWebhooks")
+      .withIndex("by_stripe_event_id", (q) => q.eq("stripeEventId", args.stripeEventId))
+      .first();
+    if (existing) return;
     await ctx.db.insert("processedWebhooks", {
       stripeEventId: args.stripeEventId,
       processedAt: Date.now(),
     });
-    return false;
   },
 });
 
