@@ -732,6 +732,18 @@ export default function NewBidWizard({ onClose, onCreate, isDemo, isPro, editPro
               <p className="text-sm mb-5" style={{ color: "var(--bs-text-muted)" }}>
                 {isEdit ? "Update the basics below." : "A few basics to get started. Everything else can be filled in from the project."}
               </p>
+              {!isEdit && (
+                <p
+                  className="text-sm mb-5 px-3 py-2 rounded-md"
+                  style={{
+                    color: "var(--bs-text-secondary)",
+                    background: "var(--bs-bg-secondary)",
+                    borderLeft: "3px solid var(--bs-teal)",
+                  }}
+                >
+                  The last thing you do before a bid goes out. BidShield is a preflight QA gate on top of The EDGE, Bluebeam, and Excel — it catches the scope gaps estimating software misses.
+                </p>
+              )}
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium block mb-1" style={{ color: "var(--bs-text-secondary)" }}>Project name *</label>

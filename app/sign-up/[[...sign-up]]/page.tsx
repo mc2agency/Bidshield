@@ -15,10 +15,10 @@ export default function SignUpPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-slate-900">
-            Start Building Today
+            Run your first bid preflight
           </h2>
           <p className="mt-2 text-slate-600">
-            Create your account to access tools and track your progress
+            Create your account to catch scope gaps before your next bid goes out
           </p>
         </div>
         {isClient ? (

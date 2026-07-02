@@ -13,8 +13,8 @@ const PRICE_IDS: Record<string, string> = {
   pro_annual: process.env.STRIPE_PRICE_PRO_ANNUAL || "",
 };
 
-// P1-10: Trial period configurable via env var (default 14 days)
-const TRIAL_PERIOD_DAYS = parseInt(process.env.TRIAL_PERIOD_DAYS || "14", 10);
+// P1-10: Trial period configurable via env var (default 30 days)
+const TRIAL_PERIOD_DAYS = parseInt(process.env.TRIAL_PERIOD_DAYS || "30", 10);
 
 export async function POST(req: NextRequest) {
   try {

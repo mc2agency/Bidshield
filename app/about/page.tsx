@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'About BidShield — Systematic Bid QA for Commercial Roofing',
   description: 'BidShield is a pre-submission bid review platform for commercial roofing estimators. 18 phases, 100+ check items, AI-powered scope gap detection, and takeoff reconciliation — built by a 12-year estimator.',
-  keywords: 'BidShield features, commercial roofing QA, bid review platform, estimating workflow, scope gap detection, takeoff reconciliation',
+  keywords: 'BidShield features, commercial roofing QA, bid preflight, pre-submission bid review, scope gap detection, takeoff reconciliation',
   alternates: { canonical: 'https://www.bidshield.co/about' },
 };
 
@@ -37,7 +37,7 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">What you actually do in BidShield</h2>
           <p className="text-lg text-slate-500 text-center mb-12 max-w-2xl mx-auto">
-            The workflow from project setup through bid submission.
+            Your preflight from completed bid through final submission.
           </p>
           
           <div className="space-y-6">
@@ -50,17 +50,17 @@ export default function AboutPage() {
               {
                 step: '2',
                 title: 'Set up roof assemblies',
-                description: 'Define the roof systems you\'re bidding (TPO, PVC, EPDM, etc.). BidShield analyzes specs and suggests assemblies based on project requirements.',
+                description: 'Define the roof systems you\'re bidding (TPO, PVC, EPDM, etc.). BidShield analyzes specs and verifies assemblies against project requirements.',
               },
               {
                 step: '3',
                 title: 'Run document review phases',
-                description: 'Work through 18 phases as you build your bid: Architectural Review (parapets, access), Structural (deck, slopes), Mechanical (curbs, drains), Plumbing, Electrical, Civil/Site, Specifications, Addenda.',
+                description: 'Work through 18 phases after your bid is built: Architectural Review (parapets, access), Structural (deck, slopes), Mechanical (curbs, drains), Plumbing, Electrical, Civil/Site, Specifications, Addenda.',
               },
               {
                 step: '4',
-                title: 'Input your takeoff quantities',
-                description: 'Enter SF, linear footage, and counts from your takeoff. BidShield cross-references against drawings and flags discrepancies.',
+                title: 'Audit your takeoff for gaps',
+                description: 'Pull in the SF, linear footage, and counts from your existing takeoff. BidShield cross-references them against the drawings and flags discrepancies before you submit.',
               },
               {
                 step: '5',

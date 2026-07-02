@@ -771,9 +771,15 @@ function DashboardContent() {
   const isLoading = !isDemo && convexProjects === undefined;
 
   const handleCreateProject = async (np: any) => {
-    if (!np.name || !np.location || !np.bidDate) return;
+    if (!np.name || !np.location || !np.bidDate) {
+      alert("Please fill in the required fields (project name, location, and bid date) before creating the project.");
+      return;
+    }
     if (isDemo) { setShowNewProject(false); router.push(`/bidshield/dashboard/project?id=demo_1&demo=true`); return; }
-    if (!userId) return;
+    if (!userId) {
+      alert("We couldn't create the project because your account isn't ready yet. Please refresh the page and try again.");
+      return;
+    }
     const isFirst = (convexProjects?.length ?? 0) === 0;
     const { drawingDate: dd, drawingRevision: dr, ...baseArgsCore } = {
       userId, name: np.name, location: np.location, bidDate: np.bidDate,
@@ -892,8 +898,10 @@ function DashboardContent() {
         console.error("[V2 persist error]", e);
       }
     }
-    // Use full page navigation to ensure Clerk re-initialises with a fresh JWT
-    window.location.href = `/bidshield/dashboard/project?id=${projectId}`;
+    // Use full page navigation to ensure Clerk re-initialises with a fresh JWT.
+    // On the user's first project, pass welcome=1 so the project page opens on the
+    // VERIFY (checklist) tab with a "start here" callout.
+    window.location.href = `/bidshield/dashboard/project?id=${projectId}${isFirst ? "&welcome=1" : ""}`;
   };
 
   const handleEditSetup = (id: Id<"bidshield_projects">) => {

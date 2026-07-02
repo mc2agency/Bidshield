@@ -59,8 +59,13 @@ function ProjectDetail() {
   const searchParams = useSearchParams();
   const projectIdParam = searchParams.get("id");
   const isDemo = searchParams.get("demo") === "true";
+  // First-project onboarding: dashboard appends welcome=1 after the very first
+  // project is created. We open the VERIFY (checklist) tab and show a "start here"
+  // callout so new users know where to begin.
+  const isFirstVisit = searchParams.get("welcome") === "1";
   const { userId } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId | null>(isFirstVisit ? "checklist" : null);
+  const [showWelcomeCallout, setShowWelcomeCallout] = useState(isFirstVisit);
   // Map legacy/sub-tab IDs to the 5-phase preflight structure
   const navigateTab = useCallback((tab: TabId) => {
     const documentSubTabs: TabId[] = ["scope", "addenda", "rfis", "quotes"];
@@ -696,7 +701,37 @@ function ProjectDetail() {
                   <div key={activeTab} className="p-6">
                     {activeTab === "setup"     && <TabErrorBoundary tabLabel="Intake"><SetupTab {...tabProps} /></TabErrorBoundary>}
                     {activeTab === "documents" && <TabErrorBoundary tabLabel="Read"><DocumentsTab {...tabProps} /></TabErrorBoundary>}
-                    {activeTab === "checklist" && <TabErrorBoundary tabLabel="Verify"><ChecklistTab {...tabProps} /></TabErrorBoundary>}
+                    {activeTab === "checklist" && (
+                      <TabErrorBoundary tabLabel="Verify">
+                        {showWelcomeCallout && (
+                          <div
+                            className="mb-5 p-4 rounded-lg flex items-start gap-3"
+                            style={{
+                              background: "var(--bs-bg-secondary)",
+                              border: "1px solid var(--bs-teal)",
+                            }}
+                          >
+                            <div className="flex-1">
+                              <div className="text-sm font-semibold mb-1" style={{ color: "var(--bs-text-primary)" }}>
+                                Start here — your preflight checklist
+                              </div>
+                              <div className="text-sm" style={{ color: "var(--bs-text-secondary)" }}>
+                                Work through these items to catch the scope gaps estimating software misses, before your bid goes out. This VERIFY tab is the heart of your bid preflight.
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setShowWelcomeCallout(false)}
+                              className="text-sm shrink-0"
+                              style={{ color: "var(--bs-text-muted)", background: "none", border: "none", cursor: "pointer" }}
+                              aria-label="Dismiss"
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        )}
+                        <ChecklistTab {...tabProps} />
+                      </TabErrorBoundary>
+                    )}
                     {activeTab === "validate"  && <TabErrorBoundary tabLabel="Validate"><ValidatorTab {...tabProps} /></TabErrorBoundary>}
                     {activeTab === "bidquals"  && <TabErrorBoundary tabLabel="Bid Quals"><BidQualsTab {...tabProps} /></TabErrorBoundary>}
                     {activeTab === "submit"    && <TabErrorBoundary tabLabel="Submit"><SubmissionTab {...tabProps} /></TabErrorBoundary>}
