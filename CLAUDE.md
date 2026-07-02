@@ -110,6 +110,13 @@ Remaining tasks from the master plan:
 - ✅ Homepage copy updated — "Now Open", "Start Free Trial"
 - ✅ PricingCards 134 → 135 item count
 
+## V2 — Do Not Modify
+- `app/api/bidshield/v2/extract-assemblies-v2/route.ts` — still called by NewBidWizard as primary extractor. Do not change.
+- `app/bidshield/dashboard/v2/` — experimental UI, not linked from anywhere. Do not modify or build on top of it.
+- `__tests__/v2-regression-steinway.test.ts` — V2 regression tests. Do not delete.
+
+If a task touches assembly extraction, use the legacy route `app/api/bidshield/extract-assemblies/route.ts` as the fallback reference only.
+
 ## Do Not
 - Add estimating features
 - Hardcode colors (use `var(--bs-*)`)
