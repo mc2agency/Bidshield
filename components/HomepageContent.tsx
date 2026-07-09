@@ -2,27 +2,24 @@
 
 import Link from 'next/link';
 import EmailCapture from '@/components/EmailCapture';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+// ── Reveal animation wrapper ─────────────────────────────────────────────────
 function Reveal({ children, className = '', delay = 0 }: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
+  children: React.ReactNode; className?: string; delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Respect user's motion preference
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
     el.style.opacity = '0';
     el.style.transform = 'translateY(12px)';
     el.style.transition = `opacity 0.22s ease-out ${delay}ms, transform 0.22s ease-out ${delay}ms`;
-
     const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+      ([e]) => {
+        if (e.isIntersecting) {
           el.style.opacity = '1';
           el.style.transform = 'translateY(0)';
           obs.disconnect();
@@ -30,180 +27,267 @@ function Reveal({ children, className = '', delay = 0 }: {
       },
       { threshold: 0.05 }
     );
-
     obs.observe(el);
     return () => obs.disconnect();
   }, [delay]);
-
   return <div ref={ref} className={className}>{children}</div>;
 }
 
-const ROLE_PROOF = [
-  {
-    role: 'Chief Estimator',
-    question: 'Can I trust the number before it leaves my department?',
-    proof: 'Complete bid file with assumptions, exclusions, addenda log, quote coverage, and a reconciliation trail your team can review before submission.',
-  },
-  {
-    role: 'Project Manager',
-    question: 'Will the bid match what operations actually has to build?',
-    proof: 'Scope notes call out access, phasing, staging, penetrations, equipment, warranty requirements, and coordination items that become field problems if missed.',
-  },
-  {
-    role: 'Roofing Contractor',
-    question: 'Does this team understand commercial roofing details?',
-    proof: 'Roof system, insulation, edge metal, sheet metal, drains, curbs, penetrations, flashings, warranty language, and manufacturer requirements are reviewed as roofing scope—not generic takeoff lines.',
-  },
-  {
-    role: 'General Contractor',
-    question: 'Can I plug this proposal into my leveling process?',
-    proof: 'Bid forms, alternates, unit prices, inclusions, exclusions, and clarifications are organized so the GC can see what is covered and what is not.',
-  },
-  {
-    role: 'Preconstruction Manager',
-    question: 'Will this reduce bid-day risk?',
-    proof: 'MC2Estimating tracks open RFIs, addenda impacts, vendor coverage, quote gaps, and scope conflicts before the final number is released.',
-  },
-];
-
-const DELIVERABLES = [
-  'Marked roof plan quantities by area, perimeter, edge condition, and roof zone',
-  'Specification compliance notes tied to Division 07 requirements',
-  'Addenda and RFI log showing reviewed items and pricing impact status',
-  'Supplier and subcontractor quote matrix with inclusions, exclusions, and gaps',
-  'Bid qualification sheet with assumptions, exclusions, alternates, and unit-price notes',
-  'Estimator handoff package ready for owner review, PM review, or GC submission',
-];
-
-const DEPARTMENT_STEPS = [
-  {
-    step: '01',
-    title: 'Document control before takeoff',
-    body: 'Plans, specs, addenda, bid forms, alternates, and submission requirements are logged first. A bid cannot be trusted if the document set is not controlled.',
-    artifact: 'Document register + bid requirement checklist',
-  },
-  {
-    step: '02',
-    title: 'Scope review by drawing discipline',
-    body: 'Architectural, structural, mechanical, plumbing, electrical, and site drawings are reviewed for roofing impacts before quantities are finalized.',
-    artifact: 'Cross-discipline scope notes',
-  },
-  {
-    step: '03',
-    title: 'Roofing takeoff with audit trail',
-    body: 'Quantities are organized so another estimator can understand what was measured, where it came from, and what still needs confirmation.',
-    artifact: 'Marked plans + quantity summary',
-  },
-  {
-    step: '04',
-    title: 'Quote and scope reconciliation',
-    body: 'Material quotes, subcontractor proposals, and vendor exclusions are leveled against the estimate so missing scope is visible before bid day.',
-    artifact: 'Quote matrix + gap list',
-  },
-  {
-    step: '05',
-    title: 'Bid package review',
-    body: 'The final output is checked for addenda, alternates, qualifications, exclusions, unit prices, warranty notes, and submission requirements.',
-    artifact: 'Proposal-ready bid package',
-  },
-];
-
-const ARTIFACTS = [
-  {
-    title: 'Marked Plan Sheet',
-    detail: 'Area takeoff, perimeters, penetrations, drains, curbs, edge metal, and roof zones visible on the drawing—not buried in a spreadsheet.',
-  },
-  {
-    title: 'Scope Matrix',
-    detail: 'Each major scope item is assigned a status: included, excluded, by others, allowance, alternate, RFI, or quote pending.',
-  },
-  {
-    title: 'Bid Qualifications',
-    detail: 'Clear notes for assumptions, exclusions, alternates, warranty basis, schedule limits, and unresolved clarifications.',
-  },
-];
-
-function BidFileMockup() {
+// ── Hero app mockup ──────────────────────────────────────────────────────────
+function HeroMockup() {
   return (
-    <div className="relative" aria-label="Example MC2Estimating bid file artifacts">
-      <div className="absolute -inset-6 bg-emerald-500/10 rounded-3xl blur-3xl pointer-events-none" />
-      <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-slate-900">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bs-mono">MC2 Bid File</div>
-          <div className="text-[10px] text-slate-500 bs-mono">Roofing Estimate Review</div>
+    <div className="relative" aria-hidden="true">
+      {/* Ambient glow */}
+      <div className="absolute -inset-6 bg-emerald-500/8 rounded-3xl blur-3xl pointer-events-none" />
+      {/* Browser chrome */}
+      <div
+        className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+        style={{ background: '#0d1117' }}
+      >
+        {/* Title bar */}
+        <div
+          className="flex items-center gap-2 px-4 py-3 border-b border-white/5"
+          style={{ background: '#161b22' }}
+        >
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-500/60" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+            <div className="w-3 h-3 rounded-full bg-green-500/60" />
+          </div>
+          <div
+            className="flex-1 mx-3 h-5 rounded text-[10px] text-slate-500 flex items-center px-3 font-mono"
+            style={{ background: '#0d1117' }}
+          >
+            bidshield.co/app/meridian-business-park
+          </div>
         </div>
-        <div className="grid grid-cols-[150px_1fr] min-h-[345px]">
-          <div className="border-r border-white/10 p-3 space-y-2 bg-slate-950">
-            {['Document Log', 'Marked Plans', 'Scope Matrix', 'Quote Leveling', 'Bid Qualifications'].map((item, index) => (
+        {/* App layout */}
+        <div className="flex" style={{ height: '330px' }}>
+          {/* Sidebar */}
+          <div
+            className="w-44 border-r border-white/5 p-3 flex flex-col gap-1 shrink-0"
+            style={{ background: '#0d1117' }}
+          >
+            <div className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest px-2 pt-1 pb-2 mb-1 border-b border-white/5">
+              BidShield
+            </div>
+            {['Dashboard', 'Checklist', 'Materials', 'Labor', 'Vendors', 'Bid Forms', 'Decision Log'].map((item, i) => (
               <div
                 key={item}
-                className={`rounded-lg px-2.5 py-2 text-[11px] ${index === 2 ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/20' : 'text-slate-500 border border-transparent'}`}
+                className={`text-[11px] px-2 py-1.5 rounded flex items-center gap-2 ${
+                  i === 1 ? 'bg-emerald-500/15 text-emerald-300 font-medium' : 'text-slate-500 hover:text-slate-400'
+                }`}
               >
+                <div className={`w-1 h-1 rounded-full shrink-0 ${i === 1 ? 'bg-emerald-400' : 'bg-slate-700'}`} />
                 {item}
               </div>
             ))}
           </div>
-          <div className="p-4">
-            <div className="flex items-start justify-between gap-4 mb-4">
+          {/* Main content */}
+          <div className="flex-1 p-4 overflow-hidden">
+            <div className="flex items-start justify-between mb-3">
               <div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Project</div>
-                <div className="text-white font-semibold">Commercial Re-Roof Bid Package</div>
-                <div className="text-[11px] text-slate-500 mt-1">Plans · Specs · Addenda · Vendor Quotes · Bid Form</div>
+                <div className="text-[9px] text-slate-600 font-mono uppercase tracking-wider mb-0.5">Active Project</div>
+                <div className="text-sm font-semibold text-white leading-tight">Meridian Business Park</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Phase 2 Re-roof · 42,800 SF · Due Apr 18</div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-400 leading-none">Ready</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">review status</div>
+                <div className="text-2xl font-bold text-emerald-400 leading-none">87%</div>
+                <div className="text-[9px] text-slate-600 mt-0.5 uppercase tracking-wider">Readiness</div>
               </div>
             </div>
-
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            {/* Progress bar */}
+            <div className="h-1 rounded-full bg-slate-800 mb-4 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
+                style={{ width: '87%' }}
+              />
+            </div>
+            {/* Phase rows */}
+            <div className="space-y-1">
               {[
-                ['Addenda', 'Logged'],
-                ['Quotes', 'Leveled'],
-                ['RFIs', 'Tracked'],
-              ].map(([label, status]) => (
-                <div key={label} className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</div>
-                  <div className="text-sm text-white font-semibold mt-1">{status}</div>
+                { label: '01 · Project Setup', done: true },
+                { label: '05 · Mechanical Review', done: true },
+                { label: '11 · Takeoff — Areas', done: true },
+                { label: '14 · Pricing — Materials', active: true },
+                { label: '17 · Pre-Submission', pending: true },
+                { label: '18 · Bid Submission', pending: true },
+              ].map(({ label, done, active }) => (
+                <div
+                  key={label}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] ${
+                    active ? 'bg-emerald-500/8 border border-emerald-500/20' : ''
+                  }`}
+                >
+                  <div
+                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 ${
+                      done ? 'bg-emerald-500' : active ? 'border-2 border-emerald-400' : 'border border-slate-700'
+                    }`}
+                  >
+                    {done && (
+                      <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className={done ? 'line-through' : active ? 'text-emerald-300 font-semibold' : 'text-slate-300'} style={done ? { color: '#64748b' } : undefined}>
+                    {label}
+                  </span>
+                  {active && (
+                    <span className="ml-auto text-[9px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded font-semibold">
+                      In Progress
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
-
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
-              <div className="grid grid-cols-[1fr_90px] px-3 py-2 border-b border-white/10 text-[10px] uppercase tracking-wider text-slate-500">
-                <div>Scope item</div>
-                <div>Status</div>
+            {/* Redline "gap caught" callout — the signature moment */}
+            <div className="mt-2 flex items-stretch gap-0 rounded-lg overflow-hidden border border-red-500/25 bg-red-500/[0.06]">
+              <div className="w-[2px] bg-red-500 shrink-0" />
+              <div className="px-3 py-1.5 font-mono text-[9px] leading-tight">
+                <span className="text-red-400 font-semibold uppercase tracking-wider">Gap caught</span>
+                <span className="text-slate-400"> · 2 addenda not confirmed · Phase 10</span>
               </div>
-              {[
-                ['TPO field membrane and insulation assembly', 'Included'],
-                ['Edge metal profile and finish confirmation', 'RFI'],
-                ['Overflow drain flashing detail', 'Included'],
-                ['Manufacturer warranty and inspection requirements', 'Qualified'],
-              ].map(([item, status]) => (
-                <div key={item} className="grid grid-cols-[1fr_90px] gap-3 px-3 py-2 border-b border-white/5 last:border-0 text-[11px]">
-                  <div className="text-slate-300">{item}</div>
-                  <div className={status === 'RFI' ? 'text-amber-300' : status === 'Qualified' ? 'text-sky-300' : 'text-emerald-300'}>{status}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2">
-              <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">Estimator flag</div>
-              <div className="text-[11px] text-slate-300 mt-1">Clarify edge metal finish before final submission; quote excludes custom color premium.</div>
             </div>
           </div>
         </div>
       </div>
+      {/* Floating badge */}
       <div className="absolute -right-3 -bottom-3 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg shadow-emerald-500/40 whitespace-nowrap">
-        Deliverables, not decoration
+        135 checks · 17 phases
       </div>
     </div>
   );
 }
 
+// ── 18-phase accordion data ──────────────────────────────────────────────────
+const PHASES = [
+  { num: '01', name: 'Project Setup', items: ['Confirm project scope and contract type', 'Document project address and contacts', 'Verify bid date and submission requirements', 'Set up folder structure in BidShield'] },
+  { num: '02', name: 'Document Receipt', items: ['Confirm full plan set received', 'Log spec book and addenda list', 'Verify project scope sheet', 'Note any missing documents'] },
+  { num: '03', name: 'Architectural Review', items: ['Review roof plan for scope boundaries', 'Confirm drain locations and roof slopes', 'Check parapet heights and details', 'Note penetrations and curb counts'] },
+  { num: '04', name: 'Structural Review', items: ['Review structural drawings for deck type', 'Identify steel joist vs concrete deck zones', 'Check for existing insulation notes', 'Confirm structural blocking requirements'] },
+  { num: '05', name: 'Mechanical Review', items: ['Count mechanical curbs and equipment', 'Verify curb heights vs spec requirements', 'Check equipment support dunnage', 'Confirm screened enclosure scope'] },
+  { num: '06', name: 'Plumbing Review', items: ['Count roof drains and overflow drains', 'Verify interior drain connection scope', 'Check area drain locations', 'Confirm sump pan requirements'] },
+  { num: '07', name: 'Electrical Review', items: ['Identify conduit penetrations', 'Note electrical equipment pads on roof', 'Check lightning protection scope', 'Verify solar prep requirements'] },
+  { num: '08', name: 'Civil/Site/DOT Review', items: ['Review site access restrictions', 'Note crane pad or staging area limits', 'Check DOT lane closure requirements', 'Confirm laydown zone availability'] },
+  { num: '09', name: 'Specification Review', items: ['Review Division 07 spec sections', 'Confirm submittal and mock-up requirements', 'Check special inspection requirements', 'Note warranty requirements and exclusions'] },
+  { num: '10', name: 'Addenda Review', items: ['Log all addenda received', 'Review each addendum for scope changes', 'Confirm pricing impacts are incorporated', 'Mark all addenda as confirmed'] },
+  { num: '11', name: 'Takeoff — Areas', items: ['Measure all roof field areas by zone', 'Calculate insulation area separately', 'Verify total area against plan dimensions', 'Note area overlaps or exclusions'] },
+  { num: '12', name: 'Takeoff — Linear', items: ['Measure perimeter linear feet', 'Count fascia and gutter linear footage', 'Measure expansion joint linear footage', 'Verify edge metal types and quantities'] },
+  { num: '13', name: 'Takeoff — Counts', items: ['Count all penetration flashings', 'Tally drain flashings and covers', 'Count access hatches and skylights', 'Verify misc item counts vs plan'] },
+  { num: '14', name: 'Pricing — Materials', items: ['Enter material quantities from takeoff', 'Upload supplier quotes for AI extraction', 'Reconcile material prices vs quotes', 'Flag any pricing discrepancies'] },
+  { num: '15', name: 'Pricing — Labor', items: ['Enter labor hours by phase', 'Run AI scope analysis for labor check', 'Verify labor burden and payroll taxes', 'Confirm subcontractor labor scope'] },
+  { num: '16', name: 'Subcontractor Scope', items: ['Document sub scope inclusions', 'Confirm exclusions and by-others items', 'Verify sub pricing is locked', 'Log any sub clarifications needed'] },
+  { num: '17', name: 'Pre-Submission', items: ['Run full bid summary validation', 'Check $/SF against benchmarks', 'Confirm all qualifications are written', 'Verify alternates and unit prices'] },
+  { num: '18', name: 'Bid Submission', items: ['Confirm GC bid form is complete', 'Attach all required exhibits', 'Submit before deadline with confirmation', 'Log bid result and feedback'] },
+];
+
+function PhaseList() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <div className="grid md:grid-cols-2 gap-2">
+      {PHASES.map((p, i) => {
+        const isOpen = open === i;
+        return (
+          <div
+            key={p.num}
+            className={`rounded-xl border transition-all duration-200 ${
+              isOpen ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/5 hover:border-white/10'
+            }`}
+            style={{ background: isOpen ? undefined : 'rgba(255,255,255,0.02)' }}
+          >
+            <button
+              onClick={() => setOpen(isOpen ? null : i)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset rounded-xl"
+            >
+              <span className="text-[10px] font-bold text-emerald-500 font-mono w-5 shrink-0">{p.num}</span>
+              <span className={`text-sm font-medium flex-1 ${isOpen ? 'text-emerald-300' : 'text-slate-300'}`}>
+                {p.name}
+              </span>
+              <svg
+                className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-emerald-400' : 'text-slate-600'}`}
+                fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+            <div
+              className="overflow-hidden transition-all duration-200 ease-out"
+              style={{ maxHeight: isOpen ? '180px' : '0', opacity: isOpen ? 1 : 0 }}
+            >
+              <ul className="px-4 pb-3 space-y-1.5">
+                {p.items.map(item => (
+                  <li key={item} className="flex items-start gap-2 text-xs text-slate-400">
+                    <svg className="w-3 h-3 mt-0.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Feature cards ────────────────────────────────────────────────────────────
+const FEATURES = [
+  {
+    tag: 'Phase 05 — Mechanical Review',
+    title: 'Mechanical Plan Review',
+    body: 'Every curb, equipment support, and dunnage verified against the plan set before takeoff. Quantities reconciled phase-by-phase, not at submission.',
+    stat: '18',
+    statLabel: 'phases covered start to finish',
+  },
+  {
+    tag: 'Phase 10 — Addenda Review',
+    title: 'Addenda Tracking',
+    body: 'Every addendum logged, reviewed for scope impact, and confirmed incorporated before submission. No addendum slips through unreviewed.',
+    stat: '100%',
+    statLabel: 'addenda accountability',
+  },
+  {
+    tag: 'Phase 09 — Specification Review',
+    title: 'Specification Review',
+    body: 'Spec sections reviewed for submittal requirements, special inspections, and compliance items that affect your scope and final cost.',
+    stat: '135',
+    statLabel: 'checklist items',
+  },
+];
+
+// ── Testimonials ─────────────────────────────────────────────────────────────
+const TESTIMONIALS = [
+  {
+    initials: 'MR',
+    name: 'Mike R.',
+    role: 'Project Estimator',
+    company: 'Summit Roofing, Denver',
+    quote: '"Finally a tool that matches how I actually run bids. The phase-by-phase checklist catches everything I used to track on sticky notes. Haven\'t missed a line item since."',
+  },
+  {
+    initials: 'JT',
+    name: 'Jason T.',
+    role: 'Senior Estimator',
+    company: 'Apex Commercial Roofing, Houston',
+    quote: '"Material Reconciliation alone is worth the subscription. I caught a $14k discrepancy on a TPO re-roof before it hit the GC\'s desk. That\'s real money saved on one job."',
+  },
+  {
+    initials: 'DL',
+    name: 'Dana L.',
+    role: 'Estimating Manager',
+    company: 'Ridgeline Contractors, Atlanta',
+    quote: '"I run every bid through BidShield now. The pre-submission validator flags things I\'d never catch under deadline pressure. It\'s the QA process I always needed."',
+  },
+];
+
+// ── Main component ───────────────────────────────────────────────────────────
 export default function HomepageContent() {
   return (
     <>
+      {/* Distinctive typography: Barlow Condensed (industrial display) + DM Sans (clean body) */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
         .bs-display { font-family: 'Barlow Condensed', system-ui, sans-serif; letter-spacing: -0.01em; }
@@ -211,44 +295,96 @@ export default function HomepageContent() {
         .bs-mono { font-family: 'IBM Plex Mono', 'Fira Code', 'Courier New', monospace; }
       `}</style>
 
-      <main className="min-h-screen bs-body bg-slate-950 text-white">
-        <section className="relative overflow-hidden bg-slate-950">
+      <main className="min-h-screen bs-body">
+
+        {/* ─────────────────────────────────────────────────────────── */}
+        {/*  HERO — 2-column with app mockup                           */}
+        {/* ─────────────────────────────────────────────────────────── */}
+        <section className="relative bg-slate-950 text-white overflow-hidden">
+          {/* Blueprint drafting backdrop — the signature motif (bold) */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.12)_1px,transparent_1px)] bg-[size:120px_120px]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_30%,rgba(16,185,129,0.16)_0%,rgba(2,6,23,0.2)_38%,rgba(2,6,23,0.95)_78%)]" />
+            {/* Coarse drafting grid (blueprint blue) — full strength */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,.16)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.16)_1px,transparent_1px)] bg-[size:120px_120px]" />
+            {/* Fine sub-grid */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,.06)_1px,transparent_1px)] bg-[size:24px_24px]" />
+            {/* Soft vignette so copy stays legible, grid still visible */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,transparent_0%,rgba(2,6,23,0.55)_70%)]" />
+
+            {/* Dimension annotation — top measurement run with end ticks */}
+            <div className="absolute top-10 left-8 right-8 hidden md:flex items-center gap-2 text-sky-400/50">
+              <span className="h-2.5 w-px bg-sky-400/50" />
+              <span className="flex-1 h-px bg-sky-400/30" />
+              <span className="bs-mono text-[10px] tracking-widest text-sky-400/70 px-2">42,800 SF · FIELD AREA</span>
+              <span className="flex-1 h-px bg-sky-400/30" />
+              <span className="h-2.5 w-px bg-sky-400/50" />
+            </div>
+
+            {/* Draftsman title block — bottom-right corner */}
+            <div className="absolute bottom-6 right-6 hidden lg:block bs-mono text-[10px] leading-tight text-sky-300/60 border border-sky-400/25 rounded-sm overflow-hidden">
+              <div className="px-3 py-1 border-b border-sky-400/20 bg-sky-400/[0.04] text-sky-300/80 tracking-widest">DWG&nbsp;·&nbsp;BID-QA-18</div>
+              <div className="grid grid-cols-2 divide-x divide-sky-400/20">
+                <div className="px-3 py-1">SCALE&nbsp;1:1</div>
+                <div className="px-3 py-1">REV&nbsp;C</div>
+              </div>
+            </div>
+
+            {/* Top edge line */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
+            {/* Left glow */}
+            <div className="absolute top-1/4 -left-32 w-[600px] h-[600px] bg-emerald-700/8 rounded-full blur-[120px]" />
           </div>
 
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
             <div className="grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+
+              {/* Left — copy */}
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs text-slate-300 mb-8">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Commercial roofing estimating support for bid-critical projects
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs text-slate-400 mb-8">
+                  <span className="relative flex h-1.5 w-1.5 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                  </span>
+                  Now Open · Free Trial · Commercial Roofing Estimators
                 </div>
 
-                <h1 className="bs-display text-pretty text-[clamp(3.4rem,8vw,5.7rem)] font-bold uppercase leading-[0.9] mb-6">
-                  Trust the Bid
+                {/* Headline — Barlow Condensed */}
+                <h1 className="bs-display text-pretty text-[clamp(3.5rem,8vw,5.5rem)] font-bold uppercase leading-[0.9] mb-6">
+                  Submit Every Bid
                   <br />
-                  <span className="text-emerald-400">Before It Goes Out.</span>
+                  <span className="text-emerald-400">
+                    With Confidence.
+                  </span>
                 </h1>
 
-                <p className="text-lg text-slate-300 mb-8 max-w-xl leading-relaxed">
-                  MC2Estimating operates like an outsourced estimating department for commercial contractors: document control, roofing takeoff, quote leveling, scope review, qualifications, and bid-day QA in one accountable file.
+                <p className="text-lg text-slate-300 mb-8 max-w-lg leading-relaxed">
+                  BidShield is the last thing you do before a bid goes out. AI-powered scope verification, addenda tracking, and a systematic preflight checklist, so nothing gets missed on deadline day.
                 </p>
 
-                <div className="mb-4 max-w-md">
-                  <EmailCapture source="homepage_bid_support" placeholder="work@email.com" buttonText="Request Bid Support" />
+                {/* Waitlist email capture */}
+                <div className="mb-4">
+                  <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
                 </div>
-                <p className="text-xs text-slate-500 mb-10">Send the project. Get back estimating artifacts your team can review.</p>
+                <p className="text-xs text-slate-500 mb-10">No credit card. No commitments. Start free today.</p>
 
-                <div className="grid grid-cols-3 gap-0 pt-8 mt-10 border-t border-white/10">
+                <Link
+                  href="/bidshield/demo"
+                  className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                  </svg>
+                  See the live demo first
+                </Link>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-0 pt-8 mt-10 border-t border-white/5">
                   {[
-                    { n: '5', label: 'department checkpoints' },
-                    { n: '6', label: 'bid artifacts delivered' },
-                    { n: '1', label: 'reviewable bid file' },
+                    { n: '5', label: 'Preflight Phases' },
+                    { n: '95+', label: 'Checklist Items' },
+                    { n: '12yr', label: 'Field Experience' },
                   ].map(({ n, label }, i) => (
-                    <div key={label} className={`${i > 0 ? 'pl-5 border-l border-white/10 ml-5' : ''}`}>
+                    <div key={label} className={`${i > 0 ? 'pl-6 border-l border-white/5 ml-6' : ''}`}>
                       <div className="bs-display text-4xl sm:text-5xl font-bold text-white leading-none">{n}</div>
                       <div className="text-xs text-slate-500 mt-1.5">{label}</div>
                     </div>
@@ -256,130 +392,42 @@ export default function HomepageContent() {
                 </div>
               </div>
 
+              {/* Right — app mockup */}
               <div className="hidden lg:block">
-                <BidFileMockup />
+                <HeroMockup />
               </div>
             </div>
           </div>
         </section>
 
+        {/* ─────────────────────────────────────────────────────────── */}
+        {/*  WHAT BIDSHIELD COVERS — Feature cards                     */}
+        {/* ─────────────────────────────────────────────────────────── */}
         <section className="py-24 bg-slate-900 border-t border-slate-800">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Reveal className="mb-14">
-              <h2 className="bs-display text-5xl sm:text-6xl font-bold uppercase mb-4">
-                Built for the People Who <span className="text-emerald-400">Approve the Bid</span>
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Reveal className="mb-16">
+              <h2 className="bs-display text-5xl sm:text-6xl font-bold text-white uppercase mb-4">
+                What BidShield{' '}
+                <span className="text-emerald-400">Covers</span>
               </h2>
-              <p className="text-lg text-slate-400 max-w-3xl">
-                Every section of the process answers one question: what evidence proves MC2Estimating can estimate this project successfully?
-              </p>
-            </Reveal>
-
-            <div className="grid lg:grid-cols-5 gap-4">
-              {ROLE_PROOF.map((item, i) => (
-                <Reveal key={item.role} delay={i * 50}>
-                  <div className="h-full rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bs-mono mb-3">{item.role}</div>
-                    <h3 className="text-sm font-semibold text-white leading-snug mb-3">{item.question}</h3>
-                    <p className="text-sm text-slate-400 leading-relaxed">{item.proof}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-24 bg-slate-950 border-t border-slate-800">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-14 items-start">
-              <Reveal>
-                <h2 className="bs-display text-5xl sm:text-6xl font-bold uppercase mb-4">
-                  What You Receive <span className="text-emerald-400">Back</span>
-                </h2>
-                <p className="text-lg text-slate-400 leading-relaxed mb-8">
-                  Not a pretty dashboard. Not a generic promise. A bid package with the files, notes, and checks a contractor needs to make a submission decision.
-                </p>
-                <Link href="/support" className="inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 font-medium">
-                  Ask what to send for a project review
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                </Link>
-              </Reveal>
-
-              <Reveal delay={80}>
-                <div className="rounded-2xl border border-slate-800 bg-slate-900 overflow-hidden">
-                  {DELIVERABLES.map((item, i) => (
-                    <div key={item} className="flex gap-4 p-5 border-b border-slate-800 last:border-0">
-                      <div className="w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 flex items-center justify-center text-xs font-bold bs-mono shrink-0">{i + 1}</div>
-                      <div className="text-slate-300 leading-relaxed">{item}</div>
-                    </div>
-                  ))}
-                </div>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-24 bg-slate-900 border-t border-slate-800">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Reveal className="mb-14">
-              <h2 className="bs-display text-5xl sm:text-6xl font-bold uppercase mb-4">
-                How MC2Estimating Works Like a <span className="text-emerald-400">Department</span>
-              </h2>
-              <p className="text-lg text-slate-400 max-w-3xl">
-                A takeoff service measures quantities. An estimating department controls the bid file, challenges missing scope, reconciles quotes, and prepares the proposal for review.
-              </p>
-            </Reveal>
-
-            <div className="space-y-4">
-              {DEPARTMENT_STEPS.map((step, i) => (
-                <Reveal key={step.step} delay={i * 50}>
-                  <div className="grid md:grid-cols-[80px_1fr_260px] gap-5 items-start rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                    <div className="bs-display text-4xl text-emerald-400 font-bold leading-none">{step.step}</div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
-                      <p className="text-slate-400 leading-relaxed">{step.body}</p>
-                    </div>
-                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
-                      <div className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold bs-mono mb-1">artifact</div>
-                      <div className="text-sm text-slate-200">{step.artifact}</div>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-24 bg-slate-950 border-t border-slate-800">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Reveal className="mb-14 text-center">
-              <h2 className="bs-display text-5xl sm:text-6xl font-bold uppercase mb-4">
-                Proof Beats <span className="text-emerald-400">Claims</span>
-              </h2>
-              <p className="text-lg text-slate-400 max-w-3xl mx-auto">
-                The site should not ask contractors to admire the design. It should show the working papers behind a responsible bid.
+              <p className="text-lg text-slate-400 max-w-2xl">
+                The bid QA tool that catches scope gaps and roofing takeoff mistakes before they reach the GC. 17 phases, every discipline, every item.
               </p>
             </Reveal>
 
             <div className="grid md:grid-cols-3 gap-5">
-              {ARTIFACTS.map((artifact, i) => (
-                <Reveal key={artifact.title} delay={i * 60}>
-                  <div className="h-full rounded-2xl border border-slate-800 bg-slate-900 p-6">
-                    <div className="h-36 rounded-xl border border-slate-700 bg-slate-950 mb-5 p-4 overflow-hidden">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-widest bs-mono mb-3">{artifact.title}</div>
-                      <div className="space-y-2">
-                        <div className="h-2 rounded bg-emerald-500/40 w-11/12" />
-                        <div className="h-2 rounded bg-slate-700 w-9/12" />
-                        <div className="h-2 rounded bg-slate-700 w-10/12" />
-                        <div className="h-2 rounded bg-amber-400/50 w-7/12" />
-                        <div className="grid grid-cols-3 gap-2 pt-3">
-                          <div className="h-10 rounded border border-slate-700" />
-                          <div className="h-10 rounded border border-emerald-500/30" />
-                          <div className="h-10 rounded border border-slate-700" />
-                        </div>
-                      </div>
+              {FEATURES.map((f, i) => (
+                <Reveal key={f.title} delay={i * 60}>
+                  <div className="group relative bg-slate-950 rounded-2xl p-6 border border-slate-800 hover:border-emerald-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-emerald-950/50 overflow-hidden flex flex-col h-full">
+                    {/* Left accent line */}
+                    <div className="absolute left-0 top-6 bottom-6 w-[3px] bg-emerald-500/30 rounded-r-full group-hover:bg-emerald-400 transition-colors duration-200" />
+                    <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4 bs-mono">{f.tag}</div>
+                    <h3 className="bs-display text-2xl font-bold text-white uppercase mb-3">{f.title}</h3>
+                    <p className="text-sm text-slate-400 leading-relaxed flex-1 mb-5">{f.body}</p>
+                    <div className="flex items-baseline gap-2 pt-4 border-t border-slate-800">
+                      <span className="bs-display text-4xl font-bold text-emerald-400">{f.stat}</span>
+                      <span className="text-xs text-slate-500">{f.statLabel}</span>
                     </div>
-                    <h3 className="bs-display text-2xl font-bold uppercase mb-3">{artifact.title}</h3>
-                    <p className="text-sm text-slate-400 leading-relaxed">{artifact.detail}</p>
                   </div>
                 </Reveal>
               ))}
@@ -387,25 +435,164 @@ export default function HomepageContent() {
           </div>
         </section>
 
+        {/* ─────────────────────────────────────────────────────────── */}
+        {/*  18-PHASE CHECKLIST — Interactive accordion                */}
+        {/* ─────────────────────────────────────────────────────────── */}
+        <section className="py-24 bg-slate-900 border-t border-slate-800">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Reveal className="mb-12">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                  <h2 className="bs-display text-5xl sm:text-6xl font-bold text-white uppercase mb-3">
+                    The 18-Phase{' '}
+                    <span className="text-emerald-400">Bid Checklist</span>
+                  </h2>
+                  <p className="text-lg text-slate-400 max-w-2xl">
+                    From project setup to bid submission. Click any phase to see what's covered.
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="bs-display text-3xl font-bold text-emerald-400">135</div>
+                  <div className="text-xs text-slate-500 mt-0.5">total checklist items</div>
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={60}>
+              <PhaseList />
+            </Reveal>
+            <Reveal delay={100} className="mt-8 text-center">
+              <Link
+                href="/bidshield/pricing"
+                className="inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
+              >
+                See the full 135-item checklist on the pricing page
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────── */}
+        {/*  TESTIMONIALS                                              */}
+        {/* ─────────────────────────────────────────────────────────── */}
+        <section className="py-24 bg-slate-950 border-t border-slate-800">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Reveal className="mb-12">
+              <h2 className="bs-display text-5xl sm:text-6xl font-bold text-white uppercase mb-4">
+                Real Estimators. <span className="text-emerald-400">Real Results.</span>
+              </h2>
+              <p className="text-lg text-slate-400">Commercial roofing estimators running BidShield on live bids.</p>
+            </Reveal>
+
+            <div className="grid md:grid-cols-3 gap-5">
+              {TESTIMONIALS.map((t, i) => (
+                <Reveal key={t.name} delay={i * 60}>
+                  <div className="flex flex-col h-full bg-slate-900 rounded-2xl p-6 border border-slate-800 hover:border-emerald-500/20 hover:shadow-lg hover:shadow-slate-950/50 transition-all duration-200">
+                    {/* Stars */}
+                    <div className="flex gap-1 mb-5">
+                      {[...Array(5)].map((_, j) => (
+                        <svg key={j} className="w-4 h-4 text-emerald-400 fill-current" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <p className="text-slate-300 text-sm leading-relaxed flex-1 mb-6">{t.quote}</p>
+                    {/* Attribution */}
+                    <div className="flex items-center gap-3 pt-4 border-t border-slate-800">
+                      <div className="w-9 h-9 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-bold bs-mono shrink-0">
+                        {t.initials}
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-white">{t.name}, {t.role}</div>
+                        <div className="text-xs text-slate-500">{t.company}</div>
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────── */}
+        {/*  PRICING CTA — link to pricing page                        */}
+        {/* ─────────────────────────────────────────────────────────── */}
         <section className="py-24 bg-slate-900 border-t border-slate-800">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <Reveal>
-              <div className="rounded-2xl border border-slate-700 p-10 sm:p-14 bg-slate-950">
-                <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest bs-mono mb-4">Bid support request</div>
-                <h2 className="bs-display text-5xl font-bold uppercase mb-4">
-                  Send the Project. <span className="text-emerald-400">Review the Evidence.</span>
+              <div className="rounded-2xl border border-slate-700 p-10 sm:p-14" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #0a1628 100%)' }}>
+                <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest bs-mono mb-4">Free Trial</div>
+                <h2 className="bs-display text-5xl font-bold text-white uppercase mb-4">
+                  Join the <span className="text-emerald-400">Waitlist.</span>
+                  <br />Shape the Product.
                 </h2>
-                <p className="text-lg text-slate-400 mb-8 max-w-2xl">
-                  If MC2Estimating is going to help with your bid, the output should be inspectable by a chief estimator, usable by a PM, clear to a GC, and disciplined enough for preconstruction review.
+                <p className="text-lg text-slate-400 mb-8 max-w-xl">
+                  We&apos;re inviting a small group of commercial roofing estimators to help shape BidShield before public launch. Early access is free.
                 </p>
-                <div className="max-w-md">
-                  <EmailCapture source="homepage_final_cta" placeholder="work@email.com" buttonText="Request Bid Support" />
-                </div>
-                <p className="text-xs text-slate-500 mt-4">Tell us what you are bidding and what documents are available.</p>
+                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
               </div>
             </Reveal>
           </div>
         </section>
+
+        {/* ─────────────────────────────────────────────────────────── */}
+        {/*  EMAIL CAPTURE                                             */}
+        {/* ─────────────────────────────────────────────────────────── */}
+        <section className="py-20 bg-slate-950 border-t border-slate-800">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <Reveal>
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
+                <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" />
+                </svg>
+              </div>
+              <h2 className="bs-display text-4xl font-bold text-white uppercase mb-3">
+                Start Free Trial
+              </h2>
+              <p className="text-slate-400 mb-8 max-w-xl mx-auto">
+                Be first in line when BidShield opens. We&apos;re working with a small group of estimators before public launch — if that&apos;s you, request your spot.
+              </p>
+              <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────── */}
+        {/*  FINAL CTA — atmospheric dark section                      */}
+        {/* ─────────────────────────────────────────────────────────── */}
+        <section
+          className="relative py-28 overflow-hidden border-t border-slate-800"
+          style={{ background: 'linear-gradient(160deg, #050a07 0%, #071a12 50%, #0a0f0a 100%)' }}
+        >
+          <div className="absolute inset-0 pointer-events-none">
+            {/* Grid */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.014)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.014)_1px,transparent_1px)] bg-[size:48px_48px]" />
+            {/* Top line */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+            {/* Center glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-emerald-600/6 rounded-full blur-[100px]" />
+          </div>
+          <div className="relative max-w-3xl mx-auto px-4 text-center">
+            <Reveal>
+              <h2 className="bs-display text-[clamp(3rem,8vw,5.5rem)] font-bold text-white uppercase leading-[0.9] mb-6">
+                Submit Every Bid{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                  With Confidence.
+                </span>
+              </h2>
+              <p className="text-lg text-slate-300 mb-10 max-w-xl mx-auto">
+                Scope gaps, missed addenda, unresolved RFIs — BidShield catches them before your number goes out the door. Try BidShield free — no credit card required.
+              </p>
+              <div className="max-w-md mx-auto">
+                <EmailCapture source="waitlist" placeholder="your@email.com" buttonText="Start Free Trial" />
+              </div>
+              <p className="text-xs mt-4" style={{ color: "#4A5A70" }}>No credit card · No commitments · Early access is free</p>
+            </Reveal>
+          </div>
+        </section>
+
       </main>
     </>
   );
