@@ -13,21 +13,107 @@ export interface ScoreItem {
   tabLink?: string;
 }
 
+// Domain shapes read by the scorer. All fields are optional — the scorer
+// runs against two different sources (live Convex data + PDF-export
+// serialized state) and some fields may be missing from either. Extra
+// fields on caller objects are accepted (excess property checks only
+// fire on object literals; the scorer never constructs these externally).
+
+export interface BidScoreProject {
+  trade?: string;
+  systemType?: string;
+  deckType?: string;
+  bidDate?: string;
+  totalBidAmount?: number;
+  materialCost?: number;
+  laborCost?: number;
+  gc?: string;
+  sqft?: number;
+  noAddendaAcknowledged?: boolean;
+}
+
+export interface BidScoreChecklistItem {
+  status?: string;
+  phaseKey?: string;
+  itemId?: string;
+}
+
+export interface BidScoreQuote {
+  _id?: string;
+  status?: string;
+  expirationDate?: string;
+}
+
+export interface BidScoreRFI {
+  status?: string;
+}
+
+export interface BidScoreAddendum {
+  number?: number;
+  reviewStatus?: string;
+  affectsScope?: boolean | null;
+  repriced?: boolean;
+}
+
+export interface BidScoreBidQuals {
+  plansDated?: string | boolean;
+  laborType?: string;
+  insuranceProgram?: string;
+  estimatedDuration?: string | number;
+}
+
+export interface BidScoreGCItem {
+  isMarkup?: boolean;
+  total?: number;
+}
+
+export interface BidScoreProjectMaterial {
+  name?: string;
+  category?: string;
+  totalCost?: number;
+  calcType?: string;
+  coverageRate?: string; // Convex schema: free-form e.g. "100 SF/RL"
+  coverageSource?: string;
+  wasteFactor?: number;
+  unitPrice?: number;
+  quoteId?: string;
+}
+
+export interface BidScoreDatasheet {
+  productName?: string;
+}
+
+export interface BidScoreLaborTask {
+  verified?: boolean;
+  name?: string;
+  hours?: number;
+}
+
+export interface BidScoreLaborAnalysis {
+  scheduleConflict?: boolean;
+}
+
+export interface BidScoreScopeItem {
+  status?: string;
+  name?: string;
+  category?: string;
+}
+
 export interface BidScoreInput {
   isDemo: boolean;
-  project?: any | null;
-  checklist?: any[] | null;
-  scopeItems?: any[] | null;
-  quotes?: any[] | null;
-  rfis?: any[] | null;
-  addenda?: any[] | null;
-  bidQuals?: any | null;
-  gcItems?: any[] | null;
-  projectMaterials?: any[] | null;
-  datasheets?: any[] | null;
-  laborTasks?: any[] | null;
-  laborAnalysis?: any | null;
-  gcFormDocuments?: any[] | null;
+  project?: BidScoreProject | null;
+  checklist?: BidScoreChecklistItem[] | null;
+  scopeItems?: BidScoreScopeItem[] | null;
+  quotes?: BidScoreQuote[] | null;
+  rfis?: BidScoreRFI[] | null;
+  addenda?: BidScoreAddendum[] | null;
+  bidQuals?: BidScoreBidQuals | null;
+  gcItems?: BidScoreGCItem[] | null;
+  projectMaterials?: BidScoreProjectMaterial[] | null;
+  datasheets?: BidScoreDatasheet[] | null;
+  laborTasks?: BidScoreLaborTask[] | null;
+  laborAnalysis?: BidScoreLaborAnalysis | null;
+  gcFormDocuments?: unknown[] | null;
   unconfirmedGcFormCount?: number | null;
   projectSpecs?: any[] | null;
   takeoffSections?: any[] | null;
