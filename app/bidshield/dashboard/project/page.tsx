@@ -95,10 +95,6 @@ function ProjectDetail() {
   const isValidConvexId = projectIdParam && !projectIdParam.startsWith("demo_");
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [dismissedWarnings, setDismissedWarnings] = useState<Set<string>>(new Set());
-  useEffect(() => {
-    const id = setInterval(() => setNowMs(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
   const [decisionModalOpen, setDecisionModalOpen] = useState(false);
   const [decisionText, setDecisionText] = useState("");
   const [decisionWho, setDecisionWho] = useState("");
@@ -359,6 +355,29 @@ function ProjectDetail() {
     }
     return new Date(`${projectData.bidDate}T23:59:59`).getTime();
   }, [projectData]);
+
+  // Adaptive tick: 30s when >1h from deadline (countdown shows Xh Ym precision),
+  // 1s when <1h (MM:SS display needs seconds). No interval at all when there's
+  // no deadline. Avoids re-rendering this 800-LOC component every second.
+  useEffect(() => {
+    if (bidDeadlineMs === null) return;
+    let id: ReturnType<typeof setInterval> | undefined;
+    const schedule = () => {
+      const msLeft = bidDeadlineMs - Date.now();
+      const intervalMs = msLeft > 3_600_000 ? 30_000 : 1_000;
+      id = setInterval(() => {
+        setNowMs(Date.now());
+        const newMsLeft = bidDeadlineMs - Date.now();
+        const newIntervalMs = newMsLeft > 3_600_000 ? 30_000 : 1_000;
+        if (newIntervalMs !== intervalMs) {
+          if (id) clearInterval(id);
+          schedule();
+        }
+      }, intervalMs);
+    };
+    schedule();
+    return () => { if (id) clearInterval(id); };
+  }, [bidDeadlineMs]);
 
   if (!projectIdParam) return <div className="text-center py-20"><p style={{ color: "var(--bs-text-muted)" }}>No project selected.</p></div>;
   if (!isDemo && !projectData) return <div className="text-center py-20"><div style={{ color: "var(--bs-text-dim)", fontSize: "0.875rem" }}>Loading...</div></div>;
