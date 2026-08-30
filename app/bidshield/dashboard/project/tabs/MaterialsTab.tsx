@@ -18,6 +18,16 @@ import {
   type MaterialTemplate,
 } from "@/lib/bidshield/material-templates";
 import { getQuoteFreshness } from "@/lib/bidshield/quote-status";
+import {
+  WASTE_REQUIRED_CATS,
+  COVERAGE_RANGES,
+  extractNumericTokens,
+  getProductFamily,
+  findBestQuoteMatch,
+  findBestMatchAcrossAllQuotes,
+  isStaleQuote,
+  datasheetCategoryToMaterial,
+} from "@/lib/bidshield/materials-helpers";
 
 // Demo material data for Meridian Business Park (TPO 60mil, 68,000 SF)
 const DEMO_MATERIALS = [
@@ -48,117 +58,6 @@ const DEMO_TAKEOFF_LINE_ITEMS = [
   { itemType: "pitch_pan", quantity: 6 },
 ];
 
-// Categories where 0% waste is always a problem
-const WASTE_REQUIRED_CATS = new Set(["membrane", "insulation", "fasteners"]);
-
-// Known coverage ranges per category for validation
-const COVERAGE_RANGES: Record<string, { min: number; max: number; unit: string }> = {
-  "tpo": { min: 100, max: 2000, unit: "SF/RL" },
-  "epdm": { min: 100, max: 2000, unit: "SF/RL" },
-  "pvc": { min: 100, max: 2000, unit: "SF/RL" },
-  "membrane": { min: 30, max: 2000, unit: "SF" },
-  "insulation": { min: 16, max: 64, unit: "SF/BD" },
-  "adhesive": { min: 50, max: 500, unit: "SF/GL" },
-  "fasteners": { min: 100, max: 1000, unit: "EA/BX" },
-};
-
-// Numeric tokens that must all appear in a match (e.g. "20", "2.5", "60mil", "4x8")
-function extractNumericTokens(s: string): string[] {
-  return (s.match(/\d+\.?\d*(?:['"×xmil]+)?/gi) ?? []).map(t => t.toLowerCase());
-}
-
-// Product family groups — cross-family matches are rejected
-const PRODUCT_FAMILIES: string[][] = [
-  ["cap sheet", "cap ply", "granulated", "torch cap"],
-  ["base sheet", "base ply", "base coat", "torch base"],
-  ["coverboard", "cover board", "densdeck", "dens deck", "gypsum board"],
-  ["fastener", "screw", "plate", "nail", "clip"],
-  ["adhesive", "bonding", "primer", "cement", "sealant", "caulk", "mastic"],
-  ["flashing", "counterflashing", "coping", "drip edge", "gravel stop", "reglet"],
-];
-
-function getProductFamily(s: string): number {
-  const lower = s.toLowerCase();
-  for (let i = 0; i < PRODUCT_FAMILIES.length; i++) {
-    if (PRODUCT_FAMILIES[i].some(k => lower.includes(k))) return i;
-  }
-  return -1;
-}
-
-// Match a material name against quote line items with strict confidence rules
-function findBestQuoteMatch(
-  materialName: string,
-  lineItems: { m: string; u: string; p: number }[]
-): { item: { m: string; u: string; p: number }; confidence: number } | null {
-  if (!lineItems.length) return null;
-  const target = materialName.toLowerCase();
-  const targetNums = extractNumericTokens(target);
-  const targetFamily = getProductFamily(target);
-  const targetWords = target.split(/[\s,()\/]+/).filter(w => w.length > 2);
-
-  let best: { item: { m: string; u: string; p: number }; confidence: number } | null = null;
-
-  for (const li of lineItems) {
-    const candidate = li.m.toLowerCase();
-    const candidateNums = extractNumericTokens(candidate);
-    const candidateFamily = getProductFamily(candidate);
-
-    // Bidirectional numeric check: all target nums must be in candidate AND vice versa
-    if (targetNums.length > 0 && !targetNums.every(n => candidateNums.includes(n))) continue;
-    if (candidateNums.length > 0 && !candidateNums.every(n => targetNums.includes(n))) continue;
-
-    // No cross-family matching when both families are known
-    if (targetFamily !== -1 && candidateFamily !== -1 && targetFamily !== candidateFamily) continue;
-
-    const matched = targetWords.filter(w => candidate.includes(w));
-    const confidence = targetWords.length > 0 ? (matched.length / targetWords.length) * 100 : 0;
-
-    // Require at least 2 significant words matched
-    if (matched.length < 2) continue;
-
-    if (confidence > (best?.confidence ?? 0)) {
-      best = { item: li, confidence };
-    }
-  }
-
-  return best && best.confidence >= 65 ? best : null;
-}
-
-// Search across ALL project quotes and return the highest-confidence match
-function findBestMatchAcrossAllQuotes(
-  materialName: string,
-  allQuotes: any[]
-): { item: { m: string; u: string; p: number }; confidence: number; quoteName: string } | null {
-  let best: { item: { m: string; u: string; p: number }; confidence: number; quoteName: string } | null = null;
-  for (const q of allQuotes) {
-    const lineItems: { m: string; u: string; p: number }[] = (q.products ?? []).flatMap((s: string) => {
-      try { const p = JSON.parse(s); return p.p > 0 ? [p] : []; } catch { return []; }
-    });
-    const match = findBestQuoteMatch(materialName, lineItems);
-    if (match && (!best || match.confidence > best.confidence)) {
-      best = { ...match, quoteName: q.vendorName ?? "Quote" };
-    }
-  }
-  return best;
-}
-
-function isStaleQuote(quoteDate: string | undefined): boolean {
-  if (!quoteDate) return false;
-  return new Date(quoteDate) < new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-}
-
-// Map datasheet category to material category
-function datasheetCategoryToMaterial(cat: string): string {
-  const map: Record<string, string> = {
-    "TPO": "membrane", "PVC": "membrane", "EPDM": "membrane",
-    "Modified Bitumen": "membrane", "Built-Up Roofing": "membrane", "Spray Foam": "membrane", "Metal Roofing": "membrane",
-    "Insulation": "insulation", "Cover Board": "insulation",
-    "Fasteners": "fasteners",
-    "Adhesives": "adhesive",
-    "Sheet Metal": "sheet_metal",
-  };
-  return map[cat] || "accessories";
-}
 
 // ── Pricing flag ─────────────────────────────────────────────────────────────
 function PricingFlag({
